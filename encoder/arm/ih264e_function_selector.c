@@ -96,22 +96,33 @@
 *
 *******************************************************************************
 */
-#ifdef ARMV8
 void ih264e_init_function_ptr(void *pv_codec)
 {
     codec_t *ps_codec = (codec_t *)pv_codec;
     ih264e_init_function_ptr_generic(ps_codec);
     switch(ps_codec->s_cfg.e_arch)
     {
-        case ARCH_ARM_NONEON:
-            break;
+#if defined(ARMV8)
         case ARCH_ARM_A53:
         case ARCH_ARM_A57:
         case ARCH_ARM_V8_NEON:
-            ih264e_init_function_ptr_neon_av8(ps_codec);
-            break;
         default:
             ih264e_init_function_ptr_neon_av8(ps_codec);
+            break;
+#elif !defined(DISABLE_NEON)
+        case ARCH_ARM_A9Q:
+        case ARCH_ARM_A9A:
+        case ARCH_ARM_A9:
+        case ARCH_ARM_A7:
+        case ARCH_ARM_A5:
+        case ARCH_ARM_A15:
+        default:
+            ih264e_init_function_ptr_neon_a9q(ps_codec);
+            break;
+#else
+        default:
+#endif
+        case ARCH_ARM_NONEON:
             break;
     }
 }
@@ -135,36 +146,11 @@ void ih264e_init_function_ptr(void *pv_codec)
 */
 IV_ARCH_T ih264e_default_arch(void)
 {
+#if defined(ARMV8)
     return ARCH_ARM_V8_NEON;
-}
-
-#else
-
-void ih264e_init_function_ptr(void *pv_codec)
-{
-    codec_t *ps_codec = (codec_t *)pv_codec;
-    ih264e_init_function_ptr_generic(ps_codec);
-    switch(ps_codec->s_cfg.e_arch)
-    {
-        case ARCH_ARM_NONEON:
-              break;
-        case ARCH_ARM_A9Q:
-        case ARCH_ARM_A9A:
-        case ARCH_ARM_A9:
-        case ARCH_ARM_A7:
-        case ARCH_ARM_A5:
-        case ARCH_ARM_A15:
-            ih264e_init_function_ptr_neon_a9q(ps_codec);
-            break;
-        default:
-            ih264e_init_function_ptr_neon_a9q(ps_codec);
-            break;
-    }
-}
-
-IV_ARCH_T ih264e_default_arch(void)
-{
+#elif !defined(DISABLE_NEON)
     return ARCH_ARM_A9Q;
-}
-
+#else
+    return ARCH_ARM_NONEON;
 #endif
+}

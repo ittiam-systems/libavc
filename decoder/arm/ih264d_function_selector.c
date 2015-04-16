@@ -61,24 +61,25 @@ void ih264d_init_function_ptr(dec_struct_t *ps_codec)
     ih264d_init_function_ptr_generic(ps_codec);
     switch(e_proc_arch)
     {
-        case ARCH_ARM_NONEON:
-            ih264d_init_function_ptr_generic(ps_codec);
+#if defined(ARMV8)
+        case ARCH_ARMV8_GENERIC:
+        default:
+            ih264d_init_function_ptr_av8(ps_codec);
             break;
-#ifndef ARMV8
+#elif !defined(DISABLE_NEON)
         case ARCH_ARM_A5:
         case ARCH_ARM_A7:
         case ARCH_ARM_A9:
         case ARCH_ARM_A15:
         case ARCH_ARM_A9Q:
         default:
-        ih264d_init_function_ptr_a9q(ps_codec);
+            ih264d_init_function_ptr_a9q(ps_codec);
             break;
-#else /* ARMV8 */
-        case ARCH_ARMV8_GENERIC:
+#else
         default:
-            ih264d_init_function_ptr_av8(ps_codec);
+#endif
+        case ARCH_ARM_NONEON:
             break;
-#endif /* ARMV8 */
     }
 }
 

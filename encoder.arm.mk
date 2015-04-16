@@ -25,7 +25,6 @@ libavce_srcs_asm_arm    +=  common/arm/ih264_inter_pred_luma_bilinear_a9q.s
 libavce_srcs_asm_arm    +=  common/arm/ih264_inter_pred_luma_copy_a9q.s
 libavce_srcs_asm_arm    +=  common/arm/ih264_padding_neon.s
 libavce_srcs_asm_arm    +=  common/arm/ih264_mem_fns_neon.s
-libavce_srcs_asm_arm    +=  common/arm/ih264_arm_memory_barrier.s
 
 libavce_srcs_asm_arm    +=  encoder/arm/ih264e_evaluate_intra16x16_modes_a9q.s
 libavce_srcs_asm_arm    +=  encoder/arm/ih264e_evaluate_intra4x4_modes_a9q.s
@@ -41,6 +40,8 @@ libavce_cflags_arm += -DDEFAULT_ARCH=D_ARCH_ARM_A9Q
 else #No Neon
 libavce_cflags_arm += -DDISABLE_NEON -DDEFAULT_ARCH=D_ARCH_ARM_NONEON
 endif #Neon check
+
+libavce_srcs_asm_arm    +=  common/arm/ih264_arm_memory_barrier.s
 
 LOCAL_SRC_FILES_arm += $(libavce_srcs_c_arm) $(libavce_srcs_asm_arm)
 LOCAL_C_INCLUDES_arm += $(libavce_inc_dir_arm)

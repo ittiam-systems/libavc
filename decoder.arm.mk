@@ -32,12 +32,13 @@ libavcd_srcs_asm_arm    +=  common/arm/ih264_padding_neon.s
 libavcd_srcs_asm_arm    +=  common/arm/ih264_iquant_itrans_recon_a9.s
 libavcd_srcs_asm_arm    +=  common/arm/ih264_iquant_itrans_recon_dc_a9.s
 libavcd_srcs_asm_arm    +=  common/arm/ih264_ihadamard_scaling_a9.s
-libavcd_srcs_asm_arm    +=  common/arm/ih264_arm_memory_barrier.s
 
 libavcd_cflags_arm += -DDEFAULT_ARCH=D_ARCH_ARM_A9Q
 else
 libavcd_cflags_arm += -DDISABLE_NEON -DDEFAULT_ARCH=D_ARCH_ARM_NONEON
 endif
+
+libavcd_srcs_asm_arm    +=  common/arm/ih264_arm_memory_barrier.s
 
 LOCAL_SRC_FILES_arm += $(libavcd_srcs_c_arm) $(libavcd_srcs_asm_arm)
 LOCAL_C_INCLUDES_arm += $(libavcd_inc_dir_arm)
