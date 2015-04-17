@@ -46,3 +46,7 @@ libavce_srcs_asm_arm    +=  common/arm/ih264_arm_memory_barrier.s
 LOCAL_SRC_FILES_arm += $(libavce_srcs_c_arm) $(libavce_srcs_asm_arm)
 LOCAL_C_INCLUDES_arm += $(libavce_inc_dir_arm)
 LOCAL_CFLAGS_arm += $(libavce_cflags_arm)
+
+# CLANG WORKAROUNDS
+LOCAL_CLANG_ASFLAGS_arm += -no-integrated-as
+LOCAL_CLANG_ASFLAGS_arm += $(addprefix -Wa$(comma)-I,$(libavce_inc_dir_arm))
