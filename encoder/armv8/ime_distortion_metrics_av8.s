@@ -975,4 +975,3 @@ satdq_end_func:
     ldp       d8, d9, [sp], #16
     pop_v_regs
     ret
-    .section .note.gnu-stack,"",%progbits

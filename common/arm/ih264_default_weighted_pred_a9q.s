@@ -17,14 +17,13 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
+@**
 @******************************************************************************
 @* @file
 @*  ih264_default_weighted_pred_a9q.s
 @*
 @* @brief
 @*  Contains function definitions for default weighted prediction.
-@* Functions are coded using NEON intrinsics and can be compiled using ARM RVCT
 @*
 @* @author
 @*  Kaushik Senthoor R
@@ -38,7 +37,7 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 @*******************************************************************************
 @* @function
 @*  ih264_default_weighted_pred_luma_a9q()
@@ -82,7 +81,7 @@
 @*  (ht,wd) can be (4,4), (4,8), (8,4), (8,8), (8,16), (16,8) or (16,16).
 @*
 @*******************************************************************************
-@*/
+@*
 @void ih264_default_weighted_pred_luma_a9q(UWORD8 *pu1_src1,
 @                                          UWORD8 *pu1_src2,
 @                                          UWORD8 *pu1_dst,
@@ -256,7 +255,7 @@ end_loops:
 @*  (ht,wd) can be (2,2), (2,4), (4,2), (4,4), (4,8), (8,4) or (8,8).
 @*
 @*******************************************************************************
-@*/
+@*
 @void ih264_default_weighted_pred_chroma_a9q(UWORD8 *pu1_src1,
 @                                            UWORD8 *pu1_src2,
 @                                            UWORD8 *pu1_dst,

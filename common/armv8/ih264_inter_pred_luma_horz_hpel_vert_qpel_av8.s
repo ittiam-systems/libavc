@@ -1111,7 +1111,7 @@ loop_4:
     bgt       loop_4
 
 end_func:
-           //Restoring registers from stack
+    //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
     ret

@@ -1015,10 +1015,3 @@ filter_2dvh_skip_row:
 
 
 ///*****************************************
-
-
-
-
-
-
-    .section .note.gnu-stack,"",%progbits

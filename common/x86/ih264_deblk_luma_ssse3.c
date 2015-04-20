@@ -856,7 +856,7 @@ void ih264_deblk_luma_vert_bslt4_ssse3(UWORD8 *pu1_src,
 {
     UWORD8 u1_Bs, u1_Bs1;
 
-    UWORD32 j = 0;
+    WORD32 j = 0;
 
     __m128i linea, lineb, linec, lined, linee, linef, lineg, lineh;
     __m128i int1, int2, int3, int4, high1, high2;

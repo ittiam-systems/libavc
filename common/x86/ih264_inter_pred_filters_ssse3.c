@@ -98,10 +98,9 @@ void ih264_inter_pred_luma_copy_ssse3(UWORD8 *pu1_src,
 {
     __m128i y_0_16x8b, y_1_16x8b, y_2_16x8b, y_3_16x8b;
 
+    WORD32 src_strd2, src_strd3, src_strd4, dst_strd2, dst_strd3, dst_strd4;
     UNUSED(pu1_tmp);
     UNUSED(dydx);
-
-    WORD32 src_strd2, src_strd3, src_strd4, dst_strd2, dst_strd3, dst_strd4;
 
     src_strd2 = src_strd << 1;
     dst_strd2 = dst_strd << 1;
@@ -1825,7 +1824,6 @@ void ih264_inter_pred_luma_vert_qpel_ssse3(UWORD8 *pu1_src,
     WORD32 y_offset;
     UWORD8 *pu1_pred1;
 
-    UNUSED(pu1_tmp);
 
     __m128i src_r0_16x8b, src_r1_16x8b, src_r2_16x8b, src_r3_16x8b, src_r4_16x8b;
     __m128i src_r5_16x8b, src_r6_16x8b;
@@ -1835,6 +1833,7 @@ void ih264_inter_pred_luma_vert_qpel_ssse3(UWORD8 *pu1_src,
     __m128i coeff0_1_16x8b, coeff2_3_16x8b, coeff4_5_16x8b;
     __m128i const_val16_8x16b;
 
+    UNUSED(pu1_tmp);
     y_offset = dydx & 0xf;
 
     coeff0_1_16x8b = _mm_set1_epi32(0xFB01FB01); //c0 c1 c0 c1 c0 c1 c0 c1 c0 c1 c0 c1 c0 c1 c0 c1

@@ -17,7 +17,7 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
+@**
 @******************************************************************************
 @* @file
 @*  ih264_intra_pred_chroma_a9q.s
@@ -39,15 +39,11 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 
-@/* All the functions here are replicated from ih264_chroma_intra_pred_filters.c
+@* All the functions here are replicated from ih264_chroma_intra_pred_filters.c
 @
 
-@/**
-@/**
-@/**
-@
 .text
 .p2align 2
 
@@ -60,7 +56,7 @@ scratch_chroma_intrapred_addr1:
 
 scratch_intrapred_chroma_plane_addr1:
     .long ih264_gai1_intrapred_chroma_plane_coeffs2 - scrlblc2 - 8
-@/**
+@**
 @*******************************************************************************
 @*
 @*ih264_intra_pred_chroma_8x8_mode_dc
@@ -91,7 +87,7 @@ scratch_intrapred_chroma_plane_addr1:
 @* @remarks
 @*  None
 @*
-@*******************************************************************************/
+@*******************************************************************************
 @void ih264_intra_pred_chroma_8x8_mode_dc(UWORD8 *pu1_src,
 @                                        UWORD8 *pu1_dst,
 @                                        WORD32 src_strd,
@@ -104,8 +100,6 @@ scratch_intrapred_chroma_plane_addr1:
 @   r2 =>  src_strd
 @   r3 =>  dst_strd
 @   r4 =>  ui_neighboravailability
-
-
 
     .global ih264_intra_pred_chroma_8x8_mode_dc_a9q
 
@@ -191,10 +185,10 @@ str_pred:
 
 
 
-@/******************************************************************************
+@******************************************************************************
 
 
-@/**
+@**
 @*******************************************************************************
 @*
 @*ih264_intra_pred_chroma_8x8_mode_horz
@@ -226,7 +220,7 @@ str_pred:
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 @void ih264_intra_pred_chroma_8x8_mode_horz(UWORD8 *pu1_src,
 @                                         UWORD8 *pu1_dst,
 @                                         WORD32 src_strd,
@@ -270,7 +264,7 @@ loop_8x8_horz:
 
 
 
-@/**
+@**
 @*******************************************************************************
 @*
 @*ih264_intra_pred_chroma_8x8_mode_vert
@@ -339,10 +333,10 @@ ih264_intra_pred_chroma_8x8_mode_vert_a9q:
 
 
 
-@/******************************************************************************
+@******************************************************************************
 
 
-@/**
+@**
 @*******************************************************************************
 @*
 @*ih264_intra_pred_chroma_8x8_mode_plane
@@ -373,7 +367,7 @@ ih264_intra_pred_chroma_8x8_mode_vert_a9q:
 @* @remarks
 @*  None
 @*
-@*******************************************************************************/
+@*******************************************************************************
 @void ih264_intra_pred_chroma_8x8_mode_plane(UWORD8 *pu1_src,
 @                                        UWORD8 *pu1_dst,
 @                                        WORD32 src_strd,
@@ -392,7 +386,6 @@ ih264_intra_pred_chroma_8x8_mode_plane_a9q:
 
     stmfd         sp!, {r4-r10, r12, lr}
     vpush         {d8-d15}
-
 
     vld1.32       d0, [r0]
     add           r10, r0, #10
@@ -541,7 +534,6 @@ scrlblc2:
 
 
 end_func_plane:
-
 
     vpop          {d8-d15}
     ldmfd         sp!, {r4-r10, r12, pc}

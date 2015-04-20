@@ -247,8 +247,8 @@ loop_16:                                //when  wd=16
     st1       {v30.2s, v31.2s}, [x1], x3 //  store row 6
     sqrshrun  v30.8b, v28.8h, #5        // dst[0_0] = CLIP_U8((temp +16) >> 5)
 
-    swp       v0.8b v4.8b
-    swp       v1.8b v5.8b
+    swp       v0.8b, v4.8b
+    swp       v1.8b, v5.8b
 
 
 
@@ -257,8 +257,8 @@ loop_16:                                //when  wd=16
     mov       v7.8b, v11.8b
     subs      x12, x14, #1              // if height==16  - looping
 
-    swp       v4.8b v8.8b
-    swp       v5.8b v9.8b
+    swp       v4.8b, v8.8b
+    swp       v5.8b, v9.8b
 
 
     sqrshrun  v31.8b, v20.8h, #5        // dst[0_8] = CLIP_U8((temp4 +16) >> 5)

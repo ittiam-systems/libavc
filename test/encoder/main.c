@@ -29,7 +29,10 @@
 #include <assert.h>
 #include <string.h>
 #include <sys/time.h>
+
+#ifndef IOS
 #include <malloc.h>
+#endif
 
 #ifdef WINDOWS_TIMER
 #include "windows.h"
@@ -1989,7 +1992,7 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
 /*         20 11 2013   100189          Initial Version                      */
 /*****************************************************************************/
 #ifdef IOS
-int h264enc_main(char * homedir)
+int h264enc_main(char * homedir,char *documentdir, int screen_wd, int screen_ht)
 #else
 int main(int argc, char *argv[])
 #endif
@@ -2035,6 +2038,9 @@ int main(int argc, char *argv[])
     {
         strcpy(ac_cfg_fname, argv[1]);
     }
+
+#else
+    strcpy(ac_cfg_fname, "test.cfg");
 
 #endif
 
@@ -2406,22 +2412,22 @@ int main(int argc, char *argv[])
 
 #ifdef IOS
     /* Correct file paths */
-    sprintf(filename_with_path, "%s/%s", homedir, s_app_ctxt.ac_ip_fname);
+    sprintf(filename_with_path, "%s/%s", documentdir, s_app_ctxt.ac_ip_fname);
     strcpy (s_app_ctxt.ac_ip_fname, filename_with_path);
 
-    sprintf(filename_with_path, "%s/%s", homedir, s_app_ctxt.ac_op_fname);
+    sprintf(filename_with_path, "%s/%s", documentdir, s_app_ctxt.ac_op_fname);
     strcpy (s_app_ctxt.ac_op_fname, filename_with_path);
 
-    sprintf(filename_with_path, "%s/%s", homedir, s_app_ctxt.ac_recon_fname);
+    sprintf(filename_with_path, "%s/%s", documentdir, s_app_ctxt.ac_recon_fname);
     strcpy (s_app_ctxt.ac_recon_fname, filename_with_path);
 
-    sprintf(filename_with_path, "%s/%s", homedir, s_app_ctxt.ac_chksum_fname);
+    sprintf(filename_with_path, "%s/%s", documentdir, s_app_ctxt.ac_chksum_fname);
     strcpy (s_app_ctxt.ac_chksum_fname, filename_with_path);
 
-    sprintf(filename_with_path, "%s/%s", homedir, s_app_ctxt.ac_mb_info_fname);
+    sprintf(filename_with_path, "%s/%s", documentdir, s_app_ctxt.ac_mb_info_fname);
     strcpy (s_app_ctxt.ac_mb_info_fname, filename_with_path);
 
-    sprintf(filename_with_path, "%s/%s", homedir, s_app_ctxt.ac_pic_info_fname);
+    sprintf(filename_with_path, "%s/%s", documentdir, s_app_ctxt.ac_pic_info_fname);
     strcpy (s_app_ctxt.ac_pic_info_fname, filename_with_path);
 #endif
 

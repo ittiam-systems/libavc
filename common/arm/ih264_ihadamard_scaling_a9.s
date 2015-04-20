@@ -17,7 +17,7 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
+@**
 @ *******************************************************************************
 @ * @file
 @ *  ih264_ihadamard_scaling_a9.s
@@ -37,7 +37,7 @@
 @ *  None
 @ *
 @ *******************************************************************************
-@ */
+@ *
 @ * @brief This function performs a 4x4 inverse hadamard transform on the 4x4 DC coefficients
 @ * of a 16x16 intra prediction macroblock, and then performs scaling.
 @ * prediction buffer
@@ -69,10 +69,10 @@
 @ * @remarks none
 @ *
 @ *******************************************************************************
-@ */
+@ *
 @ *
 @ *******************************************************************************
-@ */
+@ *
 @ void ih264_ihadamard_scaling_4x4(WORD16* pi2_src,
 @       WORD16* pi2_out,
 @       const UWORD16 *pu2_iscal_mat,
@@ -161,7 +161,7 @@ ih264_ihadamard_scaling_4x4_a9:
 
 
 @ *******************************************************************************
-@ */
+@ *
 @ * @brief This function performs a 2x2 inverse hadamard transform for chroma block
 @ *
 @ * @par Description:
@@ -189,10 +189,10 @@ ih264_ihadamard_scaling_4x4_a9:
 @ * @remarks none
 @ *
 @ *******************************************************************************
-@ */
+@ *
 @ *
 @ *******************************************************************************
-@ */
+@ *
 @ void ih264_ihadamard_scaling_2x2_uv(WORD16* pi2_src,
 @                                  WORD16* pi2_out,
 @                                  const UWORD16 *pu2_iscal_mat,

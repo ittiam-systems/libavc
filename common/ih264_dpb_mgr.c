@@ -536,7 +536,7 @@ WORD32 ih264_dpb_mgr_alternate_ref_fields(dpb_mgr_t *ps_dpb_mgr,
                             BOTTOM_FIELD:TOP_FIELD;
     }
 
-    if((reference_type == SHORT_TERM_REF))
+    if(reference_type == SHORT_TERM_REF)
     {
         ps_dpb_mgr->ps_dpb_short_term_head = ps_dpb_head->ps_prev_dpb;
     }

@@ -120,6 +120,8 @@ void ih264_iquant_itrans_recon_4x4_ssse3(WORD16 *pi2_src,
     __m128i resq_r0, resq_r1, resq_r2, resq_r3;
     __m128i add_rshift = _mm_set1_epi32((1 << (3 - u4_qp_div_6)));
     __m128i value_32 = _mm_set1_epi32(32);
+    UNUSED (pi2_tmp);
+    UNUSED (pi2_dc_ld_addr);
 
     /*************************************************************/
     /* Dequantization of coefficients. Will be replaced by SIMD  */
@@ -397,6 +399,9 @@ void ih264_iquant_itrans_recon_8x8_ssse3(WORD16 *pi2_src,
     __m128i resq_r0_1, resq_r0_2, resq_r1_1, resq_r1_2, resq_r2_1, resq_r2_2,
             resq_r3_1, resq_r3_2, resq_r4_1, resq_r4_2, resq_r5_1, resq_r5_2,
             resq_r6_1, resq_r6_2, resq_r7_1, resq_r7_2;
+    UNUSED (pi2_tmp);
+    UNUSED (iq_start_idx);
+    UNUSED (pi2_dc_ld_addr);
 
     /*************************************************************/
     /* Dequantization of coefficients. Will be replaced by SIMD  */

@@ -327,6 +327,11 @@ WORD32 ithread_set_affinity(WORD32 core_id)
         return 1;
 }
 
+void ithread_set_name(CHAR *pc_thread_name)
+{
+    return;
+}
+
 #else
 
 UWORD32 ithread_get_handle_size(void)

@@ -76,7 +76,7 @@
 .p2align 2
 .include "ih264_neon_macros.s"
 
-.globl ih264e_evaluate_intra16x16_modes_av8
+.global ih264e_evaluate_intra16x16_modes_av8
 
 ih264e_evaluate_intra16x16_modes_av8:
 

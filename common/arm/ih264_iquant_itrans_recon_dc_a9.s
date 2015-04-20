@@ -17,7 +17,7 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
+@**
 @ *******************************************************************************
 @ * @file
 @ *  ih264_iquant_itrans_recon_dc_a9.s
@@ -37,8 +37,8 @@
 @ *  None
 @ *
 @ *******************************************************************************
-@*/
-@/**
+@*
+@**
 @ *******************************************************************************
 @ *
 @ * @brief
@@ -83,7 +83,7 @@
 @ *  None
 @ *
 @ *******************************************************************************
-@ */
+@ *
 @void ih264_iquant_itrans_recon_4x4_dc(WORD16 *pi2_src,
 @                                   UWORD8 *pu1_pred,
 @                                   UWORD8 *pu1_out,
@@ -167,7 +167,7 @@ ih264_iquant_itrans_recon_4x4_dc_a9:
 
 
 
-@/*
+@*
 @ *******************************************************************************
 @ *
 @ * @brief
@@ -212,7 +212,7 @@ ih264_iquant_itrans_recon_4x4_dc_a9:
 @ *  None
 @ *
 @ *******************************************************************************
-@ */
+@ *
 @void ih264_iquant_itrans_recon_8x8_dc(WORD16 *pi2_src,
 @                                   UWORD8 *pu1_pred,
 @                                   UWORD8 *pu1_out,
@@ -300,7 +300,7 @@ ih264_iquant_itrans_recon_8x8_dc_a9:
     ldmfd         sp!, {r4-r8, r15}
 
 
-@ /*
+@ *
 @ ********************************************************************************
 @ *
 @ * @brief This function reconstructs a 4x4 sub block from quantized resiude and
@@ -328,7 +328,7 @@ ih264_iquant_itrans_recon_8x8_dc_a9:
 @ * @remarks none
 @ *
 @ *******************************************************************************
-@ */
+@ *
 @ void ih264_iquant_itrans_recon_chroma_4x4_dc(WORD16 *pi2_src,
 @                                             UWORD8 *pu1_pred,
 @                                             UWORD8 *pu1_out,
@@ -367,6 +367,7 @@ ih264_iquant_itrans_recon_chroma_4x4_dc_a9:
     vtrn.32       d4, d5
 
     vmov.u16      q15, #0x00ff
+
 
     vld1.u8       d18, [r2], r0         @load out [8 bit size) -8 coeffs
     vaddw.u8      q1, q0, d2            @Add pred
