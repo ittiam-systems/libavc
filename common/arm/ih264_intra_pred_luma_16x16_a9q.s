@@ -17,7 +17,7 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
+@**
 @******************************************************************************
 @* @file
 @*  ih264_intra_pred_luma_16x16_a9q.s
@@ -39,14 +39,14 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 
-@/* All the functions here are replicated from ih264_intra_pred_filters.c
+@* All the functions here are replicated from ih264_intra_pred_filters.c
 @
 
-@/**
-@/**
-@/**
+@**
+@**
+@**
 @
 
 .text
@@ -57,10 +57,10 @@
 .hidden ih264_gai1_intrapred_luma_plane_coeffs
 scratch_intrapred_addr1:
     .long ih264_gai1_intrapred_luma_plane_coeffs - scrlbl1 - 8
-@/**
+@**
 @*******************************************************************************
 @*
-@*ih264_intra_pred_luma_16x16_mode_vert_a9q
+@*ih264_intra_pred_luma_16x16_mode_vert
 @*
 @* @brief
 @*   Perform Intra prediction for  luma_16x16 mode:vertical
@@ -135,13 +135,13 @@ ih264_intra_pred_luma_16x16_mode_vert_a9q:
 
 
 
-@/******************************************************************************
+@******************************************************************************
 
 
-@/**
+@**
 @*******************************************************************************
 @*
-@*ih264_intra_pred_luma_16x16_mode_horz_a9q
+@*ih264_intra_pred_luma_16x16_mode_horz
 @*
 @* @brief
 @*  Perform Intra prediction for  luma_16x16 mode:horizontal
@@ -170,7 +170,7 @@ ih264_intra_pred_luma_16x16_mode_vert_a9q:
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 @void ih264_intra_pred_luma_16x16_mode_horz(UWORD8 *pu1_src,
 @                                         UWORD8 *pu1_dst,
 @                                         WORD32 src_strd,
@@ -213,13 +213,13 @@ loop_16x16_horz:
 
 
 
-@/******************************************************************************
+@******************************************************************************
 
 
-@/**
+@**
 @*******************************************************************************
 @*
-@*ih264_intra_pred_luma_16x16_mode_dc_a9q
+@*ih264_intra_pred_luma_16x16_mode_dc
 @*
 @* @brief
 @*  Perform Intra prediction for  luma_16x16 mode:DC
@@ -247,7 +247,7 @@ loop_16x16_horz:
 @* @remarks
 @*  None
 @*
-@*******************************************************************************/
+@*******************************************************************************
 @void ih264_intra_pred_luma_16x16_mode_dc(UWORD8 *pu1_src,
 @                                       UWORD8 *pu1_dst,
 @                                       WORD32 src_strd,
@@ -300,7 +300,7 @@ top_available:                          @ONLY TOP AVAILABLE
     vdup.u8       q0, d0[0]
     b             str_pred
 
-left_available: @ONLY LEFT AVAILABLE
+left_available:                         @ONLY LEFT AVAILABLE
     vld1.u8       {q0}, [r0]
     vpaddl.u8     q0, q0
     vadd.u16      d0, d0, d1
@@ -337,13 +337,13 @@ str_pred:
 
 
 
-@/******************************************************************************
+@******************************************************************************
 
 
-@/**
+@**
 @*******************************************************************************
 @*
-@*ih264_intra_pred_luma_16x16_mode_plane_a9q
+@*ih264_intra_pred_luma_16x16_mode_plane
 @*
 @* @brief
 @*  Perform Intra prediction for  luma_16x16 mode:PLANE
@@ -371,7 +371,7 @@ str_pred:
 @* @remarks
 @*  None
 @*
-@*******************************************************************************/
+@*******************************************************************************
 @void ih264_intra_pred_luma_16x16_mode_plane(UWORD8 *pu1_src,
 @                                        UWORD8 *pu1_dst,
 @                                        WORD32 src_strd,

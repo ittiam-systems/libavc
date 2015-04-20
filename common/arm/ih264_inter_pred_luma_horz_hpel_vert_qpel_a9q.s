@@ -17,7 +17,7 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
+@**
 @******************************************************************************
 @* @file
 @*  ih264_inter_pred_luma_horz_hpel_vert_qpel_a9q.s
@@ -36,14 +36,14 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 
-@/* All the functions here are replicated from ih264_inter_pred_filters.c
+@* All the functions here are replicated from ih264_inter_pred_filters.c
 @
 
-@/**
-@/**
-@/**
+@**
+@**
+@**
 @*******************************************************************************
 @*
 @* @brief
@@ -91,7 +91,7 @@
 @*  None
 @*
 @*******************************************************************************
-@*/;
+@*;
 
 @void ih264_inter_pred_luma_horz_hpel_vert_qpel(UWORD8 *pu1_src,
 @                                UWORD8 *pu1_dst,
@@ -835,7 +835,7 @@ loop_8:
     vmov          q7, q14
     vst1.32       d30, [r1], r3         @ store row 3
 
-    bgt           loop_8 @if height =8 or 16  loop
+    bgt           loop_8                @if height =8 or 16  loop
     b             end_func
 
 loop_4_start:

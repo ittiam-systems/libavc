@@ -487,7 +487,7 @@ void ih264e_evaluate_intra_4x4_modes_ssse3(UWORD8 *pu1_src,
                               INT_MAX, INT_MAX, INT_MAX, INT_MAX };
 
     WORD32 min_cost;
-    WORD32 lambda4 = u4_lambda << 2;
+    UWORD32 lambda4 = u4_lambda << 2;
     WORD32 dst_strd2, dst_strd3;
 
     __m128i left_top_16x8b, src_16x8b, pred0_16x8b, sad_8x16b;

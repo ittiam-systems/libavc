@@ -17,7 +17,7 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
+@**
 @******************************************************************************
 @* @file
 @*  ih264_inter_pred_chroma_a9q.s
@@ -36,16 +36,16 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 
-@/* All the functions here are replicated from ih264_inter_pred_filters.c
+@* All the functions here are replicated from ih264_inter_pred_filters.c
 @
 
-@/**
-@/**
-@/**
+@**
+@**
+@**
 @
-@/**
+@**
 @*******************************************************************************
 @*
 @* @brief
@@ -85,7 +85,7 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 
 @void ih264_inter_pred_chroma(UWORD8 *pu1_src,
 @                             UWORD8 *pu1_dst,
@@ -111,8 +111,6 @@
     .global ih264_inter_pred_chroma_a9q
 
 ih264_inter_pred_chroma_a9q:
-
-
 
     stmfd         sp!, {r4-r12, r14}    @store register values to stack
     vstmdb        sp!, {d8-d15}         @push neon registers to stack

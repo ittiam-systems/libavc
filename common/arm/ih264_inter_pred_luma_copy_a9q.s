@@ -17,8 +17,8 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
-@/**
+@**
+@**
 @*******************************************************************************
 @*
 @* @brief
@@ -53,7 +53,7 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 @void ih264_inter_pred_luma_copy (
 @                            UWORD8 *pu1_src,
 @                            UWORD8 *pu1_dst,
@@ -182,7 +182,7 @@ end_inner_loop_wd_16:
     ldmfd         sp!, {r4-r12, r15}    @Reload the registers from SP
 
 
-@ /*
+@ *
 @ ********************************************************************************
 @ *
 @ * @brief This function copies a 4x4 block to destination
@@ -208,7 +208,7 @@ end_inner_loop_wd_16:
 @ * Currently wd and height is not used, ie a 4x4 block is always copied
 @ *
 @ *******************************************************************************
-@ */
+@ *
 @ void ih264_interleave_copy(WORD16 *pi2_src,
 @                            UWORD8 *pu1_out,
 @                            WORD32 pred_strd,

@@ -582,12 +582,8 @@ WORD32 ih264d_decode_slice_thread(dec_struct_t *ps_dec /* Decoder parameters */
 
 void ih264d_decode_picture_thread(dec_struct_t *ps_dec )
 {
-    volatile WORD32 i4_err_status;
-
 
     ithread_set_name("ih264d_decode_picture_thread");
-
-
 
     // run the loop till all slices are decoded
 
@@ -644,13 +640,6 @@ void ih264d_decode_picture_thread(dec_struct_t *ps_dec )
                 DEBUG_THREADS_PRINTF("Waiting for next slice or end of frame\n");
 
                 NOP(32);
-                if(i4_err_status != 0)
-                {
-                    /*In the case of error set decode Mb number ,so that the
-                     parse thread does not wait because of mb difference being
-                     greated the 32*/
-                    ps_dec->cur_dec_mb_num = ps_dec->u2_cur_mb_addr - 1;
-                }
             }
 
             DEBUG_THREADS_PRINTF("Got next slice/end of frame signal \n ");

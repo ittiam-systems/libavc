@@ -121,6 +121,9 @@ void ih264_resi_trans_quant_4x4_sse42(UWORD8 *pu1_src, UWORD8 *pu1_pred,
     __m128i zero_8x16b = _mm_setzero_si128();          // all bits reset to zero
     __m128i sign_reg0, sign_reg2;
     __m128i scalemat_r0_r1, scalemat_r2_r3;
+
+    UNUSED (pu2_threshold_matrix);
+
     scalemat_r0_r1 = _mm_loadu_si128((__m128i *) (pu2_scale_matrix)); //b00 b01 b02 b03 b10 b11 b12 b13 -- the scaling matrix 0th,1st row
     scalemat_r2_r3 = _mm_loadu_si128((__m128i *) (pu2_scale_matrix + 8)); //b20 b21 b22 b23 b30 b31 b32 b33 -- the scaling matrix 2nd,3rd row
     src_r0 = _mm_loadl_epi64((__m128i *) (&pu1_src[0])); //a00 a01 a02 a03 0 0 0 0 0 0 0 0 -- all 8 bits
@@ -393,6 +396,8 @@ void ih264_resi_trans_quant_chroma_4x4_sse42(UWORD8 *pu1_src,UWORD8 *pu1_pred,WO
     __m128i sign_reg0, sign_reg2;
     __m128i scalemat_r0_r1, scalemat_r2_r3;
     __m128i chroma_mask = _mm_set1_epi16 (0xFF);
+
+    UNUSED (pu2_threshold_matrix);
 
     scalemat_r0_r1 = _mm_loadu_si128((__m128i *) (pu2_scale_matrix)); //b00 b01 b02 b03 b10 b11 b12 b13 -- the scaling matrix 0th,1st row
     scalemat_r2_r3 = _mm_loadu_si128((__m128i *) (pu2_scale_matrix + 8)); //b20 b21 b22 b23 b30 b31 b32 b33 -- the scaling matrix 2nd,3rd row
@@ -676,6 +681,8 @@ void ih264_hadamard_quant_4x4_sse42(WORD16 *pi2_src, WORD16 *pi2_dst,
     __m128i rnd_fact = _mm_set1_epi32(u4_round_factor);
     __m128i scale_val = _mm_set1_epi32(pu2_scale_matrix[0]);
 
+    UNUSED (pu2_threshold_matrix);
+
     src_r0_r1 = _mm_loadu_si128((__m128i *) (pi2_src)); //a00 a01 a02 a03 a10 a11 a12 a13 -- the source matrix 0th,1st row
     src_r2_r3 = _mm_loadu_si128((__m128i *) (pi2_src + 8)); //a20 a21 a22 a23 a30 a31 a32 a33 -- the source matrix 2nd,3rd row
     sign_reg = _mm_cmpgt_epi16(zero_8x16b, src_r0_r1);
@@ -901,6 +908,8 @@ void ih264_hadamard_quant_2x2_uv_sse42(WORD16 *pi2_src, WORD16 *pi2_dst,
     __m128i sign_reg0, sign_reg1;
     __m128i temp_1 = _mm_set1_epi16(1);
     __m128i rnd_fact = _mm_set1_epi32(u4_round_factor);
+
+    UNUSED (pu2_threshold_matrix);
 
     src = _mm_loadu_si128((__m128i *)pi2_src);          //a0 a1 a2 a3 b0 b1 b2 b3
     sign_reg = _mm_cmpgt_epi16(zero_8x16b, src);

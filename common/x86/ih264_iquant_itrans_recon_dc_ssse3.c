@@ -113,6 +113,8 @@ void ih264_iquant_itrans_recon_4x4_dc_ssse3(WORD16 *pi2_src,
     UWORD32 *pu4_out = (UWORD32 *)pu1_out;
     WORD32 q0 = pi2_src[0];
     WORD16 i_macro, rnd_fact = (u4_qp_div_6 < 4) ? 1 << (3 - u4_qp_div_6) : 0;
+    UNUSED (pi2_tmp);
+
     INV_QUANT(q0, pu2_iscal_mat[0], pu2_weigh_mat[0], u4_qp_div_6, rnd_fact, 4);
 
     if (iq_start_idx != 0 )
@@ -233,6 +235,10 @@ void ih264_iquant_itrans_recon_8x8_dc_ssse3 (WORD16 *pi2_src,
 {
     WORD32 q0 = pi2_src[0];
     WORD16 i_macro, rnd_fact = (qp_div < 6) ? 1 << (5 - qp_div) : 0;
+    UNUSED (pi2_tmp);
+    UNUSED (iq_start_idx);
+    UNUSED (pi2_dc_ld_addr);
+
     INV_QUANT(q0, pu2_iscale_mat[0], pu2_weigh_mat[0], qp_div, rnd_fact, 6);
     i_macro = ((q0 + 32) >> 6);
 
@@ -391,6 +397,12 @@ void ih264_iquant_itrans_recon_chroma_4x4_dc_ssse3(WORD16 *pi2_src,
     __m128i zero_8x16b = _mm_setzero_si128();          // all bits reset to zero
     __m128i chroma_mask = _mm_set1_epi16 (0xFF);
     __m128i value_add = _mm_set1_epi16(i_macro);
+
+    UNUSED (pi2_src);
+    UNUSED (pu2_iscal_mat);
+    UNUSED (pu2_weigh_mat);
+    UNUSED (u4_qp_div_6);
+    UNUSED (pi2_tmp);
 
     //Load pred buffer
     pred_r0 = _mm_loadl_epi64((__m128i *) (&pu1_pred[0])); //p00 p01 p02 p03 0 0 0 0 0 0 0 0 -- all 8 bits

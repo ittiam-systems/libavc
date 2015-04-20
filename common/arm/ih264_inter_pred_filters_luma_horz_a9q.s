@@ -17,7 +17,7 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
+@**
 @******************************************************************************
 @* @file
 @*  ih264_inter_pred_luma_horz_a9q.s
@@ -36,13 +36,13 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 
-@/* All the functions here are replicated from ih264_inter_pred_filters.c
+@* All the functions here are replicated from ih264_inter_pred_filters.c
 @
 
-@/**
-@/**
+@**
+@**
 @*******************************************************************************
 @*
 @* @brief
@@ -76,7 +76,7 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 
 @void ih264_inter_pred_luma_horz (
 @                            UWORD8 *pu1_src,
@@ -102,6 +102,9 @@
 
 ih264_inter_pred_luma_horz_a9q:
 
+
+
+
     stmfd         sp!, {r4-r12, r14}    @store register values to stack
     vstmdb        sp!, {d8-d15}         @push neon registers to stack
     ldr           r5, [sp, #104]        @Loads ht
@@ -116,7 +119,7 @@ ih264_inter_pred_luma_horz_a9q:
     beq           loop_4
 
 loop_16:                                @when  wd=16
-    @// Processing row0 and row1
+    @ Processing row0 and row1
     vld1.8        {d2, d3, d4}, [r0], r2 @// Load row0                        ;for checking loop
     vext.8        d31, d2, d3, #5       @//extract a[5]                         (column1,row0)
     vld1.8        {d5, d6, d7}, [r0], r2 @// Load row1
@@ -173,7 +176,7 @@ loop_16:                                @when  wd=16
     b             loop_16               @ loop if height == 8 or 16
 
 loop_8:
-@// Processing row0 and row1
+@ Processing row0 and row1
     vld1.8        {d5, d6}, [r0], r2    @// Load row1
     vext.8        d28, d5, d6, #5       @//extract a[5]                         (column1,row1)
     vld1.8        {d2, d3}, [r0], r2    @// Load row0
@@ -204,7 +207,7 @@ loop_8:
 
     beq           end_func              @ Branch if height==4
 
-    b             loop_8 @looping if height =8 or 16
+    b             loop_8                @looping if height =8 or 16
 
 loop_4:
     vld1.8        {d5, d6}, [r0], r2    @// Load row1

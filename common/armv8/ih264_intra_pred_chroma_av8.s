@@ -262,7 +262,7 @@ ih264_intra_pred_chroma_8x8_mode_horz_av8:
 
 
 
-     push_v_regs
+    push_v_regs
     ld1       {v0.8h}, [x0]
 
     dup       v10.8h, v0.h[7]

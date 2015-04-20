@@ -17,7 +17,7 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
+@**
 @******************************************************************************
 @* @file
 @*  ih264_inter_pred_luma_horz_hpel_vert_hpel_a9q.s
@@ -36,14 +36,14 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 
-@/* All the functions here are replicated from ih264_inter_pred_filters.c
+@* All the functions here are replicated from ih264_inter_pred_filters.c
 @
 
-@/**
-@/**
-@/**
+@**
+@**
+@**
 @*******************************************************************************
 @*
 @* @brief
@@ -88,7 +88,7 @@
 @*  None
 @*
 @*******************************************************************************
-@*/;
+@*;
 
 @void ih264_inter_pred_luma_horz_hpel_vert_hpel(UWORD8 *pu1_src,
 @                                UWORD8 *pu1_dst,

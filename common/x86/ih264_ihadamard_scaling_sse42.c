@@ -86,14 +86,19 @@
  *
  *******************************************************************************
  */
-void ih264_ihadamard_scaling_4x4_sse42(WORD16* pi2_src, WORD16* pi2_out,
-        const UWORD16 *pu2_iscal_mat, const UWORD16 *pu2_weigh_mat,
-        UWORD32 u4_qp_div_6, WORD32* pi4_tmp) {
+void ih264_ihadamard_scaling_4x4_sse42(WORD16* pi2_src,
+                                       WORD16* pi2_out,
+                                       const UWORD16 *pu2_iscal_mat,
+                                       const UWORD16 *pu2_weigh_mat,
+                                       UWORD32 u4_qp_div_6,
+                                       WORD32* pi4_tmp)
+{
     __m128i src_r0_r1, src_r2_r3;
     __m128i src_r0, src_r1, src_r2, src_r3;
     __m128i temp0, temp1, temp2, temp3;
     __m128i add_rshift = _mm_set1_epi32((1 << (5 - u4_qp_div_6)));
     __m128i mult_val = _mm_set1_epi32(pu2_iscal_mat[0] * pu2_weigh_mat[0]);
+    UNUSED (pi4_tmp);
 
     src_r0_r1 = _mm_loadu_si128((__m128i *) (pi2_src)); //a00 a01 a02 a03 a10 a11 a12 a13 -- the source matrix 0th,1st row
     src_r2_r3 = _mm_loadu_si128((__m128i *) (pi2_src + 8)); //a20 a21 a22 a23 a30 a31 a32 a33 -- the source matrix 2nd,3rd row
@@ -171,12 +176,15 @@ void ih264_ihadamard_scaling_4x4_sse42(WORD16* pi2_src, WORD16* pi2_out,
     src_r3 = _mm_mullo_epi32(src_r3, mult_val);
 
     //Scaling
-    if (u4_qp_div_6 >= 6) {
+    if(u4_qp_div_6 >= 6)
+    {
         src_r0 = _mm_slli_epi32(src_r0, u4_qp_div_6 - 6);
         src_r1 = _mm_slli_epi32(src_r1, u4_qp_div_6 - 6);
         src_r2 = _mm_slli_epi32(src_r2, u4_qp_div_6 - 6);
         src_r3 = _mm_slli_epi32(src_r3, u4_qp_div_6 - 6);
-    } else {
+    }
+    else
+    {
         temp0 = _mm_add_epi32(src_r0, add_rshift);
         temp1 = _mm_add_epi32(src_r1, add_rshift);
         temp2 = _mm_add_epi32(src_r2, add_rshift);
@@ -194,16 +202,17 @@ void ih264_ihadamard_scaling_4x4_sse42(WORD16* pi2_src, WORD16* pi2_out,
 }
 
 void ih264_ihadamard_scaling_2x2_uv_sse42(WORD16* pi2_src,
-                                    WORD16* pi2_out,
-                                    const UWORD16 *pu2_iscal_mat,
-                                    const UWORD16 *pu2_weigh_mat,
-                                    UWORD32 u4_qp_div_6,
-                                    WORD32* pi4_tmp)
+                                          WORD16* pi2_out,
+                                          const UWORD16 *pu2_iscal_mat,
+                                          const UWORD16 *pu2_weigh_mat,
+                                          UWORD32 u4_qp_div_6,
+                                          WORD32* pi4_tmp)
 {
-    UNUSED(pi4_tmp);
     __m128i src, plane_0, plane_1, temp0, temp1, sign_reg;
     __m128i zero_8x16b = _mm_setzero_si128();
     __m128i scale_val = _mm_set1_epi32((WORD32)(pu2_iscal_mat[0] * pu2_weigh_mat[0]));
+    UNUSED(pi4_tmp);
+
     src = _mm_loadu_si128((__m128i *) pi2_src);         //a0 a1 a2 a3 b0 b1 b2 b3
     sign_reg = _mm_cmpgt_epi16(zero_8x16b, src);
     plane_0 = _mm_unpacklo_epi16(src, sign_reg);        //a0 a1 a2 a3 -- 32 bits

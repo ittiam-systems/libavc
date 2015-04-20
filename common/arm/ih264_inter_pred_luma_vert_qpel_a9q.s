@@ -17,7 +17,7 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
+@**
 @******************************************************************************
 @* @file
 @*  ih264_inter_pred_luma_vert_qpel_a9q.s
@@ -36,13 +36,11 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 
-@/* All the functions here are replicated from ih264_inter_pred_filters.c
+@* All the functions here are replicated from ih264_inter_pred_filters.c
 @
 
-@/**
-@/**
 @*******************************************************************************
 @*
 @* @brief
@@ -79,7 +77,7 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 
 @void ih264_inter_pred_luma_vert (
 @                            UWORD8 *pu1_src,
@@ -211,12 +209,12 @@ loop_16:                                @when  wd=16
     subne         r0, r0, r2
     beq           end_func              @ Branch if height==4
 
-    b             loop_16 @ looping if height = 8 or 16
+    b             loop_16               @ looping if height = 8 or 16
 
 
 loop_8:
 
-    @// Processing row0 and row1
+    @ Processing row0 and row1
     vld1.u32      d0, [r0], r2          @ Vector load from src[0_0]
     vld1.u32      d1, [r0], r2          @ Vector load from src[1_0]
     vld1.u32      d2, [r0], r2          @ Vector load from src[2_0]
@@ -270,7 +268,7 @@ loop_8:
     b             loop_8                @looping if height == 8 or 16
 
 loop_4:
-@// Processing row0 and row1
+@ Processing row0 and row1
 
     vld1.u32      d0[0], [r0], r2       @ Vector load from src[0_0]
     vld1.u32      d1[0], [r0], r2       @ Vector load from src[1_0]

@@ -24,7 +24,6 @@
 //*
 //* @brief
 //*  Contains function definitions for weighted prediction.
-//* Functions are coded using NEON intrinsics and can be compiled using ARM RVCT
 //*
 //* @author
 //*  Kaushik Senthoor R

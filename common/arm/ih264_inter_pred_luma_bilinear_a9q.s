@@ -17,7 +17,7 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
+@**
 @******************************************************************************
 @* @file
 @*  ih264_inter_pred_luma_bilinear_a9q.s
@@ -36,14 +36,14 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 
-@/* All the functions here are replicated from ih264_inter_pred_filters.c
+@* All the functions here are replicated from ih264_inter_pred_filters.c
 @
 
-@/**
-@/**
-@/**
+@**
+@**
+@**
 @ *******************************************************************************
 @ *  function:ih264_inter_pred_luma_bilinear
 @ *
@@ -89,7 +89,7 @@
 @*  None
 @*
 @*******************************************************************************
-@*/
+@*
 
 @void ih264_inter_pred_luma_bilinear(UWORD8 *pu1_src1,
 @                                   UWORD8 *pu1_src2,
@@ -192,7 +192,7 @@ loop_16:                                @when  wd=16
     subs          r12, r6, #8
     vst1.8        {q15}, [r2], r5       @//Store dest row7
 
-    beq           end_func @ end function if ht=8
+    beq           end_func              @ end function if ht=8
 
     vld1.8        {q0}, [r0], r3        @// Load row8 ;src1
     vaddl.u8      q10, d0, d4
@@ -275,7 +275,7 @@ loop_8: @wd=8;
     vqrshrun.s16  d31, q13, #1
     subs          r12, r6, #4
     vst1.8        {d31}, [r2], r5       @//Store dest row3
-    beq           end_func @ end function if ht=4
+    beq           end_func              @ end function if ht=4
 
     vld1.8        {d12}, [r1], r4       @// Load row4 ;src2
     vld1.8        {d8}, [r0], r3        @// Load row4 ;src1
@@ -298,7 +298,7 @@ loop_8: @wd=8;
     vqrshrun.s16  d31, q11, #1
     subs          r12, r6, #8
     vst1.8        {d31}, [r2], r5       @//Store dest row7
-    beq           end_func @ end function if ht=8
+    beq           end_func              @ end function if ht=8
 
     vld1.8        {d0}, [r0], r3        @// Load row8 ;src1
     vld1.8        {d4}, [r1], r4        @// Load row8  ;src2
@@ -367,7 +367,7 @@ loop_4:
     vqrshrun.s16  d31, q13, #1
     subs          r12, r6, #4
     vst1.32       d31[0], [r2], r5      @//Store dest row3
-    beq           end_func @ end function if ht=4
+    beq           end_func              @ end function if ht=4
 
     vld1.32       d12[0], [r1], r4      @// Load row4 ;src2
     vld1.32       d8[0], [r0], r3       @// Load row4 ;src1

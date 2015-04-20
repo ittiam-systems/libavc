@@ -120,6 +120,7 @@ void ih264_iquant_itrans_recon_4x4_sse42(WORD16 *pi2_src,
     __m128i resq_r0, resq_r1, resq_r2, resq_r3;
     __m128i add_rshift = _mm_set1_epi32((1 << (3 - u4_qp_div_6)));
     __m128i value_32 = _mm_set1_epi32(32);
+    UNUSED (pi2_tmp);
 
     /*************************************************************/
     /* Dequantization of coefficients. Will be replaced by SIMD  */
@@ -369,6 +370,8 @@ void ih264_iquant_itrans_recon_chroma_4x4_sse42(WORD16 *pi2_src,
     __m128i add_rshift = _mm_set1_epi32((1 << (3 - u4_qp_div_6)));
     __m128i value_32 = _mm_set1_epi32(32);
     __m128i chroma_mask = _mm_set1_epi16 (0xFF);
+    UNUSED (pi2_tmp);
+
     /*************************************************************/
     /* Dequantization of coefficients. Will be replaced by SIMD  */
     /* operations on platform                                    */
