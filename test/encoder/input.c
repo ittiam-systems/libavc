@@ -243,10 +243,8 @@ void allocate_input(app_ctxt_t *ps_app_ctxt)
     num_bufs = MIN(DEFAULT_MAX_INPUT_BUFS, num_bufs);
 
     /* Size of buffer */
-    luma_size = ps_get_buf_info_op->s_ive_op.au4_min_in_buf_size[0];
-    chroma_size = ps_get_buf_info_op->s_ive_op.au4_min_in_buf_size[1]+
-                    ps_get_buf_info_op->s_ive_op.au4_min_in_buf_size[2];
-
+    luma_size = ps_app_ctxt->u4_wd * ps_app_ctxt->u4_ht;
+    chroma_size = luma_size >> 1;
     pic_size = luma_size + chroma_size;
 
     num_mbs = ALIGN16(ps_app_ctxt->u4_max_wd) *  ALIGN16(ps_app_ctxt->u4_max_ht);

@@ -83,7 +83,6 @@ ih264e_fmt_conv_420p_to_420sp_a9q:
     sub           r7, r7, r5            @// Source increment
     sub           r8, r8, r5            @// Destination increment
 
-    vpush         {d8-d15}
 yuv420sp_uv_row_loop_y:
     mov           r6, r5
 
@@ -134,7 +133,7 @@ yuv420sp_uv_chroma:
     mov           r5, r5, lsr #1
     mov           r4, r4, lsr #1
     ldr           r3, [sp, #40]         @// Load pu1_dest_uv from stack
-    vpush         {d8-d15}
+
 yuv420sp_uv_row_loop_uv:
     mov           r6, r5
 
@@ -171,7 +170,6 @@ yuv420sp_uv_row_loop_end_uv:
     subs          r4, r4, #1
     bgt           yuv420sp_uv_row_loop_uv
     @//POP THE REGISTERS
-    vpop          {d8-d15}
     ldmfd         sp!, {r4-r12, pc}
 
 
@@ -276,8 +274,6 @@ ih264e_fmt_conv_422i_to_420sp_a9q:
     add           r4, r12, r4           @// u2_offset1 = u2_offset1 + u4_stride_y
     add           r5, r14, r5, lsl #1   @// u2_offset_yuv422i = u2_offset_yuv422i + u4_stride_yuv422i
 
-    vpush         {d8-d15}
-
 @// Register Assignment
 @// pu1_y               - r0
 @// pu1_y_nxt_row       - r6
@@ -322,7 +318,6 @@ yuv420_to_yuv422i_width_loop:
 
     add           r8, r8, r5            @// pu2_yuv422i_nxt_row = pu2_yuv422i_nxt_row   + u2_offset_yuv422i
     bgt           yuv420_to_yuv422i_hight_loop
-    vpop          {d8-d15}
     ldmfd         sp!, {r4-r12, pc}     @// Restore the register which are used
 
 

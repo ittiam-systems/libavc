@@ -59,6 +59,7 @@
 #include "iv2.h"
 #include "ive2.h"
 #include "ih264_debug.h"
+#include "ih264_macros.h"
 #include "ih264_defs.h"
 #include "ih264e_defs.h"
 #include "ih264e_error.h"

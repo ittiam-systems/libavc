@@ -43,20 +43,20 @@
 /*****************************************************************************/
 
 #define PARSE_COEFF_DATA_BLOCK_4x4(pv_mb_coeff_data, ps_mb_coeff_data, u4_nnz, u4_sig_coeff_map, pi2_res_block)   \
+{\
+    ps_mb_coeff_data = pv_mb_coeff_data; \
+    u4_nnz = ps_mb_coeff_data->i4_sig_map_nnz & 0xff;    \
+    if (u4_nnz)\
     {\
-                ps_mb_coeff_data = pv_mb_coeff_data; \
-                u4_nnz = ps_mb_coeff_data->i4_sig_map_nnz & 0xff;    \
-                if (u4_nnz)\
-                {\
-                    u4_sig_coeff_map = ps_mb_coeff_data->i4_sig_map_nnz >> 16; \
-                    pi2_res_block = ps_mb_coeff_data->ai2_residue; \
-                    pv_mb_coeff_data = ps_mb_coeff_data->ai2_residue + u4_nnz; \
-                }\
-                else\
-                {\
-                  pv_mb_coeff_data = ps_mb_coeff_data->ai2_residue;\
-                }\
-    }
+        u4_sig_coeff_map = ps_mb_coeff_data->i4_sig_map_nnz >> 16; \
+        pi2_res_block = ps_mb_coeff_data->ai2_residue; \
+        pv_mb_coeff_data = ps_mb_coeff_data->ai2_residue + ALIGN2(u4_nnz); \
+    }\
+    else\
+    {\
+      pv_mb_coeff_data = ps_mb_coeff_data->ai2_residue;\
+    }\
+}
 
 
 /*****************************************************************************/

@@ -778,13 +778,6 @@ WORD32 ih264e_update_proc_ctxt(process_ctxt_t *ps_proc)
     /* sub mb modes */
     UWORD8 *pu1_top_mb_intra_modes = ps_proc->pu1_top_mb_intra_modes + (i4_mb_x << 4);
 
-//    /* zero mv */
-//    mv_t zero_mv = {0, 0};
-
-    /* Pad the MB to support non standard sizes */
-    UWORD32 u4_pad_right_sz = ps_codec->s_cfg.u4_wd - ps_codec->s_cfg.u4_disp_wd;
-    UWORD32 u4_pad_bottom_sz = ps_codec->s_cfg.u4_ht - ps_codec->s_cfg.u4_disp_ht;
-
     /*************************************************************/
     /* During MV prediction, when top right mb is not available, */
     /* top left mb info. is used for prediction. Hence the curr  */
@@ -946,28 +939,6 @@ WORD32 ih264e_update_proc_ctxt(process_ctxt_t *ps_proc)
     ps_proc->pu1_rec_buf_chroma += MB_SIZE;
     ps_proc->pu1_ref_buf_chroma += MB_SIZE;
 
-    /* pad right edge */
-    if (u4_pad_right_sz && (ps_proc->i4_mb_x == i4_wd_mbs - 1))
-    {
-        ih264_pad_right_luma(
-                        ps_proc->pu1_src_buf_luma + MB_SIZE - u4_pad_right_sz,
-                        ps_proc->i4_src_strd, MB_SIZE, u4_pad_right_sz);
-
-        ih264_pad_right_chroma(
-                        ps_proc->pu1_src_buf_chroma + MB_SIZE - u4_pad_right_sz,
-                        ps_proc->i4_src_strd, BLK8x8SIZE, u4_pad_right_sz);
-    }
-
-    /* pad bottom edge */
-    if (u4_pad_bottom_sz && (ps_proc->i4_mb_y == i4_ht_mbs - 1) &&
-                    ps_proc->i4_mb_x != 0)
-    {
-        ih264_pad_bottom(ps_proc->pu1_src_buf_luma + (MB_SIZE - u4_pad_bottom_sz) * ps_proc->i4_src_strd,
-                         ps_proc->i4_src_strd, MB_SIZE, u4_pad_bottom_sz);
-
-        ih264_pad_bottom(ps_proc->pu1_src_buf_chroma + (MB_SIZE - u4_pad_bottom_sz) * ps_proc->i4_src_strd / 2,
-                         ps_proc->i4_src_strd, MB_SIZE, (u4_pad_bottom_sz / 2));
-    }
 
     /* Reset cost, distortion params */
     ps_proc->i4_mb_cost = INT_MAX;
@@ -1051,7 +1022,10 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
     UWORD8 *pu1_y_buf_base, *pu1_u_buf_base, *pu1_v_buf_base;
 
     /* Pad the MB to support non standard sizes */
+    UWORD32 u4_pad_right_sz = ps_codec->s_cfg.u4_wd - ps_codec->s_cfg.u4_disp_wd;
     UWORD32 u4_pad_bottom_sz = ps_codec->s_cfg.u4_ht - ps_codec->s_cfg.u4_disp_ht;
+    UWORD16 u2_num_rows = MB_SIZE;
+    WORD32 convert_uv_only;
 
     /********************************************************************/
     /*                            BEGIN INIT                            */
@@ -1064,13 +1038,26 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
     ps_proc->i4_nmb_ntrpy = (ps_proc->i4_wd_mbs > MAX_NMB) ? MAX_NMB : ps_proc->i4_wd_mbs;
     ps_proc->u4_nmb_me = (ps_proc->i4_wd_mbs > MAX_NMB)? MAX_NMB : ps_proc->i4_wd_mbs;
 
+    convert_uv_only = 1;
+    if (u4_pad_bottom_sz && (ps_proc->i4_mb_y == ps_proc->i4_ht_mbs - 1))
+    {
+        u2_num_rows = (UWORD16) MB_SIZE - u4_pad_bottom_sz;
+        ps_proc->pu1_src_buf_luma_base = ps_codec->pu1_y_csc_buf_base;
+        ps_proc->pu1_src_buf_luma = ps_proc->pu1_src_buf_luma_base + (i4_mb_x * MB_SIZE) + ps_codec->s_cfg.u4_max_wd * (i4_mb_y * MB_SIZE);
+        convert_uv_only = 0;
+
+    }
+    else
+        ps_proc->pu1_src_buf_luma = ps_proc->pu1_src_buf_luma_base + (i4_mb_x * MB_SIZE) + i4_src_strd * (i4_mb_y * MB_SIZE);
+
     /* init buffer pointers */
-    ps_proc->pu1_src_buf_luma = ps_proc->pu1_src_buf_luma_base + (i4_mb_x * MB_SIZE) + i4_src_strd * (i4_mb_y * MB_SIZE);
-    ps_proc->pu1_src_buf_chroma = ps_proc->pu1_src_buf_chroma_base + (i4_mb_x * MB_SIZE) + i4_src_strd * (i4_mb_y * BLK8x8SIZE);
+
+    ps_proc->pu1_src_buf_chroma = ps_proc->pu1_src_buf_chroma_base + (i4_mb_x * MB_SIZE) + ps_codec->s_cfg.u4_max_wd * (i4_mb_y * BLK8x8SIZE);
     ps_proc->pu1_rec_buf_luma = ps_proc->pu1_rec_buf_luma_base + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * MB_SIZE);
     ps_proc->pu1_rec_buf_chroma = ps_proc->pu1_rec_buf_chroma_base + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * BLK8x8SIZE);
     ps_proc->pu1_ref_buf_luma = ps_proc->pu1_ref_buf_luma_base + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * MB_SIZE);
     ps_proc->pu1_ref_buf_chroma = ps_proc->pu1_ref_buf_chroma_base + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * BLK8x8SIZE);
+
 
     /*
      * Do color space conversion
@@ -1095,12 +1082,13 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
             ps_codec->pf_ih264e_conv_420p_to_420sp(
                             pu1_y_buf_base, pu1_u_buf_base, pu1_v_buf_base,
                             ps_proc->pu1_src_buf_luma,
-                            ps_proc->pu1_src_buf_chroma, MB_SIZE,
-                            ps_proc->i4_wd_mbs * MB_SIZE,
+                            ps_proc->pu1_src_buf_chroma, u2_num_rows,
+                            ps_codec->s_cfg.u4_disp_wd,
                             ps_proc->s_inp_buf.s_raw_buf.au4_strd[0],
                             ps_proc->s_inp_buf.s_raw_buf.au4_strd[1],
                             ps_proc->s_inp_buf.s_raw_buf.au4_strd[2],
-                            ps_proc->i4_src_strd, ps_proc->i4_src_strd, 1);
+                            ps_proc->i4_src_strd, ps_proc->i4_src_strd,
+                            convert_uv_only);
             break;
 
         case IV_YUV_422ILE :
@@ -1111,7 +1099,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
                             ps_proc->pu1_src_buf_luma,
                             ps_proc->pu1_src_buf_chroma,
                             ps_proc->pu1_src_buf_chroma + 1, pu1_y_buf_base,
-                            ps_proc->i4_wd_mbs * MB_SIZE, MB_SIZE,
+                            ps_codec->s_cfg.u4_disp_wd, u2_num_rows,
                             ps_proc->i4_src_strd, ps_proc->i4_src_strd,
                             ps_proc->i4_src_strd,
                             ps_proc->s_inp_buf.s_raw_buf.au4_strd[0] >> 1);
@@ -1121,15 +1109,35 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
             break;
     }
 
+    if (u4_pad_right_sz && (ps_proc->i4_mb_x == 0) &&
+                    (ps_proc->i4_src_strd > (WORD32)ps_codec->s_cfg.u4_disp_wd) )
+    {
+        UWORD32 u4_pad_wd, u4_pad_ht;
+        u4_pad_wd = (UWORD32)(ps_proc->i4_src_strd - ps_codec->s_cfg.u4_disp_wd);
+        u4_pad_wd = MIN(u4_pad_right_sz, u4_pad_wd);
+        u4_pad_ht = MB_SIZE;
+        if(ps_proc->i4_mb_y == ps_proc->i4_ht_mbs - 1)
+            u4_pad_ht = MIN(MB_SIZE, (MB_SIZE - u4_pad_bottom_sz));
+
+        ih264_pad_right_luma(
+                        ps_proc->pu1_src_buf_luma + ps_codec->s_cfg.u4_disp_wd,
+                        ps_proc->i4_src_strd, u4_pad_ht, u4_pad_wd);
+
+        ih264_pad_right_chroma(
+                        ps_proc->pu1_src_buf_chroma + ps_codec->s_cfg.u4_disp_wd,
+                        ps_proc->i4_src_strd, u4_pad_ht / 2, u4_pad_wd);
+    }
+
     /* pad bottom edge */
     if (u4_pad_bottom_sz && (ps_proc->i4_mb_y == ps_proc->i4_ht_mbs - 1) && ps_proc->i4_mb_x == 0)
     {
         ih264_pad_bottom(ps_proc->pu1_src_buf_luma + (MB_SIZE - u4_pad_bottom_sz) * ps_proc->i4_src_strd,
-                         ps_proc->i4_src_strd, MB_SIZE, u4_pad_bottom_sz);
+                         ps_proc->i4_src_strd, ps_proc->i4_src_strd, u4_pad_bottom_sz);
 
         ih264_pad_bottom(ps_proc->pu1_src_buf_chroma + (MB_SIZE - u4_pad_bottom_sz) * ps_proc->i4_src_strd / 2,
-                         ps_proc->i4_src_strd, MB_SIZE, (u4_pad_bottom_sz / 2));
+                         ps_proc->i4_src_strd, ps_proc->i4_src_strd, (u4_pad_bottom_sz / 2));
     }
+
 
     /* packed mb coeff data */
     ps_proc->pv_mb_coeff_data = ((UWORD8 *)ps_proc->pv_pic_mb_coeff_data) + i4_mb_y * ps_codec->u4_size_coeff_data;
@@ -1266,7 +1274,7 @@ IH264E_ERROR_T ih264e_pad_recon_buffer(process_ctxt_t *ps_proc,
         /* padding left chroma */
         ps_codec->pf_pad_left_chroma(pu1_curr_pic_chroma, i4_rec_strd, i4_pad_ht >> 1, PAD_LEFT);
     }
-    else if (i4_mb_x == ps_proc->i4_wd_mbs - 1)
+    if (i4_mb_x == ps_proc->i4_wd_mbs - 1)
     {
         /* padding right luma */
         ps_codec->pf_pad_right_luma(pu1_curr_pic_luma + MB_SIZE, i4_rec_strd, i4_pad_ht, PAD_RIGHT);
@@ -1300,7 +1308,7 @@ IH264E_ERROR_T ih264e_pad_recon_buffer(process_ctxt_t *ps_proc,
 
             wd += PAD_LEFT;
         }
-        else if (i4_mb_x == ps_proc->i4_wd_mbs - 1)
+        if (i4_mb_x == ps_proc->i4_wd_mbs - 1)
         {
             wd += PAD_RIGHT;
         }
@@ -1415,7 +1423,7 @@ IH264E_ERROR_T ih264e_dblk_pad_hpel_processing_n_mbs(process_ctxt_t *ps_proc,
         }
     }
 
-    if (i4_mb_y > 0)
+    if ((i4_mb_y > 0) || (i4_mb_y == (ps_proc->i4_ht_mbs - 1)))
     {
         /* if number of mb's to be processed are less than 'N', go back.
          * exception to the above clause is end of row */
@@ -1442,10 +1450,10 @@ IH264E_ERROR_T ih264e_dblk_pad_hpel_processing_n_mbs(process_ctxt_t *ps_proc,
             }
 
             /* performing deblocking for required number of MBs */
-            if (ps_proc->u4_disable_deblock_level != 1)
+            if ((i4_mb_y > 0) && (ps_proc->u4_disable_deblock_level != 1))
             {
                 /* Top or Top right MBs not deblocked */
-                if (u4_deblk_prev_row != 1)
+                if ((u4_deblk_prev_row != 1) && (i4_mb_y > 0))
                 {
                     return IH264E_SUCCESS;
                 }
@@ -1483,7 +1491,7 @@ IH264E_ERROR_T ih264e_dblk_pad_hpel_processing_n_mbs(process_ctxt_t *ps_proc,
 
                 }
             }
-            else
+            else if(i4_mb_y > 0)
             {
                 ps_deblk->i4_mb_x += i4_n_mb_process_count;
 
@@ -1604,6 +1612,19 @@ IH264E_ERROR_T ih264e_dblk_pad_hpel_processing_n_mbs(process_ctxt_t *ps_proc,
                         /* padding right chroma */
                         ps_codec->pf_pad_right_chroma(pu1_pad_src_chroma, i4_rec_strd, BLK8x8SIZE, PAD_RIGHT);
 
+                    }
+
+                    /* In case height is less than 2 MBs pad top */
+                    if (ps_proc->i4_ht_mbs <= 2)
+                    {
+                        UWORD8 *pu1_pad_top_src;
+                        /* padding top luma */
+                        pu1_pad_top_src = ps_proc->pu1_rec_buf_luma_base - PAD_LEFT;
+                        ps_codec->pf_pad_top(pu1_pad_top_src, i4_rec_strd, i4_rec_strd, PAD_TOP);
+
+                        /* padding top chroma */
+                        pu1_pad_top_src = ps_proc->pu1_rec_buf_chroma_base - PAD_LEFT;
+                        ps_codec->pf_pad_top(pu1_pad_top_src, i4_rec_strd, i4_rec_strd, (PAD_TOP >> 1));
                     }
 
                     /* padding bottom luma */

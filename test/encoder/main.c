@@ -905,7 +905,7 @@ void init_default_params(app_ctxt_t *ps_app_ctxt)
     ps_app_ctxt->u4_pics_cnt             = 0;
     ps_app_ctxt->e_inp_color_fmt         = DEFAULT_INP_COLOR_FMT;
     ps_app_ctxt->e_recon_color_fmt       = DEFAULT_RECON_COLOR_FMT;
-    ps_app_ctxt->e_arch                  = DEFAULT_ARCH;
+    ps_app_ctxt->e_arch                  = ARCH_ARM_A9Q;
     ps_app_ctxt->e_soc                   = SOC_GENERIC;
     ps_app_ctxt->header_generated        = 0;
     ps_app_ctxt->pv_codec_obj            = NULL;
@@ -1604,9 +1604,9 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
         {
             /* init buffers */
             ps_inp_raw_buf->apv_bufs[0] = pu1_buf;
-            pu1_buf += (ps_app_ctxt->u4_strd) * ALIGN16(ps_app_ctxt->u4_ht);
+            pu1_buf += (ps_app_ctxt->u4_wd) * ps_app_ctxt->u4_ht;
             ps_inp_raw_buf->apv_bufs[1] = pu1_buf;
-            pu1_buf += (ps_app_ctxt->u4_strd >> 1) * (ALIGN16(ps_app_ctxt->u4_ht) >> 1);
+            pu1_buf += (ps_app_ctxt->u4_wd >> 1) * (ps_app_ctxt->u4_ht >> 1);
             ps_inp_raw_buf->apv_bufs[2] = pu1_buf;
 
             ps_inp_raw_buf->au4_wd[0] =  ps_app_ctxt->u4_wd;
@@ -2346,7 +2346,7 @@ int main(int argc, char *argv[])
     /*****************************************************************************/
     /*   Video control  Set Frame dimensions                                     */
     /*****************************************************************************/
-    s_app_ctxt.u4_strd = ALIGN16(s_app_ctxt.u4_wd);
+    s_app_ctxt.u4_strd = s_app_ctxt.u4_wd;
     set_dimensions(&s_app_ctxt, 0, 0);
 
     /*****************************************************************************/

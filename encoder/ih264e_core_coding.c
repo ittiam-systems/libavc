@@ -58,6 +58,7 @@
 #include "ih264_platform_macros.h"
 #include "iv2.h"
 #include "ive2.h"
+#include "ih264_macros.h"
 #include "ih264_defs.h"
 #include "ih264e_defs.h"
 #include "ih264_trans_data.h"
@@ -843,7 +844,7 @@ void ih264e_pack_l_mb_i16(WORD16 *pi2_res_mb,
         }
         /* write significant coeff map */
         ps_mb_coeff_data->i4_sig_map_nnz |= (u4_s_map << 16);
-        (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + u4_nnz_cnt;
+        (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + ALIGN2(u4_nnz_cnt);
 
         u4_cntrl = 0x00008000;// Set DC bit in ctrl code
     }
@@ -896,7 +897,7 @@ void ih264e_pack_l_mb_i16(WORD16 *pi2_res_mb,
             }
             /* write significant coeff map */
             ps_mb_coeff_data->i4_sig_map_nnz |= (u4_s_map << 16);
-            (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + u4_nnz_cnt;
+            (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + ALIGN2(u4_nnz_cnt);
             *u1_cbp_l = 15;
 
             u4_cntrl |= (1 << (31 - u1_scan_order[b4]));
@@ -1059,7 +1060,7 @@ void ih264e_pack_l_mb(WORD16 *pi2_res_mb,
 
             /* write significant coeff map */
             ps_mb_coeff_data->i4_sig_map_nnz |= (u4_s_map << 16);
-            (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + u4_nnz_cnt;
+            (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + ALIGN2(u4_nnz_cnt);
 
             /* cbp */
             *u1_cbp_l |= (1 << b8);
@@ -1283,7 +1284,7 @@ void ih264e_pack_c_mb(WORD16 *pi2_res_mb,
             }
             /* write significant coeff map U/V */
             ps_mb_coeff_data->i4_sig_map_nnz |= (u4_s_map << 16);
-            (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + u4_nnz_cnt;
+            (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + ALIGN2(u4_nnz_cnt);
             *u1_cbp_c = 1;
 
             (*pu4_cntrl) |= (1 << cntrl_pos);
@@ -1388,7 +1389,7 @@ void ih264e_pack_c_mb(WORD16 *pi2_res_mb,
 
                 /* write significant coeff map U/V */
                 ps_mb_coeff_data->i4_sig_map_nnz |= (u4_s_map << 16);
-                (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + u4_nnz_cnt;
+                (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + ALIGN2(u4_nnz_cnt);
                 u1_cbp_ac = 2;
 
                 (*pu4_cntrl) |= 1 << cntrl_pos;
@@ -1804,7 +1805,7 @@ UWORD8 ih264e_code_luma_intra_macroblock_4x4(process_ctxt_t *ps_proc)
                 ps_mb_coeff_data->i4_sig_map_nnz |= (u4_s_map << 16);
 
                 /* update ptr to coeff data */
-                (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + u4_nnz_cnt;
+                (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + ALIGN2(u4_nnz_cnt);
 
                 /* cbp */
                 u1_cbp_l |= (1 << b8);
@@ -1950,7 +1951,7 @@ UWORD8 ih264e_code_luma_intra_macroblock_4x4_rdopt_on(process_ctxt_t *ps_proc)
                 ps_mb_coeff_data->i4_sig_map_nnz |= (u4_s_map << 16);
 
                 /* update ptr to coeff data */
-                (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + u4_nnz_cnt;
+                (*pv_mb_coeff_data) = ps_mb_coeff_data->ai2_residue + ALIGN2(u4_nnz_cnt);
 
                 /* cbp */
                 u1_cbp_l |= (1 << b8);
