@@ -127,7 +127,6 @@
 #define DEFAULT_EPROFILE            IV_PROFILE_BASE
 #define DEFAULT_SLICE_MODE          0
 #define DEFAULT_SLICE_PARAM         256
-#define DEFAULT_ARCH                ARCH_ARM_A9Q
 #define STRLENGTH               500
 
 

@@ -958,27 +958,8 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
             return ret;
     }
 
-    /*
-     * Code Add to check for display width.
-     * This has to be at the end of the SPS parsing, so everything gets
-     * parsed and the error will not affect decoding.
-     * */
-    if((0 != ps_dec->u4_app_disp_width)
-                    && (ps_dec->u4_app_disp_width < ps_dec->u2_pic_wd))
-    {
-        ps_dec->u4_app_disp_width = ps_dec->u2_pic_wd;
-        return ERROR_DISP_WIDTH_RESET_TO_PIC_WIDTH;
-    }
-
-
-
     ps_dec->u2_pic_wd = u2_pic_wd;
     ps_dec->u2_pic_ht = u2_pic_ht;
-
-    /* Added temporarily to give pic height and width as display height */
-    /* and width in case some cropping errors occur`                    */
-    /*ps_dec->u2_disp_height = ps_dec->u2_pic_ht;
-     ps_dec->u2_disp_width = ps_dec->u2_pic_wd;*/
 
     /* Determining the Width and Height of Frame from that of Picture */
 
