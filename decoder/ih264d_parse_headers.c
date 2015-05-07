@@ -56,6 +56,7 @@
 #include "ih264d_quant_scaling.h"
 #include "ih264d_defs.h"
 #include "ivd.h"
+#include "ih264d.h"
 
 /*****************************************************************************/
 /*                                                                           */
@@ -332,12 +333,7 @@ WORD32 ih264d_parse_pps(dec_struct_t * ps_dec, dec_bit_stream_t * ps_bitstrm)
         if(ps_pps->i4_pic_scaling_matrix_present_flag)
         {
             /* read the scaling matrices */
-            for(i4_i = 0;
-                            i4_i
-                                            < (6
-                                                            + (ps_pps->i4_transform_8x8_mode_flag
-                                                                            << 1));
-                            i4_i++)
+            for(i4_i = 0; i4_i < (6 + (ps_pps->i4_transform_8x8_mode_flag << 1)); i4_i++)
             {
                 ps_pps->u1_pic_scaling_list_present_flag[i4_i] =
                                 ih264d_get_bit_h264(ps_bitstrm);
@@ -548,22 +544,12 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
 
     u1_level_idc = ih264d_get_bits_h264(ps_bitstrm, 8);
 
-    /*
+
      if(ps_dec->u4_level_at_init < u1_level_idc)
      {
-     UWORD32 i4_error_code;
-     H264_DEC_DEBUG_PRINT("\nstream has the level more than the one which is set during init\n");
-     i4_error_code = ERROR_ACTUAL_LEVEL_GREATER_THAN_INIT ;
-     return i4_error_code;
-     * Here instead of flagging the error, we could have ignored this error
-     * and went ahead for further decoding, but we are not doing
-     * so because, at least one header should be healthy to do the
-     * decoding, and moreover, it may help to avoid the crashes in the erroneous
-     * streams.
-     *
-
+         return IH264D_UNSUPPORTED_LEVEL;
      }
-     */
+
     COPYTHECONTEXT("SPS: u4_level_idc",u1_level_idc);
 
     u4_temp = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
@@ -962,7 +948,6 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     ps_dec->u2_pic_ht = u2_pic_ht;
 
     /* Determining the Width and Height of Frame from that of Picture */
-
     ps_dec->u2_frm_wd_y = u2_frm_wd_y;
     ps_dec->u2_frm_ht_y = u2_frm_ht_y;
 

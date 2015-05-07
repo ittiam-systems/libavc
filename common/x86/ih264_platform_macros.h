@@ -62,13 +62,9 @@
 #define SHL_NEG(val,shift)  ((shift<0)?(val>>(-shift)):(val<<shift))
 
 
-#define ITT_BIG_ENDIAN(x)       ((x << 24))                |   \
-                            ((x & 0x0000ff00) << 8)    |   \
-                            ((x & 0x00ff0000) >> 8)    |   \
-                            ((UWORD32)x >> 24);
+#define ITT_BIG_ENDIAN(x)   __builtin_bswap32(x);
 
-
-#define NOP(nop_cnt)    {UWORD32 nop_i; for (nop_i = 0; nop_i < nop_cnt; nop_i++);}
+#define NOP(nop_cnt) {UWORD32 nop_i; for (nop_i = 0; nop_i < nop_cnt; nop_i++) asm("nop");}
 
 #define PLD(a)
 
@@ -97,7 +93,7 @@ static __inline UWORD32 CTZ(UWORD32 u4_word)
 
 
 //#define INLINE __inline
-#define INLINE
+#define INLINE inline
 
 #define PREFETCH_ENABLE 1
 

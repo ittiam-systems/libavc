@@ -38,6 +38,7 @@
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
 #include "ih264_platform_macros.h"
+#include "ih264d_structs.h"
 
 typedef enum
 {
@@ -109,7 +110,14 @@ typedef enum
     ERROR_LEVEL_UNSUPPORTED = 0x90,
     ERROR_START_CODE_NOT_FOUND = 0x91,
     ERROR_PIC_NUM_IS_REPEATED = 0x92,
+    ERROR_IN_LAST_SLICE_OF_PIC = 0x93
 
 } h264_decoder_error_code_t;
+
+WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
+                                  WORD32 num_mb_skip,
+                                  UWORD8 u1_is_idr_slice,
+                                  pocstruct_t *ps_cur_poc,
+                                  WORD32 prev_slice_err);
 
 #endif /* _IH264D_ERROR_HANDLER_H_ */

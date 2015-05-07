@@ -41,6 +41,7 @@
 #include <string.h>
 /* User include files */
 #include "ih264_typedefs.h"
+#include "iv.h"
 #include "ih264_macros.h"
 #include "ih264_platform_macros.h"
 #include "ih264d_structs.h"
@@ -647,7 +648,7 @@ void ih264d_fmt_conv_420sp_to_420p(UWORD8 *pu1_y_src,
 }
 
 /*****************************************************************************/
-/*  Function Name : ih264d_format_convert                                           */
+/*  Function Name : ih264d_format_convert                                    */
 /*                                                                           */
 /*  Description   : Implements format conversion/frame copy                  */
 /*  Inputs        : ps_dec - Decoder parameters                              */
@@ -671,6 +672,8 @@ void ih264d_format_convert(dec_struct_t *ps_dec,
 {
     UWORD32 convert_uv_only = 0;
     iv_yuv_buf_t *ps_op_frm;
+    UWORD8 *pu1_y_src, *pu1_uv_src;
+    UWORD32 start_uv = u4_start_y >> 1;
 
     if(1 == pv_disp_op->u4_error_code)
         return;
@@ -680,25 +683,26 @@ void ih264d_format_convert(dec_struct_t *ps_dec,
     /* Requires u4_start_y and u4_num_rows_y to be even */
     if(u4_start_y & 1)
     {
-        H264_DEC_DEBUG_PRINT(
-                        "Requires even number of rows and even u4_start_y for format conversion\n");
         return;
     }
 
-    if((1 == ps_dec->u4_share_disp_buf)
-                    && ((pv_disp_op->e_output_format == IV_YUV_420SP_UV)))
+    if((1 == ps_dec->u4_share_disp_buf) &&
+       (pv_disp_op->e_output_format == IV_YUV_420SP_UV))
     {
         return;
     }
+
+    pu1_y_src = (UWORD8 *)ps_op_frm->pv_y_buf;
+    pu1_y_src += u4_start_y * ps_op_frm->u4_y_strd,
+
+    pu1_uv_src = (UWORD8 *)ps_op_frm->pv_u_buf;
+    pu1_uv_src += start_uv * ps_op_frm->u4_u_strd;
+
     if(pv_disp_op->e_output_format == IV_YUV_420P)
     {
-        UWORD8 *pu1_src, *pu1_dst;
-        UWORD16 i;
-        UWORD16 iter;
-
+        UWORD8 *pu1_y_dst, *pu1_u_dst, *pu1_v_dst;
         IV_COLOR_FORMAT_T e_output_format = pv_disp_op->e_output_format;
-        UWORD32 start_uv = u4_start_y >> 1;
-        UWORD32 num_rows_uv = (u4_num_rows_y + 1) >> 1;
+
         if(0 == ps_dec->u4_share_disp_buf)
         {
             convert_uv_only = 0;
@@ -707,118 +711,85 @@ void ih264d_format_convert(dec_struct_t *ps_dec,
         {
             convert_uv_only = 1;
         }
-        {
 
-            UWORD8 *pu1_y_src, *pu1_u_src, *pu1_v_src;
-            UWORD8 *pu1_y_dst, *pu1_u_dst, *pu1_v_dst;
-            UWORD32 width, height;
-            UWORD32 src_luma_stride, src_chroma_stride;
-            UWORD32 dst_luma_stride, dst_chroma_stride;
+        pu1_y_dst = (UWORD8 *)pv_disp_op->s_disp_frm_buf.pv_y_buf;
+        pu1_y_dst += u4_start_y * pv_disp_op->s_disp_frm_buf.u4_y_strd;
 
-            pu1_y_src = (UWORD8 *)ps_op_frm->pv_y_buf;
-            pu1_y_src += u4_start_y * ps_op_frm->u4_y_strd;
+        pu1_u_dst = (UWORD8 *)pv_disp_op->s_disp_frm_buf.pv_u_buf;
+        pu1_u_dst += start_uv * pv_disp_op->s_disp_frm_buf.u4_u_strd;
 
-            pu1_y_dst = (UWORD8 *)pv_disp_op->s_disp_frm_buf.pv_y_buf;
-            pu1_y_dst += u4_start_y * pv_disp_op->s_disp_frm_buf.u4_y_strd;
+        pu1_v_dst = (UWORD8 *)pv_disp_op->s_disp_frm_buf.pv_v_buf;
+        pu1_v_dst += start_uv * pv_disp_op->s_disp_frm_buf.u4_v_strd;
 
-            pu1_u_src = (UWORD8 *)ps_op_frm->pv_u_buf;
-            pu1_u_src += start_uv * ps_op_frm->u4_u_strd;
-
-            pu1_u_dst = (UWORD8 *)pv_disp_op->s_disp_frm_buf.pv_u_buf;
-            pu1_u_dst += start_uv * pv_disp_op->s_disp_frm_buf.u4_u_strd;
-
-            pu1_v_src = (UWORD8 *)ps_op_frm->pv_v_buf;
-            pu1_v_src += start_uv * ps_op_frm->u4_v_strd;
-
-            pu1_v_dst = (UWORD8 *)pv_disp_op->s_disp_frm_buf.pv_v_buf;
-            pu1_v_dst += start_uv * pv_disp_op->s_disp_frm_buf.u4_v_strd;
-
-            src_luma_stride = ps_op_frm->u4_y_strd;
-            src_chroma_stride = ps_op_frm->u4_u_strd;
-
-            dst_luma_stride = pv_disp_op->s_disp_frm_buf.u4_y_strd;
-            dst_chroma_stride = pv_disp_op->s_disp_frm_buf.u4_u_strd;
-
-            width = ps_op_frm->u4_y_wd;
-            height = u4_num_rows_y;
-            ih264d_fmt_conv_420sp_to_420p(pu1_y_src, pu1_u_src, pu1_y_dst,
-                                          pu1_u_dst, pu1_v_dst, width, height,
-                                          src_luma_stride, src_chroma_stride,
-                                          dst_luma_stride, dst_chroma_stride, 1,
-                                          convert_uv_only);
-        }
+        ih264d_fmt_conv_420sp_to_420p(pu1_y_src,
+                                      pu1_uv_src,
+                                      pu1_y_dst,
+                                      pu1_u_dst,
+                                      pu1_v_dst,
+                                      ps_op_frm->u4_y_wd,
+                                      u4_num_rows_y,
+                                      ps_op_frm->u4_y_strd,
+                                      ps_op_frm->u4_u_strd,
+                                      pv_disp_op->s_disp_frm_buf.u4_y_strd,
+                                      pv_disp_op->s_disp_frm_buf.u4_u_strd,
+                                      1,
+                                      convert_uv_only);
 
     }
-
-    else if((pv_disp_op->e_output_format == IV_YUV_420SP_UV)
-                    || (pv_disp_op->e_output_format == IV_YUV_420SP_VU))
-
+    else if((pv_disp_op->e_output_format == IV_YUV_420SP_UV) ||
+            (pv_disp_op->e_output_format == IV_YUV_420SP_VU))
     {
+        UWORD8* pu1_y_dst, *pu1_uv_dst;
 
-        UWORD32 start_uv = u4_start_y >> 1;
-        UWORD32 num_rows_uv = (u4_num_rows_y + 1) >> 1;
+        pu1_y_dst = (UWORD8 *)pv_disp_op->s_disp_frm_buf.pv_y_buf;
+        pu1_y_dst +=  u4_start_y * pv_disp_op->s_disp_frm_buf.u4_y_strd;
 
+        pu1_uv_dst = (UWORD8 *)pv_disp_op->s_disp_frm_buf.pv_u_buf;
+        pu1_uv_dst += start_uv * pv_disp_op->s_disp_frm_buf.u4_u_strd;
 
         if(pv_disp_op->e_output_format == IV_YUV_420SP_UV)
         {
-            ih264d_fmt_conv_420sp_to_420sp(
-                            (UWORD8 *)ps_op_frm->pv_y_buf
-                                            + u4_start_y * ps_op_frm->u4_y_strd,
-                            ((UWORD8 *)ps_op_frm->pv_u_buf
-                                            + start_uv * ps_op_frm->u4_u_strd),
-                            ((UWORD8 *)pv_disp_op->s_disp_frm_buf.pv_y_buf
-                                            + u4_start_y
-                                                            * pv_disp_op->s_disp_frm_buf.u4_y_strd),
-                            ((UWORD8 *)pv_disp_op->s_disp_frm_buf.pv_u_buf
-                                            + start_uv
-                                                            * pv_disp_op->s_disp_frm_buf.u4_u_strd),
-                            ps_op_frm->u4_y_wd, u4_num_rows_y,
-                            ps_op_frm->u4_y_strd, ps_op_frm->u4_u_strd,
-                            pv_disp_op->s_disp_frm_buf.u4_y_strd,
-                            pv_disp_op->s_disp_frm_buf.u4_u_strd);
+            ih264d_fmt_conv_420sp_to_420sp(pu1_y_src,
+                                           pu1_uv_src,
+                                           pu1_y_dst,
+                                           pu1_uv_dst,
+                                           ps_op_frm->u4_y_wd,
+                                           u4_num_rows_y,
+                                           ps_op_frm->u4_y_strd,
+                                           ps_op_frm->u4_u_strd,
+                                           pv_disp_op->s_disp_frm_buf.u4_y_strd,
+                                           pv_disp_op->s_disp_frm_buf.u4_u_strd);
         }
         else
         {
-
-            ih264d_fmt_conv_420sp_to_420sp_swap_uv(
-                            (UWORD8 *)ps_op_frm->pv_y_buf
-                                            + u4_start_y * ps_op_frm->u4_y_strd,
-                            ((UWORD8 *)ps_op_frm->pv_u_buf
-                                            + start_uv * ps_op_frm->u4_u_strd),
-                            ((UWORD8 *)pv_disp_op->s_disp_frm_buf.pv_y_buf
-                                            + u4_start_y
-                                                            * pv_disp_op->s_disp_frm_buf.u4_y_strd),
-                            ((UWORD8 *)pv_disp_op->s_disp_frm_buf.pv_u_buf
-                                            + start_uv
-                                                            * pv_disp_op->s_disp_frm_buf.u4_u_strd),
-                            ps_op_frm->u4_y_wd, u4_num_rows_y,
-                            ps_op_frm->u4_y_strd, ps_op_frm->u4_u_strd,
-                            pv_disp_op->s_disp_frm_buf.u4_y_strd,
-                            pv_disp_op->s_disp_frm_buf.u4_u_strd);
-
+            ih264d_fmt_conv_420sp_to_420sp_swap_uv(pu1_y_src,
+                                                   pu1_uv_src,
+                                                   pu1_y_dst,
+                                                   pu1_uv_dst,
+                                                   ps_op_frm->u4_y_wd,
+                                                   u4_num_rows_y,
+                                                   ps_op_frm->u4_y_strd,
+                                                   ps_op_frm->u4_u_strd,
+                                                   pv_disp_op->s_disp_frm_buf.u4_y_strd,
+                                                   pv_disp_op->s_disp_frm_buf.u4_u_strd);
         }
-
     }
     else if(pv_disp_op->e_output_format == IV_RGB_565)
     {
-        UWORD32 temp = 0;
-        UWORD32 u2_width_rem;
+        UWORD16 *pu2_rgb_dst;
 
-        UWORD32 start_uv = u4_start_y >> 1;
+        pu2_rgb_dst = (UWORD16 *)pv_disp_op->s_disp_frm_buf.pv_y_buf;
+        pu2_rgb_dst += u4_start_y * pv_disp_op->s_disp_frm_buf.u4_y_strd;
 
-        ih264d_fmt_conv_420sp_to_rgb565(
-                        (UWORD8 *)ps_op_frm->pv_y_buf
-                                        + u4_start_y * ps_op_frm->u4_y_strd,
-                        ((UWORD8 *)ps_op_frm->pv_u_buf
-                                        + start_uv * ps_op_frm->u4_u_strd),
-                        ((UWORD16 *)pv_disp_op->s_disp_frm_buf.pv_y_buf
-                                        + u4_start_y
-                                                        * pv_disp_op->s_disp_frm_buf.u4_y_strd),
-                        ps_op_frm->u4_y_wd, u4_num_rows_y, ps_op_frm->u4_y_strd,
-                        ps_op_frm->u4_u_strd,
-                        pv_disp_op->s_disp_frm_buf.u4_y_strd, 1);
-
-
+        ih264d_fmt_conv_420sp_to_rgb565(pu1_y_src,
+                                        pu1_uv_src,
+                                        pu2_rgb_dst,
+                                        ps_op_frm->u4_y_wd,
+                                        u4_num_rows_y,
+                                        ps_op_frm->u4_y_strd,
+                                        ps_op_frm->u4_u_strd,
+                                        pv_disp_op->s_disp_frm_buf.u4_y_strd,
+                                        1);
     }
 
     if((u4_start_y + u4_num_rows_y) >= ps_dec->s_disp_frame_info.u4_y_ht)
@@ -826,7 +797,8 @@ void ih264d_format_convert(dec_struct_t *ps_dec,
 
         INSERT_LOGO(pv_disp_op->s_disp_frm_buf.pv_y_buf,
                         pv_disp_op->s_disp_frm_buf.pv_u_buf,
-                        pv_disp_op->s_disp_frm_buf.pv_v_buf, pv_disp_op->s_disp_frm_buf.u4_y_strd,
+                        pv_disp_op->s_disp_frm_buf.pv_v_buf,
+                        pv_disp_op->s_disp_frm_buf.u4_y_strd,
                         ps_dec->u2_disp_width,
                         ps_dec->u2_disp_height,
                         pv_disp_op->e_output_format,

@@ -188,8 +188,6 @@ WORD32 ih264d_form_mb_part_info_bp(pred_info_pkd_t *ps_pred_pkd,
     UWORD8  u1_part_wd = 0,u1_part_ht = 0;
     WORD16 i2_mv_x,i2_mv_y;
 
-
-
     /********************************************/
     /* i1_mc_wd       width reqd for mcomp      */
     /* u1_dma_ht      height reqd for mcomp     */
@@ -197,7 +195,6 @@ WORD32 ih264d_form_mb_part_info_bp(pred_info_pkd_t *ps_pred_pkd,
     /* u1_dx          fractional part of width  */
     /* u1_dx          fractional part of height */
     /********************************************/
-    WORD32 u1_ofst_in_word;
     UWORD32 i1_mc_wd;
 
     WORD32 u1_dma_ht;
@@ -276,15 +273,12 @@ WORD32 ih264d_form_mb_part_info_bp(pred_info_pkd_t *ps_pred_pkd,
 
         pu1_pred = ps_ref_frm->pu1_buf1 + i2_frm_y * u2_frm_wd + i2_frm_x;
 
-
-        u1_ofst_in_word = 0;
-        u1_dma_wd = (i1_mc_wd + u1_ofst_in_word + 3) & 0xFC;
+        u1_dma_wd = (i1_mc_wd + 3) & 0xFC;
 
         /********************************************************************/
         /* Calulating the horizontal and the vertical u4_ofst from top left  */
         /* edge of the recon buffer                                         */
         /********************************************************************/
-        /* CHANGED CODE */
         u2_rec_wd = MB_SIZE;
         {
             u2_rec_wd = ps_dec->u2_frm_wd_y;
@@ -292,8 +286,6 @@ WORD32 ih264d_form_mb_part_info_bp(pred_info_pkd_t *ps_pred_pkd,
             pu1_rec = ps_frame_buf->pu1_dest_y + i2_rec_y * u2_rec_wd
                             + i2_rec_x;
         }
-
-        /* CHANGED CODE */
 
         /* filling the pred and dma structures for Y */
         u2_frm_wd = ps_dec->u2_frm_wd_y;
@@ -307,7 +299,6 @@ WORD32 ih264d_form_mb_part_info_bp(pred_info_pkd_t *ps_pred_pkd,
 
         ps_pred->i1_mb_partwidth = u1_part_wd << 2;
         ps_pred->i1_mb_partheight = u1_part_ht << 2;
-        ps_pred->u1_mc_addr_ofst = u1_ofst_in_word;
         ps_pred->u1_dydx = (u1_dy << 2) + u1_dx;
 
         ps_pred->pu1_y_ref = pu1_pred;
@@ -374,9 +365,7 @@ WORD32 ih264d_form_mb_part_info_bp(pred_info_pkd_t *ps_pred_pkd,
         i2_frm_y = CLIP3(((1 - u1_dma_ht)), (u2_pic_ht - (1)), i2_frm_y);
 
         i4_ref_offset = i2_frm_y * u2_frm_wd + i2_frm_x * YUV420SP_FACTOR;
-        u1_ofst_in_word = 0;
-        u1_dma_wd = (i1_mc_wd + u1_ofst_in_word + 3) & 0xFC;
-        i4_ref_offset -= u1_ofst_in_word;
+        u1_dma_wd = (i1_mc_wd + 3) & 0xFC;
 
         /********************************************************************/
         /* Calulating the horizontal and the vertical u4_ofst from top left  */
@@ -409,7 +398,6 @@ WORD32 ih264d_form_mb_part_info_bp(pred_info_pkd_t *ps_pred_pkd,
 
         ps_pred->i1_mb_partwidth = u1_part_wd << 1;
         ps_pred->i1_mb_partheight = u1_part_ht << 1;
-        ps_pred->u1_mc_addr_ofst = u1_ofst_in_word;
         ps_pred->u1_dydx = (u1_dy << 3) + u1_dx;
 
         pu1_pred_u = ps_ref_frm->pu1_buf2 + i4_ref_offset;
@@ -483,7 +471,7 @@ WORD32 ih264d_form_mb_part_info_mp(pred_info_pkd_t *ps_pred_pkd,
     /* u1_dx          fractional part of width  */
     /* u1_dx          fractional part of height */
     /********************************************/
-    UWORD8 u1_ofst_in_word, i1_mc_wd, u1_dma_ht, u1_dma_wd, u1_dx, u1_dy;
+    UWORD8 i1_mc_wd, u1_dma_ht, u1_dma_wd, u1_dx, u1_dy;
     pred_info_t * ps_pred ;
     dec_slice_params_t * const ps_cur_slice = ps_dec->ps_cur_slice;
     const UWORD8 u1_slice_type = ps_cur_slice->u1_slice_type;
@@ -639,10 +627,7 @@ WORD32 ih264d_form_mb_part_info_mp(pred_info_pkd_t *ps_pred_pkd,
                          (u2_pic_ht - (1 << u1_mb_fld)), i2_frm_y);
 
         pu1_pred = pu1_buf1 + i2_frm_y * u2_frm_wd + i2_frm_x;
-        u1_ofst_in_word = 0;
-
-        u1_dma_wd = (i1_mc_wd + u1_ofst_in_word + 3) & 0xFC;
-
+        u1_dma_wd = (i1_mc_wd + 3) & 0xFC;
         /********************************************************************/
         /* Calulating the horizontal and the vertical u4_ofst from top left  */
         /* edge of the recon buffer                                         */
@@ -675,7 +660,6 @@ WORD32 ih264d_form_mb_part_info_mp(pred_info_pkd_t *ps_pred_pkd,
 
         ps_pred->i1_mb_partwidth = u1_part_wd << 2;
         ps_pred->i1_mb_partheight = u1_part_ht << 2;
-        ps_pred->u1_mc_addr_ofst = u1_ofst_in_word;
         ps_pred->u1_dydx = (u1_dy << 2) + u1_dx;
         ps_pred->u1_is_bi_direct = u1_is_bi_dir;
         ps_pred->u1_pi1_wt_ofst_rec_v = (UWORD8 *)pu4_wt_offset;
@@ -789,9 +773,7 @@ WORD32 ih264d_form_mb_part_info_mp(pred_info_pkd_t *ps_pred_pkd,
                          (u2_pic_ht - (1 << u1_mb_fld)), i2_frm_y);
 
         i4_ref_offset = i2_frm_y * u2_frm_wd + i2_frm_x * YUV420SP_FACTOR;
-        u1_ofst_in_word = 0;
-        u1_dma_wd = (i1_mc_wd + u1_ofst_in_word + 3) & 0xFC;
-        i4_ref_offset -= u1_ofst_in_word;
+        u1_dma_wd = (i1_mc_wd + 3) & 0xFC;
 
         /********************************************************************/
         /* Calulating the horizontal and the vertical u4_ofst from top left  */
@@ -828,7 +810,6 @@ WORD32 ih264d_form_mb_part_info_mp(pred_info_pkd_t *ps_pred_pkd,
 
         ps_pred->i1_mb_partwidth = u1_part_wd << 1;
         ps_pred->i1_mb_partheight = u1_part_ht << 1;
-        ps_pred->u1_mc_addr_ofst = u1_ofst_in_word;
         ps_pred->u1_dydx = (u1_dy << 3) + u1_dx;
         ps_pred->u1_is_bi_direct = u1_is_bi_dir;
         ps_pred->u1_wght_pred_type = u1_wght_pred_type;
@@ -976,7 +957,7 @@ void ih264d_motion_compensate_bp(dec_struct_t * ps_dec, dec_mb_info_t *ps_cur_mb
             UWORD8 *pu1_ref_u;
 
             u2_ref_wd_uv = ps_pred->u2_frm_wd;
-            pu1_ref_u = ps_pred->pu1_u_ref + ps_pred->u1_mc_addr_ofst;
+            pu1_ref_u = ps_pred->pu1_u_ref;
 
             u4_wd_uv = ps_pred->i1_mb_partwidth;
             u4_ht_uv = ps_pred->i1_mb_partheight;
@@ -1030,8 +1011,8 @@ void ih264d_motion_compensate_mp(dec_struct_t * ps_dec, dec_mb_info_t *ps_cur_mb
     WORD16 *pi16_intm;
     UWORD32 u2_num_pels, u2_ref_wd_y, u2_ref_wd_uv, u2_dst_wd;
     UWORD32 u2_dest_wd_y, u2_dest_wd_uv;
-    UWORD32 u2_row_buf_wd_y = ps_dec->u2_mb_group_cols_y1;
-    UWORD32 u2_row_buf_wd_uv = ps_dec->u2_mb_group_cols_cr1;
+    UWORD32 u2_row_buf_wd_y = 0;
+    UWORD32 u2_row_buf_wd_uv = 0;
     UWORD32 u2_log2Y_crwd = ps_dec->ps_cur_slice->u2_log2Y_crwd;
     UWORD32 u4_wd_y, u4_ht_y, u1_dir, u4_wd_uv;
     UWORD32 u4_ht_uv;
@@ -1052,9 +1033,11 @@ void ih264d_motion_compensate_mp(dec_struct_t * ps_dec, dec_mb_info_t *ps_cur_mb
 
     PROFILE_DISABLE_INTER_PRED()
     ps_pred = ps_dec->ps_pred ;
-    /* Initialize both ps_pred_y_forw an y_back to avoid static analysis warnigns */
+    /* Initialize both ps_pred_y_forw, ps_pred_cr_forw and ps_pred_y_back
+     * to avoid static analysis warnings */
     ps_pred_y_forw = ps_pred;
     ps_pred_y_back = ps_pred;
+    ps_pred_cr_forw = ps_pred;
 
     if(ps_dec->u1_separate_parse)
         u2_log2Y_crwd = ps_dec->ps_decode_cur_slice->u2_log2Y_crwd;
@@ -1068,7 +1051,7 @@ void ih264d_motion_compensate_mp(dec_struct_t * ps_dec, dec_mb_info_t *ps_cur_mb
 
     pi16_intm = ps_dec->pi2_pred1;
     puc_pred0 = (UWORD8 *)pi16_intm;
-    puc_pred1 = puc_pred0 + MB_SIZE * MB_SIZE;
+    puc_pred1 = puc_pred0 + PRED_BUFFER_WIDTH * PRED_BUFFER_HEIGHT * sizeof(WORD16);
 
     for(u2_num_pels = 0; u2_num_pels < 256;)
     {
@@ -1103,15 +1086,6 @@ void ih264d_motion_compensate_mp(dec_struct_t * ps_dec, dec_mb_info_t *ps_cur_mb
             u4_wd_y = ps_pred->i1_mb_partwidth;
             u4_ht_y = ps_pred->i1_mb_partheight;
 
-            if(ps_pred->i1_pod_ht)
-            {
-                pu1_pred = ps_pred->pu1_pred;
-                pu1_dma_dst = ps_pred->pu1_dma_dest_addr;
-                u1_dma_wd = ps_pred->u1_dma_wd_y;
-                u1_dma_ht = ps_pred->u1_dma_ht_y;
-                u2_frm_wd = ps_dec->u2_frm_wd_y << u1_mb_or_pic_fld;
-            }
-
             uc_dx = ps_pred->u1_dydx;
             uc_dy = uc_dx >> 2;
             uc_dx &= 0x3;
@@ -1136,12 +1110,14 @@ void ih264d_motion_compensate_mp(dec_struct_t * ps_dec, dec_mb_info_t *ps_cur_mb
 
             if(ps_pred->i1_pod_ht)
             {
+                pu1_pred = ps_pred->pu1_pred;
+                pu1_dma_dst = ps_pred->pu1_dma_dest_addr;
+                u1_dma_wd = ps_pred->u1_dma_wd_y;
+                u1_dma_ht = ps_pred->u1_dma_ht_y;
+                u2_frm_wd = ps_dec->u2_frm_wd_y << u1_mb_or_pic_fld;
                 if(ps_pred->i1_pod_ht < 0)
                 {
-                    pu1_dma_dst =
-                                    pu1_dma_dst
-                                                    - (ps_pred->i1_pod_ht
-                                                                    * ps_pred->u2_u1_ref_buf_wd);
+                    pu1_dma_dst = pu1_dma_dst - (ps_pred->i1_pod_ht * ps_pred->u2_u1_ref_buf_wd);
                 }
                 ih264d_copy_2d1d(pu1_pred, pu1_dma_dst, u2_frm_wd, u1_dma_wd,
                                  u1_dma_ht);
@@ -1246,9 +1222,7 @@ void ih264d_motion_compensate_mp(dec_struct_t * ps_dec, dec_mb_info_t *ps_cur_mb
                     /* (Table 8-9 of standard)                                        */
                     /******************************************************************/
                     if((ps_pred + 1)->i1_pod_ht)
-
                     {
-
                         pu1_pred = (ps_pred + 1)->pu1_pred_u;
                         pu1_dma_dst = (ps_pred + 1)->pu1_dma_dest_addr;
                         u1_dma_ht = (ps_pred + 1)->u1_dma_ht_uv;
@@ -1272,7 +1246,7 @@ void ih264d_motion_compensate_mp(dec_struct_t * ps_dec, dec_mb_info_t *ps_cur_mb
                     }
 
                     ih264d_multiplex_ref_data(ps_dec, ps_pred, pu1_dest_y,
-                                              pu1_dest_u, pu1_dest_v, ps_cur_mb_info,
+                                              pu1_dest_u, ps_cur_mb_info,
                                               u2_dest_wd_y, u2_dest_wd_uv,
                                               u1_dir);
                     ps_pred += 2;
@@ -1417,14 +1391,13 @@ void ih264d_multiplex_ref_data(dec_struct_t * ps_dec,
                                pred_info_t *ps_pred,
                                UWORD8* pu1_dest_y,
                                UWORD8* pu1_dest_u,
-                               UWORD8* pu1_dest_v,
                                dec_mb_info_t *ps_cur_mb_info,
                                UWORD16 u2_dest_wd_y,
                                UWORD16 u2_dest_wd_uv,
                                UWORD8 u1_dir)
 {
     UWORD16 u2_mask = ps_cur_mb_info->u2_mask[u1_dir];
-    UWORD8 *pu1_ref_y, *pu1_ref_u, *pu1_ref_v;
+    UWORD8 *pu1_ref_y, *pu1_ref_u;
     UWORD8 uc_cond, i, j, u1_dydx;
     UWORD16 u2_ref_wd_y, u2_ref_wd_uv;
 
@@ -1432,28 +1405,26 @@ void ih264d_multiplex_ref_data(dec_struct_t * ps_dec,
 
     if(ps_pred->i1_pod_ht)
     {
-        pu1_ref_y = ps_pred->pu1_dma_dest_addr + ps_pred->u1_mc_addr_ofst;
+        pu1_ref_y = ps_pred->pu1_dma_dest_addr;
 
         u2_ref_wd_y = ps_pred->u2_u1_ref_buf_wd;
     }
     else
     {
-        pu1_ref_y = ps_pred->pu1_y_ref + ps_pred->u1_mc_addr_ofst;
+        pu1_ref_y = ps_pred->pu1_y_ref;
         u2_ref_wd_y = ps_pred->u2_frm_wd;
     }
 
     ps_pred++;
     if(ps_pred->i1_pod_ht)
     {
-        pu1_ref_u = ps_pred->pu1_dma_dest_addr + ps_pred->u1_mc_addr_ofst;
-        pu1_ref_v = pu1_ref_u + ps_pred->u2_u1_ref_buf_wd * ps_pred->i1_dma_ht;
+        pu1_ref_u = ps_pred->pu1_dma_dest_addr;
         u2_ref_wd_uv = ps_pred->u2_u1_ref_buf_wd * YUV420SP_FACTOR;
 
     }
     else
     {
-        pu1_ref_u = ps_pred->pu1_u_ref + ps_pred->u1_mc_addr_ofst;
-        pu1_ref_v = ps_pred->pu1_v_ref + ps_pred->u1_mc_addr_ofst;
+        pu1_ref_u = ps_pred->pu1_u_ref;
         u2_ref_wd_uv = ps_pred->u2_frm_wd;
 
     }
@@ -1462,18 +1433,14 @@ void ih264d_multiplex_ref_data(dec_struct_t * ps_dec,
 
     {
         UWORD8 uc_dx, uc_dy;
-        UWORD8 *pu1_scratch_v, *pu1_scratch_u;
+        UWORD8 *pu1_scratch_u;
 
         uc_dx = u1_dydx & 0x3;
         uc_dy = u1_dydx >> 3;
         if(u1_dydx != 0)
         {
             pred_info_t * ps_prv_pred = ps_pred - 2;
-            pu1_scratch_u = ps_prv_pred->pu1_dma_dest_addr
-                            + ps_prv_pred->u1_mc_addr_ofst;
-            pu1_scratch_v = pu1_scratch_u
-                            + ps_prv_pred->u2_u1_ref_buf_wd
-                                            * ps_prv_pred->i1_dma_ht;
+            pu1_scratch_u = ps_prv_pred->pu1_dma_dest_addr;
             ps_dec->pf_inter_pred_chroma(pu1_ref_u, pu1_scratch_u,
                                          u2_ref_wd_uv, 16, uc_dx, uc_dy, 8,
                                          8);
@@ -1482,7 +1449,6 @@ void ih264d_multiplex_ref_data(dec_struct_t * ps_dec,
             /* buffer to be used below in ih264d_copy_multiplex_data functions */
             /* CHANGED CODE */
             pu1_ref_u = pu1_scratch_u;
-            pu1_ref_v = pu1_scratch_v;
             u2_ref_wd_uv = 8 * YUV420SP_FACTOR;
         }
     }
@@ -1491,7 +1457,6 @@ void ih264d_multiplex_ref_data(dec_struct_t * ps_dec,
         {
             for(j = 0; j < 4; j++)
             {
-
                 uc_cond = u2_mask & 1;
                 u2_mask >>= 1;
                 if(uc_cond)
@@ -1532,16 +1497,12 @@ void ih264d_multiplex_ref_data(dec_struct_t * ps_dec,
                     pu1_ref_y += 4;
                     pu1_dest_u += 2 * YUV420SP_FACTOR;
                     pu1_ref_u += 2 * YUV420SP_FACTOR;
-                    pu1_dest_v += 2;
-                    pu1_ref_v += 2;
                 }
             }
             pu1_ref_y += 4 * (u2_ref_wd_y - 4);
             pu1_ref_u += 2 * (u2_ref_wd_uv - 4 * YUV420SP_FACTOR);
-            pu1_ref_v += 2 * (u2_ref_wd_uv - 4);
             pu1_dest_y += 4 * (u2_dest_wd_y - 4);
             pu1_dest_u += 2 * (u2_dest_wd_uv - 4 * YUV420SP_FACTOR);
-            pu1_dest_v += 2 * (u2_dest_wd_uv - 4);
         }
     }
 }

@@ -42,6 +42,10 @@ WORD8 ih264d_set_deblocking_parameters(deblk_mb_t * ps_cur_deblk_mb,
                                        UWORD8 u1_mb_ngbr_availablity,
                                        UWORD8 u1_mb_field_decoding_flag);
 
+void ih264d_copy_intra_pred_line(dec_struct_t *ps_dec,
+                                 dec_mb_info_t *ps_cur_mb_info,
+                                 UWORD32 nmb_index);
+
 void FilterBoundaryLeft(tfr_ctxt_t * const ps_tfr_cxt,
                         const WORD8 i1_cb_qp_idx_ofst,
                         const WORD8 i1_cr_qp_idx_ofst,
@@ -154,11 +158,8 @@ void ih264d_deblock_mb_nonmbaff(dec_struct_t *ps_dec,
                                 tfr_ctxt_t * const ps_tfr_cxt,
                                 const WORD8 i1_cb_qp_idx_ofst,
                                 const WORD8 i1_cr_qp_idx_ofst,
-                                deblk_mb_t * const ps_cur_mb,
                                 WORD32 i4_strd_y,
-                                WORD32 i4_strd_uv,
-                                deblk_mb_t * const ps_top_mb,
-                                deblk_mb_t * const ps_left_mb);
+                                WORD32 i4_strd_uv);
 
 void ih264d_init_deblk_tfr_ctxt(dec_struct_t * ps_dec,
                                 pad_mgr_t *ps_pad_mgr,

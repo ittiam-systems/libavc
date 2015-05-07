@@ -728,7 +728,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
     UWORD16 u2_use_left_mb_pack;
     UWORD8 *pu1_luma_pred_buffer;
     /* CHANGED CODE */
-    UWORD8 *pu1_luma_rei1_buffer;
+    UWORD8 *pu1_luma_rec_buffer;
     UWORD8 *puc_top;
 
     mb_neigbour_params_t *ps_left_mb;
@@ -751,7 +751,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
     UWORD8 *pu1_mb_cb_rei1_buffer, *pu1_mb_cr_rei1_buffer;
     UWORD32 u4_recwidth_cr;
     /* CHANGED CODE */
-    tfr_ctxt_t *ps_frame_buf = &ps_dec->s_tran_addrecon;
+    tfr_ctxt_t *ps_frame_buf = ps_dec->ps_frame_buf_ip_recon;
     UWORD32 u4_luma_dc_only_csbp = 0;
     UWORD32 u4_luma_dc_only_cbp = 0;
 
@@ -822,7 +822,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
     /*********************Common pointer calculations *************************/
     /* CHANGED CODE */
     pu1_luma_pred_buffer = ps_dec->pu1_y;
-    pu1_luma_rei1_buffer = ps_frame_buf->pu1_dest_y + (u4_num_pmbair << 4);
+    pu1_luma_rec_buffer = ps_frame_buf->pu1_dest_y + (u4_num_pmbair << 4);
     pu1_mb_cb_rei1_buffer = ps_frame_buf->pu1_dest_u
                     + (u4_num_pmbair << 3) * YUV420SP_FACTOR;
     pu1_mb_cr_rei1_buffer = ps_frame_buf->pu1_dest_v + (u4_num_pmbair << 3);
@@ -835,7 +835,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
     {
         if(u1_topmb == 0)
         {
-            pu1_luma_rei1_buffer += (
+            pu1_luma_rec_buffer += (
                             u1_mb_field_decoding_flag ?
                                             (ui_rec_width >> 1) :
                                             (ui_rec_width << 4));
@@ -859,13 +859,13 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
     }
     else
     {
-        puc_top = pu1_luma_rei1_buffer - ui_rec_width;
+        puc_top = pu1_luma_rec_buffer - ui_rec_width;
         pu1_top_u = pu1_mb_cb_rei1_buffer - u4_recwidth_cr;
     }
     /* CHANGED CODE */
 
     /************* Left pointer *****************/
-    pu1_yleft = pu1_luma_rei1_buffer - 1;
+    pu1_yleft = pu1_luma_rec_buffer - 1;
     pu1_uleft = pu1_mb_cb_rei1_buffer - 1 * YUV420SP_FACTOR;
 
     /**************Top Left pointer calculation**********/
@@ -924,9 +924,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                                             (u1_intrapred_mode ^ 2);
 
             if((u1_err_code & u1_packed_modes) ^ u1_err_code)
-            {
-                return ERROR_INTRAPRED;
-            }
+                ps_dec->i4_error_code = ERROR_INTRAPRED;
         }
         {
             UWORD8 au1_ngbr_pels[33];
@@ -957,7 +955,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             }
             PROFILE_DISABLE_INTRA_PRED()
             ps_dec->apf_intra_pred_luma_16x16[u1_intrapred_mode](
-                            au1_ngbr_pels, pu1_luma_rei1_buffer, 1, ui_rec_width,
+                            au1_ngbr_pels, pu1_luma_rec_buffer, 1, ui_rec_width,
                             ((uc_useTopMB << 2) | u2_use_left_mb));
         }
         {
@@ -966,7 +964,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             for(i = 0; i < 16; i++)
             {
                 WORD16 *pi2_level = pi2_y_coeff + (i << 4);
-                UWORD8 *pu1_pred_sblk = pu1_luma_rei1_buffer
+                UWORD8 *pu1_pred_sblk = pu1_luma_rec_buffer
                                 + ((i & 0x3) * BLK_SIZE)
                                 + (i >> 2) * (ui_rec_width << 2);
                 PROFILE_DISABLE_IQ_IT_RECON()
@@ -1202,20 +1200,20 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             {
 
                 if(u1_sub_blk_y)
-                    pu1_top = pu1_luma_rei1_buffer - ui_rec_width;
+                    pu1_top = pu1_luma_rec_buffer - ui_rec_width;
                 else
                     pu1_top = puc_top + (u1_sub_blk_x << 2);
             }
             else
             {
-                pu1_top = pu1_luma_rei1_buffer - ui_rec_width;
+                pu1_top = pu1_luma_rec_buffer - ui_rec_width;
             }
             /***************** Top Right *********************/
             pu1_top_right = pu1_top + 4;
             /***************** Top Left *********************/
             pu1_top_left = pu1_top - 1;
             /***************** Left *********************/
-            pu1_left = pu1_luma_rei1_buffer - 1;
+            pu1_left = pu1_luma_rec_buffer - 1;
             /* CHANGED CODE */
 
             /*---------------------------------------------------------------*/
@@ -1289,7 +1287,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             }
             PROFILE_DISABLE_INTRA_PRED()
             ps_dec->apf_intra_pred_luma_4x4[i1_intra_pred](
-                            au1_ngbr_pels, pu1_luma_rei1_buffer, 1,
+                            au1_ngbr_pels, pu1_luma_rec_buffer, 1,
                             ui_rec_width,
                             ((u1_is_top_sub_block << 2) | u1_is_left_sub_block));
 
@@ -1303,8 +1301,8 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                     {
                         ps_dec->pf_iquant_itrans_recon_luma_4x4_dc(
                                         pi2_y_coeff1,
-                                        pu1_luma_rei1_buffer,
-                                        pu1_luma_rei1_buffer,
+                                        pu1_luma_rec_buffer,
+                                        pu1_luma_rec_buffer,
                                         ui_rec_width,
                                         ui_rec_width,
                                         gau2_ih264_iquant_scale_4x4[ps_cur_mb_info->u1_qp_rem6],
@@ -1316,8 +1314,8 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                     {
                         ps_dec->pf_iquant_itrans_recon_luma_4x4(
                                         pi2_y_coeff1,
-                                        pu1_luma_rei1_buffer,
-                                        pu1_luma_rei1_buffer,
+                                        pu1_luma_rec_buffer,
+                                        pu1_luma_rec_buffer,
                                         ui_rec_width,
                                         ui_rec_width,
                                         gau2_ih264_iquant_scale_4x4[ps_cur_mb_info->u1_qp_rem6],
@@ -1333,7 +1331,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             /* Update sub block number                                       */
             /*---------------------------------------------------------------*/
             pi2_y_coeff1 += 16;
-            pu1_luma_rei1_buffer +=
+            pu1_luma_rec_buffer +=
                             (u1_sub_blk_x == 3) ? (ui_rec_width << 2) - 12 : 4;
             pu1_luma_pred_buffer +=
                             (u1_sub_blk_x == 3) ? (ui_pred_width << 2) - 12 : 4;
@@ -1591,7 +1589,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             {
                 u1_is_top_sub_block = 1;
                 // sushant
-                pu1_top = /*pu1_luma_pred_buffer*/pu1_luma_rei1_buffer - ui_rec_width;
+                pu1_top = /*pu1_luma_pred_buffer*/pu1_luma_rec_buffer - ui_rec_width;
             }
             else
             {
@@ -1602,7 +1600,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             if((u1_sub_blk_x) | (u4_num_pmbair != 0))
             {
                 // sushant
-                pu1_left = /*pu1_luma_pred_buffer*/pu1_luma_rei1_buffer - 1;
+                pu1_left = /*pu1_luma_pred_buffer*/pu1_luma_rec_buffer - 1;
                 ui2_left_pred_buf_width = ui_rec_width;
             }
             else
@@ -1651,9 +1649,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                     UWORD8 u1_err_code = pu1_intra_err_codes[i1_intra_pred];
 
                     if((u1_err_code & u1_packed_modes) ^ u1_err_code)
-                    {
-                        return ERROR_INTRAPRED;
-                    }
+                        ps_dec->i4_error_code = ERROR_INTRAPRED;
                 }
             }
 
@@ -1675,7 +1671,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                                                         ngbr_avail);
 
                     ps_dec->apf_intra_pred_luma_8x8[i1_intra_pred](
-                                    au1_ngbr_pels, pu1_luma_rei1_buffer, 1,
+                                    au1_ngbr_pels, pu1_luma_rec_buffer, 1,
                                     ui_rec_width,
                                     ((u1_is_top_sub_block << 2) | u1_is_left_sub_block));
                 }
@@ -1695,8 +1691,8 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                     {
                         ps_dec->pf_iquant_itrans_recon_luma_8x8_dc(
                                         pi2_y_coeff1,
-                                        pu1_luma_rei1_buffer,
-                                        pu1_luma_rei1_buffer,
+                                        pu1_luma_rec_buffer,
+                                        pu1_luma_rec_buffer,
                                         ui_rec_width,
                                         ui_rec_width,
                                         gau1_ih264d_dequant8x8_cavlc[ps_cur_mb_info->u1_qp_rem6],
@@ -1708,8 +1704,8 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                     {
                         ps_dec->pf_iquant_itrans_recon_luma_8x8(
                                         pi2_y_coeff1,
-                                        pu1_luma_rei1_buffer,
-                                        pu1_luma_rei1_buffer,
+                                        pu1_luma_rec_buffer,
+                                        pu1_luma_rec_buffer,
                                         ui_rec_width,
                                         ui_rec_width,
                                         gau1_ih264d_dequant8x8_cavlc[ps_cur_mb_info->u1_qp_rem6],
@@ -1726,7 +1722,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             /*---------------------------------------------------------------*/
             pi2_y_coeff1 += 64;
 
-            pu1_luma_rei1_buffer +=
+            pu1_luma_rec_buffer +=
                             (u1_sub_blk_x == 1) ?
                                             (ui_rec_width << 3) - (8 * 1) : 8;
 
@@ -1765,7 +1761,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                                             u1_intra_chrom_pred_mode :
                                             (u1_intra_chrom_pred_mode ^ 2);
             if((u1_err_code & u1_packed_modes) ^ u1_err_code)
-                return ERROR_INTRAPRED;
+                ps_dec->i4_error_code = ERROR_INTRAPRED;
         }
 
         /* CHANGED CODE */

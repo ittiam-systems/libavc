@@ -82,8 +82,8 @@ UWORD32 ih264d_get_mb_info_cavlc_nonmbaff(dec_struct_t *ps_dec,
                                           dec_mb_info_t * ps_cur_mb_info,
                                           UWORD32 u4_mbskip_run)
 {
-    UWORD16 u2_mb_x;
-    UWORD16 u2_mb_y;
+    WORD32 mb_x;
+    WORD32 mb_y;
     UWORD8 u1_mb_ngbr_avail = 0;
     UWORD16 u2_frm_width_in_mb = ps_dec->u2_frm_wd_in_mbs;
     WORD16 i2_prev_slice_mbx = ps_dec->i2_prev_slice_mbx;
@@ -93,42 +93,40 @@ UWORD32 ih264d_get_mb_info_cavlc_nonmbaff(dec_struct_t *ps_dec,
     /*--------------------------------------------------------------------*/
     /* Calculate values of mb_x and mb_y                                  */
     /*--------------------------------------------------------------------*/
-    u2_mb_x = ps_dec->u2_mbx;
-    u2_mb_y = ps_dec->u2_mby;
+    mb_x = (WORD16)ps_dec->u2_mbx;
+    mb_y = (WORD16)ps_dec->u2_mby;
 
-    if(ps_dec->u1_separate_parse)
-    {
-        ps_dec->u2_cur_mb_addr = u2_cur_mb_address;
-    }
-    u2_mb_x++;
+    ps_dec->u2_cur_mb_addr = u2_cur_mb_address;
 
-    if(u2_mb_x == u2_frm_width_in_mb)
+    mb_x++;
+
+    if(mb_x == u2_frm_width_in_mb)
     {
-        u2_mb_x = 0;
-        u2_mb_y++;
+        mb_x = 0;
+        mb_y++;
     }
-    if(u2_mb_y > ps_dec->i2_prev_slice_mby)
+    if(mb_y > ps_dec->i2_prev_slice_mby)
     {
         /* if not in the immemdiate row of prev slice end then top
          will be available */
-        if(u2_mb_y > (ps_dec->i2_prev_slice_mby + 1))
+        if(mb_y > (ps_dec->i2_prev_slice_mby + 1))
             i2_prev_slice_mbx = -1;
 
-        if(u2_mb_x > i2_prev_slice_mbx)
+        if(mb_x > i2_prev_slice_mbx)
         {
             u1_mb_ngbr_avail |= TOP_MB_AVAILABLE_MASK;
             u2_top_right_mask |= TOP_RIGHT_TOP_AVAILABLE;
             u2_top_left_mask |= TOP_LEFT_TOP_AVAILABLE;
         }
 
-        if((u2_mb_x > (i2_prev_slice_mbx - 1))
-                        && (u2_mb_x != (u2_frm_width_in_mb - 1)))
+        if((mb_x > (i2_prev_slice_mbx - 1))
+                        && (mb_x != (u2_frm_width_in_mb - 1)))
         {
             u1_mb_ngbr_avail |= TOP_RIGHT_MB_AVAILABLE_MASK;
             u2_top_right_mask |= TOP_RIGHT_TOPR_AVAILABLE;
         }
 
-        if(u2_mb_x > (i2_prev_slice_mbx + 1))
+        if(mb_x > (i2_prev_slice_mbx + 1))
         {
             u1_mb_ngbr_avail |= TOP_LEFT_MB_AVAILABLE_MASK;
             u2_top_left_mask |= TOP_LEFT_TOPL_AVAILABLE;
@@ -139,7 +137,7 @@ UWORD32 ih264d_get_mb_info_cavlc_nonmbaff(dec_struct_t *ps_dec,
     }
 
     /* Same row */
-    if(u2_mb_x > (i2_prev_slice_mbx + 1))
+    if(mb_x > (i2_prev_slice_mbx + 1))
     {
         u1_mb_ngbr_avail |= LEFT_MB_AVAILABLE_MASK;
         u2_top_left_mask |= TOP_LEFT_LEFT_AVAILABLE;
@@ -152,19 +150,19 @@ UWORD32 ih264d_get_mb_info_cavlc_nonmbaff(dec_struct_t *ps_dec,
         /* copy the parameters of topleft Mb */
         ps_cur_mb_info->u1_topleft_mbtype = ps_dec->u1_topleft_mbtype;
         /* Neighbour pointer assignments*/
-        ps_cur_mb_info->ps_curmb = ps_cur_mb_row + u2_mb_x;
-        ps_cur_mb_info->ps_left_mb = ps_cur_mb_row + u2_mb_x - 1;
-        ps_cur_mb_info->ps_top_mb = ps_top_mb_row + u2_mb_x;
-        ps_cur_mb_info->ps_top_right_mb = ps_top_mb_row + u2_mb_x + 1;
+        ps_cur_mb_info->ps_curmb = ps_cur_mb_row + mb_x;
+        ps_cur_mb_info->ps_left_mb = ps_cur_mb_row + mb_x - 1;
+        ps_cur_mb_info->ps_top_mb = ps_top_mb_row + mb_x;
+        ps_cur_mb_info->ps_top_right_mb = ps_top_mb_row + mb_x + 1;
 
         /* Update the parameters of topleftmb*/
         ps_dec->u1_topleft_mbtype = ps_cur_mb_info->ps_top_mb->u1_mb_type;
     }
 
-    ps_dec->u2_mby = u2_mb_y;
-    ps_dec->u2_mbx = u2_mb_x;
-    ps_cur_mb_info->u2_mbx = u2_mb_x;
-    ps_cur_mb_info->u2_mby = u2_mb_y;
+    ps_dec->u2_mby = mb_y;
+    ps_dec->u2_mbx = mb_x;
+    ps_cur_mb_info->u2_mbx = mb_x;
+    ps_cur_mb_info->u2_mby = mb_y;
     ps_cur_mb_info->u1_topmb = 1;
     ps_dec->i4_submb_ofst += SUB_BLK_SIZE;
     ps_dec->u1_mb_ngbr_availablity = u1_mb_ngbr_avail;
@@ -231,10 +229,7 @@ UWORD32 ih264d_get_mb_info_cavlc_mbaff(dec_struct_t *ps_dec,
     u2_mb_x = ps_dec->u2_mbx;
     u2_mb_y = ps_dec->u2_mby;
 
-    if(ps_dec->u1_separate_parse)
-    {
-        ps_dec->u2_cur_mb_addr = u2_cur_mb_address;
-    }
+    ps_dec->u2_cur_mb_addr = u2_cur_mb_address;
 
 
     if(u1_top_mb)
@@ -369,8 +364,8 @@ UWORD32 ih264d_get_mb_info_cabac_nonmbaff(dec_struct_t *ps_dec,
                                           dec_mb_info_t * ps_cur_mb_info,
                                           UWORD32 u4_mbskip)
 {
-    WORD32 u2_mb_x;
-    WORD32 u2_mb_y;
+    WORD32 mb_x;
+    WORD32 mb_y;
     UWORD32 u1_mb_ngbr_avail = 0;
     UWORD32 u2_frm_width_in_mb = ps_dec->u2_frm_wd_in_mbs;
     UWORD32 u1_top_mb = 1;
@@ -382,52 +377,49 @@ UWORD32 ih264d_get_mb_info_cabac_nonmbaff(dec_struct_t *ps_dec,
     /*--------------------------------------------------------------------*/
     /* Calculate values of mb_x and mb_y                                  */
     /*--------------------------------------------------------------------*/
-    u2_mb_x = (WORD16)ps_dec->u2_mbx;
-    u2_mb_y = ps_dec->u2_mby;
+    mb_x = (WORD16)ps_dec->u2_mbx;
+    mb_y = (WORD16)ps_dec->u2_mby;
 
-    if(ps_dec->u1_separate_parse)
-    {
-        ps_dec->u2_cur_mb_addr = u2_cur_mb_address;
-    }
+    ps_dec->u2_cur_mb_addr = u2_cur_mb_address;
 
-    u2_mb_x++;
-    if((UWORD32)u2_mb_x == u2_frm_width_in_mb)
+    mb_x++;
+    if((UWORD32)mb_x == u2_frm_width_in_mb)
     {
-        u2_mb_x = 0;
-        u2_mb_y++;
+        mb_x = 0;
+        mb_y++;
     }
     /*********************************************************************/
     /* Cabac Context Initialisations                                     */
     /*********************************************************************/
-    ps_dec->ps_curr_ctxt_mb_info = p_ctx_inc_mb_map + u2_mb_x;
+    ps_dec->ps_curr_ctxt_mb_info = p_ctx_inc_mb_map + mb_x;
     ps_dec->p_left_ctxt_mb_info = p_ctx_inc_mb_map - 1;
     ps_dec->p_top_ctxt_mb_info = p_ctx_inc_mb_map - 1;
 
     /********************************************************************/
     /* neighbour availablility                                          */
     /********************************************************************/
-    if(u2_mb_y > ps_dec->i2_prev_slice_mby)
+    if(mb_y > ps_dec->i2_prev_slice_mby)
     {
         /* if not in the immemdiate row of prev slice end then top
          will be available */
-        if(u2_mb_y > (ps_dec->i2_prev_slice_mby + 1))
+        if(mb_y > (ps_dec->i2_prev_slice_mby + 1))
             i2_prev_slice_mbx = -1;
 
-        if(u2_mb_x > i2_prev_slice_mbx)
+        if(mb_x > i2_prev_slice_mbx)
         {
             u1_mb_ngbr_avail |= TOP_MB_AVAILABLE_MASK;
             u2_top_right_mask |= TOP_RIGHT_TOP_AVAILABLE;
             u2_top_left_mask |= TOP_LEFT_TOP_AVAILABLE;
             ps_dec->p_top_ctxt_mb_info = ps_dec->ps_curr_ctxt_mb_info;
         }
-        if((u2_mb_x > (i2_prev_slice_mbx - 1))
-                        && ((UWORD32)u2_mb_x != (u2_frm_width_in_mb - 1)))
+        if((mb_x > (i2_prev_slice_mbx - 1))
+                        && ((UWORD32)mb_x != (u2_frm_width_in_mb - 1)))
         {
             u1_mb_ngbr_avail |= TOP_RIGHT_MB_AVAILABLE_MASK;
             u2_top_right_mask |= TOP_RIGHT_TOPR_AVAILABLE;
         }
 
-        if(u2_mb_x > (i2_prev_slice_mbx + 1))
+        if(mb_x > (i2_prev_slice_mbx + 1))
         {
             u1_mb_ngbr_avail |= TOP_LEFT_MB_AVAILABLE_MASK;
             u2_top_left_mask |= TOP_LEFT_TOPL_AVAILABLE;
@@ -436,7 +428,7 @@ UWORD32 ih264d_get_mb_info_cabac_nonmbaff(dec_struct_t *ps_dec,
         i2_prev_slice_mbx = -1;
     }
     /* Same row */
-    if(u2_mb_x > (i2_prev_slice_mbx + 1))
+    if(mb_x > (i2_prev_slice_mbx + 1))
     {
         u1_mb_ngbr_avail |= LEFT_MB_AVAILABLE_MASK;
         u2_top_left_mask |= TOP_LEFT_LEFT_AVAILABLE;
@@ -448,19 +440,19 @@ UWORD32 ih264d_get_mb_info_cabac_nonmbaff(dec_struct_t *ps_dec,
         /* copy the parameters of topleft Mb */
         ps_cur_mb_info->u1_topleft_mbtype = ps_dec->u1_topleft_mbtype;
         /* Neighbour pointer assignments*/
-        ps_cur_mb_info->ps_curmb = ps_cur_mb_row + u2_mb_x;
-        ps_cur_mb_info->ps_left_mb = ps_cur_mb_row + u2_mb_x - 1;
-        ps_cur_mb_info->ps_top_mb = ps_top_mb_row + u2_mb_x;
-        ps_cur_mb_info->ps_top_right_mb = ps_top_mb_row + u2_mb_x + 1;
+        ps_cur_mb_info->ps_curmb = ps_cur_mb_row + mb_x;
+        ps_cur_mb_info->ps_left_mb = ps_cur_mb_row + mb_x - 1;
+        ps_cur_mb_info->ps_top_mb = ps_top_mb_row + mb_x;
+        ps_cur_mb_info->ps_top_right_mb = ps_top_mb_row + mb_x + 1;
 
         /* Update the parameters of topleftmb*/
         ps_dec->u1_topleft_mbtype = ps_cur_mb_info->ps_top_mb->u1_mb_type;
     }
 
-    ps_dec->u2_mby = u2_mb_y;
-    ps_dec->u2_mbx = u2_mb_x;
-    ps_cur_mb_info->u2_mbx = u2_mb_x;
-    ps_cur_mb_info->u2_mby = u2_mb_y;
+    ps_dec->u2_mby = mb_y;
+    ps_dec->u2_mbx = mb_x;
+    ps_cur_mb_info->u2_mbx = mb_x;
+    ps_cur_mb_info->u2_mby = mb_y;
     ps_cur_mb_info->u1_topmb = u1_top_mb;
     ps_dec->i4_submb_ofst += SUB_BLK_SIZE;
     ps_dec->u1_mb_ngbr_availablity = u1_mb_ngbr_avail;
@@ -554,8 +546,8 @@ UWORD32 ih264d_get_mb_info_cabac_mbaff(dec_struct_t *ps_dec,
                                        dec_mb_info_t * ps_cur_mb_info,
                                        UWORD32 u4_mbskip)
 {
-    UWORD16 u2_mb_x;
-    UWORD16 u2_mb_y;
+    WORD32 mb_x;
+    WORD32 mb_y;
     UWORD8 u1_mb_ngbr_avail = 0;
     UWORD16 u2_frm_width_in_mb = ps_dec->u2_frm_wd_in_mbs;
     ctxt_inc_mb_info_t * const p_ctx_inc_mb_map = ps_dec->p_ctxt_inc_mb_map;
@@ -573,13 +565,10 @@ UWORD32 ih264d_get_mb_info_cabac_mbaff(dec_struct_t *ps_dec,
     /*--------------------------------------------------------------------*/
     /* Calculate values of mb_x and mb_y                                  */
     /*--------------------------------------------------------------------*/
-    u2_mb_x = ps_dec->u2_mbx;
-    u2_mb_y = ps_dec->u2_mby;
+    mb_x = (WORD16)ps_dec->u2_mbx;
+    mb_y = (WORD16)ps_dec->u2_mby;
 
-    if(ps_dec->u1_separate_parse)
-    {
-        ps_dec->u2_cur_mb_addr = u2_cur_mb_address;
-    }
+    ps_dec->u2_cur_mb_addr = u2_cur_mb_address;
 
     ps_top_ctxt = ps_left_ctxt = p_ctx_inc_mb_map - 1;
 
@@ -588,20 +577,20 @@ UWORD32 ih264d_get_mb_info_cabac_mbaff(dec_struct_t *ps_dec,
         ctxt_inc_mb_info_t *ps_left_mb_of_bot = ps_left_ctxt;
         ctxt_inc_mb_info_t *ps_top_mb_of_bot = ps_top_ctxt;
 
-        u2_mb_x++;
+        mb_x++;
 
-        if(u2_mb_x == u2_frm_width_in_mb)
+        if(mb_x == u2_frm_width_in_mb)
         {
-            u2_mb_x = 0;
-            u2_mb_y += 2;
+            mb_x = 0;
+            mb_y += 2;
         }
 
-        ps_curr_ctxt = p_ctx_inc_mb_map + (u2_mb_x << 1);
-        if(u2_mb_y > ps_dec->i2_prev_slice_mby)
+        ps_curr_ctxt = p_ctx_inc_mb_map + (mb_x << 1);
+        if(mb_y > ps_dec->i2_prev_slice_mby)
         {
             UWORD8 u1_cur_mb_fld_flag_known = 0;
             /* Next row */
-            if(u2_mb_x > 0)
+            if(mb_x > 0)
             {
                 /***********************************************************************/
                 /*                    Left Mb is avialable                             */
@@ -609,16 +598,16 @@ UWORD32 ih264d_get_mb_info_cabac_mbaff(dec_struct_t *ps_dec,
                 u1_mb_ngbr_avail |= LEFT_MB_AVAILABLE_MASK;
                 ps_left_ctxt = ps_curr_ctxt - 2;
                 ps_left_mb_of_bot = ps_curr_ctxt - 1;
-                u1_cur_mb_field = u4_left_mb_pair_fld = ps_cur_mb_row[(u2_mb_x
+                u1_cur_mb_field = u4_left_mb_pair_fld = ps_cur_mb_row[(mb_x
                                 << 1) - 1].u1_mb_fld;
                 u1_cur_mb_fld_flag_known = 1;
                 u2_top_left_mask |= TOP_LEFT_LEFT_AVAILABLE;
             }
             /* if not in the immemdiate row of prev slice end then top
              will be available */
-            if(u2_mb_y > (ps_dec->i2_prev_slice_mby + 2))
+            if(mb_y > (ps_dec->i2_prev_slice_mby + 2))
                 i2_prev_slice_mbx = -1;
-            if(u2_mb_x > i2_prev_slice_mbx)
+            if(mb_x > i2_prev_slice_mbx)
             {
                 /*********************************************************************/
                 /*                    Top Mb is avialable                            */
@@ -629,7 +618,7 @@ UWORD32 ih264d_get_mb_info_cabac_mbaff(dec_struct_t *ps_dec,
 
                 /* point to MbAddrB + 1 */
                 ps_top_ctxt = ps_curr_ctxt + 1;
-                u4_top_mb_pair_fld = ps_top_mb_row[(u2_mb_x << 1)].u1_mb_fld;
+                u4_top_mb_pair_fld = ps_top_mb_row[(mb_x << 1)].u1_mb_fld;
 
                 u1_cur_mb_field =
                                 u1_cur_mb_fld_flag_known ?
@@ -641,14 +630,14 @@ UWORD32 ih264d_get_mb_info_cabac_mbaff(dec_struct_t *ps_dec,
                 ps_top_ctxt -= (u1_cur_mb_field && u4_top_mb_pair_fld);
             }
 
-            if((u2_mb_x > (i2_prev_slice_mbx - 1))
-                            && (u2_mb_x != (u2_frm_width_in_mb - 1)))
+            if((mb_x > (i2_prev_slice_mbx - 1))
+                            && (mb_x != (u2_frm_width_in_mb - 1)))
             {
                 u1_mb_ngbr_avail |= TOP_RIGHT_MB_AVAILABLE_MASK;
                 u2_top_right_mask |= TOP_RIGHT_TOPR_AVAILABLE;
             }
 
-            if(u2_mb_x > (i2_prev_slice_mbx + 1))
+            if(mb_x > (i2_prev_slice_mbx + 1))
             {
                 u1_mb_ngbr_avail |= TOP_LEFT_MB_AVAILABLE_MASK;
                 u2_top_left_mask |= TOP_LEFT_TOPL_AVAILABLE;
@@ -657,14 +646,14 @@ UWORD32 ih264d_get_mb_info_cabac_mbaff(dec_struct_t *ps_dec,
         else
         {
             /* Same row */
-            if(u2_mb_x > (i2_prev_slice_mbx + 1))
+            if(mb_x > (i2_prev_slice_mbx + 1))
             {
                 /***************************************************************/
                 /*                    Left Mb is avialable                     */
                 /***************************************************************/
                 u1_mb_ngbr_avail |= LEFT_MB_AVAILABLE_MASK;
 
-                u1_cur_mb_field = u4_left_mb_pair_fld = ps_cur_mb_row[(u2_mb_x
+                u1_cur_mb_field = u4_left_mb_pair_fld = ps_cur_mb_row[(mb_x
                                 << 1) - 1].u1_mb_fld;
                 ps_left_ctxt = ps_curr_ctxt - 2;
                 ps_left_mb_of_bot = ps_curr_ctxt - 1;
@@ -730,8 +719,8 @@ UWORD32 ih264d_get_mb_info_cabac_mbaff(dec_struct_t *ps_dec,
         ps_dec->u1_cur_mb_fld_dec_flag = u1_cur_mb_field;
         ps_dec->u2_top_left_mask = u2_top_left_mask;
         ps_dec->u2_top_right_mask = u2_top_right_mask;
-        ps_dec->u2_mby = u2_mb_y;
-        ps_dec->u2_mbx = u2_mb_x;
+        ps_dec->u2_mby = mb_y;
+        ps_dec->u2_mbx = mb_x;
     }
     else
     {
@@ -739,11 +728,11 @@ UWORD32 ih264d_get_mb_info_cabac_mbaff(dec_struct_t *ps_dec,
         u1_mb_ngbr_avail = ps_dec->u1_mb_ngbr_availablity;
         u2_top_left_mask = ps_dec->u2_top_left_mask;
         u2_top_right_mask = ps_dec->u2_top_right_mask;
-        ps_curr_ctxt = p_ctx_inc_mb_map + (u2_mb_x << 1) + 1;
+        ps_curr_ctxt = p_ctx_inc_mb_map + (mb_x << 1) + 1;
 
         if(u1_mb_ngbr_avail & LEFT_MB_AVAILABLE_MASK)
         {
-            u4_left_mb_pair_fld = ps_cur_mb_row[(u2_mb_x << 1) - 1].u1_mb_fld;
+            u4_left_mb_pair_fld = ps_cur_mb_row[(mb_x << 1) - 1].u1_mb_fld;
 
             /* point to A if top else A+1 */
             ps_left_ctxt = ps_curr_ctxt - 2
@@ -805,8 +794,8 @@ UWORD32 ih264d_get_mb_info_cabac_mbaff(dec_struct_t *ps_dec,
         }
     }
 
-    ps_cur_mb_info->u2_mbx = u2_mb_x;
-    ps_cur_mb_info->u2_mby = u2_mb_y;
+    ps_cur_mb_info->u2_mbx = mb_x;
+    ps_cur_mb_info->u2_mby = mb_y;
     ps_cur_mb_info->u1_topmb = u1_top_mb;
     ps_dec->i4_submb_ofst += SUB_BLK_SIZE;
     ps_dec->u1_mb_ngbr_availablity = u1_mb_ngbr_avail;
@@ -1399,7 +1388,7 @@ void ih264d_get_mbaff_neighbours(dec_struct_t * ps_dec,
  **************************************************************************
  */
 void ih264d_transfer_mb_group_data(dec_struct_t * ps_dec,
-                                   const WORD8 c_numMbs,
+                                   const UWORD8 u1_num_mbs,
                                    const UWORD8 u1_end_of_row, /* Cur n-Mb End of Row Flag */
                                    const UWORD8 u1_end_of_row_next /* Next n-Mb End of Row Flag */
                                    )
@@ -1453,12 +1442,12 @@ void ih264d_transfer_mb_group_data(dec_struct_t * ps_dec,
     /*
      * The Slice boundary is also a valid condition to transfer. So recalculate
      * the Left increment, in case the number of MBs is lesser than the
-     * N MB value. c_numMbs will be equal to N of N MB if the entire N Mb is
+     * N MB value. u1_num_mbs will be equal to N of N MB if the entire N Mb is
      * decoded.
      */
-    ps_dec->s_tran_addrecon.u2_mv_left_inc = ((c_numMbs >> u1_mbaff) - 1)
+    ps_dec->s_tran_addrecon.u2_mv_left_inc = ((u1_num_mbs >> u1_mbaff) - 1)
                     << (4 + u1_mbaff);
-    ps_dec->s_tran_addrecon.u2_mv_top_left_inc = (c_numMbs << 2) - 1
+    ps_dec->s_tran_addrecon.u2_mv_top_left_inc = (u1_num_mbs << 2) - 1
                     - (u1_mbaff << 2);
 
     if(ps_dec->u1_separate_parse == 0)
@@ -1467,29 +1456,18 @@ void ih264d_transfer_mb_group_data(dec_struct_t * ps_dec,
         ps_dec->ps_mv_left = ps_dec->ps_mv_cur
                         + ps_dec->s_tran_addrecon.u2_mv_left_inc;
 
-        ps_dec->ps_mv_cur += (c_numMbs << 4);
+        ps_dec->ps_mv_cur += (u1_num_mbs << 4);
     }
 
     /* Increment deblock parameters pointer in external memory */
 
     if(ps_dec->u1_separate_parse == 1)
     {
-        ps_dec->ps_deblk_mbn_dec_thrd += c_numMbs;
+        ps_dec->ps_deblk_mbn_dec_thrd += u1_num_mbs;
     }
     else
     {
-        if(ps_dec->u4_mb_level_deblk == 0)
-            ps_dec->ps_deblk_mbn += c_numMbs;
-        else
-        {
-            deblk_mb_t *temp;
-
-            /*swap previous and curr pointers*/
-            ps_dec->ps_deblk_mbn = ps_dec->ps_deblk_mbn_prev;
-            temp = ps_dec->ps_deblk_mbn_curr;
-            ps_dec->ps_deblk_mbn_curr = ps_dec->ps_deblk_mbn_prev;
-            ps_dec->ps_deblk_mbn_prev = temp;
-        }
+        ps_dec->ps_deblk_mbn += u1_num_mbs;
     }
 
 }

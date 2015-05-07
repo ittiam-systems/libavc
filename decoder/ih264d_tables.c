@@ -35,6 +35,7 @@
 #include "ih264_macros.h"
 #include "ih264_platform_macros.h"
 #include "ih264d_defs.h"
+#include "ih264d_tables.h"
 
 const UWORD8 gau1_ih264d_qp_scale_cr[] =
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,

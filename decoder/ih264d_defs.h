@@ -35,26 +35,12 @@
  ************************************************************************
  */
 #define H264_MAX_FRAME_WIDTH                3840
-#define H264_MAX_FRAME_HEIGHT               2160
+#define H264_MAX_FRAME_HEIGHT               2176
 
 #define H264_MIN_FRAME_WIDTH                16
 #define H264_MIN_FRAME_HEIGHT               16
 
-#define IH264DEC_MAX_NAL_UNIT_SIZE        311040
-#define IH264DEC_NUM_ZEROS_IN_START_CODE  2
-#define H264DEC_MEM_ALLOC_SUCCESS         1
-#define H264DEC_MEM_ALLOC_FAILURE         0
-#define H264DEC_CREATE_FAILED             (NULL)
-
-#define H264_NO_BUF_TO_DISPLAY    -1
-#define H264_DISPLAY_BUF_FOUND     0
-#define IH264DEC_YUV420                    0
-#define IH264DEC_YUV422                    1
-#define IH264DEC_YUV422INTERLACED          2
-#define IH264DEC_RGB                       4          // Original Size
-/* Ceiling of variables to the nearest power of 2 */
-#define  FILL_POWEROF2(x,y)   (size_t)(((x) & ((1<<(y))-1))?((1<<(y)) - ((x) & ((1<<(y))-1))): 0)
-#define  ALIGN_POWEROF2(x,y)  (x) = (x)+FILL_POWEROF2((size_t)(x),y)
+#define FMT_CONV_NUM_ROWS       16
 
 /** Bit manipulation macros */
 #define CHECKBIT(a,i) ((a) &  (1 << i))
@@ -78,10 +64,10 @@
 #define MAX_REF_BUFS    32
 #define MAX_DISP_BUFS_NEW 64
 #define MAX_FRAMES              16
-#define MAX_MBS_IN_ROW          (720/16)
+
 #define INVALID_FRAME_NUM       0x0fffffff
 #define GAP_FRAME_NUM           0x1fffffff
-#define MAX_PIC_SIZE    622080  // 720 * 576 * 1.5
+
 /** macros for reference picture lists, refIdx to POC mapping */
 // 1 extra entry into reference picture lists for refIdx = -1.
 // this entry is always 0. this saves conditional checks in
@@ -112,7 +98,7 @@
 #define INT_PIC_TYPE_I        (0x00)
 
 #define YIELD_CNT_THRESHOLD  8
-#define ENABLE_420P_UV_SHARING 1
+
 
 #define OK        0
 #define END       1
@@ -272,7 +258,7 @@ enum
 #define BASE_PROFILE_IDC    66
 #define MAIN_PROFILE_IDC    77
 #define HIGH_PROFILE_IDC   100
-#define MAIN_PROFILE         1
+
 
 #define MB_SIZE             16
 #define BLK8x8SIZE           8
@@ -640,27 +626,17 @@ enum
 #define MASK_PRED_WEIGHT_OFFSET     0xFFFFFF00
 #define MAX_REDUNDANT_PIC_CNT       127
 
-#define DPB_HACK 0
-#define DPB_HACK_NEW 0
 
-
-
-#define PD_MB_BUF_SIZE  (H264_MAX_FRAME_WIDTH * H264_MAX_FRAME_WIDTH / 256)
-#define PD_MB_BUF_SIZE_MOD 0xffffffff
-#define MAX_PRED_INFO_LIMIT  (PD_MB_BUF_SIZE * 32 * 2)
 
 #endif //DEBLOCK_THREAD
 
-
-#define NO_DC_SB   0
-#define SUB_BLK_MASK 0xFFFFFF00
 #define NUM_COEFFS_IN_4x4BLK 16
 
 
 #define MEMSET_16BYTES(pu4_start,value)                         \
-    {                                                           \
-        memset(pu4_start,value,16);                             \
-    }
+{                                                               \
+    memset(pu4_start,value,16);                                 \
+}
 
 #define MEMCPY_16BYTES(dst,src)                                 \
 {                                                               \

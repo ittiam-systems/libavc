@@ -50,6 +50,9 @@
 #include "ih264_deblk_edge_filters.h"
 
 
+
+
+
 /** Number of Mb's whoose syntax will be read */
 /************************************************************/
 /* MB_GROUP should be a multiple of 2                       */
@@ -59,10 +62,6 @@
 /* MV_SCRATCH_BUFS assumed to be pow(2) */
 #define MV_SCRATCH_BUFS             4
 
-#define LEFT_MB_PIXELS              4
-#define LEFT_MB_PIXELS_Y_FRM_BOT    64 /* 4 * 16 */
-#define LEFT_MB_PIXELS_CR_FRM_BOT   32 /* 4 * 8 */
-
 #define TOP_FIELD_ONLY      0x02
 #define BOT_FIELD_ONLY      0x01
 
@@ -70,10 +69,6 @@
 
 struct _DecStruct;
 struct _DecMbInfo;
-
-
-#define NUM_INT_G_TABLE       ((UWORD32) (sigcoeff_ctxtinc_field8x8 + 1))
-#define NUM_EXT_G_TABLE       ((UWORD32) (ITTIAM_LOGO_V_BUF_T + 1))
 
 typedef enum
 {
@@ -127,44 +122,6 @@ typedef enum
     COEFF_ABS_LEVEL_CAT_4_OFFSET = 39,
     COEFF_ABS_LEVEL_CAT_5_OFFSET = 0
 } cabac_blk_cat_offset_t;
-
-typedef enum
-{
-    CABAC_IPBMB_LD_ADRS_T,
-    CABAC_IPBMB_LD_SZ_T,
-    CAVLC_IPBMB_LD_ADRS_T,
-    CAVLC_IPBMB_LD_SZ_T,
-    PARSE_IPBMB_RUN_ADRS_T,
-
-    MVP_MBAFF_LD_ADRS_T,
-    MVP_MBAFF_LD_SZ_T,
-    MVP_NON_MBAFF_LD_ADRS_T,
-    MVP_NON_MBAFF_LD_SZ_T,
-    MVPRED_RUN_ADRS_T,
-
-    B_REF_DMA_LD_ADRS_T,
-    B_REF_DMA_LD_SZ_T,
-    P_REF_DMA_LD_ADRS_T,
-    P_REF_DMA_LD_SZ_T,
-    REF_DMA_RUN_ADRS_T,
-
-    SP_DRCT_LD_ADRS_T,
-    SP_DRCT_LD_SZ_T,
-    TMP_DRCT_LD_ADRS_T,
-    TMP_DRCT_LD_SZ_T,
-    B_SKIP_RUN_ADRS_T,
-
-    DEC_DEBLK_RUN_ADRS_T,
-    H264_DBLK_LD_ADRS_T,
-    H264_DBLK_LD_SZ_T,
-    H264_DEC_LD_ADRS_T,
-
-    /*
-     * (H264_DEC_LD_SZ_T + 1) will be considered as the end of this table
-     * new members to be added before this
-     */
-    H264_DEC_LD_SZ_T
-} code_overlay_tab_t;
 
 /** Structure for the MV bank */
 typedef struct _mv_pred_t
@@ -280,13 +237,8 @@ typedef struct
  }col_mv_buf_t;
 
 
-/* Note the i4_size of this structure is hardcoded in arm_default_weighted_Pred.s as 0x3C.
- * ADD         r0,r0,#0x3C             and so on..
- * If there is a change in i4_size update above file accordingly.
- */
 typedef struct
 {
-    UWORD8 u1_mc_addr_ofst; /** Offset in bytes relative to pu1_dma_dest_addr  */
     UWORD8 u1_dydx; /** 4*dy + dx for Y comp / 8*dy + dx for UV comp */
     UWORD8 u1_is_bi_direct; /** 1: is bi-direct 0: forward / backward only   */
     UWORD8 u1_wght_pred_type; /** 0-default 1-singleWeighted 2-BiWeighted      */
@@ -723,22 +675,11 @@ typedef struct
 typedef struct _dec_slice_struct
 {
     volatile UWORD32 u4_first_mb_in_slice;
-    volatile UWORD32 u4_num_mbs_done_in_slice;
     volatile UWORD32 slice_type;
-    volatile UWORD32 end_of_slice;
-    volatile UWORD32 slice_header_done;
-    volatile UWORD32 last_slice_in_frame;
     volatile UWORD16 u2_log2Y_crwd;
-    volatile UWORD16 u2_error_flag;
     volatile void **ppv_map_ref_idx_to_poc;
+    volatile void *pv_tu_coeff_data_start;
 } dec_slice_struct_t;
-
-typedef struct
-{
-    UWORD32 u4_flag;
-    UWORD32 u4_start_y;
-    UWORD32 u4_num_rows_y;
-} fmt_conv_part_t;
 
 /**
  * Structure to hold coefficient info for a 4x4 transform
@@ -811,7 +752,7 @@ typedef struct _DecStruct
     UWORD16 u2_pic_wd; /** Width of the picture being decoded */
     UWORD16 u2_pic_ht; /** Height of the picture being decoded */
 
-    UWORD8 u1_first_nal_in_pic;
+    UWORD8 u1_first_slice_in_stream;
     UWORD8 u1_mb_ngbr_availablity;
     UWORD8 u1_ref_idxl0_active_minus1;
     UWORD8 u1_qp;
@@ -885,6 +826,7 @@ typedef struct _DecStruct
      *
      */
     void *pv_parse_tu_coeff_data;
+    void *pv_prev_mb_parse_tu_coeff_data;
 
     void *pv_proc_tu_coeff_data;
 
@@ -966,6 +908,9 @@ typedef struct _DecStruct
     /* DMA SETUP */
     tfr_ctxt_t s_tran_addrecon_parse;
     tfr_ctxt_t s_tran_addrecon;
+    tfr_ctxt_t s_tran_iprecon;
+    tfr_ctxt_t *ps_frame_buf_ip_recon;
+    WORD8 i1_recon_in_thread3_flag;
 
     /* slice Header Simplification */
     UWORD8 u1_pr_sl_type;
@@ -1078,10 +1023,6 @@ typedef struct _DecStruct
     UWORD8 u1_y_topleft[2]; /** Left Y pointer, used for intra-pred */
     UWORD8 u1_u_topleft[2]; /** Left U pointer, used for intra-pred */
     UWORD8 u1_v_topleft[2]; /** Left V pointer, used for intra-pred */
-    UWORD16 u2_mb_group_cols_y; /** Number of Y pixels in the N MB group */
-    UWORD16 u2_mb_group_cols_cr; /** Number of U/V pixels in the N MB group */
-    UWORD16 u2_mb_group_cols_y1; /** Number of Y pixels in the N MB group */
-    UWORD16 u2_mb_group_cols_cr1; /** Number of U/V pixels in the N MB group */
 
     mv_pred_t *ps_mv_cur; /** pointer to current motion vector bank */
     mv_pred_t *ps_mv_top; /** pointer to top motion vector bank */
@@ -1317,6 +1258,7 @@ typedef struct _DecStruct
     /* Output format sent by the application */
     UWORD8 u1_chroma_format;
     UWORD8 u1_pic_decode_done;
+    UWORD8 u1_slice_header_done;
     UWORD32 u4_level_at_init;
     UWORD32 u4_width_at_init;
     UWORD32 u4_height_at_init;
@@ -1348,9 +1290,10 @@ typedef struct _DecStruct
     WORD32 i4_display_delay;
     UWORD32 u4_slice_start_code_found;
 
-    UWORD32 u4_mb_level_deblk;
+    UWORD32 u4_nmb_deblk;
     UWORD32 u4_use_intrapred_line_copy;
     UWORD32 u4_num_mbs_prev_nmb;
+    UWORD32 u4_num_mbs_cur_nmb;
     UWORD32 u4_app_deblk_disable_level;
     UWORD32 u4_app_disable_deblk_frm;
     WORD32 i4_app_skip_mode;
@@ -1366,18 +1309,17 @@ typedef struct _DecStruct
     WORD32 i4_dec_skip_mode;
 
     UWORD32 u4_bs_deblk_thread_created;
-    volatile UWORD32 u4_start_bs_deblk;
+    volatile UWORD32 u4_start_recon_deblk;
     void *pv_bs_deblk_thread_handle;
 
     UWORD32 u4_cur_bs_mb_num;
     UWORD32 u4_bs_cur_slice_num_mbs;
-    UWORD32 u4_cur_slice_bs_done;
     UWORD32 u4_cur_deblk_mb_num;
     volatile UWORD16 u2_cur_slice_num_bs;
 
     UWORD32 u4_deblk_mb_x;
     UWORD32 u4_deblk_mb_y;
-    deblk_mb_t *ps_cur_deblk_thrd_mb;
+
 
 
     iv_yuv_buf_t s_disp_frame_info;
@@ -1389,12 +1331,12 @@ typedef struct _DecStruct
     UWORD32 u4_output_present;
 
     volatile UWORD16 cur_dec_mb_num;
+    volatile UWORD16 cur_recon_mb_num;
     volatile UWORD16 u2_cur_mb_addr;
     WORD16 i2_dec_thread_mb_y;
+    WORD16 i2_recon_thread_mb_y;
 
     UWORD8 u1_separate_parse;
-// 0: slice parse not started, 1: slice decode can start, 2: slice in error
-    volatile UWORD32 u4_start_frame_decode;
     UWORD32 u4_dec_thread_created;
     void *pv_dec_thread_handle;
     volatile UWORD8 *pu1_dec_mb_map;
@@ -1442,11 +1384,7 @@ typedef struct _DecStruct
      */
     WORD32 i4_degrade_pic_cnt;
 
-    fmt_conv_part_t as_fmt_conv_part[2];
-    UWORD32 u4_fmt_conv_in_process;
     UWORD32 u4_pic_buf_got;
-    UWORD16 u2_mb_skip_error;
-    volatile UWORD16 u2_skip_deblock;
 
     /**
      * Col flag and mv pred buffer manager
