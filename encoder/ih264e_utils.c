@@ -225,6 +225,14 @@ WORD32 ih264e_get_lvl_idx(WORD32 level)
     {
         lvl_idx = 12;
     }
+    else if (level < IH264_LEVEL_51)
+    {
+        lvl_idx = 13;
+    }
+    else
+    {
+        lvl_idx = 14;
+    }
 
     return (lvl_idx);
 }
