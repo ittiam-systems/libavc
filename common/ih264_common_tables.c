@@ -128,7 +128,7 @@ const WORD32 gai4_ih264_max_luma_pic_size[] =
     414720,
     /* Level 3.1 */
     921600,
-    /* Level 3.1 */
+    /* Level 3.2 */
     1310720,
     /* Level 4 */
     2097152,
