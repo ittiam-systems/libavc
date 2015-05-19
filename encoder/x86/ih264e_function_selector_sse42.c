@@ -112,7 +112,6 @@ void ih264e_init_function_ptr_sse42(codec_t *ps_codec)
     WORD32 i;
     process_ctxt_t *ps_proc = NULL;
     me_ctxt_t *ps_me_ctxt = NULL;
-    printf("Enabling SSE42 functions\n");
 
     /* Init luma forward transform fn ptr */
     ps_codec->pf_resi_trans_quant_4x4 = ih264_resi_trans_quant_4x4_sse42;

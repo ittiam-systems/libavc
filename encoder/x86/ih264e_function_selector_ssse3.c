@@ -109,7 +109,6 @@
 */
 void ih264e_init_function_ptr_ssse3(codec_t *ps_codec)
 {
-    printf("Enabling SSSE3 functions\n");
 
     /* Init function pointers for intra pred leaf level functions luma
       * Intra 16x16 */
