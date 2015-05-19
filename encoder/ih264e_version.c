@@ -86,18 +86,9 @@
 *******************************************************************************
 */
 #define VERSION(version_string, codec_name, codec_release_type, codec_release_ver, codec_vendor)    \
-    strncpy(version_string,"@(#)Id:", MAX_STRLEN);                                                               \
-    strncat(version_string,codec_name, MAX_STRLEN);                                                              \
-    strncat(version_string,"_", MAX_STRLEN);                                                                     \
-    strncat(version_string,codec_release_type, MAX_STRLEN);                                                      \
-    strncat(version_string," Ver:", MAX_STRLEN);                                                                 \
-    strncat(version_string,codec_release_ver, MAX_STRLEN);                                                       \
-    strncat(version_string," Released by ", MAX_STRLEN);                                                         \
-    strncat(version_string,codec_vendor, MAX_STRLEN);                                                            \
-    strncat(version_string," Build: ", MAX_STRLEN);                                                              \
-    strncat(version_string,__DATE__, MAX_STRLEN);                                                                \
-    strncat(version_string," @ ", MAX_STRLEN);                                                                   \
-    strncat(version_string,__TIME__, MAX_STRLEN);
+    snprintf(version_string, MAX_STRLEN,                                                            \
+             "@(#)Id:%s_%s Ver:%s Released by %s Build: %s @ %s",                                   \
+             codec_name, codec_release_type, codec_release_ver, codec_vendor, __DATE__, __TIME__)
 
 /*****************************************************************************/
 /* Function Definitions                                                      */
@@ -131,9 +122,9 @@ IV_STATUS_T ih264e_get_version(CHAR *pc_version, UWORD32 u4_version_bufsize)
     VERSION(ac_version_tmp, CODEC_NAME, CODEC_RELEASE_TYPE, CODEC_RELEASE_VER,
             CODEC_VENDOR);
 
-    if (u4_version_bufsize >= (strnlen(ac_version_tmp, MAX_STRLEN) + 1))
+    if (u4_version_bufsize >= (strlen(ac_version_tmp) + 1))
     {
-        memcpy(pc_version, ac_version_tmp, (strnlen(ac_version_tmp, MAX_STRLEN) + 1));
+        memcpy(pc_version, ac_version_tmp, (strlen(ac_version_tmp) + 1));
         return IV_SUCCESS;
     }
     else
