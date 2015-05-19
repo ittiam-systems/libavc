@@ -35,7 +35,7 @@ libavce_srcs_asm_arm64    +=  encoder/armv8/ih264e_half_pel_av8.s
 #ME
 libavce_srcs_asm_arm64    +=  encoder/armv8/ime_distortion_metrics_av8.s
 
-libavce_cflags_arm += -DDEFAULT_ARCH=D_ARCH_ARMV8_GENERIC
+libavce_cflags_arm64 += -DDEFAULT_ARCH=D_ARCH_ARMV8_GENERIC
 else
 libavce_cflags_arm64 += -DDISABLE_NEON -DDEFAULT_ARCH=D_ARCH_ARM_NONEON
 endif
