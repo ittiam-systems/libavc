@@ -107,18 +107,9 @@
 #define CODEC_VENDOR            "ITTIAM"
 #define MAXVERSION_STRLEN       511
 #define VERSION(version_string, codec_name, codec_release_type, codec_release_ver, codec_vendor)    \
-    strncpy(version_string,"@(#)Id:", MAXVERSION_STRLEN);                                                               \
-    strncat(version_string,codec_name, MAXVERSION_STRLEN);                                                              \
-    strncat(version_string,"_", MAXVERSION_STRLEN);                                                                     \
-    strncat(version_string,codec_release_type, MAXVERSION_STRLEN);                                                      \
-    strncat(version_string," Ver:", MAXVERSION_STRLEN);                                                                 \
-    strncat(version_string,codec_release_ver, MAXVERSION_STRLEN);                                                       \
-    strncat(version_string," Released by ", MAXVERSION_STRLEN);                                                         \
-    strncat(version_string,codec_vendor, MAXVERSION_STRLEN);                                                            \
-    strncat(version_string," Build: ", MAXVERSION_STRLEN);                                                              \
-    strncat(version_string,__DATE__, MAXVERSION_STRLEN);                                                                \
-    strncat(version_string," @ ", MAXVERSION_STRLEN);                                                                       \
-    strncat(version_string,__TIME__, MAXVERSION_STRLEN);
+    snprintf(version_string, MAXVERSION_STRLEN,                                                     \
+             "@(#)Id:%s_%s Ver:%s Released by %s Build: %s @ %s",                                   \
+             codec_name, codec_release_type, codec_release_ver, codec_vendor, __DATE__, __TIME__)
 
 #define MAX_NAL_UNIT_SIZE       MAX((H264_MAX_FRAME_HEIGHT * H264_MAX_FRAME_HEIGHT),MIN_NALUNIT_SIZE)
 #define MIN_NALUNIT_SIZE        200000
@@ -3365,7 +3356,7 @@ WORD32 ih264d_get_version(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         return (IV_FAIL);
     }
 
-    version_string_len = strnlen(version_string, MAXVERSION_STRLEN) + 1;
+    version_string_len = strlen(version_string) + 1;
 
     if(ps_ip->u4_version_buffer_size >= version_string_len) //(WORD32)sizeof(sizeof(version_string)))
     {
