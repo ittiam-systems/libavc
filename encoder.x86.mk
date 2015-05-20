@@ -1,4 +1,4 @@
-libavce_cflags_x86 += -DX86 -DDISABLE_AVX2 -m32 -msse4.2 -mno-avx -DDEFAULT_ARCH=D_ARCH_X86_SSE42
+libavce_cflags_x86 += -DX86 -DDISABLE_AVX2 -m32 -msse4.2 -mno-avx
 
 libavce_inc_dir_x86     +=  $(LOCAL_PATH)/encoder/x86
 libavce_inc_dir_x86     +=  $(LOCAL_PATH)/common/x86

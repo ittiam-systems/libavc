@@ -1,5 +1,5 @@
 libavcd_cflags_arm64 += -DARMV8
-libavcd_cflags_arm64 += -DDISABLE_NEONINTR  -DARM -DARMGCC
+libavcd_cflags_arm64 += -DARM
 
 libavcd_inc_dir_arm64   +=  $(LOCAL_PATH)/decoder/arm
 libavcd_inc_dir_arm64   +=  $(LOCAL_PATH)/common/armv8

@@ -1,7 +1,7 @@
 libavce_inc_dir_arm +=  $(LOCAL_PATH)/encoder/arm
 libavce_inc_dir_arm +=  $(LOCAL_PATH)/common/arm
 
-libavce_cflags_arm  += -DDISABLE_NEONINTR -DARM -DARMGCC
+libavce_cflags_arm  += -DARM
 
 libavce_srcs_c_arm  += encoder/arm/ih264e_function_selector.c
 
@@ -35,10 +35,8 @@ libavce_srcs_asm_arm    +=  encoder/arm/ih264e_fmt_conv.s
 #ME
 libavce_srcs_asm_arm    +=  encoder/arm/ime_distortion_metrics_a9q.s
 
-libavce_cflags_arm += -DDEFAULT_ARCH=D_ARCH_ARM_A9Q
-
 else #No Neon
-libavce_cflags_arm += -DDISABLE_NEON -DDEFAULT_ARCH=D_ARCH_ARM_NONEON
+libavce_cflags_arm += -DDISABLE_NEON
 endif #Neon check
 
 libavce_srcs_asm_arm    +=  common/arm/ih264_arm_memory_barrier.s
