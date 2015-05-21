@@ -30,8 +30,8 @@
  *  Mohit [100664]
  *
  * @par List of Functions:
- *  - ihevc_iquant_itrans_recon_4x4_ssse3()
- *  - ihevc_iquant_itrans_recon_8x8_ssse3()
+ *  - ih264_iquant_itrans_recon_4x4_ssse3()
+ *  - ih264_iquant_itrans_recon_8x8_ssse3()
  *
  * @remarks
  *  None
