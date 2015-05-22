@@ -897,6 +897,10 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
         ps_dec->u2_disp_width = i4_cropped_wd;
 
     }
+     if(ps_dec->u4_level_at_init < u1_level_idc)
+     {
+         return IH264D_UNSUPPORTED_LEVEL;
+     }
 
     if(1 == ps_seq->u1_vui_parameters_present_flag)
     {
