@@ -545,10 +545,6 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     u1_level_idc = ih264d_get_bits_h264(ps_bitstrm, 8);
 
 
-     if(ps_dec->u4_level_at_init < u1_level_idc)
-     {
-         return IH264D_UNSUPPORTED_LEVEL;
-     }
 
     COPYTHECONTEXT("SPS: u4_level_idc",u1_level_idc);
 
@@ -934,6 +930,10 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
         ps_dec->u2_disp_width = i4_cropped_wd;
 
     }
+     if(ps_dec->u4_level_at_init < u1_level_idc)
+     {
+         return IH264D_UNSUPPORTED_LEVEL;
+     }
 
     ps_seq->u1_is_valid = TRUE;
 
