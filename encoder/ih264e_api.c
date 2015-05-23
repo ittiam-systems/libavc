@@ -2997,6 +2997,9 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
         /* size in bytes to slice index of all mbs of a frame */
         total_size = ALIGN64(max_mb_cnt);
 
+        /* ih264e_update_proc_ctxt can overread by 1 at the end */
+        total_size += 1;
+
         /* total size per each proc ctxt */
         total_size *= MAX_CTXT_SETS;
         ps_mem_rec->u4_mem_size = total_size;
