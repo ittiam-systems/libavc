@@ -1435,23 +1435,23 @@ IH264E_ERROR_T ih264e_dblk_pad_hpel_processing_n_mbs(process_ctxt_t *ps_proc,
         {
             i4_n_mb_process_count = MIN(i4_mb_x - (ps_n_mb_ctxt->i4_mb_x - 1), i4_n_mbs);
 
-            u4_deblk_prev_row = 1;
-
-            /* checking whether the top rows are deblocked */
-            for (col = 0; col < i4_n_mb_process_count; col++)
-            {
-                u4_deblk_prev_row &= pu1_deblk_map_prev_row[ps_deblk->i4_mb_x + col];
-            }
-
-            /* checking whether the top right MB is deblocked */
-            if ((ps_deblk->i4_mb_x + i4_n_mb_process_count) != ps_proc->i4_wd_mbs)
-            {
-                u4_deblk_prev_row &= pu1_deblk_map_prev_row[ps_deblk->i4_mb_x + i4_n_mb_process_count];
-            }
-
             /* performing deblocking for required number of MBs */
             if ((i4_mb_y > 0) && (ps_proc->u4_disable_deblock_level != 1))
             {
+                u4_deblk_prev_row = 1;
+
+                /* checking whether the top rows are deblocked */
+                for (col = 0; col < i4_n_mb_process_count; col++)
+                {
+                    u4_deblk_prev_row &= pu1_deblk_map_prev_row[ps_deblk->i4_mb_x + col];
+                }
+
+                /* checking whether the top right MB is deblocked */
+                if ((ps_deblk->i4_mb_x + i4_n_mb_process_count) != ps_proc->i4_wd_mbs)
+                {
+                    u4_deblk_prev_row &= pu1_deblk_map_prev_row[ps_deblk->i4_mb_x + i4_n_mb_process_count];
+                }
+
                 /* Top or Top right MBs not deblocked */
                 if ((u4_deblk_prev_row != 1) && (i4_mb_y > 0))
                 {
