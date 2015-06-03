@@ -228,7 +228,7 @@ typedef enum {
     IVD_DEC_REF_BUF_NULL                        = 0x28,
     IVD_DEC_FRM_SKIPPED                         = 0x29,
     IVD_RES_CHANGED                             = 0x2a,
-    IVD_DUMMY_ELEMENT_FOR_CODEC_EXTENSIONS      = 0x300,
+    IVD_DUMMY_ELEMENT_FOR_CODEC_EXTENSIONS      = 0xD0,
 }IVD_ERROR_CODES_T;
 
 

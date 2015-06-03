@@ -36,7 +36,7 @@ void ih264d_decode_tfr_nmb(dec_struct_t *ps_dec,
                            UWORD8 u1_num_mbs,
                            UWORD8 u1_num_mbs_next,
                            UWORD8 u1_end_of_row);
-WORD32 ih264d_decode_recon_tfr_nmb_thread(dec_struct_t *ps_dec,
+WORD32 ih264d_decode_recon_tfr_nmb_thread(dec_struct_t * ps_dec,
                                           UWORD8 u1_num_mbs,
                                           UWORD8 u1_num_mbs_next,
                                           UWORD8 u1_end_of_row);

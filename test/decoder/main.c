@@ -64,6 +64,8 @@
 #include <sys/time.h>
 #endif
 
+
+
 #define ALIGN8(x) ((((x) + 7) >> 3) << 3)
 #define NUM_DISPLAY_BUFFERS 4
 #define DEFAULT_FPS         30
@@ -951,6 +953,7 @@ void dump_output(vid_dec_ctx_t *ps_app_ctx,
         if(0 != file_save)
         {
             UWORD8 *buf;
+
 
             buf = (UWORD8 *)s_dump_disp_frm_buf.pv_y_buf;
             for(i = 0; i < s_dump_disp_frm_buf.u4_y_ht; i++)
@@ -2271,6 +2274,38 @@ int main(WORD32 argc, CHAR *argv[])
                 codec_exit(ac_error_str);
             }
 
+
+            /*****************************************************************************/
+            /*  set stride                                                               */
+            /*****************************************************************************/
+            {
+                ivd_ctl_set_config_ip_t s_ctl_ip;
+                ivd_ctl_set_config_op_t s_ctl_op;
+
+
+                s_ctl_ip.u4_disp_wd = STRIDE;
+                if(1 == s_app_ctx.display)
+                    s_ctl_ip.u4_disp_wd = s_app_ctx.get_stride();
+
+                s_ctl_ip.e_frm_skip_mode = IVD_SKIP_NONE;
+                s_ctl_ip.e_frm_out_mode = IVD_DECODE_FRAME_OUT;
+                s_ctl_ip.e_vid_dec_mode = IVD_DECODE_HEADER;
+                s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
+                s_ctl_ip.e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
+                s_ctl_ip.u4_size = sizeof(ivd_ctl_set_config_ip_t);
+                s_ctl_op.u4_size = sizeof(ivd_ctl_set_config_op_t);
+
+                ret = ivd_api_function((iv_obj_t*)codec_obj, (void *)&s_ctl_ip,
+                                           (void *)&s_ctl_op);
+                if(ret != IV_SUCCESS)
+                {
+                    sprintf(ac_error_str,
+                            "\nError in setting the stride");
+                    codec_exit(ac_error_str);
+                }
+            }
+
+
             /*****************************************************************************/
             /*  Input and output buffer allocation                                       */
             /*****************************************************************************/
@@ -2470,7 +2505,7 @@ int main(WORD32 argc, CHAR *argv[])
 
             if(ret != IV_SUCCESS)
             {
-                printf("Error in header decode %x\n",  s_video_decode_op.u4_error_code);
+                printf("Error in header decode 0x%x\n",  s_video_decode_op.u4_error_code);
                 // codec_exit(ac_error_str);
             }
 

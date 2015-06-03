@@ -71,7 +71,7 @@
 
 #endif
 
-#ifdef X86_MSVC
+#if defined(X86_MSVC) || defined (X86_MINGW)
 
 #include <windows.h>
 #define SEM_MAX_COUNT       100

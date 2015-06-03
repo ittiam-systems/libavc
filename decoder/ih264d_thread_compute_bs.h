@@ -30,5 +30,9 @@ void ih264d_compute_bs_non_mbaff_thread(dec_struct_t * ps_dec,
                                         dec_mb_info_t * ps_cur_mb_info,
                                         UWORD32 u4_mb_num);
 
-void ih264d_computebs_deblk_thread(dec_struct_t *ps_dec);
+void ih264d_recon_deblk_thread(dec_struct_t *ps_dec);
+void ih264d_check_mb_map_deblk(dec_struct_t *ps_dec,
+                                    UWORD32 deblk_mb_grp,
+                                    tfr_ctxt_t *ps_tfr_cxt,
+                                    UWORD32 u4_check_mb_map);
 #endif /* _IH264D_THREAD_COMPUTE_BS_H_ */

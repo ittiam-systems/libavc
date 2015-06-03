@@ -82,20 +82,18 @@ void ih264d_parse_tfr_nmb(dec_struct_t * ps_dec,
         // copy into s_frmMbInfo
 
         u4_mb_num = u4_n_mb_start;
-        ps_dec->ps_parse_cur_slice->u4_num_mbs_done_in_slice += u1_num_mbs;
         u4_mb_num = (ps_dec->u2_cur_mb_addr + 1) - u1_num_mbs;
 
         for(i = 0; i < u1_num_mbs; i++)
         {
-            DATA_SYNC();
             UPDATE_SLICE_NUM_MAP(ps_dec->pu2_slice_num_map, u4_mb_num,
                                  ps_dec->u2_cur_slice_num);
+            DATA_SYNC();
             UPDATE_MB_MAP_MBNUM_BYTE(ps_dec->pu1_dec_mb_map, u4_mb_num);
 
             u4_mb_num++;
         }
 
-        DATA_SYNC();
         /****************************************************************/
         /* Check for End Of Row in Next iteration                       */
         /****************************************************************/
@@ -160,15 +158,8 @@ void ih264d_parse_tfr_nmb(dec_struct_t * ps_dec,
         ps_dec->ps_mv_left = ps_dec->ps_mv_cur
                         + ps_dec->s_tran_addrecon.u2_mv_left_inc;
 
-
-
-
-
         ps_dec->ps_mv_cur += (u1_num_mbs << 4);
         ps_dec->u4_num_mbs_prev_nmb = u1_num_mbs;
-
-
-        ps_dec->u4_dma_buf_idx = 0;
 
     }
 }
@@ -186,11 +177,8 @@ void ih264d_decode_tfr_nmb(dec_struct_t * ps_dec,
     /****************************************************************/
     /* Check for End Of Row in Next iteration                       */
     /****************************************************************/
-    u1_end_of_row_next =
-                    u1_num_mbs_next
-                                    && ((u1_num_mbs_next)
-                                                    <= (ps_dec->u1_recon_mb_grp
-                                                                    >> u1_mbaff));
+    u1_end_of_row_next = u1_num_mbs_next &&
+                        ((u1_num_mbs_next) <= (ps_dec->u1_recon_mb_grp >> u1_mbaff));
 
     /****************************************************************/
     /* Transfer the Following things                                */
@@ -207,23 +195,12 @@ void ih264d_decode_tfr_nmb(dec_struct_t * ps_dec,
     ih264d_transfer_mb_group_data(ps_dec, u1_num_mbs, u1_end_of_row,
                                   u1_end_of_row_next);
 
-    if(u1_end_of_row)
-    {
-        /* Reset the N-Mb Recon Buf Index to default Values */
-        ps_dec->u2_mb_group_cols_y1 = ps_dec->u2_mb_group_cols_y;
-        ps_dec->u2_mb_group_cols_cr1 = ps_dec->u2_mb_group_cols_cr;
-    }
-    /* If next N-Mb Group is the EndOfRow, set the N-Mb Recon Buf Index */
-    else if(u1_end_of_row_next)
-    {
-        ps_dec->u2_mb_group_cols_y1 = (u1_num_mbs_next << 4) + 8;
-        ps_dec->u2_mb_group_cols_cr1 = (u1_num_mbs_next << 3) + 8;
-    }
 }
 
-WORD32 ih264d_decode_recon_tfr_nmb_thread(dec_struct_t * ps_dec, UWORD8 u1_num_mbs, // number of MBs loop should run
-                                        UWORD8 u1_num_mbs_next,
-                                        UWORD8 u1_end_of_row)
+WORD32 ih264d_decode_recon_tfr_nmb_thread(dec_struct_t * ps_dec,
+                                          UWORD8 u1_num_mbs,
+                                          UWORD8 u1_num_mbs_next,
+                                          UWORD8 u1_end_of_row)
 {
     WORD32 i,j;
     dec_mb_info_t * ps_cur_mb_info;
@@ -235,54 +212,65 @@ WORD32 ih264d_decode_recon_tfr_nmb_thread(dec_struct_t * ps_dec, UWORD8 u1_num_m
     UWORD32 u4_cond;
     UWORD16 u2_slice_num,u2_cur_dec_mb_num;
     WORD32 ret;
-
+    UWORD32 u4_mb_num;
+    WORD32 nop_cnt = 8*128;
     u1_slice_type = ps_dec->ps_decode_cur_slice->slice_type;
 
     u1_B = (u1_slice_type == B_SLICE);
 
-    u1_skip_th =
-                    ((u1_slice_type != I_SLICE) ?
+    u1_skip_th = ((u1_slice_type != I_SLICE) ?
                                     (u1_B ? B_8x8 : PRED_8x8R0) : -1);
 
     u1_ipcm_th = ((u1_slice_type != I_SLICE) ? (u1_B ? 23 : 5) : 0);
 
     u2_cur_dec_mb_num = ps_dec->cur_dec_mb_num;
 
-    /* N Mb MC Loop */
-    for(i = 0; i < u1_num_mbs; i++)
+    while(1)
     {
-        DATA_SYNC();
 
-        // check dec_mb_map
-        UWORD32 yield_cnt = 0, u4_max_addr;
+        UWORD32 u4_max_mb = (UWORD32)(ps_dec->i2_dec_thread_mb_y + (1 << u1_mbaff)) * ps_dec->u2_frm_wd_in_mbs - 1;
+        u4_mb_num = u2_cur_dec_mb_num;
+        /*introducing 1 MB delay*/
+        u4_mb_num = MIN(u4_mb_num + u1_num_mbs + 1, u4_max_mb);
 
-        u4_max_addr = ps_dec->ps_cur_sps->u2_max_mb_addr;
-        while(1)
+        CHECK_MB_MAP_BYTE(u4_mb_num, ps_dec->pu1_dec_mb_map, u4_cond);
+        if(u4_cond)
         {
-            UWORD32 u4_mb_num = u2_cur_dec_mb_num;
-
-            /*introducing 1 MB delay*/
-            if(u4_mb_num < u4_max_addr)
-                u4_mb_num = u4_mb_num + 1;
-
-            CHECK_MB_MAP_BYTE(u4_mb_num, ps_dec->pu1_dec_mb_map, u4_cond);
-            if(u4_cond)
+            break;
+        }
+        else
+        {
+            if(nop_cnt > 0)
             {
-                break;
+                nop_cnt -= 128;
+                NOP(128);
             }
             else
             {
-
+                if(ps_dec->u4_output_present && (2 == ps_dec->u4_num_cores) &&
+                   (ps_dec->u4_fmt_conv_cur_row < ps_dec->s_disp_frame_info.u4_y_ht))
                 {
-                    NOP(128);
-
+                    ps_dec->u4_fmt_conv_num_rows =
+                                MIN(FMT_CONV_NUM_ROWS,
+                                    (ps_dec->s_disp_frame_info.u4_y_ht
+                                                    - ps_dec->u4_fmt_conv_cur_row));
+                    ih264d_format_convert(ps_dec, &(ps_dec->s_disp_op),
+                                          ps_dec->u4_fmt_conv_cur_row,
+                                          ps_dec->u4_fmt_conv_num_rows);
+                    ps_dec->u4_fmt_conv_cur_row += ps_dec->u4_fmt_conv_num_rows;
                 }
-
-                DEBUG_THREADS_PRINTF("waiting for mb mapcur_dec_mb_num = %d,ps_dec->u2_cur_mb_addr  = %d\n",u2_cur_dec_mb_num,
-                                ps_dec->u2_cur_mb_addr);
-
+                else
+                {
+                    nop_cnt = 8*128;
+                    ithread_yield();
+                }
             }
         }
+    }
+    /* N Mb MC Loop */
+    for(i = 0; i < u1_num_mbs; i++)
+    {
+        u4_mb_num = u2_cur_dec_mb_num;
 
         GET_SLICE_NUM_MAP(ps_dec->pu2_slice_num_map, u2_cur_dec_mb_num,
                           u2_slice_num);
@@ -293,66 +281,56 @@ WORD32 ih264d_decode_recon_tfr_nmb_thread(dec_struct_t * ps_dec, UWORD8 u1_num_m
             break;
         }
 
-        ps_cur_mb_info = &ps_dec->ps_frm_mb_info[u2_cur_dec_mb_num
-                        & PD_MB_BUF_SIZE_MOD];
+        ps_cur_mb_info = &ps_dec->ps_frm_mb_info[u2_cur_dec_mb_num];
 
         ps_dec->u4_dma_buf_idx = 0;
         ps_dec->u4_pred_info_idx = 0;
 
         if(ps_cur_mb_info->u1_mb_type <= u1_skip_th)
         {
+            WORD32 pred_cnt = 0;
+            pred_info_pkd_t *ps_pred_pkd;
+            UWORD32 u4_pred_info_pkd_idx;
+            WORD8 i1_pred;
 
+            u4_pred_info_pkd_idx = ps_cur_mb_info->u4_pred_info_pkd_idx;
+
+            while(pred_cnt < ps_cur_mb_info->u1_num_pred_parts)
             {
-                WORD32 pred_cnt = 0;
-                pred_info_pkd_t *ps_pred_pkd;
-                UWORD32 u4_pred_info_pkd_idx;
-                WORD8 i1_pred;
+                ps_pred_pkd = ps_dec->ps_pred_pkd + u4_pred_info_pkd_idx;
 
-                u4_pred_info_pkd_idx = ps_cur_mb_info->u4_pred_info_pkd_idx;
+                ps_dec->p_form_mb_part_info_thread(ps_pred_pkd,ps_dec,
+                                                   ps_cur_mb_info->u2_mbx,
+                                                   ps_cur_mb_info->u2_mby,
+                                                   (i >> u1_mbaff),
+                                                   ps_cur_mb_info);
 
-                while(pred_cnt < ps_cur_mb_info->u1_num_pred_parts)
-                {
-
-                    ps_pred_pkd = ps_dec->ps_pred_pkd + u4_pred_info_pkd_idx;
-
-
-                    ps_dec->p_form_mb_part_info_thread(ps_pred_pkd,ps_dec,
-                                         ps_cur_mb_info->u2_mbx,ps_cur_mb_info->u2_mby,(i >> u1_mbaff),
-                                         ps_cur_mb_info);
-
-                    u4_pred_info_pkd_idx++;
-                    pred_cnt++;
-
-                }
+                u4_pred_info_pkd_idx++;
+                pred_cnt++;
             }
             ps_dec->p_mc_dec_thread(ps_dec, ps_cur_mb_info);
         }
         else if(ps_cur_mb_info->u1_mb_type == MB_SKIP)
         {
+            WORD32 pred_cnt = 0;
+            pred_info_pkd_t *ps_pred_pkd;
+            UWORD32 u4_pred_info_pkd_idx;
+            WORD8 i1_pred;
+
+            u4_pred_info_pkd_idx = ps_cur_mb_info->u4_pred_info_pkd_idx;
+
+            while(pred_cnt < ps_cur_mb_info->u1_num_pred_parts)
             {
-                WORD32 pred_cnt = 0;
-                pred_info_pkd_t *ps_pred_pkd;
-                UWORD32 u4_pred_info_pkd_idx;
-                WORD8 i1_pred;
+                ps_pred_pkd = ps_dec->ps_pred_pkd + u4_pred_info_pkd_idx;
 
-                u4_pred_info_pkd_idx = ps_cur_mb_info->u4_pred_info_pkd_idx;
+                ps_dec->p_form_mb_part_info_thread(ps_pred_pkd,ps_dec,
+                                                   ps_cur_mb_info->u2_mbx,
+                                                   ps_cur_mb_info->u2_mby,
+                                                   (i >> u1_mbaff),
+                                                   ps_cur_mb_info);
 
-
-
-                while(pred_cnt < ps_cur_mb_info->u1_num_pred_parts)
-                {
-
-                    ps_pred_pkd = ps_dec->ps_pred_pkd + u4_pred_info_pkd_idx;
-
-
-                    ps_dec->p_form_mb_part_info_thread(ps_pred_pkd,ps_dec,
-                                               ps_cur_mb_info->u2_mbx,ps_cur_mb_info->u2_mby,(i >> u1_mbaff),
-                                         ps_cur_mb_info);
-
-
-                    u4_pred_info_pkd_idx++;
-                    pred_cnt++;
-                }
+                u4_pred_info_pkd_idx++;
+                pred_cnt++;
             }
             /* Decode MB skip */
             ps_dec->p_mc_dec_thread(ps_dec, ps_cur_mb_info);
@@ -363,61 +341,83 @@ WORD32 ih264d_decode_recon_tfr_nmb_thread(dec_struct_t * ps_dec, UWORD8 u1_num_m
 
     /* N Mb IQ IT RECON  Loop */
     for(j = 0; j < i; j++)
-     {
-         DATA_SYNC();
+    {
+        ps_cur_mb_info = &ps_dec->ps_frm_mb_info[ps_dec->cur_dec_mb_num];
+
+        if((ps_dec->u4_num_cores == 2) || !ps_dec->i1_recon_in_thread3_flag)
+        {
+            if(ps_cur_mb_info->u1_mb_type <= u1_skip_th)
+            {
+                ih264d_process_inter_mb(ps_dec, ps_cur_mb_info, j);
+            }
+            else if(ps_cur_mb_info->u1_mb_type != MB_SKIP)
+            {
+                if((u1_ipcm_th + 25) != ps_cur_mb_info->u1_mb_type)
+                {
+                    ps_cur_mb_info->u1_mb_type -= (u1_skip_th + 1);
+                    ih264d_process_intra_mb(ps_dec, ps_cur_mb_info, j);
+                }
+            }
 
 
-         ps_cur_mb_info = &ps_dec->ps_frm_mb_info[ps_dec->cur_dec_mb_num
-                         & PD_MB_BUF_SIZE_MOD];
+         if(ps_dec->u4_use_intrapred_line_copy == 1)
+                ih264d_copy_intra_pred_line(ps_dec, ps_cur_mb_info, j);
+        }
 
+        DATA_SYNC();
 
-         if(ps_cur_mb_info->u1_mb_type <= u1_skip_th)
-         {
-             ih264d_process_inter_mb(ps_dec, ps_cur_mb_info, j);
-         }
-         else if(ps_cur_mb_info->u1_mb_type != MB_SKIP)
-         {
-             if((u1_ipcm_th + 25) != ps_cur_mb_info->u1_mb_type)
-             {
-                 ps_cur_mb_info->u1_mb_type -= (u1_skip_th + 1);
-                 ret = ih264d_process_intra_mb(ps_dec, ps_cur_mb_info, j);
-                 if(ret != OK)
-                     return ret;
-             }
-         }
-
-         if(ps_dec->u4_mb_level_deblk == 1)
-         {
-
-             ih264d_deblock_mb_level(ps_dec, ps_cur_mb_info, j);
-         }
-
-         if((ps_dec->u4_num_cores >= 3) && (u1_mbaff == 0))
-             ih264d_copy_intra_pred_line(ps_dec, ps_cur_mb_info, j);
-         if(u1_mbaff)
-         {
-             if(u4_update_mbaff)
-             {
-                 UWORD32 u4_mb_num = ps_cur_mb_info->u2_mbx
-                                 + ps_dec->u2_frm_wd_in_mbs
-                                                 * (ps_cur_mb_info->u2_mby >> 1);
-                 UPDATE_MB_MAP_MBNUM_BYTE(ps_dec->pu1_recon_mb_map, u4_mb_num);
-                 u4_update_mbaff = 0;
-             }
-             else
-             {
-                 u4_update_mbaff = 1;
-             }
-         }
-         else
-         {
-             UWORD32 u4_mb_num = ps_cur_mb_info->u2_mbx
-                             + ps_dec->u2_frm_wd_in_mbs * ps_cur_mb_info->u2_mby;
-             UPDATE_MB_MAP_MBNUM_BYTE(ps_dec->pu1_recon_mb_map, u4_mb_num);
-         }
-         ps_dec->cur_dec_mb_num++;
+        if(u1_mbaff)
+        {
+            if(u4_update_mbaff)
+            {
+                UWORD32 u4_mb_num = ps_cur_mb_info->u2_mbx
+                                + ps_dec->u2_frm_wd_in_mbs
+                                                * (ps_cur_mb_info->u2_mby >> 1);
+                UPDATE_MB_MAP_MBNUM_BYTE(ps_dec->pu1_recon_mb_map, u4_mb_num);
+                u4_update_mbaff = 0;
+            }
+            else
+            {
+                u4_update_mbaff = 1;
+            }
+        }
+        else
+        {
+            UWORD32 u4_mb_num = ps_cur_mb_info->u2_mbx
+                            + ps_dec->u2_frm_wd_in_mbs * ps_cur_mb_info->u2_mby;
+            UPDATE_MB_MAP_MBNUM_BYTE(ps_dec->pu1_recon_mb_map, u4_mb_num);
+        }
+        ps_dec->cur_dec_mb_num++;
      }
 
+    /*N MB deblocking*/
+    if(ps_dec->u4_nmb_deblk == 1)
+    {
+        UWORD32 u4_wd_y, u4_wd_uv;
+        tfr_ctxt_t *ps_tfr_cxt = &(ps_dec->s_tran_addrecon);
+        UWORD8 u1_field_pic_flag = ps_dec->ps_cur_slice->u1_field_pic_flag;
+        const WORD32 i4_cb_qp_idx_ofst =
+                       ps_dec->ps_cur_pps->i1_chroma_qp_index_offset;
+        const WORD32 i4_cr_qp_idx_ofst =
+                       ps_dec->ps_cur_pps->i1_second_chroma_qp_index_offset;
+
+        u4_wd_y = ps_dec->u2_frm_wd_y << u1_field_pic_flag;
+        u4_wd_uv = ps_dec->u2_frm_wd_uv << u1_field_pic_flag;
+
+        ps_cur_mb_info = &ps_dec->ps_frm_mb_info[ps_dec->u4_cur_deblk_mb_num];
+
+        ps_dec->u4_deblk_mb_x = ps_cur_mb_info->u2_mbx;
+        ps_dec->u4_deblk_mb_y = ps_cur_mb_info->u2_mby;
+
+
+        for(j = 0; j < i; j++)
+        {
+            ih264d_deblock_mb_nonmbaff(ps_dec, ps_tfr_cxt,
+                                       i4_cb_qp_idx_ofst, i4_cr_qp_idx_ofst,
+                                        u4_wd_y, u4_wd_uv);
+
+        }
+    }
 
     /*handle the last mb in picture case*/
     if(ps_dec->cur_dec_mb_num > ps_dec->ps_cur_sps->u2_max_mb_addr)
@@ -435,19 +435,13 @@ WORD32 ih264d_decode_recon_tfr_nmb_thread(dec_struct_t * ps_dec, UWORD8 u1_num_m
     return OK;
 }
 
-WORD32 ih264d_decode_slice_thread(dec_struct_t *ps_dec /* Decoder parameters */
-)
+WORD32 ih264d_decode_slice_thread(dec_struct_t *ps_dec)
 {
-    UWORD8 u1_num_mbs_next, u1_num_mbsleft, u1_end_of_row = 0; //, u1_slice_end, u1_tfr_n_mb, u1_decode_nmb;
+    UWORD8 u1_num_mbs_next, u1_num_mbsleft, u1_end_of_row = 0;
     const UWORD32 i2_pic_wdin_mbs = ps_dec->u2_frm_wd_in_mbs;
-    UWORD8 u1_mbaff, u1_num_mbs; //,uc_more_data_flag,u1_mb_idx;
+    UWORD8 u1_mbaff, u1_num_mbs;
 
     UWORD16 u2_first_mb_in_slice;
-
-    /*dec_bit_stream_t  *const  ps_bitstrm = ps_dec->ps_bitstrm;
-     UWORD32 * pu4_bitstrm_buf = ps_bitstrm->pu4_buffer;
-     UWORD32 *pu4_bitstrm_ofst  = &ps_bitstrm->u4_ofst;*/
-
     UWORD16 i16_mb_x, i16_mb_y;
     UWORD8 u1_field_pic;
     UWORD32 u4_frame_stride, x_offset, y_offset;
@@ -455,8 +449,46 @@ WORD32 ih264d_decode_slice_thread(dec_struct_t *ps_dec /* Decoder parameters */
 
     tfr_ctxt_t *ps_trns_addr;
 
-    if(ps_dec->ps_decode_cur_slice->slice_header_done != 2)
-        return ERROR_INV_SLICE_HDR_T;
+    /*check for mb map of first mb in slice to ensure slice header is parsed*/
+    while(1)
+    {
+        UWORD32 u4_mb_num = ps_dec->cur_dec_mb_num;
+        UWORD32 u4_cond = 0;
+        WORD32 nop_cnt = 8 * 128;
+        CHECK_MB_MAP_BYTE(u4_mb_num, ps_dec->pu1_dec_mb_map, u4_cond);
+        if(u4_cond)
+        {
+            break;
+        }
+        else
+        {
+            if(nop_cnt > 0)
+            {
+                nop_cnt -= 128;
+                NOP(128);
+            }
+            else if(ps_dec->u4_output_present && (2 == ps_dec->u4_num_cores) &&
+               (ps_dec->u4_fmt_conv_cur_row < ps_dec->s_disp_frame_info.u4_y_ht))
+            {
+                ps_dec->u4_fmt_conv_num_rows =
+                                MIN(FMT_CONV_NUM_ROWS,
+                                    (ps_dec->s_disp_frame_info.u4_y_ht
+                                                    - ps_dec->u4_fmt_conv_cur_row));
+                ih264d_format_convert(ps_dec, &(ps_dec->s_disp_op),
+                                      ps_dec->u4_fmt_conv_cur_row,
+                                      ps_dec->u4_fmt_conv_num_rows);
+                ps_dec->u4_fmt_conv_cur_row += ps_dec->u4_fmt_conv_num_rows;
+            }
+            else
+            {
+                nop_cnt = 8*128;
+                ithread_yield();
+            }
+            DEBUG_THREADS_PRINTF("waiting for mb mapcur_dec_mb_num = %d,ps_dec->u2_cur_mb_addr  = %d\n",u2_cur_dec_mb_num,
+                            ps_dec->u2_cur_mb_addr);
+
+        }
+    }
 
 
 
@@ -469,19 +501,14 @@ WORD32 ih264d_decode_slice_thread(dec_struct_t *ps_dec /* Decoder parameters */
     i16_mb_y <<= u1_mbaff;
     ps_dec->i2_dec_thread_mb_y = i16_mb_y;
 
-    /*if((i16_mb_x > (i2_pic_wdin_mbs - 1))
-                    || (i16_mb_y > ps_dec->u2_frm_ht_in_mbs - 1))
-    {
-    }*/
-    if(ps_dec->cur_dec_mb_num == u2_first_mb_in_slice << u1_mbaff)
-    {
-        ps_dec->u2_mb_skip_error = 0;
-    }
-    else
-    {
-        ps_dec->u2_mb_skip_error = 1;
-    }
+
     ps_dec->cur_dec_mb_num = u2_first_mb_in_slice << u1_mbaff;
+
+    if((ps_dec->u4_num_cores == 2) || !ps_dec->i1_recon_in_thread3_flag)
+    {
+        ps_dec->pv_proc_tu_coeff_data =
+                (void *) ps_dec->ps_decode_cur_slice->pv_tu_coeff_data_start;
+    }
 
     // recalculate recon pointers
     u1_field_pic = ps_dec->ps_cur_slice->u1_field_pic_flag;
@@ -506,17 +533,6 @@ WORD32 ih264d_decode_slice_thread(dec_struct_t *ps_dec /* Decoder parameters */
     ps_trns_addr->pu1_mb_u = ps_trns_addr->pu1_dest_u;
     ps_trns_addr->pu1_mb_v = ps_trns_addr->pu1_dest_v;
 
-    if(ps_dec->u4_mb_level_deblk == 1)
-    {
-        /*If it is not the first mb in row,the previous MB which needs to be deblocked
-         * as there is delay of 1 MB*/
-        if(i16_mb_x != 0)
-        {
-            ps_trns_addr->pu1_mb_y -= MB_SIZE;
-            ps_trns_addr->pu1_mb_u -= BLK8x8SIZE * YUV420SP_FACTOR;
-            ps_trns_addr->pu1_mb_v -= BLK8x8SIZE;
-        }
-    }
 
     /**********Number of Mbs in Slice**********/
 
@@ -582,126 +598,49 @@ WORD32 ih264d_decode_slice_thread(dec_struct_t *ps_dec /* Decoder parameters */
 
 void ih264d_decode_picture_thread(dec_struct_t *ps_dec )
 {
-
     ithread_set_name("ih264d_decode_picture_thread");
-
-    // run the loop till all slices are decoded
-
     while(1)
     {
-        if(ps_dec->u4_start_frame_decode)
+        /*Complete all writes before processing next slice*/
+
+        DEBUG_THREADS_PRINTF(" Entering decode slice\n");
+
+        ih264d_decode_slice_thread(ps_dec);
+        DEBUG_THREADS_PRINTF(" Exit  ih264d_decode_slice_thread \n");
+
+
+        if(ps_dec->cur_dec_mb_num
+                        > ps_dec->ps_cur_sps->u2_max_mb_addr)
         {
+            /*Last slice in frame*/
             break;
         }
         else
         {
-            NOP(32);
-
+            ps_dec->ps_decode_cur_slice++;
+            ps_dec->u2_cur_slice_num_dec_thread++;
         }
+
     }
-
-    DEBUG_THREADS_PRINTF("Got start of frame u4_flag\n");
-
-    if(ps_dec->u4_start_frame_decode == 1)
+    if(ps_dec->u4_output_present && (2 == ps_dec->u4_num_cores) &&
+       (ps_dec->u4_fmt_conv_cur_row < ps_dec->s_disp_frame_info.u4_y_ht))
     {
-        while(1)
-        {
-            /*Complete all writes before processing next slice*/
-            DATA_SYNC();
-            /*wait untill all the slice params have been populated*/
-            while(ps_dec->ps_decode_cur_slice->slice_header_done == 0)
-            {
-                NOP(32); DEBUG_THREADS_PRINTF(" waiting for slice header \n");
-            }
-
-            DEBUG_THREADS_PRINTF(" Entering decode slice\n");
-
-            ih264d_decode_slice_thread(ps_dec);
-            DEBUG_THREADS_PRINTF(" Exit  ih264d_decode_slice_thread \n");
-
-            /*Complete all writes before processing next slice*/
-            DATA_SYNC();
-
-            while(1)
-            {
-                volatile void * parse_addr, *dec_addr;
-                volatile UWORD32 last_slice;
-
-                parse_addr = (volatile void *)ps_dec->ps_parse_cur_slice;
-                dec_addr = (volatile void *)ps_dec->ps_decode_cur_slice;
-                last_slice = ps_dec->ps_decode_cur_slice->last_slice_in_frame;
-
-                if(last_slice == 1)
-                    break;
-
-                if(parse_addr != dec_addr)
-                    break;
-
-                DEBUG_THREADS_PRINTF("Waiting for next slice or end of frame\n");
-
-                NOP(32);
-            }
-
-            DEBUG_THREADS_PRINTF("Got next slice/end of frame signal \n ");
-
-            if((void *)ps_dec->ps_parse_cur_slice
-                            > (void *)ps_dec->ps_decode_cur_slice)
-            {
-                ps_dec->ps_decode_cur_slice++;
-                ps_dec->u2_cur_slice_num_dec_thread++;
-            }
-            else
-            {
-                /*Last slice in frame*/
-                break;
-            }
-
-        }
-    }
-
-    if(ps_dec->u4_output_present)
-    {
-        while(1)
-        {
-            volatile UWORD32 *u4_flag = &(ps_dec->as_fmt_conv_part[1].u4_flag);
-
-            DEBUG_THREADS_PRINTF(" Format conversion loop in decode *u4_flag = %d\n",*u4_flag);
-            if(2 == *u4_flag)
-            {
-                if(ps_dec->as_fmt_conv_part[1].u4_num_rows_y)
-                    ih264d_format_convert(
-                                    ps_dec, &(ps_dec->s_disp_op),
-                                    ps_dec->as_fmt_conv_part[1].u4_start_y,
-                                    ps_dec->as_fmt_conv_part[1].u4_num_rows_y);
-
-                break;
-            }
-            else if(1 == *u4_flag)
-            {
-                NOP(32);
-
-            }
-            else
-                break;
-
-        }
+        ps_dec->u4_fmt_conv_num_rows =
+                        (ps_dec->s_disp_frame_info.u4_y_ht
+                                        - ps_dec->u4_fmt_conv_cur_row);
+        ih264d_format_convert(ps_dec, &(ps_dec->s_disp_op),
+                              ps_dec->u4_fmt_conv_cur_row,
+                              ps_dec->u4_fmt_conv_num_rows);
+        ps_dec->u4_fmt_conv_cur_row += ps_dec->u4_fmt_conv_num_rows;
     }
 
     ithread_exit(0);
-
 }
 
 void ih264d_signal_decode_thread(dec_struct_t *ps_dec)
 {
     if(ps_dec->u4_dec_thread_created == 1)
     {
-
-        if(ps_dec->u4_start_frame_decode == 1)
-            ps_dec->ps_parse_cur_slice->last_slice_in_frame = 1;
-        else
-            /*to indicate frame in error*/
-            ps_dec->u4_start_frame_decode = 2;
-
         ithread_join(ps_dec->pv_dec_thread_handle, NULL);
         ps_dec->u4_dec_thread_created = 0;
     }
@@ -710,10 +649,6 @@ void ih264d_signal_bs_deblk_thread(dec_struct_t *ps_dec)
 {
     if(ps_dec->u4_bs_deblk_thread_created)
     {
-        /*signal error*/
-        if(ps_dec->u4_start_bs_deblk == 0)
-            ps_dec->u4_start_bs_deblk = 2;
-
         ithread_join(ps_dec->pv_bs_deblk_thread_handle, NULL);
         ps_dec->u4_bs_deblk_thread_created = 0;
     }
