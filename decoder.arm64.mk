@@ -33,7 +33,7 @@ libavcd_srcs_asm_arm64    +=  common/armv8/ih264_iquant_itrans_recon_dc_av8.s
 libavcd_srcs_asm_arm64    +=  common/armv8/ih264_ihadamard_scaling_av8.s
 libavcd_srcs_asm_arm64    +=  common/armv8/ih264_intra_pred_luma_8x8_av8.s
 
-libavcd_cflags_arm += -DDEFAULT_ARCH=D_ARCH_ARMV8_GENERIC
+libavcd_cflags_arm64 += -DDEFAULT_ARCH=D_ARCH_ARMV8_GENERIC
 else
 libavcd_cflags_arm64 += -DDISABLE_NEON -DDEFAULT_ARCH=D_ARCH_ARM_NONEON
 endif
