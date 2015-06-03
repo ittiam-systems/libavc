@@ -366,7 +366,7 @@ WORD32 ih264e_get_total_pic_buf_size(WORD32 pic_size,
     size = num_samples * max_num_bufs;
 
     /* Account for padding area */
-    size += ((pad * pad) + pad * (max_wd + min_ht)) * max_num_bufs;
+    size += ((pad * pad) + pad * (max_wd + min_ht)) * 3 / 2 * max_num_bufs;
 
     return size;
 }
