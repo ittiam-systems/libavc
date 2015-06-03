@@ -897,8 +897,7 @@ void ih264_hadamard_quant_2x2_uv_sse42(WORD16 *pi2_src, WORD16 *pi2_dst,
                             const UWORD16 *pu2_threshold_matrix, UWORD32 u4_qbits,
                             UWORD32 u4_round_factor,UWORD8  *pu1_nnz)
 {
-    WORD32 val, nonzero_coeff_0, nonzero_coeff_1=0;
-    nonzero_coeff_0 = 0;
+    WORD32 val, nonzero_coeff_0=0, nonzero_coeff_1=0;
     __m128i cmp, cmp0, cmp1;
     __m128i sum0, sum1;
     WORD32 mask, mask0, mask1;

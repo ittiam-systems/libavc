@@ -283,7 +283,7 @@ void ih264d_get_mbaff_neighbours(dec_struct_t * ps_dec,
 void ih264d_update_mbaff_left_nnz(dec_struct_t * ps_dec,
                                   dec_mb_info_t * ps_cur_mb_info);
 void ih264d_transfer_mb_group_data(dec_struct_t * ps_dec,
-                                   const WORD8 c_numMbs,
+                                   const UWORD8 u1_num_mbs,
                                    const UWORD8 u1_end_of_row, /* Cur n-Mb End of Row Flag */
                                    const UWORD8 u1_end_of_row_next /* Next n-Mb End of Row Flag */
                                    );

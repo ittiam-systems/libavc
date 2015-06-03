@@ -328,7 +328,7 @@ typedef enum
 /**
 ******************************************************************************
  *  @enum  MBPART_PREDMODE_T
- *  @brief MbPartPredMode Table 7-11 to 7-14
+ *  @brief MbPartps_pred_mode_ctxt Table 7-11 to 7-14
 ******************************************************************************
 */
 typedef enum

@@ -46,6 +46,7 @@
 #include "ih264_macros.h"
 #include "ih264_platform_macros.h"
 #include "ih264d_cabac.h"
+#include "ih264d_tables.h"
 
 /*combined table :guc_RTAB,NextStateLPS,NextStateMPS
  input(combined_state):

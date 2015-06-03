@@ -48,7 +48,7 @@ extern const UWORD8 gau1_ih264d_clip_table[][4];
 
 /*Parsing Table declaration*/
 extern const UWORD8 gau1_ih264d_cbp_tab[6];
-extern const UWORD32 gau4_ih264d_packed_bs2[16];
+extern const UWORD32 gau4_ih264d_packed_bs2[32];
 extern const UWORD16 gau2_ih264d_4x4_v2h_reorder[16];
 extern const UWORD8 gau1_ih264d_subblk_offset[16];
 extern const UWORD8 gau1_ih264d_cbp_table[48][2];
@@ -132,7 +132,7 @@ extern const UWORD8 gau1_ih264d_total_coeff_fn_ptr_offset[16];
 extern const WORD16 gai2_ih264d_trailing_one_level[14][3];
 
 /*Decode CABAC Table declaration*/
-extern const UWORD32 gau4_ih264d_cabac_table[];
+extern const UWORD32 gau4_ih264d_cabac_table[128][4];
 
 /****************************************************************************/
 /*             For error detection in intra pred4x4 modes                   */

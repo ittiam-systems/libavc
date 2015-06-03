@@ -596,17 +596,8 @@ WORD32 ih264d_get_dpb_size(dec_seq_params_t *ps_seq, dec_struct_t *ps_dec)
     WORD32 i4_size;
     UWORD8 u1_level_idc;
 
-
     u1_level_idc = ps_seq->u1_level_idc; //harcode for the time being
-
-#if DPB_HACK
-    u1_level_idc = (u1_level_idc < 30) ? 30 : u1_level_idc;
-    u1_level_idc = (u1_level_idc > 30) ? 30 : u1_level_idc;
-#endif
-
     u1_level_idc = MIN(u1_level_idc, ps_dec->u4_level_at_init);
-    //DPB_HACK
-
 
     switch(u1_level_idc)
     {
@@ -658,29 +649,10 @@ WORD32 ih264d_get_dpb_size(dec_seq_params_t *ps_seq, dec_struct_t *ps_dec)
         default:
             i4_size = 6912000;
             break;
-            /*
-             * Not calling the error handler if the level has come wrong.
-             */
-            /*{
-             UWORD32 i4_error_code;
-             i4_error_code = ERROR_UNKNOWN_LEVEL ;
-
-             }
-             break;*/
     }
 
-    /* Temporary hack to run Tractor Cav/Cab/MbAff Profiler ps_bitstrm */
-#if DPB_HACK
-    i4_size = 6912000;
-#endif
-
-    i4_size =
-                    i4_size
-                                    / (ps_seq->u2_frm_wd_in_mbs
-                                                    * (ps_seq->u2_frm_ht_in_mbs
-                                                                    << (1
-                                                                                    - ps_seq->u1_frame_mbs_only_flag)));
-    i4_size = i4_size / 384; // temp / (256 * 1.5)
+    i4_size /= (ps_seq->u2_frm_wd_in_mbs * (ps_seq->u2_frm_ht_in_mbs << (1 - ps_seq->u1_frame_mbs_only_flag)));
+    i4_size /= 384;
     i4_size = MIN(i4_size, 16);
     i4_size = MAX(i4_size, 1);
     return (i4_size);
@@ -963,7 +935,6 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
     ps_dec->u2_frm_ht_in_mbs = (ps_dec->u2_pic_ht
                     >> (4 + ps_dec->ps_cur_slice->u1_field_pic_flag));
 
-
     /***************************************************************************/
     /* If change in Level or the required PicBuffers i4_size is more than the  */
     /* current one FREE the current PicBuffers and allocate affresh            */
@@ -993,10 +964,6 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
 
         ps_dec->u1_max_dec_frame_buffering = ih264d_get_dpb_size(ps_seq,
                                                                  ps_dec);
-
-        if(ps_dec->u4_share_disp_buf)
-            ps_dec->u1_max_dec_frame_buffering = MAX(
-                            ps_dec->u1_max_dec_frame_buffering, 5);
 
         ps_dec->u1_max_dec_frame_buffering = MIN(
                         ps_dec->u1_max_dec_frame_buffering,
@@ -2070,10 +2037,6 @@ WORD32 ih264d_create_pic_buffers(UWORD8 u1_num_of_buf,
  *
  **************************************************************************
  */
-//WORD16 i16_res_coeff[2 * 3600 * (MB_LUM_SIZE + 2 * MB_CHROM_SIZE)];
-//pred_info_t s_pred_frame[4000 * 60];
-//pred_info_t *ps_pred_frame;
-
 WORD16 ih264d_get_memory_dec_params(dec_struct_t * ps_dec)
 {
     struct MemReq s_MemReq;
@@ -2101,6 +2064,7 @@ WORD16 ih264d_get_memory_dec_params(dec_struct_t * ps_dec)
     UWORD8 *pu1_buf;
 
     ps_dec->ps_deblk_pic = ps_dec->ps_mem_tab[MEM_REC_DEBLK_MB_INFO].pv_base;
+    memset(ps_dec->ps_deblk_pic, 0, ps_dec->ps_mem_tab[MEM_REC_DEBLK_MB_INFO].u4_mem_size);
 
     ps_dec->pu1_dec_mb_map = ps_dec->ps_mem_tab[MEM_REC_PARSE_MAP].pv_base;
 
@@ -2159,14 +2123,13 @@ WORD16 ih264d_get_memory_dec_params(dec_struct_t * ps_dec)
                                                         * ps_sps->u1_num_ref_frames);
         u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
 
-        ps_dec->pu1_ref_buff = (void *)(pu1_scratch_mem_base
-                        + u4_scratch_mem_used);
-        u4_scratch_mem_used += MAX_REF_BUF_SIZE;
+        ps_dec->pu1_ref_buff = pu1_scratch_mem_base + u4_scratch_mem_used + MAX_REF_BUF_SIZE;
+        u4_scratch_mem_used += MAX_REF_BUF_SIZE * 2;
         u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
         ps_dec->pi2_pred1 =
                         (void *)(pu1_scratch_mem_base + u4_scratch_mem_used);
         u4_scratch_mem_used += ((sizeof(WORD16)) * PRED_BUFFER_WIDTH
-                        * PRED_BUFFER_HEIGHT);
+                        * PRED_BUFFER_HEIGHT * 2);
         u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
 
         ps_dec->pu1_temp_mc_buffer = (void *)(pu1_scratch_mem_base
@@ -2220,19 +2183,12 @@ WORD16 ih264d_get_memory_dec_params(dec_struct_t * ps_dec)
         ps_dec->ppv_map_ref_idx_to_poc += OFFSET_MAP_IDX_POC;
 
         {
-            UWORD32 u4_ref_size;
-            u4_ref_size = MAX_REF_BUF_SIZE;
+            ps_dec->ps_parse_cur_slice = &(ps_dec->ps_dec_slice_buf[0]);
+            ps_dec->ps_decode_cur_slice = &(ps_dec->ps_dec_slice_buf[0]);
+            ps_dec->ps_computebs_cur_slice = &(ps_dec->ps_dec_slice_buf[0]);
 
-            {
-
-                ps_dec->ps_parse_cur_slice = &(ps_dec->ps_dec_slice_buf[0]);
-                ps_dec->ps_decode_cur_slice = &(ps_dec->ps_dec_slice_buf[0]);
-                ps_dec->ps_computebs_cur_slice = &(ps_dec->ps_dec_slice_buf[0]);
-                ps_dec->ps_parse_cur_slice->slice_header_done = 0;
-
-                ps_dec->ps_pred_start = ps_dec->ps_pred;
-                ps_dec->u4_ref_buf_size = u4_ref_size;
-            }
+            ps_dec->ps_pred_start = ps_dec->ps_pred;
+            ps_dec->u4_ref_buf_size = MAX_REF_BUF_SIZE;
         }
 
         {
@@ -2357,18 +2313,17 @@ WORD16 ih264d_get_memory_dec_params(dec_struct_t * ps_dec)
 
         ps_dec->pu1_y_intra_pred_line = (void *)(pu1_persitent_mem_base
                         + u4_persistent_mem_used);
-        u4_persistent_mem_used += sizeof(UWORD8) * (u4_luma_wd + 16) * 2;
+        u4_persistent_mem_used += sizeof(UWORD8) * ((u4_wd_mbs + 1) * MB_SIZE) * 2;
         u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
 
         ps_dec->pu1_u_intra_pred_line = (void *)(pu1_persitent_mem_base
                         + u4_persistent_mem_used);
-        u4_persistent_mem_used += sizeof(UWORD8) * (u4_chroma_wd + 16) * 2
-                        * YUV420SP_FACTOR;
+        u4_persistent_mem_used += sizeof(UWORD8) * ((u4_wd_mbs + 1) * MB_SIZE) * 2;
         u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
 
         ps_dec->pu1_v_intra_pred_line = (void *)(pu1_persitent_mem_base
                         + u4_persistent_mem_used);
-        u4_persistent_mem_used += sizeof(UWORD8) * (u4_chroma_wd + 16) * 2;
+        u4_persistent_mem_used += sizeof(UWORD8) * ((u4_wd_mbs + 1) * MB_SIZE) * 2;
         u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
 
         ps_dec->ps_nbr_mb_row = (void *)(pu1_persitent_mem_base

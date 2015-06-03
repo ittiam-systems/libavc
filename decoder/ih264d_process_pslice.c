@@ -169,8 +169,6 @@ WORD32 ih264d_mv_pred_ref_tfr_nby2_pmb(dec_struct_t * ps_dec,
             /**************************************************/
             /* Loop on Partitions                             */
             /**************************************************/
-            ps_dec->u4_dma_buf_idx = 0;
-
             for(j = 0; j < u1_num_part; j++, ps_part++)
             {
 
@@ -331,9 +329,7 @@ WORD32 ih264d_mv_pred_ref_tfr_nby2_pmb(dec_struct_t * ps_dec,
     return OK;
 }
 
-#if THREAD_PARSE
 
-#else
 WORD32 ih264d_decode_recon_tfr_nmb(dec_struct_t * ps_dec,
                                    UWORD8 u1_mb_idx,
                                    UWORD8 u1_num_mbs,
@@ -437,40 +433,55 @@ WORD32 ih264d_decode_recon_tfr_nmb(dec_struct_t * ps_dec,
             if((u1_ipcm_th + 25) != ps_cur_mb_info->u1_mb_type)
             {
                 ps_cur_mb_info->u1_mb_type -= (u1_skip_th + 1);
-                ret = ih264d_process_intra_mb(ps_dec, ps_cur_mb_info, j);
-                if(ret != OK)
-                    return ret;
+                ih264d_process_intra_mb(ps_dec, ps_cur_mb_info, j);
             }
         }
 
-        if(ps_dec->u4_mb_level_deblk == 1)
-        {
-            ih264d_deblock_mb_level(ps_dec, ps_cur_mb_info, j);
 
+        if(ps_dec->u4_use_intrapred_line_copy)
+        {
+            ih264d_copy_intra_pred_line(ps_dec, ps_cur_mb_info, j);
         }
 
-        if(u1_mbaff)
-        {
-            if(u4_update_mbaff)
-            {
-                UWORD32 u4_mb_num = ps_cur_mb_info->u2_mbx
-                                + ps_dec->u2_frm_wd_in_mbs
-                                                * (ps_cur_mb_info->u2_mby >> 1);
-                UPDATE_MB_MAP_MBNUM_BYTE(ps_dec->pu1_recon_mb_map, u4_mb_num);
-                u4_update_mbaff = 0;
-            }
-            else
-            {
-                u4_update_mbaff = 1;
-            }
-        }
-        else
-        {
-            UWORD32 u4_mb_num = ps_cur_mb_info->u2_mbx
-                            + ps_dec->u2_frm_wd_in_mbs * ps_cur_mb_info->u2_mby;
-            UPDATE_MB_MAP_MBNUM_BYTE(ps_dec->pu1_recon_mb_map, u4_mb_num);
-        }
     }
+
+    /*N MB deblocking*/
+    if(ps_dec->u4_nmb_deblk == 1)
+    {
+
+        UWORD32 u4_cur_mb, u4_right_mb;
+        UWORD32 u4_mb_x, u4_mb_y;
+        UWORD32 u4_wd_y, u4_wd_uv;
+        tfr_ctxt_t *ps_tfr_cxt = &(ps_dec->s_tran_addrecon);
+        UWORD8 u1_field_pic_flag = ps_dec->ps_cur_slice->u1_field_pic_flag;
+        const WORD32 i4_cb_qp_idx_ofst =
+                       ps_dec->ps_cur_pps->i1_chroma_qp_index_offset;
+        const WORD32 i4_cr_qp_idx_ofst =
+                       ps_dec->ps_cur_pps->i1_second_chroma_qp_index_offset;
+
+        u4_wd_y = ps_dec->u2_frm_wd_y << u1_field_pic_flag;
+        u4_wd_uv = ps_dec->u2_frm_wd_uv << u1_field_pic_flag;
+
+
+        ps_cur_mb_info = ps_dec->ps_nmb_info + u1_mb_idx;
+
+        ps_dec->u4_deblk_mb_x = ps_cur_mb_info->u2_mbx;
+        ps_dec->u4_deblk_mb_y = ps_cur_mb_info->u2_mby;
+
+        for(j = u1_mb_idx; j < i; j++)
+        {
+
+            ih264d_deblock_mb_nonmbaff(ps_dec, ps_tfr_cxt,
+                                       i4_cb_qp_idx_ofst, i4_cr_qp_idx_ofst,
+                                        u4_wd_y, u4_wd_uv);
+
+
+        }
+
+
+
+    }
+
 
 
     if(u1_tfr_n_mb)
@@ -496,18 +507,6 @@ WORD32 ih264d_decode_recon_tfr_nmb(dec_struct_t * ps_dec,
                                       u1_end_of_row_next);
         ps_dec->u4_num_mbs_prev_nmb = u1_num_mbs;
 
-        if(u1_end_of_row)
-        {
-            /* Reset the N-Mb Recon Buf Index to default Values */
-            ps_dec->u2_mb_group_cols_y1 = ps_dec->u2_mb_group_cols_y;
-            ps_dec->u2_mb_group_cols_cr1 = ps_dec->u2_mb_group_cols_cr;
-        }
-        /* If next N-Mb Group is the EndOfRow, set the N-Mb Recon Buf Index */
-        else if(u1_end_of_row_next)
-        {
-            ps_dec->u2_mb_group_cols_y1 = (u1_num_mbs_next << 4) + 8;
-            ps_dec->u2_mb_group_cols_cr1 = (u1_num_mbs_next << 3) + 8;
-        }
         ps_dec->u4_pred_info_idx = 0;
         ps_dec->u4_dma_buf_idx = 0;
 
@@ -515,7 +514,7 @@ WORD32 ih264d_decode_recon_tfr_nmb(dec_struct_t * ps_dec,
     }
     return OK;
 }
-#endif
+
 /*!
  **************************************************************************
  * \if Function name : ih264d_process_inter_mb \endif
@@ -543,7 +542,7 @@ WORD32 ih264d_process_inter_mb(dec_struct_t * ps_dec,
     UWORD32 uc_botMb;
     UWORD32 u4_num_pmbair;
     /* CHANGED CODE */
-    tfr_ctxt_t *ps_frame_buf = &ps_dec->s_tran_addrecon;
+    tfr_ctxt_t *ps_frame_buf = ps_dec->ps_frame_buf_ip_recon;
     UWORD32 u4_luma_dc_only_csbp = 0;
     UWORD32 u4_luma_dc_only_cbp = 0;
     /* CHANGED CODE */

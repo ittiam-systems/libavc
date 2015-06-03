@@ -1011,7 +1011,6 @@ WORD32 ih264d_mv_pred_ref_tfr_nby2_bmb(dec_struct_t * ps_dec,
             /* Loop on Partitions                             */
             /* direct mode is reflected as a single partition */
             /**************************************************/
-            ps_dec->u4_dma_buf_idx = 0;
             for(j = 0; j < u1_num_part; j++, ps_part++)
             {
                 u1_sub_mb_num = ps_part->u1_sub_mb_num;
@@ -1654,11 +1653,7 @@ WORD32 ih264d_parse_bslice(dec_struct_t * ps_dec, UWORD16 u2_first_mb_in_slice)
         ps_slice->i1_slice_beta_offset = 0;
     }
 
-
-    /*set slice header cone to 2 ,to indicate  correct header*/
-    DATA_SYNC();
-
-    ps_dec->ps_parse_cur_slice->slice_header_done = 2;
+    ps_dec->u1_slice_header_done = 2;
 
     if(ps_pps->u1_entropy_coding_mode)
     {
