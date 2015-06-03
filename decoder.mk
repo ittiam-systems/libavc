@@ -37,7 +37,6 @@ libavcd_srcs_c  += decoder/ih264d_parse_bslice.c
 libavcd_srcs_c  += decoder/ih264d_parse_pslice.c
 libavcd_srcs_c  += decoder/ih264d_parse_islice.c
 libavcd_srcs_c  += decoder/ih264d_cabac_init_tables.c
-libavcd_srcs_c  += decoder/ih264d_debug.c
 libavcd_srcs_c  += decoder/ih264d_bitstrm.c
 libavcd_srcs_c  += decoder/ih264d_compute_bs.c
 libavcd_srcs_c  += decoder/ih264d_deblocking.c
