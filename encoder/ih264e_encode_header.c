@@ -560,7 +560,7 @@ WORD32 ih264e_generate_slice_header(bitstrm_t *ps_bitstrm,
 
     if ((ps_pps->i1_weighted_pred_flag &&
                     (ps_slice_hdr->u1_slice_type == PSLICE || ps_slice_hdr->u1_slice_type == SPSLICE)) ||
-                    (ps_pps->i1_weighted_bipred_idc == 1 && ps_slice_hdr->u1_slice_type == BSLICE))
+                    (ps_slice_hdr->u1_slice_type == BSLICE && ps_pps->i1_weighted_bipred_idc == 1))
     {
         /* TODO_LATER: Currently there is no support for weighted prediction.
          This needs to be updated when the support is added */
@@ -1065,7 +1065,7 @@ WORD32 ih264e_populate_slice_header(process_ctxt_t *ps_proc,
 
     if ((ps_pps->i1_weighted_pred_flag &&
                     (ps_proc->i4_slice_type == PSLICE || ps_proc->i4_slice_type == SPSLICE)) ||
-                    (ps_pps->i1_weighted_bipred_idc == 1 && ps_proc->i4_slice_type == BSLICE))
+                    (ps_proc->i4_slice_type == BSLICE && ps_pps->i1_weighted_bipred_idc == 1))
     {
         /* TODO_LATER: Currently there is no support for weighted prediction.
              This needs to be updated when the support is added */
