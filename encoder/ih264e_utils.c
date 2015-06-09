@@ -1239,9 +1239,6 @@ IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec)
                        ps_codec->s_cfg.u4_max_level);
     }
 
-    /* src stride */
-    ps_codec->i4_src_strd = ps_codec->s_cfg.u4_strd;
-
     /* recon stride */
     ps_codec->i4_rec_strd = ALIGN16(ps_codec->s_cfg.u4_max_wd) + PAD_WD;
 
@@ -1729,10 +1726,6 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
             /* chroma rec buffer */
             ps_proc->pu1_rec_buf_chroma_base = pu1_cur_pic_chroma;
 
-            /* src stride */
-            ps_proc->i4_src_strd = ps_codec->i4_src_strd;
-            ps_proc->i4_src_chroma_strd = ps_codec->i4_src_strd;
-
             /* rec stride */
             ps_proc->i4_rec_strd = ps_codec->i4_rec_strd;
 
@@ -2013,9 +2006,6 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
                 /* srch range y */
                 ps_me_ctxt->ai2_srch_boundaries[1] =
                                 ps_codec->s_cfg.u4_srch_rng_y;
-
-                /* src stride */
-                ps_me_ctxt->i4_src_strd = ps_codec->i4_src_strd;
 
                 /* rec stride */
                 ps_me_ctxt->i4_rec_strd = ps_codec->i4_rec_strd;
