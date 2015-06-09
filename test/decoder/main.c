@@ -1827,6 +1827,7 @@ int main(WORD32 argc, CHAR *argv[])
     UWORD32 frm_cnt = 0;
     WORD32 total_bytes_comsumed;
     UWORD32 max_op_frm_ts;
+    UWORD32 u4_num_disp_bufs_with_dec;;
 
 #ifdef PROFILE_ENABLE
     UWORD32 u4_tot_cycles = 0;
@@ -2313,6 +2314,7 @@ int main(WORD32 argc, CHAR *argv[])
 
                 ivd_ctl_getbufinfo_ip_t s_ctl_ip;
                 ivd_ctl_getbufinfo_op_t s_ctl_op;
+                WORD32 outlen = 0;
 
                 s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
                 s_ctl_ip.e_sub_cmd = IVD_CMD_CTL_GETBUFINFO;
@@ -2342,7 +2344,6 @@ int main(WORD32 argc, CHAR *argv[])
                 /* Or if shared and output is 420P */
                 if((0 == s_app_ctx.u4_share_disp_buf) || (IV_YUV_420P == s_app_ctx.e_output_chroma_format))
                 {
-                    UWORD32 outlen;
                     ps_out_buf->u4_min_out_buf_size[0] =
                                     s_ctl_op.u4_min_out_buf_size[0];
                     ps_out_buf->u4_min_out_buf_size[1] =
@@ -2377,6 +2378,56 @@ int main(WORD32 argc, CHAR *argv[])
                     ps_out_buf->u4_num_bufs = s_ctl_op.u4_min_num_out_bufs;
                 }
 
+#ifdef APP_EXTRA_BUFS
+                s_app_ctx.disp_delay = EXTRA_DISP_BUFFERS;
+                s_ctl_op.u4_num_disp_bufs += EXTRA_DISP_BUFFERS;
+#endif
+
+                /*****************************************************************************/
+                /*   API Call: Allocate display buffers for display buffer shared case       */
+                /*****************************************************************************/
+
+                for(i = 0; i < s_ctl_op.u4_num_disp_bufs; i++)
+                {
+
+                    s_app_ctx.s_disp_buffers[i].u4_min_out_buf_size[0] =
+                                    s_ctl_op.u4_min_out_buf_size[0];
+                    s_app_ctx.s_disp_buffers[i].u4_min_out_buf_size[1] =
+                                    s_ctl_op.u4_min_out_buf_size[1];
+                    s_app_ctx.s_disp_buffers[i].u4_min_out_buf_size[2] =
+                                    s_ctl_op.u4_min_out_buf_size[2];
+
+                    outlen = s_ctl_op.u4_min_out_buf_size[0];
+                    if(s_ctl_op.u4_min_num_out_bufs > 1)
+                        outlen += s_ctl_op.u4_min_out_buf_size[1];
+
+                    if(s_ctl_op.u4_min_num_out_bufs > 2)
+                        outlen += s_ctl_op.u4_min_out_buf_size[2];
+
+                    s_app_ctx.s_disp_buffers[i].pu1_bufs[0] = (UWORD8 *)malloc(outlen);
+
+                    if(s_app_ctx.s_disp_buffers[i].pu1_bufs[0] == NULL)
+                    {
+                        sprintf(ac_error_str,
+                                "\nAllocation failure for output buffer of i4_size %d",
+                                outlen);
+                        codec_exit(ac_error_str);
+                    }
+
+                    if(s_ctl_op.u4_min_num_out_bufs > 1)
+                        s_app_ctx.s_disp_buffers[i].pu1_bufs[1] =
+                                        s_app_ctx.s_disp_buffers[i].pu1_bufs[0]
+                                                        + (s_ctl_op.u4_min_out_buf_size[0]);
+
+                    if(s_ctl_op.u4_min_num_out_bufs > 2)
+                        s_app_ctx.s_disp_buffers[i].pu1_bufs[2] =
+                                        s_app_ctx.s_disp_buffers[i].pu1_bufs[1]
+                                                        + (s_ctl_op.u4_min_out_buf_size[1]);
+
+                    s_app_ctx.s_disp_buffers[i].u4_num_bufs =
+                                    s_ctl_op.u4_min_num_out_bufs;
+                }
+                s_app_ctx.num_disp_buf = s_ctl_op.u4_num_disp_bufs;
             }
         }
 
@@ -2556,73 +2607,6 @@ int main(WORD32 argc, CHAR *argv[])
     /*************************************************************************/
     //if(1 == s_app_ctx.u4_share_disp_buf)
     {
-        ivd_ctl_getbufinfo_ip_t s_ctl_ip;
-        ivd_ctl_getbufinfo_op_t s_ctl_op;
-        WORD32 outlen = 0;
-
-        s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
-        s_ctl_ip.e_sub_cmd = IVD_CMD_CTL_GETBUFINFO;
-        s_ctl_ip.u4_size = sizeof(ivd_ctl_getbufinfo_ip_t);
-        s_ctl_op.u4_size = sizeof(ivd_ctl_getbufinfo_op_t);
-        ret = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_ctl_ip,
-                                   (void *)&s_ctl_op);
-        if(ret != IV_SUCCESS)
-        {
-            sprintf(ac_error_str, "Error in Get Buf Info %x", s_ctl_op.u4_error_code);
-            codec_exit(ac_error_str);
-        }
-
-#ifdef APP_EXTRA_BUFS
-        s_app_ctx.disp_delay = EXTRA_DISP_BUFFERS;
-        s_ctl_op.u4_num_disp_bufs += EXTRA_DISP_BUFFERS;
-#endif
-
-        /*****************************************************************************/
-        /*   API Call: Allocate display buffers for display buffer shared case       */
-        /*****************************************************************************/
-
-        for(i = 0; i < s_ctl_op.u4_num_disp_bufs; i++)
-        {
-
-            s_app_ctx.s_disp_buffers[i].u4_min_out_buf_size[0] =
-                            s_ctl_op.u4_min_out_buf_size[0];
-            s_app_ctx.s_disp_buffers[i].u4_min_out_buf_size[1] =
-                            s_ctl_op.u4_min_out_buf_size[1];
-            s_app_ctx.s_disp_buffers[i].u4_min_out_buf_size[2] =
-                            s_ctl_op.u4_min_out_buf_size[2];
-
-            outlen = s_ctl_op.u4_min_out_buf_size[0];
-            if(s_ctl_op.u4_min_num_out_bufs > 1)
-                outlen += s_ctl_op.u4_min_out_buf_size[1];
-
-            if(s_ctl_op.u4_min_num_out_bufs > 2)
-                outlen += s_ctl_op.u4_min_out_buf_size[2];
-
-            s_app_ctx.s_disp_buffers[i].pu1_bufs[0] = (UWORD8 *)malloc(outlen);
-
-            if(s_app_ctx.s_disp_buffers[i].pu1_bufs[0] == NULL)
-            {
-                sprintf(ac_error_str,
-                        "\nAllocation failure for output buffer of i4_size %d",
-                        outlen);
-                codec_exit(ac_error_str);
-            }
-
-            if(s_ctl_op.u4_min_num_out_bufs > 1)
-                s_app_ctx.s_disp_buffers[i].pu1_bufs[1] =
-                                s_app_ctx.s_disp_buffers[i].pu1_bufs[0]
-                                                + (s_ctl_op.u4_min_out_buf_size[0]);
-
-            if(s_ctl_op.u4_min_num_out_bufs > 2)
-                s_app_ctx.s_disp_buffers[i].pu1_bufs[2] =
-                                s_app_ctx.s_disp_buffers[i].pu1_bufs[1]
-                                                + (s_ctl_op.u4_min_out_buf_size[1]);
-
-            s_app_ctx.s_disp_buffers[i].u4_num_bufs =
-                            s_ctl_op.u4_min_num_out_bufs;
-        }
-        s_app_ctx.num_disp_buf = s_ctl_op.u4_num_disp_bufs;
-
         /*****************************************************************************/
         /*   API Call: Send the allocated display buffers to codec                   */
         /*****************************************************************************/
@@ -2638,7 +2622,7 @@ int main(WORD32 argc, CHAR *argv[])
 
             memcpy(&(s_set_display_frame_ip.s_disp_buffer),
                    &(s_app_ctx.s_disp_buffers),
-                   s_ctl_op.u4_num_disp_bufs * sizeof(ivd_out_bufdesc_t));
+                   s_app_ctx.num_disp_buf * sizeof(ivd_out_bufdesc_t));
 
             ret = ivd_api_function((iv_obj_t *)codec_obj,
                                        (void *)&s_set_display_frame_ip,
@@ -2732,7 +2716,17 @@ int main(WORD32 argc, CHAR *argv[])
 #ifndef PRINT_PICSIZE
     get_version(codec_obj);
 #endif
-    max_op_frm_ts = (s_app_ctx.u4_max_frm_ts > 0)? (s_app_ctx.u4_max_frm_ts + s_app_ctx.disp_delay): 0xffffffff;
+
+
+    max_op_frm_ts = s_app_ctx.u4_max_frm_ts + s_app_ctx.disp_delay;
+
+    if(max_op_frm_ts <  s_app_ctx.disp_delay)
+        max_op_frm_ts = 0xffffffff;/* clip as overflow has occured*/
+
+    max_op_frm_ts = (s_app_ctx.u4_max_frm_ts > 0)? (max_op_frm_ts): 0xffffffff;
+
+    u4_num_disp_bufs_with_dec = 0;
+
     while(u4_op_frm_ts < max_op_frm_ts)
     {
 
@@ -2759,9 +2753,10 @@ int main(WORD32 argc, CHAR *argv[])
 
         }
 #endif
-        if(u4_ip_frm_ts < s_app_ctx.num_disp_buf)
+        if(u4_num_disp_bufs_with_dec < s_app_ctx.num_disp_buf)
         {
-            release_disp_frame(codec_obj, u4_ip_frm_ts);
+            release_disp_frame(codec_obj, u4_num_disp_bufs_with_dec);
+            u4_num_disp_bufs_with_dec ++;
         }
 
 
@@ -2991,6 +2986,9 @@ int main(WORD32 argc, CHAR *argv[])
                     sprintf(ac_error_str, "Error in Reset");
                     codec_exit(ac_error_str);
                 }
+
+                /*when reset all buffers are released by lib*/
+                u4_num_disp_bufs_with_dec = 0;
                 /*************************************************************************/
                 /* set num of cores                                                      */
                 /*************************************************************************/

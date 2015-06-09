@@ -524,7 +524,6 @@ typedef struct
      unsigned. LSB byte : weight and MSB byte: u4_ofst */
     UWORD32 u4_wt_ofst_lx[2][MAX_REF_BUFS][3];
     void * pv_codec_handle; /* For Error Handling */
-    UWORD8 u1_end_of_frame_signal;
 
     /*  This is used when reordering is done in Forward or    */
     /*  backward lists. This is because reordering can point  */
@@ -606,6 +605,9 @@ typedef struct code_overlay_ctxt
 #define ACCEPT_ALL_PICS   (0x00)
 #define REJECT_CUR_PIC    (0x01)
 #define REJECT_PB_PICS    (0x02)
+
+#define MASK_REJECT_CUR_PIC (0xFE)
+#define MASK_REJECT_PB_PICS (0xFD)
 
 #define PIC_TYPE_UNKNOWN  (0xFF)
 #define PIC_TYPE_I        (0x00)
@@ -1351,6 +1353,7 @@ typedef struct _DecStruct
     UWORD32 u4_cur_slice_decode_done;
     UWORD32 u4_extra_mem_used;
 
+    /* 2 first slice not parsed , 1 :first slice parsed , 0 :first valid slice header parsed*/
     UWORD32 u4_first_slice_in_pic;
     UWORD32 u4_num_cores;
     IVD_ARCH_T e_processor_arch;
