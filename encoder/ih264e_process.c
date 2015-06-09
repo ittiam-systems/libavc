@@ -1052,7 +1052,21 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
 
     /* init buffer pointers */
 
-    ps_proc->pu1_src_buf_chroma = ps_proc->pu1_src_buf_chroma_base + (i4_mb_x * MB_SIZE) + ps_codec->s_cfg.u4_max_wd * (i4_mb_y * BLK8x8SIZE);
+    if (ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_422ILE ||
+        ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_420P ||
+        ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1))
+    {
+        if ((ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_420SP_UV) ||
+            (ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_420SP_VU))
+            ps_proc->pu1_src_buf_chroma_base = ps_codec->pu1_uv_csc_buf_base;
+
+        ps_proc->pu1_src_buf_chroma = ps_proc->pu1_src_buf_chroma_base + (i4_mb_x * MB_SIZE) + ps_codec->s_cfg.u4_max_wd * (i4_mb_y * BLK8x8SIZE);
+    }
+    else
+    {
+        ps_proc->pu1_src_buf_chroma = ps_proc->pu1_src_buf_chroma_base + (i4_mb_x * MB_SIZE) + i4_src_strd * (i4_mb_y * BLK8x8SIZE);
+    }
+
     ps_proc->pu1_rec_buf_luma = ps_proc->pu1_rec_buf_luma_base + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * MB_SIZE);
     ps_proc->pu1_rec_buf_chroma = ps_proc->pu1_rec_buf_chroma_base + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * BLK8x8SIZE);
     ps_proc->pu1_ref_buf_luma = ps_proc->pu1_ref_buf_luma_base + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * MB_SIZE);
@@ -1067,6 +1081,42 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
     {
         case IV_YUV_420SP_UV:
         case IV_YUV_420SP_VU:
+            /* In case of 420 semi-planar input, copy last few rows to intermediate
+               buffer as chroma trans functions access one extra byte due to interleaved input.
+               This data will be padded if required */
+            if (ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1))
+            {
+                WORD32 num_rows = ps_codec->s_cfg.u4_disp_ht & 0xF;
+                UWORD8 *pu1_src;
+                UWORD8 *pu1_dst;
+                WORD32 i;
+                pu1_src = (UWORD8 *)ps_proc->s_inp_buf.s_raw_buf.apv_bufs[0] + (i4_mb_x * MB_SIZE) +
+                          ps_proc->s_inp_buf.s_raw_buf.au4_strd[0] * (i4_mb_y * MB_SIZE);
+
+                pu1_dst = ps_proc->pu1_src_buf_luma;
+
+                for (i = 0; i < num_rows; i++)
+                {
+                    memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_wd);
+                    pu1_src += ps_proc->s_inp_buf.s_raw_buf.au4_strd[0];
+                    pu1_dst += ps_proc->i4_src_strd;
+                }
+                pu1_src = (UWORD8 *)ps_proc->s_inp_buf.s_raw_buf.apv_bufs[1] + (i4_mb_x * BLK8x8SIZE) +
+                          ps_proc->s_inp_buf.s_raw_buf.au4_strd[1] * (i4_mb_y * BLK8x8SIZE);
+                pu1_dst = ps_proc->pu1_src_buf_chroma;
+
+                /* Last MB row of chroma is copied unconditionally, since trans functions access an extra byte
+                 * due to interleaved input
+                 */
+                num_rows = (ps_codec->s_cfg.u4_disp_ht >> 1) - (ps_proc->i4_mb_y * BLK8x8SIZE);
+                for (i = 0; i < num_rows; i++)
+                {
+                    memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_wd);
+                    pu1_src += ps_proc->s_inp_buf.s_raw_buf.au4_strd[1];
+                    pu1_dst += ps_proc->i4_src_strd;
+                }
+
+            }
             break;
 
         case IV_YUV_420P :

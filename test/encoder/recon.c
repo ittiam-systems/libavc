@@ -97,7 +97,7 @@ void allocate_recon(app_ctxt_t *ps_app_ctxt)
     num_bufs = DEFAULT_NUM_RECON_BUFS;
 
     /* Size of buffer for YUV420/420SP */
-    luma_size = ALIGN16(ps_app_ctxt->u4_max_wd) * ALIGN16(ps_app_ctxt->u4_max_ht);
+    luma_size = ps_app_ctxt->u4_max_wd * ps_app_ctxt->u4_max_ht;
     chroma_size = (luma_size) / 4;
     pic_size = luma_size + chroma_size * 2;
 

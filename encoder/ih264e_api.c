@@ -3381,6 +3381,11 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
          * (wd * ht) for luma and (wd * ht / 2) for chroma*/
         ps_mem_rec->u4_mem_size = MAX_CTXT_SETS
                         * ((3 * max_ht_luma * max_wd_luma) >> 1);
+        /* Allocate an extra row, since inverse transform functions for
+         * chroma access(only read, not used) few extra bytes due to
+         * interleaved input
+         */
+        ps_mem_rec->u4_mem_size += max_wd_luma;
     }
     DEBUG("\nMemory record Id %d = %d \n", MEM_REC_CSC, ps_mem_rec->u4_mem_size);
 
