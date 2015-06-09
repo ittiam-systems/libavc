@@ -106,6 +106,7 @@
 @r8 =>  iq_start_idx
 @r10=>  pi2_dc_ld_addr
 .text
+.syntax unified
 .p2align 2
 
     .global ih264_iquant_itrans_recon_4x4_a9
@@ -141,7 +142,7 @@ ih264_iquant_itrans_recon_4x4_a9:
     vmul.s16      q11, q11, q14         @x[i]=(scale[i] * dequant[i]) where i = 8..15
 
     subs          r8, r8, #1            @ if r8 == 1 => intra case , so result of subtraction is zero and Z flag is set
-    ldreqsh       r9, [r10]             @ Loads signed halfword pi2_dc_ld_addr[0], if r8==1
+    ldrsheq       r9, [r10]             @ Loads signed halfword pi2_dc_ld_addr[0], if r8==1
 
     vmull.s16     q0, d16, d20          @ Q0  = p[i] = (x[i] * trns_coeff[i]) where i = 0..3
     vmull.s16     q1, d17, d21          @ Q1  = p[i] = (x[i] * trns_coeff[i]) where i = 4..7
