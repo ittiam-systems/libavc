@@ -1591,7 +1591,7 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
             ps_inp_raw_buf->apv_bufs[0] = pu1_buf;
 
             /*Init chroma buffer*/
-            pu1_buf += (ps_app_ctxt->u4_strd) * ALIGN16(ps_app_ctxt->u4_ht);
+            pu1_buf += ps_app_ctxt->u4_strd * ps_app_ctxt->u4_ht;
             ps_inp_raw_buf->apv_bufs[1] = pu1_buf;
 
             ps_inp_raw_buf->au4_wd[0] =  ps_app_ctxt->u4_wd;
