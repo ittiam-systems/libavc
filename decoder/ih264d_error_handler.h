@@ -110,14 +110,18 @@ typedef enum
     ERROR_LEVEL_UNSUPPORTED = 0x90,
     ERROR_START_CODE_NOT_FOUND = 0x91,
     ERROR_PIC_NUM_IS_REPEATED = 0x92,
-    ERROR_IN_LAST_SLICE_OF_PIC = 0x93
+    ERROR_IN_LAST_SLICE_OF_PIC = 0x93,
+    ERROR_NEW_FRAME_EXPECTED = 0x94,
+    ERROR_INCOMPLETE_FRAME = 0x95
 
 } h264_decoder_error_code_t;
 
 WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                                   WORD32 num_mb_skip,
                                   UWORD8 u1_is_idr_slice,
+                                  UWORD16 u2_frame_num,
                                   pocstruct_t *ps_cur_poc,
                                   WORD32 prev_slice_err);
 
+void ih264d_err_pic_dispbuf_mgr(dec_struct_t *ps_dec);
 #endif /* _IH264D_ERROR_HANDLER_H_ */
