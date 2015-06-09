@@ -1833,7 +1833,6 @@ IH264E_ERROR_T ih264e_codec_update_config(codec_t *ps_codec,
             ps_curr_cfg->i4_wd_mbs = ps_curr_cfg->u4_wd >> 4;
             ps_curr_cfg->i4_ht_mbs = ps_curr_cfg->u4_ht >> 4;
 
-            ps_codec->i4_src_strd = ps_codec->s_cfg.u4_strd;
             ps_codec->i4_rec_strd = ALIGN16(ps_cfg->u4_wd) + PAD_WD;
 
             /* If number of MBs in a frame changes the air map also changes.
