@@ -1313,10 +1313,14 @@ struct _proc_t
     mb_info_nmb_t *ps_cur_mb;
 
     /**
-     * source stride
-     * (strides for luma and chroma are the same)
+     * source luma stride
      */
     WORD32 i4_src_strd;
+
+    /**
+     * source chroma stride
+     */
+    WORD32 i4_src_chroma_strd;
 
     /**
      * recon stride & ref stride

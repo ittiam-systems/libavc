@@ -1150,6 +1150,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
 
     /* strides */
     WORD32 i4_src_strd = ps_proc->i4_src_strd;
+    WORD32 i4_src_chroma_strd = ps_proc->i4_src_chroma_strd;
     WORD32 i4_rec_strd = ps_proc->i4_rec_strd;
 
     /* quant params */
@@ -1209,7 +1210,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
     }
     else
     {
-        ps_proc->pu1_src_buf_chroma = ps_proc->pu1_src_buf_chroma_base + (i4_mb_x * MB_SIZE) + i4_src_strd * (i4_mb_y * BLK8x8SIZE);
+        ps_proc->pu1_src_buf_chroma = ps_proc->pu1_src_buf_chroma_base + (i4_mb_x * MB_SIZE) + i4_src_chroma_strd * (i4_mb_y * BLK8x8SIZE);
     }
 
     ps_proc->pu1_rec_buf_luma = ps_proc->pu1_rec_buf_luma_base + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * MB_SIZE);
@@ -1261,7 +1262,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
                 {
                     memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_wd);
                     pu1_src += ps_proc->s_inp_buf.s_raw_buf.au4_strd[1];
-                    pu1_dst += ps_proc->i4_src_strd;
+                    pu1_dst += ps_proc->i4_src_chroma_strd;
                 }
 
             }
@@ -1285,7 +1286,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
                             ps_proc->s_inp_buf.s_raw_buf.au4_strd[0],
                             ps_proc->s_inp_buf.s_raw_buf.au4_strd[1],
                             ps_proc->s_inp_buf.s_raw_buf.au4_strd[2],
-                            ps_proc->i4_src_strd, ps_proc->i4_src_strd,
+                            ps_proc->i4_src_strd, ps_proc->i4_src_chroma_strd,
                             convert_uv_only);
             break;
 
@@ -1298,8 +1299,8 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
                             ps_proc->pu1_src_buf_chroma,
                             ps_proc->pu1_src_buf_chroma + 1, pu1_y_buf_base,
                             ps_codec->s_cfg.u4_disp_wd, u2_num_rows,
-                            ps_proc->i4_src_strd, ps_proc->i4_src_strd,
-                            ps_proc->i4_src_strd,
+                            ps_proc->i4_src_strd, ps_proc->i4_src_chroma_strd,
+                            ps_proc->i4_src_chroma_strd,
                             ps_proc->s_inp_buf.s_raw_buf.au4_strd[0] >> 1);
             break;
 
@@ -1323,7 +1324,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
 
         ih264_pad_right_chroma(
                         ps_proc->pu1_src_buf_chroma + ps_codec->s_cfg.u4_disp_wd,
-                        ps_proc->i4_src_strd, u4_pad_ht / 2, u4_pad_wd);
+                        ps_proc->i4_src_chroma_strd, u4_pad_ht / 2, u4_pad_wd);
     }
 
     /* pad bottom edge */
@@ -1332,8 +1333,8 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
         ih264_pad_bottom(ps_proc->pu1_src_buf_luma + (MB_SIZE - u4_pad_bottom_sz) * ps_proc->i4_src_strd,
                          ps_proc->i4_src_strd, ps_proc->i4_src_strd, u4_pad_bottom_sz);
 
-        ih264_pad_bottom(ps_proc->pu1_src_buf_chroma + (MB_SIZE - u4_pad_bottom_sz) * ps_proc->i4_src_strd / 2,
-                         ps_proc->i4_src_strd, ps_proc->i4_src_strd, (u4_pad_bottom_sz / 2));
+        ih264_pad_bottom(ps_proc->pu1_src_buf_chroma + (MB_SIZE - u4_pad_bottom_sz) * ps_proc->i4_src_chroma_strd / 2,
+                         ps_proc->i4_src_chroma_strd, ps_proc->i4_src_chroma_strd, (u4_pad_bottom_sz / 2));
     }
 
 
