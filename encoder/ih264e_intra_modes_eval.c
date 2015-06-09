@@ -1318,7 +1318,7 @@ void ih264e_evaluate_chroma_intra8x8_modes_for_least_cost_rdoptoff(process_ctxt_
     UWORD8 *pu1_pred_mb_plane = ps_proc->pu1_pred_mb_intra_chroma_plane;
 
     /* strides */
-    WORD32 i4_src_strd_c = ps_proc->i4_src_strd;
+    WORD32 i4_src_strd_c = ps_proc->i4_src_chroma_strd;
     WORD32 i4_pred_strd = ps_proc->i4_pred_strd;
     WORD32 i4_rec_strd_c = ps_proc->i4_rec_strd;
 

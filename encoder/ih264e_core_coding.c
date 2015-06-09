@@ -2022,7 +2022,7 @@ UWORD8 ih264e_code_chroma_intra_macroblock_8x8(process_ctxt_t *ps_proc)
     WORD16 *pi2_res_mb = ps_proc->pi2_res_buf;
 
     /* strides */
-    WORD32 i4_src_strd = ps_proc->i4_src_strd;
+    WORD32 i4_src_strd = ps_proc->i4_src_chroma_strd;
     WORD32 i4_rec_strd = ps_proc->i4_rec_strd;
     WORD32 i4_pred_strd = ps_proc->i4_pred_strd;
     WORD32 i4_res_strd = ps_proc->i4_res_strd;
@@ -2284,7 +2284,7 @@ UWORD8 ih264e_code_chroma_inter_macroblock_8x8(process_ctxt_t *ps_proc)
     WORD16 *pi2_res_mb = ps_proc->pi2_res_buf;
 
     /* strides */
-    WORD32 i4_src_strd = ps_proc->i4_src_strd;
+    WORD32 i4_src_strd = ps_proc->i4_src_chroma_strd;
     WORD32 i4_rec_strd = ps_proc->i4_rec_strd;
     WORD32 i4_pred_strd = ps_proc->i4_pred_strd;
     WORD32 i4_res_strd = ps_proc->i4_res_strd;

@@ -1731,6 +1731,7 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
 
             /* src stride */
             ps_proc->i4_src_strd = ps_codec->i4_src_strd;
+            ps_proc->i4_src_chroma_strd = ps_codec->i4_src_strd;
 
             /* rec stride */
             ps_proc->i4_rec_strd = ps_codec->i4_rec_strd;
