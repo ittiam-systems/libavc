@@ -177,7 +177,7 @@ loop_16:
     vmlsl.s16     q15, d23, d1[0]       @// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4   (column1)
     vqrshrun.s32  d22, q1, #10
     vqrshrun.s32  d23, q15, #10
-    vqshrun.s16   d22, q11, #0
+    vqmovun.s16   d22, q11
     vst1.u8       {d22}, [r1], r10      @//Store dest row0, column 1; (1/2,1/2)
     vext.16       q11, q13, q14, #2     @//extract a[2]                         (column2)
     vaddl.s16     q1, d20, d26          @// a0 + a5                             (column2)
@@ -196,7 +196,7 @@ loop_16:
     vqrshrun.s32  d20, q1, #10
     vqrshrun.s32  d21, q15, #10
     vld1.u32      {d2, d3, d4}, [r0], r2 @ Vector load from src[6_0]
-    vqshrun.s16   d22, q10, #0
+    vqmovun.s16   d22, q10
     vst1.u8       {d22}, [r1], r7       @//Store dest row0 ,column 2; (1/2,1/2)
 
     @ vERTICAL FILTERING FOR ROW 1
@@ -236,7 +236,7 @@ loop_16:
     vmlsl.s16     q15, d23, d1[0]       @// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4   (column1)
     vqrshrun.s32  d22, q3, #10
     vqrshrun.s32  d23, q15, #10
-    vqshrun.s16   d22, q11, #0
+    vqmovun.s16   d22, q11
     vst1.u8       {d22}, [r1], r10      @//Store dest row1, column 1; (1/2,1/2)
     vext.16       q11, q13, q14, #2     @//extract a[2]                         (column2)
     vaddl.s16     q3, d20, d26          @// a0 + a5                             (column2)
@@ -254,7 +254,7 @@ loop_16:
     vmlsl.s16     q15, d21, d1[0]       @// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4   (column2)
     vqrshrun.s32  d20, q3, #10
     vqrshrun.s32  d21, q15, #10
-    vqshrun.s16   d22, q10, #0
+    vqmovun.s16   d22, q10
     vst1.u8       {d22}, [r1], r7       @//Store dest row1 ,column 2; (1/2,1/2)
 
     subs          r8, r8, #2            @ 2 rows processed, decrement by 2
@@ -315,7 +315,7 @@ loop_8:
     vaddl.u8      q15, d7, d13          @ temp2 = src[1_0] + src4_0]
     vmla.u16      q13, q14, d0[0]       @ temp += temp1 * 20
     vmls.s16      q13, q15, d1[0]       @ temp -= temp2 * 5
-    vqshrun.s16   d2, q9, #0
+    vqmovun.s16   d2, q9
     @ vERTICAL FILTERING FOR ROW 1
 
     @Q12,Q13 HAVE VERTICAL FILTERED VALUES
@@ -338,7 +338,7 @@ loop_8:
     vmlsl.s16     q15, d5, d1[0]        @// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4   (column1)
     vqrshrun.s32  d18, q14, #10
     vqrshrun.s32  d19, q15, #10
-    vqshrun.s16   d3, q9, #0
+    vqmovun.s16   d3, q9
     vst1.u8       {d3}, [r1], r3        @//Store dest row1, column 1; (1/2,1/2)
 
     subs          r8, r8, #2            @ 2 rows processed, decrement by 2
@@ -398,7 +398,7 @@ loop_4:
     vmla.u16      q12, q10, d0[0]       @ temp += temp1 * 20
     vmls.s16      q12, q11, d1[0]       @ temp -= temp2 * 5
     vaddl.u8      q15, d7, d13          @ temp2 = src[1_0] + src4_0]
-    vqshrun.s16   d2, q9, #0
+    vqmovun.s16   d2, q9
     vmla.u16      q13, q14, d0[0]       @ temp += temp1 * 20
     vmls.s16      q13, q15, d1[0]       @ temp -= temp2 * 5
 
@@ -424,7 +424,7 @@ loop_4:
     vmlsl.s16     q15, d5, d1[0]        @// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4   (column1)
     vqrshrun.s32  d18, q14, #10
     vqrshrun.s32  d19, q15, #10
-    vqshrun.s16   d4, q9, #0
+    vqmovun.s16   d4, q9
     vst1.u32      {d4[0]}, [r1], r3     @//Store dest row1, column 1; (1/2,1/2)
 
     subs          r8, r8, #2            @ 2 rows processed, decrement by 2
