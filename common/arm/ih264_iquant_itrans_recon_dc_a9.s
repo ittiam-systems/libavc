@@ -108,6 +108,7 @@
 @unused =>  pi2_dc_ld_addr
 
 .text
+.syntax unified
 .p2align 2
 
     .global ih264_iquant_itrans_recon_4x4_dc_a9
@@ -136,7 +137,7 @@ ih264_iquant_itrans_recon_4x4_dc_a9:
     asr           r6, r6, #4            @q0 = (pi2_src[0]*pu2_iscal_mat[0]*pu2_weigh_mat[0] + rnd_fact)<<(u4_qp_div_6-4)
 
     subs          r9, r9, #1            @ if r8 == 1 => intra case , so result of subtraction is zero and Z flag is set
-    ldreqsh       r10, [r0]             @ Loads signed halfword pi2_src[0], if r9==1
+    ldrsheq       r10, [r0]             @ Loads signed halfword pi2_src[0], if r9==1
     moveq         r6, r10               @ Restore dc value in case of intra, i.e. r9 == 1
 
     add           r6, r6, #32           @i_macro = q0 + 32
