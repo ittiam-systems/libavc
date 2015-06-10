@@ -97,7 +97,7 @@ ih264_deblk_luma_horz_bslt4_av8:
     sub       x0, x0, x1                //x0 pointer to p2
     rev       w4, w4                    //
     ld1       {v10.8b, v11.8b}, [x0], x1 //p2 values are loaded into q5
-    mov       v12.2s[0], w4             //d12[0] = ui_Bs
+    mov       v12.s[0], w4              //d12[0] = ui_Bs
     mov       x6, x0                    //keeping backup of pointer to p1
     ld1       {v8.8b, v9.8b}, [x0], x1  //p1 values are loaded into q4
     mov       x7, x0                    //keeping backup of pointer to p0
@@ -364,8 +364,8 @@ ih264_deblk_luma_horz_bs4_av8:
     mov       v26.d[1] , v27.d[0]
     mov       v2.d[1] , v3.d[0]
     uaddl     v16.8h, v31.8b, v25.8b    //p2+p3 H
-    mla       v12.8h, v8.8h , v1.4h[0]  //(p0+q0+p1)+3*p2+2*p3 L
-    mla       v4.8h, v16.8h , v1.4h[0]  //(p0+q0+p1)+3*p2+2*p3 H
+    mla       v12.8h, v8.8h , v1.h[0]   //(p0+q0+p1)+3*p2+2*p3 L
+    mla       v4.8h, v16.8h , v1.h[0]   //(p0+q0+p1)+3*p2+2*p3 H
     bic       v16.16b, v20.16b , v18.16b //((ABS(p0 - q0) >= Alpha  || ABS(q1 - q0) >= Beta || ABS(p1 - p0) >= Beta))
     mov       v17.d[0] , v16.d[1]       //&& (Ap < Beta && ABS(p0 - q0) <((Alpha >>2) + 2))
     bit       v2.16b, v28.16b , v20.16b //choosing between po' and p0"
@@ -443,7 +443,7 @@ ih264_deblk_luma_vert_bslt4_av8:
     ld1       {v4.8b}, [x0], x1         //row3
     rev       w12, w12                  //reversing ui_bs
     ld1       {v6.8b}, [x0], x1         //row4
-    mov       v18.2s[0], w12            //d12[0] = ui_Bs
+    mov       v18.s[0], w12             //d12[0] = ui_Bs
     ld1       {v16.s}[0], [x14]         //D16[0] contains cliptab
     ld1       {v8.8b}, [x0], x1         //row5
     uxtl      v18.8h, v18.8b            //q6 = uc_Bs in each 16 bt scalar
