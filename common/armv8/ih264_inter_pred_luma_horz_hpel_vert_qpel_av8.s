@@ -275,7 +275,7 @@ loop_16_lowhalf:
 
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
 
     ld1       {v0.2s, v1.2s}, [x0], x2  // row 5 load for horizontal filter
 
@@ -313,7 +313,7 @@ loop_16_lowhalf:
     uaddl     v2.8h, v1.8b, v4.8b
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
     add       v30.8h, v14.8h , v16.8h
     mls       v8.8h, v2.8h , v24.8h
     ld1       {v0.2s, v1.2s}, [x0], x2  // row 6 load for horizontal filter
@@ -355,7 +355,7 @@ loop_16_lowhalf:
     mls       v28.8h, v2.8h , v24.8h
     uqxtn     v27.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v27.2s[1], v19.2s[0]
+    mov       v27.s[1], v19.s[0]
     saddl     v18.4s, v12.4h, v28.4h
     saddl2    v6.4s, v12.8h, v28.8h
 
@@ -384,7 +384,7 @@ loop_16_lowhalf:
 
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
 
     mov       v12.16b, v8.16b
     mov       v13.16b, v9.16b
@@ -523,7 +523,7 @@ loop_16_highhalf:
     mls       v20.8h, v2.8h , v24.8h
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
     ld1       {v0.2s, v1.2s}, [x8], x2
 
     urhadd    v26.8b, v18.8b , v26.8b
@@ -558,7 +558,7 @@ loop_16_highhalf:
     uaddl     v2.8h, v1.8b, v4.8b
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
     add       v30.8h, v14.8h , v16.8h
     mls       v8.8h, v2.8h , v24.8h
     ld1       {v0.2s, v1.2s}, [x8], x2
@@ -598,7 +598,7 @@ loop_16_highhalf:
     mls       v28.8h, v2.8h , v24.8h
     uqxtn     v27.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v27.2s[1], v19.2s[0]
+    mov       v27.s[1], v19.s[0]
 
 
     saddl     v18.4s, v12.4h, v28.4h
@@ -627,7 +627,7 @@ loop_16_highhalf:
 
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
 
     mov       v12.16b, v8.16b
     mov       v13.16b, v9.16b
@@ -768,7 +768,7 @@ loop_8:
 
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
 
     ld1       {v0.2s, v1.2s}, [x0], x2  // row 5 load for horizontal filter
 
@@ -812,7 +812,7 @@ loop_8:
 
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
 
     add       v30.8h, v14.8h , v16.8h
     mls       v8.8h, v2.8h , v24.8h
@@ -855,7 +855,7 @@ loop_8:
     uqxtn     v27.8b, v18.8h
     uqxtn     v19.8b, v19.8h
 
-    mov       v27.2s[1], v19.2s[0]
+    mov       v27.s[1], v19.s[0]
 
     saddl     v18.4s, v12.4h, v28.4h
     saddl2    v6.4s, v12.8h, v28.8h
@@ -885,7 +885,7 @@ loop_8:
 
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
 
 
     mov       v12.16b, v8.16b
@@ -1024,7 +1024,7 @@ loop_4:
 
     sqrshrun  v9.8b, v6.8h, #5
     sqrshrun  v7.8b, v7.8h, #5
-    mov       v9.2s[1], v7.2s[0]
+    mov       v9.s[1], v7.s[0]
 
     ext       v20.8b, v18.8b , v19.8b , #2
 
@@ -1089,7 +1089,7 @@ loop_4:
 
     sqrshrun  v10.8b, v8.8h, #5
     sqrshrun  v9.8b, v9.8h, #5
-    mov       v10.2s[1], v9.2s[0]
+    mov       v10.s[1], v9.s[0]
 
     mov       v12.8b, v28.8b
 

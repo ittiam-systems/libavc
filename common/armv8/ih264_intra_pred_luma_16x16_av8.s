@@ -467,7 +467,7 @@ ih264_intra_pred_luma_16x16_mode_plane_av8:
     ldrb      w5, [x7], #-1
     sxtw      x5, w5
     add       x8, x8, x8, lsl #1
-    dup       v4.8h, v0.4h[0]
+    dup       v4.8h, v0.h[0]
     add       x12, x12, x8
     ldrb      w9, [x0], #1
     sxtw      x9, w9

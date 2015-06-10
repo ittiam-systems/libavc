@@ -146,7 +146,7 @@ loop_16:
 
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
 
     ext       v24.16b, v20.16b , v22.16b , #4
     ext       v26.16b, v20.16b , v22.16b , #6
@@ -174,7 +174,7 @@ loop_16:
 
     uqxtn     v19.8b, v19.8h
     uqxtn     v25.8b, v25.8h
-    mov       v19.2s[1], v25.2s[0]
+    mov       v19.s[1], v25.s[0]
 
     uaddl     v22.8h, v4.8b, v10.8b
     ld1       {v0.2s, v1.2s}, [x0], #16 // Vector load from src[6_0]
@@ -228,7 +228,7 @@ loop_16:
 
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
 
     ext       v24.16b, v20.16b , v22.16b , #4
     ext       v26.16b, v20.16b , v22.16b , #6
@@ -253,7 +253,7 @@ loop_16:
 
     uqxtn     v19.8b, v19.8h
     uqxtn     v25.8b, v25.8h
-    mov       v19.2s[1], v25.2s[0]
+    mov       v19.s[1], v25.s[0]
 
 
     uaddl     v22.8h, v6.8b, v0.8b
@@ -306,7 +306,7 @@ loop_16:
 
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
 
 
     ext       v24.16b, v20.16b , v22.16b , #4
@@ -334,7 +334,7 @@ loop_16:
 
     uqxtn     v19.8b, v19.8h
     uqxtn     v25.8b, v25.8h
-    mov       v19.2s[1], v25.2s[0]
+    mov       v19.s[1], v25.s[0]
 
 
 
@@ -387,7 +387,7 @@ loop_16:
 
     uqxtn     v18.8b, v18.8h
     uqxtn     v19.8b, v19.8h
-    mov       v18.2s[1], v19.2s[0]
+    mov       v18.s[1], v19.s[0]
 
 
     ext       v24.16b, v20.16b , v22.16b , #4
@@ -427,7 +427,7 @@ loop_16:
 
     uqxtn     v19.8b, v19.8h
     uqxtn     v25.8b, v25.8h
-    mov       v19.2s[1], v25.2s[0]
+    mov       v19.s[1], v25.s[0]
 
 
 
@@ -501,7 +501,7 @@ loop_8:
     ld1       {v2.2s, v3.2s}, [x0], x2  // Vector load from src[7_0]
     uqxtn     v25.8b, v12.8h
     uqxtn     v13.8b, v13.8h
-    mov       v25.2s[1], v13.2s[0]
+    mov       v25.s[1], v13.s[0]
     uaddl     v16.8h, v8.8b, v10.8b
 
 
@@ -535,7 +535,7 @@ loop_8:
     uaddl     v28.8h, v9.8b, v11.8b
     uqxtn     v13.8b, v16.8h
     uqxtn     v17.8b, v17.8h
-    mov       v13.2s[1], v17.2s[0]
+    mov       v13.s[1], v17.s[0]
 
 
     uaddl     v14.8h, v5.8b, v3.8b
@@ -576,7 +576,7 @@ loop_8:
     mls       v16.8h, v30.8h , v24.8h
     uqxtn     v27.8b, v12.8h
     uqxtn     v13.8b, v13.8h
-    mov       v27.2s[1], v13.2s[0]
+    mov       v27.s[1], v13.s[0]
 
 
     ext       v22.16b, v28.16b , v16.16b , #10
@@ -616,7 +616,7 @@ loop_8:
     subs      x4, x4, #4
     uqxtn     v13.8b, v16.8h
     uqxtn     v17.8b, v17.8h
-    mov       v13.2s[1], v17.2s[0]
+    mov       v13.s[1], v17.s[0]
 
 
     mov       v0.16b, v8.16b

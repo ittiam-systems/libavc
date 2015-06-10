@@ -337,7 +337,7 @@ ih264_deblk_chroma_horz_bslt4_av8:
     ldr       x9, [sp, #80]
     sub       x0, x0, x1, lsl #1        //x0 = uc_edgePixelU pointing to p1 of chroma U
     rev       w7, w7                    //
-    mov       v12.2s[0], w7             //D12[0] = ui_Bs
+    mov       v12.s[0], w7              //D12[0] = ui_Bs
     ld1       {v16.s}[0], [x8]          //D16[0] contains cliptab_cb
     ld1       {v17.s}[0], [x9]          //D17[0] contains cliptab_cr
     ld2       {v6.8b, v7.8b}, [x0], x1  //Q3=p1

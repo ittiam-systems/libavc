@@ -280,8 +280,8 @@ ih264e_sixtap_filter_2dvh_vert_av8:
     ld1       {v11.8b, v12.8b, v13.8b}, [x0], x3
     mov       x14, #20
     ld1       {v14.8b, v15.8b, v16.8b}, [x0], x3
-    mov       v0.4h[0], w12
-    mov       v0.4h[1], w14
+    mov       v0.h[0], w12
+    mov       v0.h[1], w14
     ld1       {v17.8b, v18.8b, v19.8b}, [x0], x3
     movi      v1.8b, #20
 
@@ -333,10 +333,10 @@ filter_2dvh_loop:
 
     saddl     v26.4s, v31.4h, v20.4h    //// a0 + a5                             (set1)
     ext       v31.8b, v22.8b , v23.8b , #2
-    smlal     v26.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set1)
-    smlal     v26.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set1)
-    smlsl     v26.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set1)
-    smlsl     v26.4s, v21.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set1)
+    smlal     v26.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set1)
+    smlal     v26.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set1)
+    smlsl     v26.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set1)
+    smlsl     v26.4s, v21.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set1)
     ext       v30.8b, v21.8b , v22.8b , #4
 
     sqrshrun  v4.8b, v24.8h, #5         //// (a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4 + 16) >> 5    (column3,row0)
@@ -344,10 +344,10 @@ filter_2dvh_loop:
 
     ext       v28.8b, v21.8b , v22.8b , #2
     saddl     v20.4s, v31.4h, v21.4h    //// a0 + a5                             (set2)
-    smlal     v20.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set2)
-    smlal     v20.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set2)
-    smlsl     v20.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set2)
-    smlsl     v20.4s, v22.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set2)
+    smlal     v20.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set2)
+    smlal     v20.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set2)
+    smlsl     v20.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set2)
+    smlsl     v20.4s, v22.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set2)
     ext       v31.8b, v23.8b , v24.8b , #2
     mov       v21.d[0], v20.d[1]
     ext       v2.8b, v2.8b , v3.8b , #2
@@ -362,10 +362,10 @@ filter_2dvh_loop:
 
     saddl     v2.4s, v31.4h, v22.4h     //// a0 + a5                             (set3)
     ext       v28.8b, v22.8b , v23.8b , #2
-    smlal     v2.4s, v30.4h, v0.4h[1]   //// a0 + a5 + 20a2                         (set3)
-    smlal     v2.4s, v29.4h, v0.4h[1]   //// a0 + a5 + 20a2 + 20a3                  (set3)
-    smlsl     v2.4s, v28.4h, v0.4h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set3)
-    smlsl     v2.4s, v23.4h, v0.4h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set3)
+    smlal     v2.4s, v30.4h, v0.h[1]    //// a0 + a5 + 20a2                         (set3)
+    smlal     v2.4s, v29.4h, v0.h[1]    //// a0 + a5 + 20a2 + 20a3                  (set3)
+    smlsl     v2.4s, v28.4h, v0.h[0]    //// a0 + a5 + 20a2 + 20a3 - 5a1          (set3)
+    smlsl     v2.4s, v23.4h, v0.h[0]    //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set3)
     ext       v31.8b, v24.8b , v25.8b , #2
 
     shrn      v21.4h, v20.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set2)
@@ -376,10 +376,10 @@ filter_2dvh_loop:
     saddl     v26.4s, v31.4h, v23.4h    //// a0 + a5                             (set4)
     ext       v28.8b, v23.8b , v24.8b , #2
     ext       v31.8b, v25.8b , v25.8b , #2
-    smlal     v26.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set4)
-    smlal     v26.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set4)
-    smlsl     v26.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set4)
-    smlsl     v26.4s, v24.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set4)
+    smlal     v26.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set4)
+    smlal     v26.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set4)
+    smlsl     v26.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set4)
+    smlsl     v26.4s, v24.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set4)
     ext       v30.8b, v24.8b , v25.8b , #4
 
     saddl     v22.4s, v31.4h, v24.4h    //// a0 + a5                             (set5)
@@ -389,10 +389,10 @@ filter_2dvh_loop:
     shrn      v28.4h, v2.4s, #8         //// shift by 8 and later we will shift by 2 more with rounding     (set3)
 
     ld1       {v2.8b, v3.8b, v4.8b}, [x0], x3 //// Load next Row data
-    smlal     v22.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set5)
-    smlal     v22.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set5)
-    smlsl     v22.4s, v31.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set5)
-    smlsl     v22.4s, v25.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set5)
+    smlal     v22.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set5)
+    smlal     v22.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set5)
+    smlsl     v22.4s, v31.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set5)
+    smlsl     v22.4s, v25.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set5)
     shrn      v29.4h, v26.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set4)
     mov       v20.d[1], v21.d[0]
     sqrshrun  v26.8b, v20.8h, #2        //// half,half gird set1,2
@@ -449,10 +449,10 @@ filter_2dvh_loop:
 
     saddl     v26.4s, v31.4h, v20.4h    //// a0 + a5                             (set1)
     ext       v31.8b, v22.8b , v23.8b , #2
-    smlal     v26.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set1)
-    smlal     v26.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set1)
-    smlsl     v26.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set1)
-    smlsl     v26.4s, v21.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set1)
+    smlal     v26.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set1)
+    smlal     v26.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set1)
+    smlsl     v26.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set1)
+    smlsl     v26.4s, v21.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set1)
     ext       v30.8b, v21.8b , v22.8b , #4
 
     sqrshrun  v7.8b, v24.8h, #5         //// (a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4 + 16) >> 5    (column3,row0)
@@ -460,10 +460,10 @@ filter_2dvh_loop:
 
     ext       v28.8b, v21.8b , v22.8b , #2
     saddl     v20.4s, v31.4h, v21.4h    //// a0 + a5                             (set2)
-    smlal     v20.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set2)
-    smlal     v20.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set2)
-    smlsl     v20.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set2)
-    smlsl     v20.4s, v22.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set2)
+    smlal     v20.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set2)
+    smlal     v20.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set2)
+    smlsl     v20.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set2)
+    smlsl     v20.4s, v22.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set2)
     ext       v31.8b, v23.8b , v24.8b , #2
 
     ext       v5.8b, v5.8b , v6.8b , #2
@@ -478,10 +478,10 @@ filter_2dvh_loop:
 
     saddl     v6.4s, v31.4h, v22.4h     //// a0 + a5                             (set3)
     ext       v28.8b, v22.8b , v23.8b , #2
-    smlal     v6.4s, v30.4h, v0.4h[1]   //// a0 + a5 + 20a2                         (set3)
-    smlal     v6.4s, v29.4h, v0.4h[1]   //// a0 + a5 + 20a2 + 20a3                  (set3)
-    smlsl     v6.4s, v28.4h, v0.4h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set3)
-    smlsl     v6.4s, v23.4h, v0.4h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set3)
+    smlal     v6.4s, v30.4h, v0.h[1]    //// a0 + a5 + 20a2                         (set3)
+    smlal     v6.4s, v29.4h, v0.h[1]    //// a0 + a5 + 20a2 + 20a3                  (set3)
+    smlsl     v6.4s, v28.4h, v0.h[0]    //// a0 + a5 + 20a2 + 20a3 - 5a1          (set3)
+    smlsl     v6.4s, v23.4h, v0.h[0]    //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set3)
     ext       v31.8b, v24.8b , v25.8b , #2
 
     shrn      v21.4h, v20.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set2)
@@ -492,10 +492,10 @@ filter_2dvh_loop:
     saddl     v26.4s, v31.4h, v23.4h    //// a0 + a5                             (set4)
     ext       v28.8b, v23.8b , v24.8b , #2
     ext       v31.8b, v25.8b , v25.8b , #2
-    smlal     v26.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set4)
-    smlal     v26.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set4)
-    smlsl     v26.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set4)
-    smlsl     v26.4s, v24.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set4)
+    smlal     v26.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set4)
+    smlal     v26.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set4)
+    smlsl     v26.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set4)
+    smlsl     v26.4s, v24.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set4)
     ext       v30.8b, v24.8b , v25.8b , #4
 
     saddl     v22.4s, v31.4h, v24.4h    //// a0 + a5                             (set5)
@@ -505,10 +505,10 @@ filter_2dvh_loop:
     shrn      v28.4h, v6.4s, #8         //// shift by 8 and later we will shift by 2 more with rounding     (set3)
 
     ld1       {v5.8b, v6.8b, v7.8b}, [x0], x3 //// Load next Row data
-    smlal     v22.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set5)
-    smlal     v22.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set5)
-    smlsl     v22.4s, v31.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set5)
-    smlsl     v22.4s, v25.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set5)
+    smlal     v22.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set5)
+    smlal     v22.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set5)
+    smlsl     v22.4s, v31.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set5)
+    smlsl     v22.4s, v25.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set5)
     shrn      v29.4h, v26.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set4)
     mov       v20.d[1], v21.d[0]
     sqrshrun  v26.8b, v20.8h, #2        //// half,half gird set1,2
@@ -564,10 +564,10 @@ filter_2dvh_loop:
 
     saddl     v26.4s, v31.4h, v20.4h    //// a0 + a5                             (set1)
     ext       v31.8b, v22.8b , v23.8b , #2
-    smlal     v26.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set1)
-    smlal     v26.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set1)
-    smlsl     v26.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set1)
-    smlsl     v26.4s, v21.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set1)
+    smlal     v26.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set1)
+    smlal     v26.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set1)
+    smlsl     v26.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set1)
+    smlsl     v26.4s, v21.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set1)
     ext       v30.8b, v21.8b , v22.8b , #4
 
     sqrshrun  v10.8b, v24.8h, #5        //// (a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4 + 16) >> 5    (column3,row0)
@@ -575,10 +575,10 @@ filter_2dvh_loop:
 
     ext       v28.8b, v21.8b , v22.8b , #2
     saddl     v20.4s, v31.4h, v21.4h    //// a0 + a5                             (set2)
-    smlal     v20.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set2)
-    smlal     v20.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set2)
-    smlsl     v20.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set2)
-    smlsl     v20.4s, v22.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set2)
+    smlal     v20.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set2)
+    smlal     v20.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set2)
+    smlsl     v20.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set2)
+    smlsl     v20.4s, v22.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set2)
     ext       v31.8b, v23.8b , v24.8b , #2
 
     ext       v8.8b, v8.8b , v9.8b , #2
@@ -593,10 +593,10 @@ filter_2dvh_loop:
 
     saddl     v8.4s, v31.4h, v22.4h     //// a0 + a5                             (set3)
     ext       v28.8b, v22.8b , v23.8b , #2
-    smlal     v8.4s, v30.4h, v0.4h[1]   //// a0 + a5 + 20a2                         (set3)
-    smlal     v8.4s, v29.4h, v0.4h[1]   //// a0 + a5 + 20a2 + 20a3                  (set3)
-    smlsl     v8.4s, v28.4h, v0.4h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set3)
-    smlsl     v8.4s, v23.4h, v0.4h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set3)
+    smlal     v8.4s, v30.4h, v0.h[1]    //// a0 + a5 + 20a2                         (set3)
+    smlal     v8.4s, v29.4h, v0.h[1]    //// a0 + a5 + 20a2 + 20a3                  (set3)
+    smlsl     v8.4s, v28.4h, v0.h[0]    //// a0 + a5 + 20a2 + 20a3 - 5a1          (set3)
+    smlsl     v8.4s, v23.4h, v0.h[0]    //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set3)
     ext       v31.8b, v24.8b , v25.8b , #2
 
     shrn      v21.4h, v20.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set2)
@@ -607,10 +607,10 @@ filter_2dvh_loop:
     saddl     v26.4s, v31.4h, v23.4h    //// a0 + a5                             (set4)
     ext       v28.8b, v23.8b , v24.8b , #2
     ext       v31.8b, v25.8b , v25.8b , #2
-    smlal     v26.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set4)
-    smlal     v26.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set4)
-    smlsl     v26.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set4)
-    smlsl     v26.4s, v24.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set4)
+    smlal     v26.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set4)
+    smlal     v26.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set4)
+    smlsl     v26.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set4)
+    smlsl     v26.4s, v24.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set4)
     ext       v30.8b, v24.8b , v25.8b , #4
 
     saddl     v22.4s, v31.4h, v24.4h    //// a0 + a5                             (set5)
@@ -620,10 +620,10 @@ filter_2dvh_loop:
     shrn      v28.4h, v8.4s, #8         //// shift by 8 and later we will shift by 2 more with rounding     (set3)
 
     ld1       {v8.8b, v9.8b, v10.8b}, [x0], x3 //// Load next Row data
-    smlal     v22.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set5)
-    smlal     v22.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set5)
-    smlsl     v22.4s, v31.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set5)
-    smlsl     v22.4s, v25.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set5)
+    smlal     v22.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set5)
+    smlal     v22.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set5)
+    smlsl     v22.4s, v31.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set5)
+    smlsl     v22.4s, v25.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set5)
     shrn      v29.4h, v26.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set4)
     mov       v20.d[1], v21.d[0]
     sqrshrun  v26.8b, v20.8h, #2        //// half,half gird set1,2
@@ -678,10 +678,10 @@ filter_2dvh_loop:
 
     saddl     v26.4s, v31.4h, v20.4h    //// a0 + a5                             (set1)
     ext       v31.8b, v22.8b , v23.8b , #2
-    smlal     v26.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set1)
-    smlal     v26.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set1)
-    smlsl     v26.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set1)
-    smlsl     v26.4s, v21.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set1)
+    smlal     v26.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set1)
+    smlal     v26.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set1)
+    smlsl     v26.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set1)
+    smlsl     v26.4s, v21.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set1)
     ext       v30.8b, v21.8b , v22.8b , #4
 
     sqrshrun  v13.8b, v24.8h, #5        //// (a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4 + 16) >> 5    (column3,row0)
@@ -689,10 +689,10 @@ filter_2dvh_loop:
 
     ext       v28.8b, v21.8b , v22.8b , #2
     saddl     v20.4s, v31.4h, v21.4h    //// a0 + a5                             (set2)
-    smlal     v20.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set2)
-    smlal     v20.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set2)
-    smlsl     v20.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set2)
-    smlsl     v20.4s, v22.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set2)
+    smlal     v20.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set2)
+    smlal     v20.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set2)
+    smlsl     v20.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set2)
+    smlsl     v20.4s, v22.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set2)
     ext       v31.8b, v23.8b , v24.8b , #2
 
     ext       v11.8b, v11.8b , v12.8b , #2
@@ -707,10 +707,10 @@ filter_2dvh_loop:
 
     saddl     v12.4s, v31.4h, v22.4h    //// a0 + a5                             (set3)
     ext       v28.8b, v22.8b , v23.8b , #2
-    smlal     v12.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set3)
-    smlal     v12.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set3)
-    smlsl     v12.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set3)
-    smlsl     v12.4s, v23.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set3)
+    smlal     v12.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set3)
+    smlal     v12.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set3)
+    smlsl     v12.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set3)
+    smlsl     v12.4s, v23.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set3)
     ext       v31.8b, v24.8b , v25.8b , #2
 
     shrn      v21.4h, v20.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set2)
@@ -721,10 +721,10 @@ filter_2dvh_loop:
     saddl     v26.4s, v31.4h, v23.4h    //// a0 + a5                             (set4)
     ext       v28.8b, v23.8b , v24.8b , #2
     ext       v31.8b, v25.8b , v25.8b , #2
-    smlal     v26.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set4)
-    smlal     v26.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set4)
-    smlsl     v26.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set4)
-    smlsl     v26.4s, v24.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set4)
+    smlal     v26.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set4)
+    smlal     v26.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set4)
+    smlsl     v26.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set4)
+    smlsl     v26.4s, v24.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set4)
     ext       v30.8b, v24.8b , v25.8b , #4
 
     saddl     v22.4s, v31.4h, v24.4h    //// a0 + a5                             (set5)
@@ -734,10 +734,10 @@ filter_2dvh_loop:
     shrn      v28.4h, v12.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set3)
 
     ld1       {v11.8b, v12.8b, v13.8b}, [x0], x3 //// Load next Row data
-    smlal     v22.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set5)
-    smlal     v22.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set5)
-    smlsl     v22.4s, v31.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set5)
-    smlsl     v22.4s, v25.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set5)
+    smlal     v22.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set5)
+    smlal     v22.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set5)
+    smlsl     v22.4s, v31.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set5)
+    smlsl     v22.4s, v25.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set5)
     shrn      v29.4h, v26.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set4)
     mov       v20.d[1], v21.d[0]
     sqrshrun  v26.8b, v20.8h, #2        //// half,half gird set1,2
@@ -792,10 +792,10 @@ filter_2dvh_loop:
 
     saddl     v26.4s, v31.4h, v20.4h    //// a0 + a5                             (set1)
     ext       v31.8b, v22.8b , v23.8b , #2
-    smlal     v26.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set1)
-    smlal     v26.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set1)
-    smlsl     v26.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set1)
-    smlsl     v26.4s, v21.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set1)
+    smlal     v26.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set1)
+    smlal     v26.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set1)
+    smlsl     v26.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set1)
+    smlsl     v26.4s, v21.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set1)
     ext       v30.8b, v21.8b , v22.8b , #4
 
     sqrshrun  v16.8b, v24.8h, #5        //// (a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4 + 16) >> 5    (column3,row0)
@@ -803,10 +803,10 @@ filter_2dvh_loop:
 
     ext       v28.8b, v21.8b , v22.8b , #2
     saddl     v20.4s, v31.4h, v21.4h    //// a0 + a5                             (set2)
-    smlal     v20.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set2)
-    smlal     v20.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set2)
-    smlsl     v20.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set2)
-    smlsl     v20.4s, v22.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set2)
+    smlal     v20.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set2)
+    smlal     v20.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set2)
+    smlsl     v20.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set2)
+    smlsl     v20.4s, v22.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set2)
     ext       v31.8b, v23.8b , v24.8b , #2
 
     ext       v14.8b, v14.8b , v15.8b , #2
@@ -821,10 +821,10 @@ filter_2dvh_loop:
 
     saddl     v14.4s, v31.4h, v22.4h    //// a0 + a5                             (set3)
     ext       v28.8b, v22.8b , v23.8b , #2
-    smlal     v14.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set3)
-    smlal     v14.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set3)
-    smlsl     v14.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set3)
-    smlsl     v14.4s, v23.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set3)
+    smlal     v14.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set3)
+    smlal     v14.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set3)
+    smlsl     v14.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set3)
+    smlsl     v14.4s, v23.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set3)
     ext       v31.8b, v24.8b , v25.8b , #2
 
     shrn      v21.4h, v20.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set2)
@@ -835,10 +835,10 @@ filter_2dvh_loop:
     saddl     v26.4s, v31.4h, v23.4h    //// a0 + a5                             (set4)
     ext       v28.8b, v23.8b , v24.8b , #2
     ext       v31.8b, v25.8b , v25.8b , #2
-    smlal     v26.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set4)
-    smlal     v26.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set4)
-    smlsl     v26.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set4)
-    smlsl     v26.4s, v24.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set4)
+    smlal     v26.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set4)
+    smlal     v26.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set4)
+    smlsl     v26.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set4)
+    smlsl     v26.4s, v24.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set4)
     ext       v30.8b, v24.8b , v25.8b , #4
 
     saddl     v22.4s, v31.4h, v24.4h    //// a0 + a5                             (set5)
@@ -848,10 +848,10 @@ filter_2dvh_loop:
     shrn      v28.4h, v14.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set3)
 
     ld1       {v14.8b, v15.8b, v16.8b}, [x0], x3 //// Load next Row data
-    smlal     v22.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set5)
-    smlal     v22.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set5)
-    smlsl     v22.4s, v31.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set5)
-    smlsl     v22.4s, v25.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set5)
+    smlal     v22.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set5)
+    smlal     v22.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set5)
+    smlsl     v22.4s, v31.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set5)
+    smlsl     v22.4s, v25.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set5)
     shrn      v29.4h, v26.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set4)
     mov       v20.d[1], v21.d[0]
     sqrshrun  v26.8b, v20.8h, #2        //// half,half gird set1,2
@@ -909,10 +909,10 @@ filter_2dvh_loop:
 
     saddl     v26.4s, v31.4h, v20.4h    //// a0 + a5                             (set1)
     ext       v31.8b, v22.8b , v23.8b , #2
-    smlal     v26.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set1)
-    smlal     v26.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set1)
-    smlsl     v26.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set1)
-    smlsl     v26.4s, v21.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set1)
+    smlal     v26.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set1)
+    smlal     v26.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set1)
+    smlsl     v26.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set1)
+    smlsl     v26.4s, v21.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set1)
     ext       v30.8b, v21.8b , v22.8b , #4
 
     sqrshrun  v19.8b, v24.8h, #5        //// (a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4 + 16) >> 5    (column3,row0)
@@ -920,10 +920,10 @@ filter_2dvh_loop:
 
     ext       v28.8b, v21.8b , v22.8b , #2
     saddl     v20.4s, v31.4h, v21.4h    //// a0 + a5                             (set2)
-    smlal     v20.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set2)
-    smlal     v20.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set2)
-    smlsl     v20.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set2)
-    smlsl     v20.4s, v22.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set2)
+    smlal     v20.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set2)
+    smlal     v20.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set2)
+    smlsl     v20.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set2)
+    smlsl     v20.4s, v22.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set2)
     ext       v31.8b, v23.8b , v24.8b , #2
 
     ext       v17.8b, v17.8b , v18.8b , #2
@@ -938,10 +938,10 @@ filter_2dvh_loop:
 
     saddl     v18.4s, v31.4h, v22.4h    //// a0 + a5                             (set3)
     ext       v28.8b, v22.8b , v23.8b , #2
-    smlal     v18.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set3)
-    smlal     v18.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set3)
-    smlsl     v18.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set3)
-    smlsl     v18.4s, v23.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set3)
+    smlal     v18.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set3)
+    smlal     v18.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set3)
+    smlsl     v18.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set3)
+    smlsl     v18.4s, v23.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set3)
     ext       v31.8b, v24.8b , v25.8b , #2
 
     shrn      v21.4h, v20.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set2)
@@ -952,10 +952,10 @@ filter_2dvh_loop:
     saddl     v26.4s, v31.4h, v23.4h    //// a0 + a5                             (set4)
     ext       v28.8b, v23.8b , v24.8b , #2
     ext       v31.8b, v25.8b , v25.8b , #2
-    smlal     v26.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set4)
-    smlal     v26.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set4)
-    smlsl     v26.4s, v28.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set4)
-    smlsl     v26.4s, v24.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set4)
+    smlal     v26.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set4)
+    smlal     v26.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set4)
+    smlsl     v26.4s, v28.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set4)
+    smlsl     v26.4s, v24.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set4)
     ext       v30.8b, v24.8b , v25.8b , #4
 
     saddl     v22.4s, v31.4h, v24.4h    //// a0 + a5                             (set5)
@@ -965,10 +965,10 @@ filter_2dvh_loop:
     shrn      v28.4h, v18.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set3)
 
     ld1       {v17.8b, v18.8b, v19.8b}, [x0], x3 //// Load next Row data
-    smlal     v22.4s, v30.4h, v0.4h[1]  //// a0 + a5 + 20a2                         (set5)
-    smlal     v22.4s, v29.4h, v0.4h[1]  //// a0 + a5 + 20a2 + 20a3                  (set5)
-    smlsl     v22.4s, v31.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1          (set5)
-    smlsl     v22.4s, v25.4h, v0.4h[0]  //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set5)
+    smlal     v22.4s, v30.4h, v0.h[1]   //// a0 + a5 + 20a2                         (set5)
+    smlal     v22.4s, v29.4h, v0.h[1]   //// a0 + a5 + 20a2 + 20a3                  (set5)
+    smlsl     v22.4s, v31.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1          (set5)
+    smlsl     v22.4s, v25.4h, v0.h[0]   //// a0 + a5 + 20a2 + 20a3 - 5a1 - 5a4    (set5)
     shrn      v29.4h, v26.4s, #8        //// shift by 8 and later we will shift by 2 more with rounding     (set4)
     mov       v20.d[1], v21.d[0]
     sqrshrun  v26.8b, v20.8h, #2        //// half,half gird set1,2

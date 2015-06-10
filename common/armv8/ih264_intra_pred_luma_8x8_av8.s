@@ -337,7 +337,7 @@ ih264_intra_pred_luma_8x8_mode_dc_av8:
     uaddlp    v3.2s, v1.4h
     uaddlp    v2.1d, v3.2s
     dup       v10.8h, w5
-    dup       v8.8h, v2.4h[0]
+    dup       v8.8h, v2.h[0]
     add       v12.8h, v8.8h , v10.8h
     sqrshrun  v31.8b, v12.8h, #4
     st1       {v31.8b}, [x1], x3
@@ -360,7 +360,7 @@ top_available: // ONLT TOP AVAILABLE
     uaddlp    v13.2s, v14.4h
     uaddlp    v12.1d, v13.2s
     rshrn     v4.8b, v12.8h, #3
-    dup       v31.8b, v4.8b[0]
+    dup       v31.8b, v4.b[0]
     st1       {v31.8b}, [x1], x3
     st1       {v31.8b}, [x1], x3
     st1       {v31.8b}, [x1], x3
@@ -1059,7 +1059,7 @@ ih264_intra_pred_luma_8x8_mode_horz_u_av8:
     mov       v30.16b, v4.16b
     mov       v31.16b, v6.16b
     tbl       v12.8b, {v30.16b, v31.16b}, v10.8b
-    dup       v14.16b, v5.8b[7]         //
+    dup       v14.16b, v5.b[7]          //
     tbl       v13.8b, {v30.16b, v31.16b}, v11.8b
     mov       v12.d[1], v13.d[0]
     ext       v16.16b, v12.16b , v14.16b , #2
