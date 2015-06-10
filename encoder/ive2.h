@@ -848,9 +848,6 @@ typedef struct
     /** Input height                                                    */
     UWORD32                                     u4_ht;
 
-    /** Input stride                                                    */
-    UWORD32                                     u4_strd;
-
     /** Lower 32bits of time stamp corresponding to input buffer,
      * from which this command takes effect                             */
     UWORD32                                 u4_timestamp_low;
