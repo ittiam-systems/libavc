@@ -17,9 +17,7 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
 
-@/**
 
 .data
 .p2align 2
@@ -38,7 +36,6 @@ scratch_intrapred_luma_4x4_prediction_addr1:
 
 
 
-@/**
 @/**
 @******************************************************************************
 @*
