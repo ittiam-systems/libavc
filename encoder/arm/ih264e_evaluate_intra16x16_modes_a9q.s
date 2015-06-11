@@ -17,7 +17,6 @@
 @ *****************************************************************************
 @ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 @*/
-@/**
 
 @/**
 @******************************************************************************
@@ -102,11 +101,11 @@ ih264e_evaluate_intra16x16_modes_a9q:
     vld1.32       {q5}, [r1]!
     mov           r11, #0
     mov           r4, #0
-    @/* Left available ????
+    @/* Left available ???? */
     ands          r7, r5, #01
     movne         r10, #1
 
-    @/* Top  available ????
+    @/* Top  available ???? */
     ands          r8, r5, #04
     lsl           r9, r10, #3
     movne         r11, #1
@@ -114,7 +113,7 @@ ih264e_evaluate_intra16x16_modes_a9q:
     adds          r8, r9, r12
 
 
-    @/* None available :(
+    @/* None available :( */
     moveq         r4, #128
 
 
