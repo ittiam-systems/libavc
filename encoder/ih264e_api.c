@@ -2624,9 +2624,10 @@ static WORD32 ih264e_init(codec_t *ps_codec)
 */
 static WORD32 ih264e_get_num_rec(void *pv_api_ip, void *pv_api_op)
 {
-    UNUSED(pv_api_ip);
     /* api call I/O structures */
     ih264e_num_mem_rec_op_t *ps_op = pv_api_op;
+
+    UNUSED(pv_api_ip);
 
     ps_op->s_ive_op.u4_num_mem_rec = MEM_REC_CNT;
 
@@ -4512,12 +4513,13 @@ static WORD32 ih264e_set_flush_mode(iv_obj_t *ps_codec_obj,
                                     void *pv_api_ip,
                                     void *pv_api_op)
 {
-    UNUSED(pv_api_ip);
     /* codec ctxt */
     codec_t *ps_codec = (codec_t *) ps_codec_obj->pv_codec_handle;
 
     /* ctrl call I/O structures */
     ih264e_ctl_flush_op_t *ps_ctl_op = pv_api_op;
+
+    UNUSED(pv_api_ip);
 
     ps_ctl_op->s_ive_op.u4_error_code = 0;
 
@@ -4557,7 +4559,6 @@ static WORD32 ih264e_get_buf_info(iv_obj_t *ps_codec_obj,
                                   void *pv_api_ip,
                                   void *pv_api_op)
 {
-    UNUSED(ps_codec_obj);
     /* ctrl call I/O structures */
     ih264e_ctl_getbufinfo_ip_t *ps_ip = pv_api_ip;
     ih264e_ctl_getbufinfo_op_t *ps_op = pv_api_op;
@@ -4566,6 +4567,8 @@ static WORD32 ih264e_get_buf_info(iv_obj_t *ps_codec_obj,
     WORD32 wd = ALIGN16(ps_ip->s_ive_ip.u4_max_wd);
     WORD32 ht = ALIGN16(ps_ip->s_ive_ip.u4_max_ht);
     WORD32 i;
+
+    UNUSED(ps_codec_obj);
 
     ps_op->s_ive_op.u4_error_code = 0;
 
@@ -5273,12 +5276,13 @@ static WORD32 ih264e_reset(iv_obj_t *ps_codec_obj,
                            void *pv_api_ip,
                            void *pv_api_op)
 {
-    UNUSED(pv_api_ip);
     /* codec ctxt */
     codec_t * ps_codec = (codec_t *) (ps_codec_obj->pv_codec_handle);
 
     /* ctrl call I/O structures */
     ih264e_ctl_reset_op_t *ps_op = pv_api_op;
+
+    UNUSED(pv_api_ip);
 
     ps_op->s_ive_op.u4_error_code = 0;
 
