@@ -249,12 +249,12 @@ void ime_compute_sad_16x8_sse42(UWORD8 *pu1_src,
                     WORD32 i4_max_sad,
                     WORD32 *pi4_mb_distortion)
 {
-    UNUSED (i4_max_sad);
     __m128i src_r0, src_r1, src_r2, src_r3;
     __m128i est_r0, est_r1, est_r2, est_r3;
     __m128i res_r0, res_r1, res_r2, res_r3;
     __m128i sad_val;
     int val1, val2;
+    UNUSED (i4_max_sad);
 
     // Row 0-3 sad calculation
     src_r0 = _mm_loadu_si128((__m128i *) (pu1_src));
@@ -500,7 +500,6 @@ void ime_compute_sad_16x16_fast_sse42(UWORD8 *pu1_src,
                                 WORD32 i4_max_sad,
                                 WORD32 *pi4_mb_distortion)
 {
-    UNUSED (i4_max_sad);
     __m128i src_r0, src_r1, src_r2, src_r3;
     __m128i est_r0, est_r1, est_r2, est_r3;
     __m128i res_r0, res_r1, res_r2, res_r3;
@@ -509,6 +508,7 @@ void ime_compute_sad_16x16_fast_sse42(UWORD8 *pu1_src,
     WORD32 i4_sad;
     UWORD8 *pu1_src_temp = pu1_src + src_strd;
     UWORD8 *pu1_est_temp = pu1_est + est_strd;
+    UNUSED (i4_max_sad);
 
     // Row 0,2,4,6 sad calculation
     src_r0 = _mm_loadu_si128((__m128i *) (pu1_src));

@@ -2431,9 +2431,9 @@ WORD32 ih264d_init(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 {
     ih264d_init_ip_t *ps_init_ip;
     ih264d_init_op_t *ps_init_op;
+    WORD32 init_status = IV_SUCCESS;
     ps_init_ip = (ih264d_init_ip_t *)pv_api_ip;
     ps_init_op = (ih264d_init_op_t *)pv_api_op;
-    WORD32 init_status = IV_SUCCESS;
 
     init_status = ih264d_init_video_decoder(dec_hdl, ps_init_ip, ps_init_op);
 
@@ -2592,11 +2592,11 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     WORD32 ret,api_ret_value = IV_SUCCESS;
     WORD32 header_data_left = 0,frame_data_left = 0;
     UWORD8 *pu1_bitstrm_buf;
-    ithread_set_name((void*)"Parse_thread");
-
-
     ivd_video_decode_ip_t *ps_dec_ip;
     ivd_video_decode_op_t *ps_dec_op;
+
+    ithread_set_name((void*)"Parse_thread");
+
     ps_dec_ip = (ivd_video_decode_ip_t *)pv_api_ip;
     ps_dec_op = (ivd_video_decode_op_t *)pv_api_op;
     ps_dec->pv_dec_out = ps_dec_op;

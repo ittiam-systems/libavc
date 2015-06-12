@@ -1171,8 +1171,6 @@ void ih264_inter_pred_luma_horz_hpel_vert_hpel_ssse3(UWORD8 *pu1_src,
 
         // Horizontal 6-tap filtering
         {
-            ht_tmp = ht + 5;
-
             __m128i src_r0_16x8b, src_r1_16x8b, src_r0_sht_16x8b, src_r1_sht_16x8b;
             __m128i src_r0_t1_16x8b, src_r1_t1_16x8b;
 
@@ -1180,6 +1178,8 @@ void ih264_inter_pred_luma_horz_hpel_vert_hpel_ssse3(UWORD8 *pu1_src,
             __m128i res_r1_t1_8x16b, res_r1_t2_8x16b, res_r1_t3_8x16b;
 
             __m128i coeff0_1_16x8b, coeff2_3_16x8b, coeff4_5_16x8b;
+
+            ht_tmp = ht + 5;
 
             coeff0_1_16x8b = _mm_set1_epi32(0xFB01FB01);  //c0 c1 c0 c1 c0 c1 c0 c1 c0 c1 c0 c1 c0 c1 c0 c1
             coeff2_3_16x8b = _mm_set1_epi32(0x14141414);  //c2 c3 c2 c3 c2 c3 c2 c3 c2 c3 c2 c3 c2 c3 c2 c3
@@ -2121,6 +2121,9 @@ void ih264_inter_pred_luma_horz_qpel_vert_qpel_ssse3(UWORD8 *pu1_src,
     UWORD8 *pu1_tmp1, *pu1_tmp2;
     WORD32 x_offset, y_offset;
 
+    __m128i coeff0_1_16x8b, coeff2_3_16x8b, coeff4_5_16x8b;
+    __m128i const_val16_8x16b;
+
     pu1_tmp1 = pu1_tmp;
 
     dydx &= 0xf;
@@ -2132,9 +2135,6 @@ void ih264_inter_pred_luma_horz_qpel_vert_qpel_ssse3(UWORD8 *pu1_src,
     pu1_pred_vert  = pu1_src + (x_offset >> 1) - 2*src_strd;
     pu1_pred_horiz = pu1_src + (y_offset >> 1) * src_strd - 2;
     //the filter input starts from x[-2] (till x[3])
-
-    __m128i coeff0_1_16x8b, coeff2_3_16x8b, coeff4_5_16x8b;
-    __m128i const_val16_8x16b;
 
     coeff0_1_16x8b = _mm_set1_epi32(0xFB01FB01);  //c0 c1 c0 c1 c0 c1 c0 c1 c0 c1 c0 c1 c0 c1 c0 c1
     coeff2_3_16x8b = _mm_set1_epi32(0x14141414);  //c2 c3 c2 c3 c2 c3 c2 c3 c2 c3 c2 c3 c2 c3 c2 c3
