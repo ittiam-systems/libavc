@@ -1612,9 +1612,6 @@ WORD32 display_thread(void *pv_ctx)
     }
     ps_app_ctx->disp_deinit(ps_app_ctx->pv_disp_ctx);
 
-    /* destroy the display thread */
-    ithread_exit(ps_app_ctx->display_thread_handle);
-
     return 0;
 }
 
