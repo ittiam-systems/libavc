@@ -131,26 +131,6 @@ WORD32 ithread_join(void *thread_handle, void ** val_ptr)
     return 0;
 }
 
-void ithread_exit(void *thread_handle)
-{
-    HANDLE *ppv_thread_handle;
-    HANDLE thread_handle_value;
-    DWORD thread_exit_code;
-
-    if(0 == thread_handle)
-        return;
-
-    ppv_thread_handle = (HANDLE *)thread_handle;
-    thread_handle_value = *ppv_thread_handle;
-    /* Get exit code for thread. If the return value is 0, means thread is busy */
-    if( 0 != GetExitCodeThread(thread_handle_value, &thread_exit_code))
-    {
-        TerminateThread(thread_handle_value, thread_exit_code);
-    }
-
-    return;
-}
-
 WORD32 ithread_get_mutex_struct_size(void)
 {
     return (sizeof(HANDLE));
@@ -358,11 +338,6 @@ WORD32 ithread_join(void *thread_handle, void ** val_ptr)
     return pthread_join(*pthread_handle, NULL);
 }
 
-void ithread_exit(void *val_ptr)
-{
-    return pthread_exit(val_ptr);
-}
-
 WORD32 ithread_get_mutex_struct_size(void)
 {
     return(sizeof(pthread_mutex_t));
@@ -511,11 +486,6 @@ WORD32 ithread_create(void *thread_handle, void *attribute, void *strt, void *ar
 WORD32 ithread_join(void *thread_handle, void ** val_ptr)
 {
     return 0;
-}
-
-void ithread_exit(void *val_ptr)
-{
-    return;
 }
 
 WORD32 ithread_mutex_init(void *mutex)
