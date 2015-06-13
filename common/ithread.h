@@ -29,7 +29,6 @@
 /*  List of Functions :     ithread_get_handle_size                          */
 /*                          ithread_get_mutex_lock_size                      */
 /*                          ithread_create                                   */
-/*                          ithread_exit                                     */
 /*                          ithread_join                                     */
 /*                          ithread_get_mutex_struct_size                    */
 /*                          ithread_mutex_init                               */
@@ -64,8 +63,6 @@ UWORD32 ithread_get_handle_size(void);
 UWORD32 ithread_get_mutex_lock_size(void);
 
 WORD32  ithread_create(void *thread_handle, void *attribute, void *strt, void *argument);
-
-void    ithread_exit(void *val_ptr);
 
 WORD32  ithread_join(void *thread_id, void ** val_ptr);
 
