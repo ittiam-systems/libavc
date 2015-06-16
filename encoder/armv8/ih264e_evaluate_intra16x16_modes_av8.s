@@ -96,7 +96,6 @@ ih264e_evaluate_intra16x16_modes_av8:
 
     ldr       x16, [sp, #80]
     mov       x17, x4
-    mov       x18, x5
     mov       x14, x6
     mov       x15, x7
 
