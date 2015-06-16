@@ -503,9 +503,9 @@ sad_comp:
 
     ///----------------------
     //DO VERTICAL PREDICTION
-    str       x8 , [x7]                 //MIN SAD
-    mov       x8, #0
-    str       x8 , [x6]                 // MODE
+    str       w8 , [x7]                 //MIN SAD
+    mov       w8, #0
+    str       w8 , [x6]                 // MODE
     add       x6, x1, #17
     ld1       {v30.16b}, [x6]
     b         do_dc_vert
@@ -515,9 +515,9 @@ not_vert: cmp x9, x10
 
     ///----------------------
     //DO HORIZONTAL
-    str       x9 , [x7]                 //MIN SAD
-    mov       x9, #1
-    str       x9 , [x6]                 // MODE
+    str       w9 , [x7]                 //MIN SAD
+    mov       w9, #1
+    str       w9 , [x6]                 // MODE
 
     ld1       {v0.16b}, [x1]
     dup       v10.16b, v0.b[15]
@@ -562,9 +562,9 @@ not_vert: cmp x9, x10
 
 do_dc: ///---------------------------------
     //DO DC
-    str       x10 , [x7]                //MIN SAD
-    mov       x10, #2
-    str       x10 , [x6]                // MODE
+    str       w10 , [x7]                //MIN SAD
+    mov       w10, #2
+    str       w10 , [x6]                // MODE
 do_dc_vert:
     st1       {v30.4s}, [x2], x4        //0
     st1       {v30.4s}, [x2], x4        //1
