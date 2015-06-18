@@ -55,13 +55,13 @@
 /* Constant Macros                                                           */
 /*****************************************************************************/
 
-#define DEFAULT_NUM_INPUT_BUFS   1
+#define DEFAULT_NUM_INPUT_BUFS   32
 #define DEFAULT_MAX_INPUT_BUFS   32
 
-#define DEFAULT_NUM_OUTPUT_BUFS  1
+#define DEFAULT_NUM_OUTPUT_BUFS  32
 #define DEFAULT_MAX_OUTPUT_BUFS  32
 
-#define DEFAULT_NUM_RECON_BUFS   1
+#define DEFAULT_NUM_RECON_BUFS   32
 #define DEFAULT_MAX_RECON_BUFS   DEFAULT_NUM_RECON_BUFS
 
 
@@ -69,11 +69,12 @@
 #define MAX_VBV_BUFF_SIZE        (120 * 16384)
 #define MAX_NUM_IO_BUFS           3
 
-#define DEFAULT_MAX_REF_FRM         1
+#define DEFAULT_MAX_REF_FRM         2
 #define DEFAULT_MAX_REORDER_FRM     0
 #define DEFAULT_QP_MIN              0
 #define DEFAULT_QP_MAX              51
 #define DEFAULT_MAX_BITRATE         20000000
+#define DEFAULT_NUM_BFRAMES         0
 #define DEFAULT_MAX_SRCH_RANGE_X    256
 #define DEFAULT_MAX_SRCH_RANGE_Y    256
 #define DEFAULT_MAX_FRAMERATE       120000
@@ -94,7 +95,7 @@
 #define DEFAULT_TGT_FRAME_RATE      30
 #define DEFAULT_MAX_WD              1920
 #define DEFAULT_MAX_HT              1920
-#define DEFAULT_MAX_LEVEL           50
+#define DEFAULT_MAX_LEVEL           40
 #define DEFAULT_STRIDE              0
 #define DEFAULT_WD                  0
 #define DEFAULT_HT                  0
@@ -127,6 +128,8 @@
 #define DEFAULT_EPROFILE            IV_PROFILE_BASE
 #define DEFAULT_SLICE_MODE          0
 #define DEFAULT_SLICE_PARAM         256
+#define DEFAULT_ENTROPY_CODING_MODE 0
+
 #define STRLENGTH               500
 
 
@@ -281,6 +284,7 @@ typedef struct
     UWORD32 u4_i_interval;
     UWORD32 u4_idr_interval;
     UWORD32 u4_b_frames;
+    UWORD32 u4_num_bframes;
     UWORD32 u4_disable_deblk_level;
     UWORD32 u4_hpel;
     UWORD32 u4_qpel;
@@ -289,6 +293,7 @@ typedef struct
 
     UWORD32 u4_slice_mode;
     UWORD32 u4_slice_param;
+    UWORD32 u4_entropy_coding_mode;
 
     void *pv_input_thread_handle;
     void *pv_output_thread_handle;

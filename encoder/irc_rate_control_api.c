@@ -148,6 +148,7 @@ void irc_initialise_rate_control(rate_control_api_t *ps_rate_control_api,
                                  UWORD32 u4_frame_rate,
                                  UWORD32 u4_max_delay,
                                  UWORD32 u4_intra_frame_interval,
+                                 WORD32  i4_inter_frm_int,
                                  UWORD8 *pu1_init_qp,
                                  UWORD32 u4_max_vbv_buff_size,
                                  WORD32 i4_max_inter_frm_int,
@@ -172,7 +173,8 @@ void irc_initialise_rate_control(rate_control_api_t *ps_rate_control_api,
 
     /* Initialize the pic_handling module */
     irc_init_pic_handling(ps_rate_control_api->ps_pic_handling,
-                          (WORD32)u4_intra_frame_interval, i4_max_inter_frm_int,
+                          (WORD32)u4_intra_frame_interval,
+                          i4_inter_frm_int, i4_max_inter_frm_int,
                           i4_is_gop_closed);
 
     /*** Initialize the rate control modules  ***/

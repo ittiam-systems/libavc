@@ -65,14 +65,13 @@
 #include "ithread.h"
 #include "ih264e_config.h"
 #include "ih264e_trace.h"
-#include "ih264_typedefs.h"
 #include "ih264e_error.h"
 #include "ih264e_bitstream.h"
 #include "ih264_debug.h"
 #include "ih264_defs.h"
 #include "ime_distortion_metrics.h"
+#include "ime_defs.h"
 #include "ime_structs.h"
-#include "ih264_defs.h"
 #include "ih264_error.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
@@ -81,10 +80,12 @@
 #include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_cabac_tables.h"
 #include "ih264e_defs.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264e_encode_header.h"
 #include "ih264_common_tables.h"
@@ -523,11 +524,12 @@ WORD32 ih264e_generate_slice_header(bitstrm_t *ps_bitstrm,
         {
             /* num_ref_idx_l0_active_minus1 */
             PUT_BITS_UEV(ps_bitstrm, ps_slice_hdr->i1_num_ref_idx_l0_active - 1, return_status, "num_ref_idx_l0_active_minus1");
-        }
-        if (ps_slice_hdr->u1_slice_type == BSLICE)
-        {
-            /* num_ref_idx_l1_active_minus1 */
-            PUT_BITS_UEV(ps_bitstrm, ps_slice_hdr->i1_num_ref_idx_l1_active - 1, return_status, "num_ref_idx_l1_active_minus1");
+
+            if (ps_slice_hdr->u1_slice_type == BSLICE)
+            {
+                /* num_ref_idx_l1_active_minus1 */
+                PUT_BITS_UEV(ps_bitstrm, ps_slice_hdr->i1_num_ref_idx_l1_active - 1, return_status, "num_ref_idx_l1_active_minus1");
+            }
         }
     }
 
@@ -544,9 +546,20 @@ WORD32 ih264e_generate_slice_header(bitstrm_t *ps_bitstrm,
         }
     }
 
+    if (ps_slice_hdr->u1_slice_type == BSLICE)
+    {
+        /* ref_pic_list_reordering_flag_l1 */
+        PUT_BITS(ps_bitstrm, ps_slice_hdr->u1_ref_idx_reordering_flag_l1, 1, return_status, "ref_pic_list_reordering_flag_l1");
+
+        if (ps_slice_hdr->u1_ref_idx_reordering_flag_l1)
+        {
+
+        }
+    }
+
     if ((ps_pps->i1_weighted_pred_flag &&
                     (ps_slice_hdr->u1_slice_type == PSLICE || ps_slice_hdr->u1_slice_type == SPSLICE)) ||
-                    (ps_slice_hdr->u1_weighted_bipred_idc == 1 && ps_slice_hdr->u1_slice_type == BSLICE))
+                    (ps_pps->i1_weighted_bipred_idc == 1 && ps_slice_hdr->u1_slice_type == BSLICE))
     {
         /* TODO_LATER: Currently there is no support for weighted prediction.
          This needs to be updated when the support is added */
@@ -662,8 +675,8 @@ IH264E_ERROR_T ih264e_populate_sps(codec_t *ps_codec, sps_t *ps_sps)
      * To the constrained baseline profile if we add support for B slices, support for encoding interlaced frames,
      * support for weighted prediction and introduce CABAC entropy coding then we have Main Profile.
      */
-    if ((ps_cfg->u4_num_b_frames) || (ps_cfg->e_content_type != IV_PROGRESSIVE) ||
-         (ps_cfg->u4_entropy_coding_mode == CABAC) || (ps_cfg->u4_weighted_prediction))
+    if ((ps_cfg->u4_num_bframes) || (ps_cfg->e_content_type != IV_PROGRESSIVE) ||
+        (ps_cfg->u4_entropy_coding_mode == CABAC) || (ps_cfg->u4_weighted_prediction))
     {
         ps_sps->u1_profile_idc = IH264_PROFILE_MAIN;
     }
@@ -748,8 +761,10 @@ IH264E_ERROR_T ih264e_populate_sps(codec_t *ps_codec, sps_t *ps_sps)
     /* pic_order_cnt_type */
     ps_sps->i1_pic_order_cnt_type = 2;
 
-    if(ps_cfg->u4_enable_alt_ref)
+    if (ps_codec->i4_non_ref_frames_in_stream)
+    {
         ps_sps->i1_pic_order_cnt_type = 0;
+    }
 
     /* log2_max_pic_order_cnt_lsb_minus4 */
     ps_sps->i1_log2_max_pic_order_cnt_lsb = 8;
@@ -765,8 +780,15 @@ IH264E_ERROR_T ih264e_populate_sps(codec_t *ps_codec, sps_t *ps_sps)
     }
 
     /* num_ref_frames */
-    /* FIXME : Fix this hard coding */
-    ps_sps->u1_max_num_ref_frames = 1;
+    /* TODO : Should we have a flexible num ref frames */
+    if (ps_codec->s_cfg.u4_num_bframes > 0)
+    {
+        ps_sps->u1_max_num_ref_frames = 2;
+    }
+    else
+    {
+        ps_sps->u1_max_num_ref_frames = 1;
+    }
 
     /* gaps_in_frame_num_value_allowed_flag */
     ps_sps->i1_gaps_in_frame_num_value_allowed_flag = 0;
@@ -852,7 +874,7 @@ IH264E_ERROR_T ih264e_populate_pps(codec_t *ps_codec, pps_t *ps_pps)
     /* entropy_coding_mode */
     ps_pps->u1_entropy_coding_mode_flag = ps_cfg->u4_entropy_coding_mode;
 
-    /* pic_order_present_flag is unset for POC type 2 */
+    /* pic_order_present_flag is unset if we don't have feilds */
     ps_pps->u1_pic_order_present_flag = 0;
 
     /* Currently number of slice groups supported are 1 */
@@ -980,18 +1002,17 @@ WORD32 ih264e_populate_slice_header(process_ctxt_t *ps_proc,
     if (ps_sps->i1_pic_order_cnt_type == 0)
     {
 
-        WORD32 val;
-        val = ps_codec->i4_coded_pic_cnt;
-        val %= (1 << ps_sps->i1_log2_max_pic_order_cnt_lsb);
-        ps_slice_hdr->i4_pic_order_cnt_lsb = val;
+        WORD32 i4_poc;
+        i4_poc = ps_codec->i4_poc;
+        i4_poc %= (1 << ps_sps->i1_log2_max_pic_order_cnt_lsb);
+        ps_slice_hdr->i4_pic_order_cnt_lsb = i4_poc;
     }
+    /* TODO add support for poc type 1 */
     else if (ps_sps->i1_pic_order_cnt_type == 1)
     {
 
     }
 
-    if(0 == ps_slice_hdr->u2_first_mb_in_slice)
-        ps_codec->i4_coded_pic_cnt++;
 
     /*
      * redundant slices are not currently supported.
@@ -1005,7 +1026,7 @@ WORD32 ih264e_populate_slice_header(process_ctxt_t *ps_proc,
     /* direct spatial mv pred flag */
     if (ps_proc->i4_slice_type == BSLICE)
     {
-
+        ps_slice_hdr->u1_direct_spatial_mv_pred_flag = 1;
     }
 
     if (ps_proc->i4_slice_type == PSLICE || ps_proc->i4_slice_type == SPSLICE || ps_proc->i4_slice_type == BSLICE)
@@ -1036,11 +1057,23 @@ WORD32 ih264e_populate_slice_header(process_ctxt_t *ps_proc,
         {
 
         }
+
+        /* ref_pic_list_reordering_flag_l1 */
+        ps_slice_hdr->u1_ref_idx_reordering_flag_l1 = 0;
+
+        if (ps_slice_hdr->u1_ref_idx_reordering_flag_l1)
+        {
+
+        }
     }
+
+
+    /* Currently we do not support weighted pred */
+    /* ps_slice_hdr->u1_weighted_bipred_idc = 0; */
 
     if ((ps_pps->i1_weighted_pred_flag &&
                     (ps_proc->i4_slice_type == PSLICE || ps_proc->i4_slice_type == SPSLICE)) ||
-                    (ps_slice_hdr->u1_weighted_bipred_idc == 1 && ps_proc->i4_slice_type == BSLICE))
+                    (ps_pps->i1_weighted_bipred_idc == 1 && ps_proc->i4_slice_type == BSLICE))
     {
         /* TODO_LATER: Currently there is no support for weighted prediction.
              This needs to be updated when the support is added */
@@ -1113,6 +1146,8 @@ WORD32 ih264e_populate_slice_header(process_ctxt_t *ps_proc,
         /* TODO_LATER: Currently the number of slice groups minus 1 is 0.
          * If this is not the case, we have to add Slice group map type to the bit stream */
     }
+
+    ps_slice_hdr->i1_cabac_init_idc = CABAC_INIT_IDC;
 
     return IH264E_SUCCESS;
 }

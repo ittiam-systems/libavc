@@ -1353,6 +1353,11 @@ typedef struct
      */
     UWORD8  u1_ref_idx_reordering_flag_l0;
 
+    /*
+     * ref_pic_list_reordering_flag_l1
+     */
+    UWORD8  u1_ref_idx_reordering_flag_l1;
+
     /**
      *  Reference prediction list modification
      */
@@ -1367,11 +1372,6 @@ typedef struct
      * L1 Reference pic lists
      */
     ref_list_t as_ref_pic_list1[MAX_DPB_SIZE];
-
-    /*
-     *  weighted_bipred_idc
-     */
-    WORD8   u1_weighted_bipred_idc;
 
     /*
      * no_output_of_prior_pics_flag

@@ -74,15 +74,17 @@
 #include "ih264_inter_pred_filters.h"
 #include "ih264_mem_fns.h"
 #include "ih264_padding.h"
-#include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_cabac_tables.h"
 #include "ime_distortion_metrics.h"
 #include "ih264e_error.h"
 #include "ih264e_bitstream.h"
+#include "ime_defs.h"
 #include "ime_structs.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264e_intra_modes_eval.h"
 #include "ih264e_globals.h"
@@ -372,9 +374,10 @@ void ih264e_evaluate_intra16x16_modes_for_least_cost_rdoptoff(process_ctxt_t *ps
     UWORD32 i, u4_enable_fast_sad = 0, offset = 0;
 
     /* init temp var */
-    if (ps_proc->i4_slice_type == PSLICE)
+    if (ps_proc->i4_slice_type != ISLICE)
     {
-        offset = 5;
+        /* Offset for MBtype */
+        offset = (ps_proc->i4_slice_type == PSLICE) ? 5 : 23;
         u4_enable_fast_sad = ps_proc->s_me_ctxt.u4_enable_fast_sad;
     }
 

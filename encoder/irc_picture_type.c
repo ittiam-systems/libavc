@@ -253,6 +253,7 @@ WORD32 irc_pic_handling_num_fill_use_free_memtab(pic_handling_t **pps_pic_handli
  *****************************************************************************/
 void irc_init_pic_handling(pic_handling_t *ps_pic_handling,
                            WORD32 i4_intra_frm_int,
+                           WORD32 i4_inter_frm_int,
                            WORD32 i4_max_inter_frm_int,
                            WORD32 i4_is_gop_closed)
 {
@@ -262,7 +263,7 @@ void irc_init_pic_handling(pic_handling_t *ps_pic_handling,
     /* Checks */
     /* Codec Parameters */
     ps_pic_handling->i4_intra_frm_int = i4_intra_frm_int;
-    ps_pic_handling->i4_inter_frm_int = i4_max_inter_frm_int;
+    ps_pic_handling->i4_inter_frm_int = i4_inter_frm_int;
     ps_pic_handling->i4_max_inter_frm_int = i4_max_inter_frm_int;
     ps_pic_handling->i4_is_gop_closed = i4_is_gop_closed;
 
@@ -278,6 +279,10 @@ void irc_init_pic_handling(pic_handling_t *ps_pic_handling,
 
     /* Indices to the pic_stack */
     ps_pic_handling->i4_ref_pic_idx = 0;
+    /*
+     * B frame index should be ref_frame_num,
+     * which is 2 in out case
+     */
     ps_pic_handling->i4_b_pic_idx = 2;
     ps_pic_handling->i4_prev_b_pic_idx = 2;
 
@@ -302,7 +307,7 @@ void irc_init_pic_handling(pic_handling_t *ps_pic_handling,
     /* Variables on which the bit allocation is dependent  */
     /* Get the pic distribution in the gop */
     find_pic_distbn_in_gop(ps_pic_handling->i4_frms_in_gop, i4_intra_frm_int,
-                           i4_max_inter_frm_int, i4_is_gop_closed,
+                           i4_inter_frm_int, i4_is_gop_closed,
                            &ps_pic_handling->i4_b_in_incomp_subgop,
                            &ps_pic_handling->i4_extra_p);
 
@@ -528,8 +533,7 @@ void irc_add_pic_to_stack(pic_handling_t *ps_pic_handling, WORD32 i4_enc_pic_id)
      *      3)The new inter-frm-interval won't cross the intra_frm_interval
      */
     if((ps_pic_handling->i4_change_in_inter_frm_int == 1)
-       && ((i4_buf_pic_no % i4_inter_frm_int == 1)
-       || (i4_pic_disp_order_no == 1) || (i4_inter_frm_int == 1)))
+       && ((i4_buf_pic_no % i4_inter_frm_int == 1)|| (i4_pic_disp_order_no == 1) || (i4_inter_frm_int == 1)))
     {
         /*
          * Condition which checks if the new inter_frm_int will cross the
@@ -540,10 +544,31 @@ void irc_add_pic_to_stack(pic_handling_t *ps_pic_handling, WORD32 i4_enc_pic_id)
 
         if(i4_condn_for_change_in_inter_frm_int)
         {
+            /*
+             * If there is a change in inter frame interval. We should set the b
+             * frame IDX to the (num ref frame - num ref frame in buf)+ i4_ref_pic_idx
+             * Since our case we have a structure of I B P or I B...B P only
+             * we have three cases
+             * 1) current incoming frame is I. Then we have to leave space for
+             *    current I and next P hence write b idx as to ref idx + 2
+             * 2) Current incoming frame is B. In that case, we have I in buffer.
+             *    Only one P needs space hence write b idx as ref idx +1
+             * 3) Current incoming frame is P. In that case we are at the end of
+             *    gop [sub gop?] and we have to leave space for next gops I and P.
+             *    Thus b idx = ref idx + 2
+             *
+             *  In case of an closed Gop. The last frame has to be forced to be a P.
+             *  Hence we may have problems in that case.
+             *
+             *  Also this has the implicit assumption of only 2 ref frames
+             */
+            WORD32 i4_is_curr_frm_b =  (i4_buf_pic_no % i4_new_inter_frm_int)&&
+                            !(i4_is_gop_closed && (i4_b_count_in_gop == i4_b_frms_in_prd));
+
             /*If the inter_frm_int = 1, then the b_pic_idx needs to be modified */
             if(i4_inter_frm_int == 1)
             {
-                ps_pic_handling->i4_b_pic_idx = (1
+                ps_pic_handling->i4_b_pic_idx = ((i4_is_curr_frm_b ? 1 : 2)
                                 + ps_pic_handling->i4_ref_pic_idx)
                                 % (i4_max_inter_frm_int + 1);
             }
@@ -811,7 +836,42 @@ void irc_add_pic_to_stack(pic_handling_t *ps_pic_handling, WORD32 i4_enc_pic_id)
     i4_pic_disp_order_no++;
     i4_buf_pic_no++;
 
+#if 0
     /* For any gop */
+     /* BUG FIX
+      *  This piece of code resets the gop upon I frame(?)
+      *  This introduces a problem of GOP getting reset not at I frames as it should be
+      *  The reason AFAIK is that
+      *  1) This code uses i4_pic_disp_order_no to reset GOP. I assume it computes
+      *      if are at GOP boundary and does it, but not sure
+      *  2) The frames rmainign in GOP is done in post enc as it should be.
+      *
+      *  Also ps_pic_handling->i4_pic_disp_order_no is incremented when a pic is added
+      *  to stack becuase the additon is in disp order while poping is in encode order
+      *
+      *  SUppose there is a deay od 1 frame between queue and encode.
+      *  then he timing will be. Assume a GOP of IPPIPP
+      *
+      *      Input buff    Input to qu     Output buf/encode buff      remaining pic in gop
+      *    1  I             I                 NA                          rest to 1 2
+      *    2  P             P                 I                           0 2
+      *    3  P             P                 P                           0 1
+      *    4  I             I                 P                           reset to 1 2
+      *    5  P             P                 I                           1 1
+      *    6  P             P                 P                           1 0
+      *    7  NA            NA                P
+      *
+      *  Hence our gop gets reset at I(1)  and I(4) in the RC.thus the reaming pic in gop
+      *  count will be as shown. We can clearly see that the GOP gets reset at I(4) .Hence
+      *  for the correpondinng QP for output buf p(4) will be that of an I frame.
+      *
+      *  By hiding this I hope to fix this problem. But Iam not sure exaclty.
+      *  This needs to be investigated further
+      *
+      *  By hiding this most likely we are in effect disabling the dynanic
+      *  update of gop params.
+      */
+
     if(ps_pic_handling->i4_pic_disp_order_no
                     == (i4_max_inter_frm_int - 1- ((!i4_is_gop_closed)
                         * ps_pic_handling->i4_b_in_incomp_subgop_mix_gop)))
@@ -831,6 +891,7 @@ void irc_add_pic_to_stack(pic_handling_t *ps_pic_handling, WORD32 i4_enc_pic_id)
                                             - ps_pic_handling->i4_b_in_incomp_subgop_mix_gop;
         }
     }
+#endif
 
     /* End of GOP updates */
     if(i4_pic_disp_order_no == (i4_p_frms_in_prd + i4_b_frms_in_prd + 1))
@@ -855,11 +916,12 @@ void irc_add_pic_to_stack(pic_handling_t *ps_pic_handling, WORD32 i4_enc_pic_id)
     }
 
     /* Updating the vars which work on the encoded pics */
-    /* For the first gop */
+    /* For the first gop
+     * TODO (BPIC) this  //  || (i4_intra_frm_int == 1)) may cause problems for bpics */
     if(((ps_pic_handling->i4_is_first_gop)
                     && (ps_pic_handling->i4_pic_disp_order_no
-                                    == (i4_max_inter_frm_int - 1)))
-                    || (i4_intra_frm_int == 1))
+                                    == (i4_max_inter_frm_int - 2))))
+                 //   || (i4_intra_frm_int == 1))
     {
         ps_pic_handling->i4_coded_pic_no = 0;
         ps_pic_handling->i4_stack_count = 0;

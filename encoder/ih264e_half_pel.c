@@ -55,7 +55,6 @@
 #include "ih264_defs.h"
 #include "ih264e_half_pel.h"
 #include "ih264_macros.h"
-#include "ih264e_half_pel.h"
 #include "ih264e_debug.h"
 #include "ih264_inter_pred_filters.h"
 #include "ih264_mem_fns.h"

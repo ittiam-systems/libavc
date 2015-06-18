@@ -1260,3 +1260,4 @@ void ime_compute_satqd_16x16_lumaintra(UWORD8 *pu1_src,
     else *sig_sad_dc = 1;
 }
 
+

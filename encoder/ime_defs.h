@@ -55,5 +55,8 @@
 #define NSTEP_SRCH 50
 #define HEX_SRCH 75
 
+#define MAX_NUM_REFLIST 2
+#define SUBPEL_BUFF_CNT 4
+
 #endif /*_IME_DEFS_H_*/
 
