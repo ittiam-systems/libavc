@@ -39,6 +39,15 @@
 #define IH264E_STRUCTS_H_
 
 /*****************************************************************************/
+/* Structure definitions                                                    */
+/*****************************************************************************/
+
+/* Early declaration of structs */
+typedef struct _codec_t codec_t;
+typedef struct _proc_t process_ctxt_t;
+
+
+/*****************************************************************************/
 /* Extern Function type definitions                                          */
 /*****************************************************************************/
 
@@ -154,6 +163,22 @@ typedef void (*pf_fmt_conv_422ile_to_420sp)(UWORD8 *pu1_y_buf, UWORD8 *pu1_u_buf
                                             WORD32 u4_422i_stride);
 
 
+
+/**
+******************************************************************************
+ *  @brief     ME evaluation
+******************************************************************************
+ */
+typedef void ih264e_compute_me_ft(process_ctxt_t *);
+
+/**
+******************************************************************************
+ *  @brief     SKIP decision
+******************************************************************************
+ */
+typedef WORD32 ih264e_skip_params_ft(process_ctxt_t *, WORD32);
+
+
 /*****************************************************************************/
 /* Enums                                                                     */
 /*****************************************************************************/
@@ -196,11 +221,27 @@ typedef enum
  */
 typedef struct
 {
+    /**
+     *  Motion Vector
+     */
+    mv_t s_mv;
 
     /**
-     *  L0 Motion Vector
+     *  Ref index
      */
-    mv_t s_l0_mv;
+    WORD8   i1_ref_idx;
+
+} enc_pu_mv_t;
+
+
+/*
+ * Total Pu info for an MB
+ */
+typedef struct
+{
+
+    /* Array with ME info for all lists */
+    enc_pu_mv_t  s_me_info[2];
 
     /**
      *  PU X position in terms of min PU (4x4) units
@@ -223,13 +264,18 @@ typedef struct
     UWORD32     b4_ht           : 2;
 
     /**
-     *  L0 Ref index
+     *  Intra or Inter flag for each partition - 0 or 1
      */
-    WORD8   i1_l0_ref_idx;
+    UWORD32     b1_intra_flag   : 1;
+
+    /**
+     *  PRED_L0, PRED_L1, PRED_BI
+     */
+    UWORD32     b2_pred_mode    : 2;
+
 
 } enc_pu_t;
 
-typedef struct _codec_t codec_t;
 
 typedef struct
 {
@@ -336,7 +382,7 @@ typedef struct
     UWORD32                                     u4_max_bitrate;
 
     /** Maximum number of consecutive  B frames                             */
-    UWORD32                                     u4_max_num_bframes;
+    UWORD32                                     u4_num_bframes;
 
     /** Content type Interlaced/Progressive                                 */
     IV_CONTENT_TYPE_T                           e_content_type;
@@ -472,9 +518,6 @@ typedef struct
 
     /** IDR frame interval                                              */
     UWORD32                                     u4_idr_frm_interval;
-
-    /** consecutive B frames                                            */
-    UWORD32                                     u4_num_b_frames;
 
     /** Disable deblock level (0: Enable completely, 3: Disable completely */
     UWORD32                                     u4_disable_deblock_level;
@@ -859,6 +902,10 @@ typedef struct
  */
 typedef struct
 {
+    /**
+     * Pointer to the cabac context
+     */
+    cabac_ctxt_t *ps_cabac;
 
     /**
      * start of frame / start of slice flag
@@ -1142,9 +1189,9 @@ typedef struct
     WORD32  i4_mb_cost;
     WORD32  i4_mb_distortion;
 
+    enc_pu_mv_t as_skip_mv[4];
 
-    mv_t    s_skip_mv;
-    mv_t    s_pred_mv;
+    enc_pu_mv_t as_pred_mv[2];
 
     block_neighbors_t s_ngbr_avbl;
 
@@ -1165,7 +1212,7 @@ typedef struct
  *  @brief      Pixel processing thread context
  ******************************************************************************
  */
-typedef struct
+struct _proc_t
 {
     /**
      * entropy context
@@ -1210,12 +1257,12 @@ typedef struct
     /**
      * Ref pointer to current MB luma
      */
-    UWORD8 *pu1_ref_buf_luma;
+    UWORD8 *apu1_ref_buf_luma[MAX_REF_PIC_CNT];
 
     /**
      * Ref pointer to current MB chroma
      */
-    UWORD8 *pu1_ref_buf_chroma;
+    UWORD8 *apu1_ref_buf_chroma[MAX_REF_PIC_CNT];
 
     /**
      * pointer to luma plane of input buffer (base :: mb (0,0))
@@ -1230,7 +1277,7 @@ typedef struct
     /**
      * pointer to luma plane of ref buffer (base :: mb (0,0))
      */
-    UWORD8 *pu1_ref_buf_luma_base;
+    UWORD8 *apu1_ref_buf_luma_base[MAX_REF_PIC_CNT];
 
     /**
      * pointer to  chroma plane of input buffer (base :: mb (0,0))
@@ -1256,7 +1303,7 @@ typedef struct
     /**
      * pointer to  chroma plane of reconstructed buffer (base :: mb (0,0))
      */
-    UWORD8 *pu1_ref_buf_chroma_base;
+    UWORD8 *apu1_ref_buf_chroma_base[MAX_REF_PIC_CNT];
 
     /**
      * Pointer to ME NMB info
@@ -1504,9 +1551,19 @@ typedef struct
     enc_pu_t *ps_pu;
 
     /**
+     * Pointer to the pu of current co-located MB in list 1
+     */
+    enc_pu_t *ps_colpu;
+
+    /**
      * predicted motion vector
      */
-    mv_t *ps_pred_mv;
+    enc_pu_mv_t *ps_skip_mv;
+
+    /**
+     * predicted motion vector
+     */
+    enc_pu_mv_t *ps_pred_mv;
 
     /**
      * top row mb syntax information base
@@ -1554,7 +1611,6 @@ typedef struct
      */
     enc_pu_t s_top_left_mb_pu_ME;
 
-
     /**
      * mb neighbor availability pointer
      */
@@ -1588,11 +1644,6 @@ typedef struct
      * partitions for the top mb are stored in the array below
      */
     UWORD8 *pu1_top_mb_intra_modes;
-
-    /**
-     * skip motion vector info
-     */
-    mv_t *ps_skip_mv;
 
     /**
      * left mb motion vector
@@ -1802,9 +1853,14 @@ typedef struct
 
     /**
      * Reference picture for the current picture
-     * TODO: Only 1 reference assumed currently
+     * TODO: Only 2 reference assumed currently
      */
-    pic_buf_t *ps_ref_pic;
+    pic_buf_t *aps_ref_pic[MAX_REF_PIC_CNT];
+
+    /**
+     * Reference MV buff for the current picture
+     */
+    mv_buf_t *aps_mv_buf[MAX_REF_PIC_CNT];
 
     /**
      * frame info used by RC
@@ -1834,27 +1890,10 @@ typedef struct
      */
     UWORD32 u4_compute_recon;
 
-   /*
-    * Buffer for holding half_x (1/2,1 - interpolated)
-    * values when halfpel generation
-    *  for the entire plane is not enabled
-    */
-    UWORD8 *pu1_half_x;
-
     /*
-     * Buffer for holding half_x (1,1/2 - interpolated)
-     * values when halfpel generation
-     *  for the entire plane is not enabled
+     * Temporary buffers to be used for subpel computation
      */
-    UWORD8 *pu1_half_y;
-
-    /*
-     * Buffer for holding half_x (1/2,1/2 - interpolated)
-     * values when halfpel generation
-     *  for the entire plane is not enabled
-     *
-     */
-    UWORD8 *pu1_half_xy;
+    UWORD8 *apu1_subpel_buffs[SUBPEL_BUFF_CNT];
 
     /*
      * Buffer holding best sub pel values
@@ -1866,7 +1905,7 @@ typedef struct
      */
     UWORD32 u4_bst_spel_buf_strd;
 
-} process_ctxt_t;
+};
 
 /**
  ******************************************************************************
@@ -1921,12 +1960,13 @@ typedef struct
 struct _codec_t
 {
     /**
-     * Number of coded pictures
+     * Id of current pic (input order)
      */
-    WORD32 i4_coded_pic_cnt;
+    WORD32 i4_poc;
 
     /**
      * Number of encode frame API calls made
+     * This variable must only be used for context selection [Read only]
      */
     WORD32 i4_encode_api_call_cnt;
 
@@ -2305,6 +2345,7 @@ struct _codec_t
      */
     ref_set_t as_ref_set[MAX_DPB_SIZE + MAX_CTXT_SETS];
 
+
     /*
      * Air pic cnt
      * Contains the number of pictures that have been encoded with air
@@ -2319,10 +2360,14 @@ struct _codec_t
     UWORD16 *pu2_intr_rfrsh_map;
 
     /*
-     * Alternate reference frames
      * Indicates if the current frame is used as a reference frame
      */
     UWORD32 u4_is_curr_frm_ref;
+
+    /*
+     * Indicates if there can be non reference frames in the stream
+     */
+    WORD32 i4_non_ref_frames_in_stream;
 
     /*
      * Memory for color space conversion for luma plane
@@ -2510,6 +2555,18 @@ struct _codec_t
     ime_compute_sad_ft *apf_compute_sad_16x16[2];
     ime_compute_sad_ft *pf_compute_sad_16x8;
 
+
+    /**
+     * Function pointer for computing ME
+     * 1 for PSLICE and 1 for BSLICE
+     */
+    ih264e_compute_me_ft *apf_compute_me[2];
+
+    /**
+     * Function pointers for computing SKIP parameters
+     */
+    ih264e_skip_params_ft *apf_find_skip_params_me[2];
+
     /**
      * fn ptrs for memory handling operations
      */
@@ -2545,8 +2602,7 @@ struct _codec_t
     /**
      * write mb layer for a given slice I, P, B
      */
-    IH264E_ERROR_T (*pf_write_mb_syntax_layer[3]) ( entropy_ctxt_t *ps_ent_ctxt );
-
+    IH264E_ERROR_T (*pf_write_mb_syntax_layer[2][3]) ( entropy_ctxt_t *ps_ent_ctxt );
 
     /**
      * Output buffer
@@ -2562,5 +2618,18 @@ struct _codec_t
      * rate control context
      */
     rate_control_ctxt_t s_rate_control;
+
+    /**
+     * input buffer queue
+     */
+    inp_buf_t as_inp_list[MAX_NUM_BFRAMES];
+
+
+    /*
+    *Flag to indicate if we have recived the last input frame
+    */
+    WORD32 i4_last_inp_buff_received;
+
 };
+
 #endif /* IH264E_STRUCTS_H_ */

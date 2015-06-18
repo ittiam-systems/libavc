@@ -65,6 +65,7 @@
 #include "ih264e_error.h"
 #include "ih264e_bitstream.h"
 #include "ime_distortion_metrics.h"
+#include "ime_defs.h"
 #include "ime_structs.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
@@ -73,9 +74,11 @@
 #include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_cabac_tables.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264e_globals.h"
 #include "ih264e_core_coding.h"
@@ -1249,7 +1252,7 @@ void ih264e_pack_c_mb(WORD16 *pi2_res_mb,
      * For that there are two paths we need to look for
      * One is the path to bitstream , these variables should have the proper input
      * configured UV or VU
-     * For the other path the inverse transform variables should have ehat ever 0ordering the
+     * For the other path the inverse transform variables should have what ever ordering the
      * input had
      */
 

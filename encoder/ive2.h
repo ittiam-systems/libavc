@@ -293,7 +293,7 @@ typedef struct
     UWORD32                                 u4_max_bitrate;
 
     /** Maximum number of consecutive  B frames                             */
-    UWORD32                                 u4_max_num_bframes;
+    UWORD32                                 u4_num_bframes;
 
     /** Content type Interlaced/Progressive                                 */
     IV_CONTENT_TYPE_T                       e_content_type;
@@ -393,6 +393,15 @@ typedef struct
 
     /* encoded frame type                                               */
     UWORD32                                 u4_encoded_frame_type;
+
+    /** Flag to indicate if this is the last output from the encoder    */
+    UWORD32                                 u4_is_last;
+
+    /** Lower 32bits of input time stamp                                */
+    UWORD32                                 u4_timestamp_low;
+
+    /** Upper 32bits of input time stamp                                */
+    UWORD32                                 u4_timestamp_high;
 
     /** Descriptor for input raw buffer freed from codec                */
     iv_raw_buf_t                            s_inp_buf;
@@ -1339,9 +1348,6 @@ typedef struct
     /** IDR frame interval                                              */
     UWORD32                                     u4_idr_frm_interval;
 
-    /** consecutive B frames                                            */
-    UWORD32                                     u4_num_b_frames;
-
     /** Lower 32bits of time stamp corresponding to input buffer,
      * from which this command takes effect                             */
     UWORD32                                 u4_timestamp_low;
@@ -1427,6 +1433,9 @@ typedef struct
     /** Upper 32bits of time stamp corresponding to input buffer,
      * from which this command takes effect                             */
     UWORD32                                 u4_timestamp_high;
+
+    /** Entropy coding mode flag: 0-CAVLC, 1-CABAC                       */
+    UWORD32                                 u4_entropy_coding_mode;
 
 }ive_ctl_set_profile_params_ip_t;
 

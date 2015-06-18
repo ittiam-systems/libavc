@@ -47,6 +47,19 @@
  */
 #define NUM_LAYERS 16
 
+/**
+******************************************************************************
+ *  @brief     Skip Bias value for P slice
+******************************************************************************
+ */
+#define SKIP_BIAS_P 2
+
+/**
+******************************************************************************
+ *  @brief     Skip Bias value for B slice
+******************************************************************************
+ */
+#define SKIP_BIAS_B 16
 
 /*****************************************************************************/
 /* Extern Function Declarations                                              */
@@ -84,8 +97,8 @@
 * computational feasibility. This is only for quality eval purposes.
 *
 *******************************************************************************
-*/
-extern void ime_diamond_search_16x16(me_ctxt_t *ps_me_ctxt);
+ */
+extern void ime_diamond_search_16x16(me_ctxt_t *ps_me_ctxt, WORD32 i4_reflist);
 
 
 /**
@@ -113,10 +126,8 @@ extern void ime_diamond_search_16x16(me_ctxt_t *ps_me_ctxt);
 *
 *******************************************************************************
 */
-extern void ime_evaluate_init_srchposn_16x16
-        (
-            me_ctxt_t *ps_me_ctxt
-        );
+extern void ime_evaluate_init_srchposn_16x16(me_ctxt_t *ps_me_ctxt,
+                                             WORD32 i4_reflist);
 
 /**
 *******************************************************************************
@@ -142,10 +153,8 @@ extern void ime_evaluate_init_srchposn_16x16
 *
 *******************************************************************************
 */
-extern void ime_full_pel_motion_estimation_16x16
-    (
-        me_ctxt_t *ps_me_ctxt
-    );
+extern void ime_full_pel_motion_estimation_16x16(me_ctxt_t *ps_me_ctxt,
+                                                 WORD32 i4_ref_list);
 
 /**
 *******************************************************************************
@@ -171,10 +180,8 @@ extern void ime_full_pel_motion_estimation_16x16
 *
 *******************************************************************************
 */
-extern void ime_sub_pel_motion_estimation_16x16
-    (
-        me_ctxt_t *ps_me_ctxt
-    );
+extern void ime_sub_pel_motion_estimation_16x16(me_ctxt_t *ps_me_ctxt,
+                                                WORD32 i4_reflist);
 
 /**
 *******************************************************************************
@@ -189,6 +196,9 @@ extern void ime_sub_pel_motion_estimation_16x16
 * @param[in] ps_skip_mv
 *  pointer to skip mv
 *
+  @param[in] is_slice_type_b
+*  Whether slice type is BSLICE or not
+
 * @returns  none
 *
 * @remarks
@@ -197,13 +207,12 @@ extern void ime_sub_pel_motion_estimation_16x16
 *
 *******************************************************************************
 */
-extern void ime_compute_skip_cost
-    (
-        me_ctxt_t *ps_me_ctxt,
-        void *pv_skip_mv,
-        mb_part_ctxt *ps_smb_part_info,
-        UWORD32 u4_use_stat_sad
-    );
+extern void ime_compute_skip_cost(me_ctxt_t *ps_me_ctxt,
+                                  ime_mv_t *ps_skip_mv,
+                                  mb_part_ctxt *ps_smb_part_info,
+                                  UWORD32 u4_use_stat_sad,
+                                  WORD32 i4_reflist,
+                                  WORD32 is_slice_type_b);
 
 
 #endif /* IME_H_ */

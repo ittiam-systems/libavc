@@ -91,6 +91,7 @@ typedef enum
     I_QP_MIN,
     P_QP_MIN,
     B_QP_MIN,
+    ENTROPY,
     AIR,
     AIR_REFRESH_PERIOD,
     ARCH,
@@ -105,6 +106,7 @@ typedef enum
     I_INTERVAL,
     IDR_INTERVAL,
     B_FRMS,
+    NUM_B_FRMS,
     DISABLE_DBLK,
     PROFILE,
     FAST_SAD,
@@ -153,7 +155,7 @@ static const argument_t argument_mapping[] =
                 { "--", "--src_framerate", SRC_FRAMERATE, "Source frame rate \n" },
                 { "--", "--i_interval", I_INTERVAL,  "Intra frame interval \n" },
                 { "--", "--idr_interval", IDR_INTERVAL,  "IDR frame interval \n" },
-                { "--", "--bframes", B_FRMS,  "Consecutive B frames \n" },
+                { "--", "--bframes", NUM_B_FRMS, "Maximum number of consecutive B frames \n" },
                 { "--", "--speed", ENC_SPEED, "Encoder speed preset 0 (slowest) and 100 (fastest)\n" },
                 { "--", "--me_speed", ME_SPEED, "Encoder speed preset 0 (slowest) and 100 (fastest)\n" },
                 { "--", "--fast_sad", FAST_SAD, " Flag for faster sad execution\n" },
@@ -193,6 +195,7 @@ static const argument_t argument_mapping[] =
                 { "--", "--qp_i_min",     I_QP_MIN,              "Min QP for I frames\n"},
                 { "--", "--qp_p_min",     P_QP_MIN,              "Min QP for P frames\n"},
                 { "--", "--qp_b_min",     B_QP_MIN,              "Min QP for B frames\n"},
+                { "--", "--entropy",      ENTROPY,              "Entropy coding mode(0: CAVLC or 1: CABAC)\n"},
                 { "--", "--vbv_delay",    VBV_DELAY,             "VBV buffer delay\n"},
                 { "--", "--vbv_size",     VBV_SIZE,              "VBV buffer size\n"},
                 { "-i4", "--intra_4x4_enable", INTRA_4x4_ENABLE, "Intra 4x4 enable \n" },
@@ -657,6 +660,10 @@ void parse_argument(app_ctxt_t *ps_app_ctxt, CHAR *argument, CHAR *value)
           sscanf(value, "%d", &ps_app_ctxt->u4_b_qp_min);
           break;
 
+      case ENTROPY:
+          sscanf(value, "%d", &ps_app_ctxt->u4_entropy_coding_mode);
+          break;
+
       case AIR:
           sscanf(value, "%d", &ps_app_ctxt->u4_air);
           break;
@@ -742,8 +749,8 @@ void parse_argument(app_ctxt_t *ps_app_ctxt, CHAR *argument, CHAR *value)
         sscanf(value, "%d", &ps_app_ctxt->u4_idr_interval);
         break;
 
-      case B_FRMS:
-        sscanf(value, "%d", &ps_app_ctxt->u4_b_frames);
+      case NUM_B_FRMS:
+        sscanf(value, "%d", &ps_app_ctxt->u4_num_bframes);
         break;
 
       case DISABLE_DEBLOCK_LEVEL:
@@ -886,7 +893,13 @@ void validate_params(app_ctxt_t *ps_app_ctxt)
         sprintf(ac_error, "Invalid number of frames to be encoded: %d", ps_app_ctxt->u4_max_num_frms);
         invalid_argument_exit(ac_error);
     }
-
+    if ((0 != (WORD32)ps_app_ctxt->u4_entropy_coding_mode)
+                    && (1 != (WORD32)ps_app_ctxt->u4_entropy_coding_mode))
+    {
+        sprintf(ac_error, "Invalid entropy codeing mode: %d",
+                ps_app_ctxt->u4_entropy_coding_mode);
+        invalid_argument_exit(ac_error);
+    }
     return;
 }
 
@@ -944,6 +957,7 @@ void init_default_params(app_ctxt_t *ps_app_ctxt)
     ps_app_ctxt->u4_enable_alt_ref       = DEFAULT_ENABLE_ALT_REF;
     ps_app_ctxt->u4_rc                   = DEFAULT_RC;
     ps_app_ctxt->u4_max_bitrate          = DEFAULT_MAX_BITRATE;
+    ps_app_ctxt->u4_num_bframes          = DEFAULT_NUM_BFRAMES;
     ps_app_ctxt->u4_bitrate              = DEFAULT_BITRATE;
     ps_app_ctxt->u4_i_qp                 = DEFAULT_I_QP;
     ps_app_ctxt->u4_p_qp                 = DEFAULT_P_QP;
@@ -960,7 +974,6 @@ void init_default_params(app_ctxt_t *ps_app_ctxt)
     ps_app_ctxt->u4_srch_rng_y           = DEFAULT_SRCH_RNG_Y;
     ps_app_ctxt->u4_i_interval           = DEFAULT_I_INTERVAL;
     ps_app_ctxt->u4_idr_interval         = DEFAULT_IDR_INTERVAL;
-    ps_app_ctxt->u4_b_frames             = DEFAULT_B_FRAMES;
     ps_app_ctxt->u4_disable_deblk_level  = DEFAULT_DISABLE_DEBLK_LEVEL;
     ps_app_ctxt->u4_hpel                 = DEFAULT_HPEL;
     ps_app_ctxt->u4_qpel                 = DEFAULT_QPEL;
@@ -979,6 +992,7 @@ void init_default_params(app_ctxt_t *ps_app_ctxt)
     ps_app_ctxt->u4_psnr_cnt             = 0;
     ps_app_ctxt->pu1_psnr_buf            = NULL;
     ps_app_ctxt->u4_psnr_buf_size        = 0;
+    ps_app_ctxt->u4_entropy_coding_mode  = DEFAULT_ENTROPY_CODING_MODE;
 
     return;
 }
@@ -1334,7 +1348,6 @@ void set_gop_params(app_ctxt_t *ps_app_ctxt,
 
     s_gop_params_ip.s_ive_ip.u4_i_frm_interval = ps_app_ctxt->u4_i_interval;
     s_gop_params_ip.s_ive_ip.u4_idr_frm_interval = ps_app_ctxt->u4_idr_interval;
-    s_gop_params_ip.s_ive_ip.u4_num_b_frames = ps_app_ctxt->u4_b_frames;
 
     s_gop_params_ip.s_ive_ip.u4_timestamp_high = u4_timestamp_high;
     s_gop_params_ip.s_ive_ip.u4_timestamp_low = u4_timestamp_low;
@@ -1367,6 +1380,8 @@ void set_profile_params(app_ctxt_t *ps_app_ctxt,
     s_profile_params_ip.s_ive_ip.e_sub_cmd = IVE_CMD_CTL_SET_PROFILE_PARAMS;
 
     s_profile_params_ip.s_ive_ip.e_profile = ps_app_ctxt->e_profile;
+
+    s_profile_params_ip.s_ive_ip.u4_entropy_coding_mode = ps_app_ctxt->u4_entropy_coding_mode;
 
     s_profile_params_ip.s_ive_ip.u4_timestamp_high = u4_timestamp_high;
     s_profile_params_ip.s_ive_ip.u4_timestamp_low = u4_timestamp_low;
@@ -1433,7 +1448,7 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
 
     IV_STATUS_T status = IV_SUCCESS;
 
-    WORD32 i, read_failed = 0, is_last = 0, buff_size = 0, num_bytes = 0;
+    WORD32 i, is_last = 0, buff_size = 0, num_bytes = 0;
     UWORD32 u4_total_time = 0;
     UWORD8 *pu1_buf = NULL;
     UWORD32 u4_timestamp_low, u4_timestamp_high;
@@ -1449,6 +1464,7 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
     iv_raw_buf_t s_inp_buf, s_recon_buf;
     CHAR ac_error[STRLENGTH];
     WORD32 end_of_frames=0;
+    WORD32 i4_inp_done =0;
 
     u4_timestamp_low = 0;
     u4_timestamp_high = 0;
@@ -1498,18 +1514,6 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
         }
     }
 
-#if 0 //Input buffer dump
-    //if(1 == ps_app_ctxt->u4_psnr_enable)
-    {
-        ps_app_ctxt->fp_dump_op              = fopen("D:\\dump\\inp.yuv", "wb");
-        if(NULL == ps_app_ctxt->fp_dump_op)
-        {
-            sprintf(ac_error, "Unable to open output file for input dump: %s", "D:\\dump\\inp.yuv");
-            invalid_argument_exit(ac_error);
-        }
-    }
-#endif //Input buffer dump
-
     /* If PSNR is enabled, open input file again and hold a different file pointer
      * This makes it easy to compute PSNR without adding dependency between input and recon threads
      */
@@ -1548,10 +1552,6 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
     while(1)
     {
 
-
-
-
-
         /******************************************************************************/
         /****************** Input Initialization **************************************/
         /******************************************************************************/
@@ -1566,6 +1566,12 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
                 ps_app_ctxt->as_input_buf[i].u4_is_free = 0;
                 break;
             }
+        }
+
+        if (i == DEFAULT_MAX_INPUT_BUFS)
+        {
+            printf("\n Unable to find a free input buffer!!");
+            exit(0);
         }
 
         ps_video_encode_ip->u4_size = sizeof(ih264e_video_encode_ip_t);
@@ -1637,11 +1643,19 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
             ps_inp_raw_buf->au4_strd[0] = ps_app_ctxt->u4_strd *2;
         }
 
+        /*
+         * Here we read input and other associated buffers. Regardless of success
+         * we will proceed from here as we will need extra calls to flush out
+         * input queue in encoder. Note that this is not necessary. You can just
+         * send encode calls till with valid output and recon buffers till the
+         * queue is flushed.
+         */
         while(1)
         {
             IV_STATUS_T mb_info_status = IV_SUCCESS, pic_info_status = IV_SUCCESS;
-            read_failed = 0;
+
             status = read_input(ps_app_ctxt->fp_ip, ps_inp_raw_buf);
+
             if (ps_app_ctxt->u4_mb_info_type != 0)
             {
                 mb_info_status = read_mb_info(ps_app_ctxt, pv_mb_info);
@@ -1656,15 +1670,12 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
                 if(0 == ps_app_ctxt->u4_loopback)
                 {
                     is_last = 1;
-                    read_failed = 1;
-
                     break;
                 }
                 else
                     fseek(ps_app_ctxt->fp_ip, 0, SEEK_SET);
             }
-            else
-                break;
+            break;
         }
 
         /******************************************************************************/
@@ -1716,13 +1727,12 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
             ps_inp_raw_buf->apv_bufs[0] = NULL;
             ps_inp_raw_buf->apv_bufs[1] = NULL;
             ps_inp_raw_buf->apv_bufs[2] = NULL;
-            end_of_frames = 1;
         }
 
         ps_video_encode_ip->u4_is_last = is_last;
         ps_video_encode_ip->u4_mb_info_type = ps_app_ctxt->u4_mb_info_type;
         ps_video_encode_ip->u4_pic_info_type = ps_app_ctxt->u4_pic_info_type;;
-        ps_video_encode_op->s_out_buf.pv_buf= 0;
+        ps_video_encode_op->s_out_buf.pv_buf= NULL;
         ps_video_encode_ip->u4_timestamp_high = u4_timestamp_high;
         ps_video_encode_ip->u4_timestamp_low = u4_timestamp_low;
 
@@ -1766,11 +1776,7 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
         /****************** Writing Output ********************************************/
         /******************************************************************************/
         num_bytes = 0;
-        /* Break if all the encoded frames are taken from encoder */
-        if(1 == end_of_frames && 0 == ps_video_encode_op->output_present)
-        {
-            break;
-        }
+
         if(1 == ps_video_encode_op->output_present)
         {
             num_bytes = ps_video_encode_op->s_out_buf.u4_bytes;
@@ -1783,7 +1789,11 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
                 printf("Error: Unable to write to output file\n");
                 break;
             }
+        }
 
+        /* free input bufer if codec returns a valid input buffer */
+        if (ps_video_encode_op->s_inp_buf.apv_bufs[0])
+        {
             /* Reuse of freed input buffer */
             for(i = 0; i < DEFAULT_MAX_INPUT_BUFS; i++)
             {
@@ -1793,8 +1803,11 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
                     break;
                 }
             }
+        }
 
-            /* Reuse of freed output buffer */
+        /* free output buffer if codec returns a valid output buffer */
+        // if(ps_video_encode_op->s_out_buf.pv_buf)
+        {
             for(i = 0; i < DEFAULT_MAX_OUTPUT_BUFS; i++)
             {
                 if(ps_app_ctxt->as_output_buf[i].pu1_buf == ps_video_encode_op->s_out_buf.pv_buf)
@@ -1805,132 +1818,169 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
             }
         }
 
-        if (ps_video_encode_op->dump_recon == 1)
+        /**********************************************************************
+         *  Print stats
+         **********************************************************************/
         {
-            ps_app_ctxt->u4_pics_cnt++;
+            UWORD8 u1_pic_type[][5] =
+                { "IDR", "I", "P", "B", "NA" };
+            WORD32 lookup_idx = 0;
 
-            ps_app_ctxt->avg_time = u4_total_time / ps_app_ctxt->u4_pics_cnt;
-            if (ps_app_ctxt->u4_psnr_enable == 0)
+            if (ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type
+                            == IV_IDR_FRAME)
             {
-                UWORD8 u1_pic_type[][5] = { "IDR", "I", "P","NA" };
-                WORD32 lookup_idx = 0;
-
-                if (ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type == IV_IDR_FRAME)
-                {
-                    lookup_idx = 0;
-                }
-                else if (ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type == IV_I_FRAME)
-                {
-                    lookup_idx = 1;
-                }
-                else if (ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type == IV_P_FRAME)
-                {
-                    lookup_idx = 2;
-                }
-                else if (ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type == IV_NA_FRAME)
-                {
-                     lookup_idx = 3;
-                }
-
-                printf("[%s] PicNum %4d Bytes Generated %6d TimeTaken(microsec): %6d AvgTime: %6d PeakAvgTimeMax: %6d\n", u1_pic_type[lookup_idx], ps_app_ctxt->u4_pics_cnt, num_bytes, timetaken, ps_app_ctxt->avg_time, peak_avg_max);
+                lookup_idx = 0;
+            }
+            else if(ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type
+                            == IV_I_FRAME)
+            {
+                lookup_idx = 1;
+            }
+            else if(ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type
+                            == IV_P_FRAME)
+            {
+                lookup_idx = 2;
+            }
+            else if(ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type
+                            == IV_B_FRAME)
+            {
+                lookup_idx = 3;
+            }
+            else if(ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type
+                            == IV_NA_FRAME)
+            {
+                lookup_idx = 4;
             }
 
-            ps_app_ctxt->u4_total_bytes += num_bytes;
+            if (ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type
+                            != IV_NA_FRAME)
+            {
+                ps_app_ctxt->u4_pics_cnt++;
+                ps_app_ctxt->avg_time = u4_total_time / ps_app_ctxt->u4_pics_cnt;
+                ps_app_ctxt->u4_total_bytes += num_bytes;
+            }
 
-            /******************************************************************************/
-            /****************** Writing Recon  ********************************************/
-            /******************************************************************************/
-            if(1 == ps_video_encode_op->output_present)
+            if (ps_app_ctxt->u4_psnr_enable == 0)
+            {
+                printf("[%s] PicNum %4d Bytes Generated %6d TimeTaken(microsec): %6d AvgTime: %6d PeakAvgTimeMax: %6d\n",
+                       u1_pic_type[lookup_idx], ps_app_ctxt->u4_pics_cnt,
+                       num_bytes, timetaken, ps_app_ctxt->avg_time,
+                       peak_avg_max);
+            }
+        }
+
+
+        /* For psnr computation, we need to read the correct input frame and
+         * compare with recon. The difficulty with doing it is that we only know
+         * that the frame number of recon is monotonically increasing. There
+         * may be gaps in the recon if any pre or post enc skip happens. There are
+         * 3 senarios
+         *  1) A frame is encoded -> returns the pic type
+         *  2) A frame is not encoded -> Encoder is waiting, the frame may get
+         *     encoded later
+         *  3) A frame is not encoded -> A post enc or pre enc skip happend. The
+         *     frame is not going to be encoded
+         *
+         *     The 1st and 2nd scenarios are easy, since we just needs to increment
+         *     recon cnt whenever we get a valid recon. This cnt can we used to
+         *     sync the recon and input
+         *     3rd scenario in conjuction with 2nd will pose problems. Even if
+         *     the returning frame is NA, we donot know we should increment the
+         *     recon cnt or not becasue it can be case 2 or case 3.
+         *
+         *  Solutions:
+         *  -------------------------
+         *   One way to over come this will be to return more information as of
+         *   the frame type. We can send if a frame was skipped as a part of the
+         *   return frame type.
+         *   This will not work. Since the output and recon are not in sync, we
+         *   cannot use the current output frame type to determine if a recon
+         *   is present currently or not. We need some other way to acheive this.
+         *
+         *   Other way to do this which is cleaner and maintains the seperation
+         *   between recon and the ouptut is to set the width [& height] of output recon
+         *   buffer to be zero. Hence we will in effect be saying :"look there
+         *   is a recon, but due to frame not being encoded it is having a width 0".
+         *   To be more clear we need to make height also to be zero.
+         *
+         *   But are we using these variables for allocating and deallocating
+         *   the buffers some where ? No we are not. The buffer gets re-init
+         *   at every encode call
+         *
+         *   Fixes
+         *   ------------------------
+         *   Currently the recon buff width and height are set in the encoder.
+         *   This will not work now because since recon and input are not
+         *   in sync. Hence a recon buff sent at time stamp x will get used to
+         *   fill recon of input at time stamp y (x > y). If we reduced the
+         *   frame dimensions in between, the recon buffer will not have enough
+         *   space. Hence we need to set the with and height appropriatley inside
+         *   lib itself.
+         */
+
+        if (ps_app_ctxt->u4_recon_enable || ps_app_ctxt->u4_chksum_enable
+                        || ps_app_ctxt->u4_psnr_enable)
+        {
+            if (ps_video_encode_op->dump_recon)
             {
                 s_recon_buf = ps_video_encode_op->s_recon_buf;
 
-                /* Dump recon when enabled, and output bytes != 0*/
-                if(ps_app_ctxt->u4_recon_enable)
-                {
-                    status = write_recon(ps_app_ctxt->fp_recon, &s_recon_buf);
-                    if(IV_SUCCESS != status)
-                    {
-                        printf("Error: Unable to write to recon file\n");
-                        break;
-                    }
-                }
-
-
-                if(ps_app_ctxt->u4_psnr_enable)
-                {
+                /* Read input for psnr computuation */
+                if (ps_app_ctxt->u4_psnr_enable)
                     read_input(ps_app_ctxt->fp_psnr_ip, &s_inp_buf);
-                    compute_psnr(ps_app_ctxt, &s_recon_buf, &s_inp_buf);
-                }
 
-
-                if(ps_app_ctxt->u4_chksum_enable)
+                /* if we have a valid recon buffer do the assocated tasks */
+                if (s_recon_buf.au4_wd[0])
                 {
-                    WORD32 comp;
-                    WORD32 num_comp;
-                    num_comp = 2;
-                    if(IV_YUV_420P == s_recon_buf.e_color_fmt)
-                        num_comp = 3;
-
-                    for(comp = 0; comp < num_comp; comp++ )
+                    /* Dump recon when enabled, and output bytes != 0 */
+                    if (ps_app_ctxt->u4_recon_enable)
                     {
-                        UWORD8 au1_chksum[16];
+                        status = write_recon(ps_app_ctxt->fp_recon, &s_recon_buf);
+                        if (IV_SUCCESS != status)
+                        {
+                            printf("Error: Unable to write to recon file\n");
+                            break;
+                        }
+                    }
 
-                        calc_md5_cksum((UWORD8 *)s_recon_buf.apv_bufs[comp],
-                                       s_recon_buf.au4_strd[comp],
-                                       s_recon_buf.au4_wd[comp],
-                                       s_recon_buf.au4_ht[comp],
-                                       au1_chksum);
+                    if (ps_app_ctxt->u4_psnr_enable)
+                    {
+                        compute_psnr(ps_app_ctxt, &s_recon_buf, &s_inp_buf);
+                    }
 
-                        fwrite(au1_chksum, sizeof(UWORD8), 16, ps_app_ctxt->fp_chksum);
+
+                    if (ps_app_ctxt->u4_chksum_enable)
+                    {
+                        WORD32 comp, num_comp = 2;
+
+                        if (IV_YUV_420P == s_recon_buf.e_color_fmt)
+                            num_comp = 3;
+
+                        for (comp = 0; comp < num_comp; comp++)
+                        {
+                            UWORD8 au1_chksum[16];
+                            calc_md5_cksum((UWORD8 *)s_recon_buf.apv_bufs[comp],
+                                           s_recon_buf.au4_strd[comp],
+                                           s_recon_buf.au4_wd[comp],
+                                           s_recon_buf.au4_ht[comp],
+                                           au1_chksum);
+                            fwrite(au1_chksum, sizeof(UWORD8), 16, ps_app_ctxt->fp_chksum);
+                        }
                     }
                 }
-
-
             }
         }
-        else
-        {
-            if (ps_app_ctxt->u4_psnr_enable == 0)
-            {
-                UWORD8 u1_pic_type[][5] = { "IDR", "I", "P", "NA" };
-                WORD32 lookup_idx = 0;
-
-                if (ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type == IV_IDR_FRAME)
-                {
-                    lookup_idx = 0;
-                }
-                else if (ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type == IV_I_FRAME)
-                {
-                    lookup_idx = 1;
-                }
-                else if (ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type == IV_P_FRAME)
-                {
-                    lookup_idx = 2;
-                }
-                else if (ih264e_video_encode_op.s_ive_op.u4_encoded_frame_type == IV_NA_FRAME)
-                {
-                    lookup_idx = 3;
-                }
-
-                printf("[%s] PicNum %4d Bytes Generated %6d TimeTaken(microsec): %6d AvgTime: %6d PeakAvgTimeMax: %6d\n", u1_pic_type[lookup_idx], ps_app_ctxt->u4_pics_cnt, num_bytes, timetaken, ps_app_ctxt->avg_time, peak_avg_max);
-            }
-            else
-            {
-                read_input(ps_app_ctxt->fp_psnr_ip, &s_inp_buf);
-            }
-        }
-#if 0 //Input buffer dump
-        /*Dump input buffers to a file*/
-        dump_input(ps_app_ctxt->fp_dump_op, ps_inp_raw_buf);
-#endif //Input buffer dump
-
-        if(is_last)
-            break;
 
         u4_timestamp_low++;
+
+        /* Break if all the encoded frames are taken from encoder */
+        if (1 == ps_video_encode_op->u4_is_last)
+        {
+            break;
+        }
     }
 
-    /* Pic count is 1 more than actual num frames encoded, beacause last call is to just get the output  */
+    /* Pic count is 1 more than actual num frames encoded, because last call is to just get the output  */
     ps_app_ctxt->u4_pics_cnt--;
 
     if(ps_app_ctxt->u4_psnr_enable)
@@ -2008,9 +2058,10 @@ int main(int argc, char *argv[])
 
     /* error status */
     IV_STATUS_T status = IV_SUCCESS;
-
+#ifdef IOS
     /* temp var */
     CHAR filename_with_path[STRLENGTH];
+#endif
     WORD32 num_mem_recs;
     iv_obj_t *ps_enc;
     WORD32 i;
@@ -2247,7 +2298,7 @@ int main(int argc, char *argv[])
         s_init_ip.s_ive_ip.e_rc_mode            = s_app_ctxt.u4_rc;
         s_init_ip.s_ive_ip.u4_max_framerate     = s_app_ctxt.u4_max_frame_rate;
         s_init_ip.s_ive_ip.u4_max_bitrate       = s_app_ctxt.u4_max_bitrate;
-        s_init_ip.s_ive_ip.u4_max_num_bframes   = DEFAULT_B_FRAMES;
+        s_init_ip.s_ive_ip.u4_num_bframes       = s_app_ctxt.u4_num_bframes;
         s_init_ip.s_ive_ip.e_content_type       = IV_PROGRESSIVE;
         s_init_ip.s_ive_ip.u4_max_srch_rng_x    = DEFAULT_MAX_SRCH_RANGE_X;
         s_init_ip.s_ive_ip.u4_max_srch_rng_y    = DEFAULT_MAX_SRCH_RANGE_Y;
@@ -2443,10 +2494,13 @@ int main(int argc, char *argv[])
         WORD32 achieved_bitrate;
 
         if(s_app_ctxt.u4_pics_cnt != 0)
+        {
             bytes_per_frame = (s_app_ctxt.u4_total_bytes) / (s_app_ctxt.u4_pics_cnt);
+        }
         else
+        {
             bytes_per_frame = 0;
-
+        }
         bytes_per_second = (bytes_per_frame * s_app_ctxt.u4_tgt_frame_rate);
 
         achieved_bitrate = bytes_per_second * 8;

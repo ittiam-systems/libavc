@@ -50,10 +50,10 @@
 /* User include files */
 #include "ime_typedefs.h"
 #include "ime_distortion_metrics.h"
-#include "ime_structs.h"
 #include "ime_defs.h"
-#include "ime_macros.h"
+#include "ime_structs.h"
 #include "ime.h"
+#include "ime_macros.h"
 #include "ime_statistics.h"
 
 /**
@@ -87,10 +87,10 @@
 *
 *******************************************************************************
 */
-void ime_diamond_search_16x16(me_ctxt_t *ps_me_ctxt)
+void ime_diamond_search_16x16(me_ctxt_t *ps_me_ctxt, WORD32 i4_reflist)
 {
     /* MB partition info */
-    mb_part_ctxt *ps_mb_part = &ps_me_ctxt->s_mb_part;
+    mb_part_ctxt *ps_mb_part = &ps_me_ctxt->as_mb_part[i4_reflist];
 
     /* lagrange parameter */
     UWORD32 u4_lambda_motion = ps_me_ctxt->u4_lambda_motion;
@@ -106,7 +106,7 @@ void ime_diamond_search_16x16(me_ctxt_t *ps_me_ctxt)
 
     /* pointer to src macro block */
     UWORD8 *pu1_curr_mb = ps_me_ctxt->pu1_src_buf_luma;
-    UWORD8 *pu1_ref_mb = ps_me_ctxt->pu1_ref_buf_luma;
+    UWORD8 *pu1_ref_mb = ps_me_ctxt->apu1_ref_buf_luma[i4_reflist];
 
     /* strides */
     WORD32 i4_src_strd = ps_me_ctxt->i4_src_strd;
@@ -271,22 +271,24 @@ void ime_diamond_search_16x16(me_ctxt_t *ps_me_ctxt)
 *
 *******************************************************************************
 */
+
 void ime_evaluate_init_srchposn_16x16
         (
-            me_ctxt_t *ps_me_ctxt
+            me_ctxt_t *ps_me_ctxt,
+            WORD32 i4_reflist
         )
 {
     UWORD32 u4_lambda_motion = ps_me_ctxt->u4_lambda_motion;
 
     /* candidate mv cnt */
-    UWORD32 u4_num_candidates = ps_me_ctxt->u4_num_candidates;
+    UWORD32 u4_num_candidates = ps_me_ctxt->u4_num_candidates[i4_reflist];
 
     /* list of candidate mvs */
-    ime_mv_t *ps_mv_list = ps_me_ctxt->as_mv_init_search;
+    ime_mv_t *ps_mv_list = ps_me_ctxt->as_mv_init_search[i4_reflist];
 
     /* pointer to src macro block */
     UWORD8 *pu1_curr_mb = ps_me_ctxt->pu1_src_buf_luma;
-    UWORD8 *pu1_ref_mb = ps_me_ctxt->pu1_ref_buf_luma;
+    UWORD8 *pu1_ref_mb = ps_me_ctxt->apu1_ref_buf_luma[i4_reflist];
 
     /* strides */
     WORD32 i4_src_strd = ps_me_ctxt->i4_src_strd;
@@ -302,46 +304,15 @@ void ime_evaluate_init_srchposn_16x16
     WORD32 i4_mb_cost, i4_mb_cost_least = INT_MAX, i4_distortion_least = INT_MAX;
 
     /* mb partitions info */
-    mb_part_ctxt *ps_mb_part = &ps_me_ctxt->s_mb_part;
+    mb_part_ctxt *ps_mb_part = &(ps_me_ctxt->as_mb_part[i4_reflist]);
 
     /* mv bits */
     UWORD8 *pu1_mv_bits = ps_me_ctxt->pu1_mv_bits;
 
     /* temp var */
-    UWORD32  i, j, u4_srch_pos_idx = 0;
+    UWORD32  i, j;
+    WORD32 i4_srch_pos_idx = 0;
     UWORD8 *pu1_ref = NULL;
-    WORD16 mv_x, mv_y;
-
-    if (0)
-    {
-        /************************************************************/
-        /* Compute SKIP Cost                                        */
-        /************************************************************/
-        mv_x = ps_mv_list[SKIP_CAND].i2_mvx;
-        mv_y = ps_mv_list[SKIP_CAND].i2_mvy;
-
-        /* adjust ref pointer */
-        pu1_ref = pu1_ref_mb + mv_x + (mv_y * i4_ref_strd);
-
-        /* compute distortion */
-        ps_me_ctxt->pf_ime_compute_sad_16x16[u4_enable_fast_sad](pu1_curr_mb, pu1_ref, i4_src_strd, i4_ref_strd, i4_mb_cost_least, &i4_mb_distortion);
-
-        /* for skip mode cost & distortion are identical
-         * But we shall add a bias to favor skip mode.
-         * Doc. JVT B118 Suggests SKIP_BIAS as 16.
-         * TODO : Empirical analysis of SKIP_BIAS is necessary */
-
-        i4_distortion_least = i4_mb_distortion;
-
-        u4_srch_pos_idx = 0;
-
-#define SKIP_BIAS 8
-
-        i4_mb_cost_least = i4_mb_distortion - (u4_lambda_motion * SKIP_BIAS);
-
-#undef SKIP_BIAS
-    }
-
 
     /* Carry out a search using each of the motion vector pairs identified above as predictors. */
     /* TODO : Just like Skip, Do we need to add any bias to zero mv as well */
@@ -366,6 +337,7 @@ void ime_evaluate_init_srchposn_16x16
 
             /* compute distortion */
             ps_me_ctxt->pf_ime_compute_sad_16x16[u4_enable_fast_sad](pu1_curr_mb, pu1_ref, i4_src_strd, i4_ref_strd, i4_mb_cost_least, &i4_mb_distortion);
+
             DEBUG_SAD_HISTOGRAM_ADD(i4_mb_distortion, 3);
             /* compute cost */
             i4_mb_cost = i4_mb_distortion + u4_lambda_motion * ( pu1_mv_bits[ (ps_mv_list[i].i2_mvx << 2) - ps_mb_part->s_mv_pred.i2_mvx]
@@ -377,21 +349,20 @@ void ime_evaluate_init_srchposn_16x16
 
                 i4_distortion_least = i4_mb_distortion;
 
-                u4_srch_pos_idx = i;
+                i4_srch_pos_idx = i;
             }
         }
     }
 
     if (i4_mb_cost_least < ps_mb_part->i4_mb_cost)
     {
-        ps_mb_part->u4_srch_pos_idx = u4_srch_pos_idx;
+        ps_mb_part->i4_srch_pos_idx = i4_srch_pos_idx;
         ps_mb_part->i4_mb_cost = i4_mb_cost_least;
         ps_mb_part->i4_mb_distortion = i4_distortion_least;
-        ps_mb_part->s_mv_curr.i2_mvx = ps_mv_list[u4_srch_pos_idx].i2_mvx;
-        ps_mb_part->s_mv_curr.i2_mvy = ps_mv_list[u4_srch_pos_idx].i2_mvy;
+        ps_mb_part->s_mv_curr.i2_mvx = ps_mv_list[i4_srch_pos_idx].i2_mvx;
+        ps_mb_part->s_mv_curr.i2_mvy = ps_mv_list[i4_srch_pos_idx].i2_mvy;
     }
 }
-
 
 /**
 *******************************************************************************
@@ -419,11 +390,12 @@ void ime_evaluate_init_srchposn_16x16
 */
 void ime_full_pel_motion_estimation_16x16
     (
-        me_ctxt_t *ps_me_ctxt
+        me_ctxt_t *ps_me_ctxt,
+        WORD32 i4_ref_list
     )
 {
     /* mb part info */
-    mb_part_ctxt *ps_mb_part = &ps_me_ctxt->s_mb_part;
+    mb_part_ctxt *ps_mb_part = &ps_me_ctxt->as_mb_part[i4_ref_list];
 
     /******************************************************************/
     /* Modify Search range about initial candidate instead of zero mv */
@@ -448,18 +420,13 @@ void ime_full_pel_motion_estimation_16x16
     switch (ps_me_ctxt->u4_me_speed_preset)
     {
         case DMND_SRCH:
-            ime_diamond_search_16x16(ps_me_ctxt);
+            ime_diamond_search_16x16(ps_me_ctxt, i4_ref_list);
             break;
         default:
             assert(0);
             break;
     }
-
-    ps_me_ctxt->s_mb_part.s_mv_curr.i2_mvx = ps_me_ctxt->s_mb_part.s_mv_curr.i2_mvx << 2;
-    ps_me_ctxt->s_mb_part.s_mv_curr.i2_mvy = ps_me_ctxt->s_mb_part.s_mv_curr.i2_mvy << 2;
-
 }
-
 
 /**
 *******************************************************************************
@@ -487,12 +454,12 @@ void ime_full_pel_motion_estimation_16x16
 */
 void ime_sub_pel_motion_estimation_16x16
     (
-        me_ctxt_t *ps_me_ctxt
+        me_ctxt_t *ps_me_ctxt,
+        WORD32 i4_reflist
     )
 {
     /* pointers to src & ref macro block */
     UWORD8 *pu1_curr_mb = ps_me_ctxt->pu1_src_buf_luma;
-
 
     /* pointers to ref. half pel planes */
     UWORD8 *pu1_ref_mb_half_x;
@@ -507,10 +474,10 @@ void ime_sub_pel_motion_estimation_16x16
     /* strides */
     WORD32 i4_src_strd = ps_me_ctxt->i4_src_strd;
 
-    WORD32 i4_ref_strd = ps_me_ctxt->u4_hp_buf_strd;
+    WORD32 i4_ref_strd = ps_me_ctxt->u4_subpel_buf_strd;
 
     /* mb partitions info */
-    mb_part_ctxt *ps_mb_part = &ps_me_ctxt->s_mb_part;
+    mb_part_ctxt *ps_mb_part = &ps_me_ctxt->as_mb_part[i4_reflist];
 
     /* SAD(distortion metric) of an mb */
     WORD32 i4_mb_distortion;
@@ -522,7 +489,6 @@ void ime_sub_pel_motion_estimation_16x16
 
     /*Best half pel buffer*/
     UWORD8 *pu1_best_hpel_buf = NULL;
-
 
     /* mv bits */
     UWORD8 *pu1_mv_bits = ps_me_ctxt->pu1_mv_bits;
@@ -550,6 +516,8 @@ void ime_sub_pel_motion_estimation_16x16
     WORD32 i, j;
     WORD32 ai4_sad[8];
 
+    WORD32 i4_srch_pos_idx = ps_mb_part->i4_srch_pos_idx;
+
     i2_mv_u_x = ps_mb_part->s_mv_curr.i2_mvx;
     i2_mv_u_y = ps_mb_part->s_mv_curr.i2_mvy;
 
@@ -575,10 +543,9 @@ void ime_sub_pel_motion_estimation_16x16
     /* Hence corresponding adjustments made here                  */
     /**************************************************************/
 
-    pu1_ref_mb_half_x_temp = pu1_ref_mb_half_x = ps_me_ctxt->pu1_half_x + 1;
-    pu1_ref_mb_half_y_temp = pu1_ref_mb_half_y = ps_me_ctxt->pu1_half_y + 1 + i4_ref_strd;
-    pu1_ref_mb_half_xy_temp = pu1_ref_mb_half_xy = ps_me_ctxt->pu1_half_xy + 1 + i4_ref_strd;
-
+    pu1_ref_mb_half_x_temp = pu1_ref_mb_half_x = ps_me_ctxt->apu1_subpel_buffs[0] + 1;
+    pu1_ref_mb_half_y_temp = pu1_ref_mb_half_y = ps_me_ctxt->apu1_subpel_buffs[1] + 1 + i4_ref_strd;
+    pu1_ref_mb_half_xy_temp = pu1_ref_mb_half_xy = ps_me_ctxt->apu1_subpel_buffs[2] + 1 + i4_ref_strd;
 
     ps_me_ctxt->pf_ime_sub_pel_compute_sad_16x16(pu1_curr_mb, pu1_ref_mb_half_x,
                                                  pu1_ref_mb_half_y,
@@ -611,8 +578,10 @@ void ime_sub_pel_motion_estimation_16x16
             i2_mv_u_y = mv_y_tmp;
 
 #ifndef HP_PL /*choosing whether left or right half_x*/
-            ps_me_ctxt->pu1_half_x = pu1_ref_mb_half_x_temp - i;
+            ps_me_ctxt->apu1_subpel_buffs[0] = pu1_ref_mb_half_x_temp - i;
             pu1_best_hpel_buf = pu1_ref_mb_half_x_temp - i;
+
+            i4_srch_pos_idx = 0;
 #endif
         }
 
@@ -643,8 +612,10 @@ void ime_sub_pel_motion_estimation_16x16
             i2_mv_u_y = mv_y_tmp;
 
 #ifndef HP_PL/*choosing whether top or bottom half_y*/
-            ps_me_ctxt->pu1_half_y = pu1_ref_mb_half_y_temp  - i*(i4_ref_strd);
+            ps_me_ctxt->apu1_subpel_buffs[1] = pu1_ref_mb_half_y_temp  - i*(i4_ref_strd);
             pu1_best_hpel_buf = pu1_ref_mb_half_y_temp  - i*(i4_ref_strd);
+
+            i4_srch_pos_idx = 1;
 #endif
         }
 
@@ -678,22 +649,26 @@ void ime_sub_pel_motion_estimation_16x16
                 i2_mv_u_y = mv_y_tmp;
 
 #ifndef HP_PL /*choosing between four half_xy */
-                ps_me_ctxt->pu1_half_xy = pu1_ref_mb_half_xy_temp  - j*(i4_ref_strd) - i;
+                ps_me_ctxt->apu1_subpel_buffs[2] = pu1_ref_mb_half_xy_temp  - j*(i4_ref_strd) - i;
                 pu1_best_hpel_buf =  pu1_ref_mb_half_xy_temp  - j*(i4_ref_strd) - i;
+
+                i4_srch_pos_idx = 2;
 #endif
             }
 
         }
     }
 
-    ps_mb_part->i4_mb_cost = i4_mb_cost_least;
-    ps_mb_part->i4_mb_distortion = i4_distortion_least;
-    ps_mb_part->s_mv_curr.i2_mvx = i2_mv_u_x;
-    ps_mb_part->s_mv_curr.i2_mvy = i2_mv_u_y;
-    ps_mb_part->pu1_best_hpel_buf = pu1_best_hpel_buf;
-
+    if (i4_mb_cost_least < ps_mb_part->i4_mb_cost)
+    {
+        ps_mb_part->i4_mb_cost = i4_mb_cost_least;
+        ps_mb_part->i4_mb_distortion = i4_distortion_least;
+        ps_mb_part->s_mv_curr.i2_mvx = i2_mv_u_x;
+        ps_mb_part->s_mv_curr.i2_mvy = i2_mv_u_y;
+        ps_mb_part->pu1_best_hpel_buf = pu1_best_hpel_buf;
+        ps_mb_part->i4_srch_pos_idx = i4_srch_pos_idx;
+    }
 }
-
 
 /**
 *******************************************************************************
@@ -705,36 +680,26 @@ void ime_sub_pel_motion_estimation_16x16
 * @param[in] ps_me_ctxt
 *  pointer to me ctxt
 *
-* @param[in] ps_skip_mv
-*  pointer to skip mv
 *
 * @returns  none
 *
 * @remarks
 * NOTE: while computing the skip cost, do not enable early exit from compute
 * sad function because, a negative bias gets added later
+* Note tha the last ME candidate in me ctxt is taken as skip motion vector
 *
 *******************************************************************************
 */
 void ime_compute_skip_cost
     (
          me_ctxt_t *ps_me_ctxt,
-         void *pv_skip_mv,
+         ime_mv_t *ps_skip_mv,
          mb_part_ctxt *ps_smb_part_info,
-         UWORD32 u4_use_stat_sad
+         UWORD32 u4_use_stat_sad,
+         WORD32 i4_reflist,
+         WORD32 i4_is_slice_type_b
     )
 {
-
-    /* pointers to src & ref macro block */
-    UWORD8 *pu1_curr_mb = ps_me_ctxt->pu1_src_buf_luma;
-    UWORD8 *pu1_ref_mb = ps_me_ctxt->pu1_ref_buf_luma;
-
-    /* strides */
-    WORD32 i4_src_strd = ps_me_ctxt->i4_src_strd;
-    WORD32 i4_ref_strd = ps_me_ctxt->i4_rec_strd;
-
-    /* enabled fast sad computation */
-    UWORD32 u4_enable_fast_sad = ps_me_ctxt->u4_enable_fast_sad;
 
     /* SAD(distortion metric) of an mb */
     WORD32 i4_mb_distortion;
@@ -742,95 +707,78 @@ void ime_compute_skip_cost
     /* cost = distortion + u4_lambda_motion * rate */
     WORD32 i4_mb_cost;
 
-    /* Motion vectors in full-pel units */
-    WORD16 mv_x, mv_y;
-
-    /* lambda - lagrange constant */
-    UWORD32 u4_lambda_motion = ps_me_ctxt->u4_lambda_motion;
-
-    /* skip mv */
-    ime_mv_t *ps_skip_mv = pv_skip_mv, s_clip_skip_mv;
-
     /* temp var */
     UWORD8 *pu1_ref = NULL;
-    UWORD32 u4_is_nonzero;
 
-    s_clip_skip_mv.i2_mvx = CLIP3(ps_me_ctxt->i4_srch_range_w, ps_me_ctxt->i4_srch_range_e, ps_skip_mv->i2_mvx);
-    s_clip_skip_mv.i2_mvy = CLIP3(ps_me_ctxt->i4_srch_range_n, ps_me_ctxt->i4_srch_range_s, ps_skip_mv->i2_mvy);
+    ime_mv_t s_skip_mv;
 
-    if ((s_clip_skip_mv.i2_mvx != ps_skip_mv->i2_mvx) ||
-                    (s_clip_skip_mv.i2_mvy != ps_skip_mv->i2_mvy))
+    s_skip_mv.i2_mvx = (ps_skip_mv->i2_mvx +2)>>2;
+    s_skip_mv.i2_mvy = (ps_skip_mv->i2_mvy +2)>>2;
+
+    /* Check if the skip mv is out of bounds or subpel */
     {
-        /* skip motion vector not with in bounds */
-        /* it is possible that mv is already evaluated */
-        return ;
+        /* skip mv */
+        ime_mv_t s_clip_skip_mv;
+
+        s_clip_skip_mv.i2_mvx = CLIP3(ps_me_ctxt->i4_srch_range_w, ps_me_ctxt->i4_srch_range_e, s_skip_mv.i2_mvx);
+        s_clip_skip_mv.i2_mvy = CLIP3(ps_me_ctxt->i4_srch_range_n, ps_me_ctxt->i4_srch_range_s, s_skip_mv.i2_mvy);
+
+        if ((s_clip_skip_mv.i2_mvx != s_skip_mv.i2_mvx) ||
+           (s_clip_skip_mv.i2_mvy != s_skip_mv.i2_mvy) ||
+           (ps_skip_mv->i2_mvx & 0x3) ||
+           (ps_skip_mv->i2_mvy & 0x3))
+        {
+            return ;
+        }
     }
 
-    mv_x = (ps_skip_mv->i2_mvx + 2) >> 2;
-    mv_y = (ps_skip_mv->i2_mvy + 2) >> 2;
 
-    if ((mv_x << 2) != ps_skip_mv->i2_mvx || (mv_y << 2) != ps_skip_mv->i2_mvy)
-    {
-
-
-        return ;
-
-
-    }
-    else
-    {
-        /* adjust ref pointer */
-        pu1_ref = pu1_ref_mb + mv_x + (mv_y * i4_ref_strd);
-    }
+    /* adjust ref pointer */
+    pu1_ref = ps_me_ctxt->apu1_ref_buf_luma[i4_reflist] + s_skip_mv.i2_mvx
+                    + (s_skip_mv.i2_mvy * ps_me_ctxt->i4_rec_strd);
 
     if(u4_use_stat_sad == 1)
     {
-        ps_me_ctxt->pf_ime_compute_sad_stat_luma_16x16(pu1_curr_mb, pu1_ref, i4_src_strd, i4_ref_strd,
-                ps_me_ctxt->pu2_sad_thrsh, &i4_mb_distortion,&u4_is_nonzero);
+        UWORD32 u4_is_nonzero;
 
-        /*
-         *NOTE The check here is two fold
-         * One is checking if the sad has been reached, ie min sad, which a configurable parameter
-         * If that is reached,we need not do any mode evaluation
-         * Similary if we find a distortion of zero there is no point of doing any further mode evaluation
-         * as sad is a non negative quantity
-         * hence in this case too, no further evaluation is necessary
-         */
-        /*
-         *NOTE in case we need to disable the zero check using satdq,
-         *  we need only to set the u4_is_zero to a non zero value
-         */
-        if(u4_is_nonzero==0 || i4_mb_distortion <= ps_me_ctxt->i4_min_sad)
+        ps_me_ctxt->pf_ime_compute_sad_stat_luma_16x16(
+                        ps_me_ctxt->pu1_src_buf_luma, pu1_ref, ps_me_ctxt->i4_src_strd,
+                        ps_me_ctxt->i4_rec_strd, ps_me_ctxt->pu2_sad_thrsh,
+                        &i4_mb_distortion, &u4_is_nonzero);
+
+        if (u4_is_nonzero == 0 || i4_mb_distortion <= ps_me_ctxt->i4_min_sad)
         {
-            ps_me_ctxt->u4_min_sad_reached = 1;    /* found min sad*/
-            ps_me_ctxt->i4_min_sad =  (u4_is_nonzero == 0)?0:i4_mb_distortion;
+            ps_me_ctxt->u4_min_sad_reached = 1; /* found min sad */
+            ps_me_ctxt->i4_min_sad = (u4_is_nonzero == 0) ? 0 : i4_mb_distortion;
         }
     }
     else
     {
-        ps_me_ctxt->pf_ime_compute_sad_16x16[u4_enable_fast_sad](pu1_curr_mb, pu1_ref, i4_src_strd, i4_ref_strd, INT_MAX, &i4_mb_distortion);
+        ps_me_ctxt->pf_ime_compute_sad_16x16[ps_me_ctxt->u4_enable_fast_sad](
+                        ps_me_ctxt->pu1_src_buf_luma, pu1_ref, ps_me_ctxt->i4_src_strd,
+                        ps_me_ctxt->i4_rec_strd, INT_MAX, &i4_mb_distortion);
 
         if(i4_mb_distortion <= ps_me_ctxt->i4_min_sad)
         {
             ps_me_ctxt->i4_min_sad = i4_mb_distortion;
-            ps_me_ctxt->u4_min_sad_reached = 1;    /* found min sad*/
+            ps_me_ctxt->u4_min_sad_reached = 1; /* found min sad */
         }
     }
+
 
     /* for skip mode cost & distortion are identical
      * But we shall add a bias to favor skip mode.
      * Doc. JVT B118 Suggests SKIP_BIAS as 16.
      * TODO : Empirical analysis of SKIP_BIAS is necessary */
-#define SKIP_BIAS 8
-    i4_mb_cost = i4_mb_distortion - (u4_lambda_motion * SKIP_BIAS);
-#undef SKIP_BIAS
+
+    i4_mb_cost = i4_mb_distortion - (ps_me_ctxt->u4_lambda_motion * (ps_me_ctxt->i4_skip_bias[0] + ps_me_ctxt->i4_skip_bias[1]  * i4_is_slice_type_b));
 
     if (i4_mb_cost <= ps_smb_part_info->i4_mb_cost)
     {
         ps_smb_part_info->i4_mb_cost = i4_mb_cost;
         ps_smb_part_info->i4_mb_distortion = i4_mb_distortion;
-        ps_smb_part_info->s_mv_curr.i2_mvx = ps_skip_mv->i2_mvx;
-        ps_smb_part_info->s_mv_curr.i2_mvy = ps_skip_mv->i2_mvy;
+        ps_smb_part_info->s_mv_curr.i2_mvx = s_skip_mv.i2_mvx;
+        ps_smb_part_info->s_mv_curr.i2_mvy = s_skip_mv.i2_mvy;
     }
 }
 
