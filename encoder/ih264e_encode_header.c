@@ -90,6 +90,7 @@
 #include "ih264e_encode_header.h"
 #include "ih264_common_tables.h"
 #include "ih264_macros.h"
+#include "ih264e_utils.h"
 
 
 /*****************************************************************************/
@@ -686,17 +687,8 @@ IH264E_ERROR_T ih264e_populate_sps(codec_t *ps_codec, sps_t *ps_sps)
     }
 
     /* level */
-    ps_sps->u1_level_idc = ps_cfg->u4_max_level;
-//    i4_err_code = ih264e_get_level(ps_cfg, &level_idc);
-//    if (i4_err_code == IH264E_SUCCESS)
-//    {
-//        ps_sps->u1_level_idc = level_idc;
-//
-//    }
-//    else
-//    {
-//        return i4_err_code;
-//    }
+    ps_sps->u1_level_idc = MAX(ps_cfg->u4_max_level,
+                               (UWORD32)ih264e_get_min_level(ps_cfg->u4_max_wd, ps_cfg->u4_max_ht));
 
     /* constrained flags */
     /*

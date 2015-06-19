@@ -2502,7 +2502,7 @@ static WORD32 ih264e_init(codec_t *ps_codec)
     {
         WORD32 max_mb_rows = ps_cfg->i4_ht_mbs;
 
-        WORD32 num_jobs = max_mb_rows * 2;
+        WORD32 num_jobs = max_mb_rows * MAX_CTXT_SETS;
         WORD32 clz;
 
         /* Use next power of two number of entries*/
@@ -2674,8 +2674,6 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
     /* error status */
     IV_STATUS_T status = IV_SUCCESS;
 
-    /* profile / level info */
-    level = ps_ip->s_ive_ip.u4_max_level;
     num_reorder_frames = ps_ip->s_ive_ip.u4_max_reorder_cnt;
     num_ref_frames = ps_ip->s_ive_ip.u4_max_ref_cnt;
 
@@ -2691,6 +2689,9 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
     max_mb_rows = max_ht_luma / MB_SIZE;
     max_mb_cols = max_wd_luma / MB_SIZE;
     max_mb_cnt = max_mb_rows * max_mb_cols;
+
+    /* profile / level info */
+    level = ih264e_get_min_level(max_ht_luma, max_wd_luma);
 
     /* validate params */
     if ((level < MIN_LEVEL) || (level > MAX_LEVEL))
@@ -3062,7 +3063,7 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
     {
         /* One process job per row of MBs */
         /* Allocate for two pictures, so that wrap around can be handled easily */
-        WORD32 num_jobs = max_mb_rows * 2;
+        WORD32 num_jobs = max_mb_rows * MAX_CTXT_SETS;
 
         WORD32 job_queue_size = ih264_list_size(num_jobs, sizeof(job_t));
 
@@ -3077,7 +3078,7 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
     {
         /* One process job per row of MBs */
         /* Allocate for two pictures, so that wrap around can be handled easily */
-        WORD32 num_jobs = max_mb_rows * 2;
+        WORD32 num_jobs = max_mb_rows * MAX_CTXT_SETS;
 
         WORD32 job_queue_size = ih264_list_size(num_jobs, sizeof(job_t));
 
@@ -3464,9 +3465,9 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
      ************************************************************************/
     ps_mem_rec = &ps_mem_rec_base[MEM_REC_MB_INFO_NMB];
     {
-        ps_mem_rec->u4_mem_size = MAX_PROCESS_CTXT * MAX_NMB
-                        * (sizeof(mb_info_nmb_t)
-                                        + MB_SIZE * MB_SIZE * sizeof(UWORD8));
+        ps_mem_rec->u4_mem_size = MAX_PROCESS_CTXT * max_mb_cols *
+                                 (sizeof(mb_info_nmb_t) + MB_SIZE * MB_SIZE 
+                                  * sizeof(UWORD8));
     }
     DEBUG("\nMemory record Id %d = %d \n", MEM_REC_MB_INFO_NMB, ps_mem_rec->u4_mem_size);
 
@@ -3641,7 +3642,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
         for (i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if (i < MAX_PROCESS_CTXT / 2)
+            if (i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
             {
                 /* base ptr */
                 UWORD8 *pu1_buf = ps_mem_rec->pv_base;
@@ -3756,7 +3757,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
         for (i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if (i < MAX_PROCESS_CTXT / 2)
+            if (i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
             {
                 ps_codec->as_process[i].pv_pic_mb_coeff_data = pu1_buf;
                 ps_codec->as_process[i].s_entropy.pv_pic_mb_coeff_data =
@@ -3794,7 +3795,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
         for (i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if (i < MAX_PROCESS_CTXT / 2)
+            if (i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
             {
                 ps_codec->as_process[i].pv_pic_mb_header_data = pu1_buf;
                 ps_codec->as_process[i].s_entropy.pv_pic_mb_header_data =
@@ -3874,7 +3875,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
         for (i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if (i < MAX_PROCESS_CTXT / 2)
+            if (i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
             {
                 ps_codec->as_process[i].ps_slice_hdr_base = ps_mem_rec->pv_base;
             }
@@ -3896,7 +3897,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
         for (i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if (i < MAX_PROCESS_CTXT / 2)
+            if (i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
             {
                 ps_codec->as_process[i].pu1_is_intra_coded = pu1_buf;
             }
@@ -3921,7 +3922,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
         for (i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if (i < MAX_PROCESS_CTXT / 2)
+            if (i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
             {
                 ps_codec->as_process[i].pu1_slice_idx = pu1_buf_ping;
             }
@@ -3981,7 +3982,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
         for (i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if (i < MAX_PROCESS_CTXT / 2)
+            if (i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
             {
                 ps_codec->as_process[i].pu1_proc_map = pu1_buf + max_mb_cols;
             }
@@ -4012,7 +4013,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
         for (i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if (i < MAX_PROCESS_CTXT / 2)
+            if (i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
             {
                 ps_codec->as_process[i].pu1_deblk_map = pu1_buf + max_mb_cols;
 
@@ -4042,7 +4043,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
         for (i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if (i < MAX_PROCESS_CTXT / 2)
+            if (i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
             {
                 ps_codec->as_process[i].pu1_me_map = pu1_buf + max_mb_cols;
             }
@@ -4238,7 +4239,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
         for (i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if (i < MAX_PROCESS_CTXT / 2)
+            if (i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
             {
                 ps_codec->as_process[i].ps_top_row_mb_syntax_ele_base =
                                 (mb_info_t *) pu1_buf;
@@ -4289,7 +4290,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
         for (i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if (i < MAX_PROCESS_CTXT / 2)
+            if (i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
             {
                 pu1_buf_ping = (UWORD8 *) ps_mem_rec->pv_base;
 
@@ -4370,9 +4371,9 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
         UWORD8 *pu1_buf = ps_mem_rec->pv_base;
 
         /* size of nmb ctxt */
-        WORD32 size = MAX_NMB * sizeof(mb_info_nmb_t);
+        WORD32 size = max_mb_cols * sizeof(mb_info_nmb_t);
 
-        UWORD32 nmb_cntr, subpel_buf_size;
+        WORD32 nmb_cntr, subpel_buf_size;
 
         /* init nmb info structure pointer in all proc ctxts */
         for (i = 0; i < MAX_PROCESS_CTXT; i++)
@@ -4390,7 +4391,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
             mb_info_nmb_t* ps_mb_info_nmb =
                             &ps_codec->as_process[i].ps_nmb_info[0];
 
-            for (nmb_cntr = 0; nmb_cntr < MAX_NMB; nmb_cntr++)
+            for (nmb_cntr = 0; nmb_cntr < max_mb_cols; nmb_cntr++)
             {
                 ps_mb_info_nmb[nmb_cntr].pu1_best_sub_pel_buf = pu1_buf;
 

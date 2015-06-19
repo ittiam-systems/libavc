@@ -91,8 +91,11 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
 *  Gets the minimum level index and then gets corresponding level.
 *  Also used to ignore invalid levels like 2.3, 3.3 etc
 *
-* @param[in] level
-*  Level of the stream
+* @param[in] wd
+*  Width
+*
+* @param[in] ht
+*  Height
 *
 * @returns  Level index for a given level
 *
@@ -100,7 +103,7 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
 *
 *******************************************************************************
 */
-WORD32 ih264e_get_min_level(WORD32 pic_size);
+WORD32 ih264e_get_min_level(WORD32 wd, WORD32 ht);
 
 /**
 *******************************************************************************
