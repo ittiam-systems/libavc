@@ -4618,7 +4618,7 @@ static WORD32 ih264e_get_buf_info(iv_obj_t *ps_codec_obj,
 
     for (i = 0; i < (WORD32) ps_op->s_ive_op.u4_out_comp_cnt; i++)
     {
-        ps_op->s_ive_op.au4_min_out_buf_size[i] = (wd * ht * 3) >> 1;
+        ps_op->s_ive_op.au4_min_out_buf_size[i] = MAX(((wd * ht * 3) >> 1), MIN_STREAM_SIZE);
     }
 
     ps_op->s_ive_op.u4_min_inp_bufs = MIN_INP_BUFS;

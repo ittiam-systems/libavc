@@ -218,7 +218,10 @@ typedef enum
     IH264E_INVALID_ALT_REF_OPTION                                   = IH264E_CODEC_ERROR_START + 0x2E,
 
     /**No free picture buffer available to store recon pic */
-    IH264E_NO_FREE_RECONBUF                                           = IH264E_CODEC_ERROR_START + 0x2F,
+    IH264E_NO_FREE_RECONBUF                                         = IH264E_CODEC_ERROR_START + 0x2F,
+
+    /**Not enough memory allocated as output buffer */
+    IH264E_INSUFFICIENT_OUTPUT_BUFFER                               = IH264E_CODEC_ERROR_START + 0x30,
 
     /**max failure error code to ensure enum is 32 bits wide */
     IH264E_FAIL                                                     = -1,
