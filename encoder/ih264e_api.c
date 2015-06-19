@@ -1561,7 +1561,11 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                         return IV_FAIL;
                     }
 
-                    if ((ps_ip->s_ive_ip.u4_i_qp_min > ps_ip->s_ive_ip.u4_i_qp_max)
+                    /* We donot support QP < 4 */
+                    if ((ps_ip->s_ive_ip.u4_i_qp_min < 4)
+                                    || (ps_ip->s_ive_ip.u4_p_qp_min < 4)
+                                    || (ps_ip->s_ive_ip.u4_b_qp_min < 4)
+                                    || (ps_ip->s_ive_ip.u4_i_qp_min > ps_ip->s_ive_ip.u4_i_qp_max)
                                     || (ps_ip->s_ive_ip.u4_p_qp_min > ps_ip->s_ive_ip.u4_p_qp_max)
                                     || (ps_ip->s_ive_ip.u4_b_qp_min > ps_ip->s_ive_ip.u4_b_qp_max))
                     {
