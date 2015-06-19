@@ -916,12 +916,9 @@ void irc_add_pic_to_stack(pic_handling_t *ps_pic_handling, WORD32 i4_enc_pic_id)
     }
 
     /* Updating the vars which work on the encoded pics */
-    /* For the first gop
-     * TODO (BPIC) this  //  || (i4_intra_frm_int == 1)) may cause problems for bpics */
-    if(((ps_pic_handling->i4_is_first_gop)
-                    && (ps_pic_handling->i4_pic_disp_order_no
-                                    == (i4_max_inter_frm_int - 2))))
-                 //   || (i4_intra_frm_int == 1))
+    /* For the first gop */
+    if ((ps_pic_handling->i4_is_first_gop)
+                    && (ps_pic_handling->i4_pic_disp_order_no == 0))
     {
         ps_pic_handling->i4_coded_pic_no = 0;
         ps_pic_handling->i4_stack_count = 0;
