@@ -226,6 +226,16 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     ps_video_encode_op->s_ive_op.dump_recon = 0;
     ps_video_encode_op->s_ive_op.u4_encoded_frame_type = IV_NA_FRAME;
 
+    /* Check for output memory allocation size */
+    if (ps_video_encode_ip->s_ive_ip.s_out_buf.u4_bufsize < MIN_STREAM_SIZE)
+    {
+        error_status |= IH264E_INSUFFICIENT_OUTPUT_BUFFER;
+        SET_ERROR_ON_RETURN(error_status,
+                            IVE_UNSUPPORTEDPARAM,
+                            ps_video_encode_op->s_ive_op.u4_error_code,
+                            IV_FAIL);
+    }
+
     /* copy output info. to internal structure */
     s_out_buf.s_bits_buf = ps_video_encode_ip->s_ive_ip.s_out_buf;
     s_out_buf.u4_is_last = 0;
