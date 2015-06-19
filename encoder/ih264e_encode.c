@@ -236,7 +236,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     ps_codec->i4_encode_api_call_cnt += 1;
 
     /* codec context selector */
-    ctxt_sel = ps_codec->i4_encode_api_call_cnt & 1;
+    ctxt_sel = ps_codec->i4_encode_api_call_cnt % MAX_CTXT_SETS;
 
     /* reset status flags */
     ps_codec->ai4_pic_cnt[ctxt_sel] = -1;
