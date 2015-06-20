@@ -2105,7 +2105,7 @@ int main(int argc, char *argv[])
     /* Read command line arguments */
     if(argc > 2)
     {
-        for(i = 1; i < argc; i += 2)
+        for(i = 1; i + 1 < argc; i += 2)
         {
             if(CONFIG == get_argument(argv[i]))
             {
