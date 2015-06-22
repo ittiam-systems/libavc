@@ -43,6 +43,10 @@
 #include "irc_rate_control_api_structs.h"
 #include "irc_trace_support.h"
 
+
+#define MIN(a,b)   (((a) < (b)) ? (a) : (b))
+#define MAX(a,b)   (((a) > (b)) ? (a) : (b))
+
 #define DEV_Q   4       /*Q format(Shift) for Deviation range factor */
 #define HI_DEV_FCTR     22  /* 1.4*16 */
 #define LO_DEV_FCTR     12  /* 0.75*16 */
@@ -599,20 +603,25 @@ UWORD8 irc_get_frame_level_qp(rate_control_api_t *ps_rate_control_api,
                     }
                 }
 
-                hi_dev_qp = GET_HI_DEV_QP(prev_qp);
                 /*
-                 * For lower QPs due to scale factor and fixed point arithmetic,
-                 * the hi_dev_qp can be same as that of the prev qp and in which
-                 * case it gets stuck in the lower most qp and thus not allowing
-                 * QPs not to change. To avoid this,for lower qps the hi_dev_qp
-                 * should be made slightly more than prev_qp
+                 * Due to the inexact nature of translation tables, QP may
+                 * get locked at some values. This is because of the inexactness of
+                 * the tables causing a change of +-1 in back and forth translations.
+                 * In that case, if we restrict the QP swing to +-1, we will get
+                 * the lock up condition. Hence we make it such that we will have
+                 * a swing of atleast +- 2 from prev_qp
                  */
-                if(prev_qp == hi_dev_qp)
-                {
-                    hi_dev_qp += 1;
-                }
+
                 lo_dev_qp = GET_LO_DEV_QP(prev_qp);
-                u1_frame_qp = (UWORD8)CLIP_QP((WORD32)u1_frame_qp, hi_dev_qp, lo_dev_qp);
+                lo_dev_qp = MIN(lo_dev_qp, prev_qp - 2);
+                lo_dev_qp = MAX(lo_dev_qp, ps_rate_control_api->au1_min_max_qp[(e_pic_type << 1)]);
+
+                hi_dev_qp = GET_HI_DEV_QP(prev_qp);
+                hi_dev_qp = MAX(hi_dev_qp, prev_qp + 2);
+                hi_dev_qp = MIN(hi_dev_qp, ps_rate_control_api->au1_min_max_qp[(e_pic_type << 1) + 1]);
+
+                u1_frame_qp = (UWORD8)CLIP_QP((WORD32)u1_frame_qp, hi_dev_qp , lo_dev_qp);
+
             }
             else
             {
