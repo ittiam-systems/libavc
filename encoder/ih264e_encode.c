@@ -358,6 +358,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
         /* header mode tag is not sticky */
         ps_codec->i4_header_mode = 0;
+        ps_codec->i4_gen_header = 0;
 
         /* send the input to app */
         ps_video_encode_op->s_ive_op.s_inp_buf = s_inp_buf.s_raw_buf;

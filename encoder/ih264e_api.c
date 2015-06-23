@@ -1869,7 +1869,7 @@ IH264E_ERROR_T ih264e_codec_update_config(codec_t *ps_codec,
             u4_init_rc = 1;
 
             /* when the dimension changes, the header needs to be regenerated */
-            ps_codec->i4_header_mode = 1;
+            ps_codec->i4_gen_header = 1;
         }
     }
     else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_FRAMERATE)
