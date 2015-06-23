@@ -394,7 +394,7 @@ const UWORD8 gau1_ih264_inv_scan_int8x8_cabac[64] =
 };
 
 
-const UWORD8 *gpau1_ih264_inv_scan8x8[] =
+const UWORD8 *const gpau1_ih264_inv_scan8x8[] =
 {
      gau1_ih264_inv_scan_prog8x8_cavlc,
      gau1_ih264_inv_scan_int8x8_cavlc,
@@ -402,7 +402,7 @@ const UWORD8 *gpau1_ih264_inv_scan8x8[] =
      gau1_ih264_inv_scan_int8x8_cabac
 };
 
-const UWORD8 *gpau1_ih264_inv_scan4x4[] =
+const UWORD8 *const gpau1_ih264_inv_scan4x4[] =
 {
      gau1_ih264_inv_scan_prog4x4,
      gau1_ih264_inv_scan_int4x4,
