@@ -58,7 +58,7 @@ WORD32 irc_est_sad_num_fill_use_free_memtab(est_sad_t **pps_est_sad,
                                             ITT_FUNC_TYPE_E e_func_type)
 {
     WORD32 i4_mem_tab_idx = 0;
-    static est_sad_t s_est_sad;
+    est_sad_t s_est_sad;
 
     /* Hack for al alloc, during which we don't have any state memory.
      * Dereferencing can cause issues

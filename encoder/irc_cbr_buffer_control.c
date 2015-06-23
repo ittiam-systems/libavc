@@ -79,7 +79,7 @@ WORD32 irc_cbr_buffer_num_fill_use_free_memtab(cbr_buffer_t **pps_cbr_buffer,
                                                ITT_FUNC_TYPE_E e_func_type)
 {
     WORD32 i4_mem_tab_idx = 0, i;
-    static cbr_buffer_t s_cbr_buffer_temp;
+    cbr_buffer_t s_cbr_buffer_temp;
 
     /*
      * Hack for all alloc, during which we don't have any state memory.

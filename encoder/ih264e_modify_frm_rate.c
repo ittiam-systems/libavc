@@ -106,7 +106,7 @@ WORD32 ih264e_pd_frm_rate_get_init_free_memtab(pd_frm_rate_handle *pps_pd_frm_ra
                                                ITT_FUNC_TYPE_E e_func_type)
 {
     WORD32 i4_mem_tab_idx = 0;
-    static pd_frm_rate_t s_temp_pd_frm_rate_t;
+    pd_frm_rate_t s_temp_pd_frm_rate_t;
 
     /* Hack for al alloc, during which we dont have any state memory.
      Dereferencing can cause issues */

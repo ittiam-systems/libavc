@@ -77,7 +77,7 @@ WORD32 irc_rate_control_num_fill_use_free_memtab(rate_control_handle *pps_rate_c
                                                  ITT_FUNC_TYPE_E e_func_type)
 {
     WORD32 i4_mem_tab_idx = 0, i;
-    static rate_control_api_t s_temp_rc_api;
+    rate_control_api_t s_temp_rc_api;
 
     /*
      * Hack for al alloc, during which we dont have any state memory.

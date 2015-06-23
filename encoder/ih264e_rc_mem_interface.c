@@ -330,7 +330,7 @@ WORD32 ih264e_get_rate_control_mem_tab(void *pv_rate_control,
                                        iv_mem_rec_t  *ps_mem,
                                        ITT_FUNC_TYPE_E e_func_type)
 {
-    static itt_memtab_t as_itt_memtab[NUM_RC_MEMTABS];
+    itt_memtab_t as_itt_memtab[NUM_RC_MEMTABS];
     WORD32 i4_num_memtab = 0, j = 0;
     void *refptr2[4];
     void **refptr1[4];
