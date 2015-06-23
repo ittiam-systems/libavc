@@ -304,6 +304,12 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     }
 #endif /*LOGO_EN*/
 
+    /* In case of alt ref and B pics we will have non reference frame in stream */
+    if (ps_codec->s_cfg.u4_enable_alt_ref || ps_codec->s_cfg.u4_num_bframes)
+    {
+        ps_codec->i4_non_ref_frames_in_stream = 1;
+    }
+
     if (ps_codec->i4_encode_api_call_cnt == 0)
     {
         /********************************************************************/
