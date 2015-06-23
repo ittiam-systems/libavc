@@ -62,7 +62,7 @@ WORD32 irc_error_bits_num_fill_use_free_memtab(error_bits_t **pps_error_bits,
                                                ITT_FUNC_TYPE_E e_func_type)
 {
     WORD32 i4_mem_tab_idx = 0;
-    static error_bits_t s_error_bits_temp;
+    error_bits_t s_error_bits_temp;
 
     /*
      * Hack for all alloc, during which we don't have any state memory.
