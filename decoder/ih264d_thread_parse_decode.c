@@ -633,8 +633,6 @@ void ih264d_decode_picture_thread(dec_struct_t *ps_dec )
                               ps_dec->u4_fmt_conv_num_rows);
         ps_dec->u4_fmt_conv_cur_row += ps_dec->u4_fmt_conv_num_rows;
     }
-
-    ithread_exit(0);
 }
 
 void ih264d_signal_decode_thread(dec_struct_t *ps_dec)
