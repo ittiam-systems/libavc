@@ -665,7 +665,7 @@ ih264_hadamard_quant_2x2_uv_av8:
     ld2       {v0.4h-v1.4h}, [x0]       //load src
 
     ld1       {v30.h}[0], [x2]          //load pu2_scale_matrix[0]
-    dup       v30.4h, v30.4h[0]         //pu2_scale_matrix
+    dup       v30.4h, v30.h[0]          //pu2_scale_matrix
     uxtl      v30.4s, v30.4h            //pu2_scale_matrix
 
     neg       w4, w4

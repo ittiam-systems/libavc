@@ -143,8 +143,8 @@ loop_4:                                 //each iteration processes four rows
     uxtl      v4.8h, v4.8b              //converting rows 1,2 to 16-bit
     uxtl      v6.8h, v6.8b              //converting rows 3,4 to 16-bit
 
-    mul       v4.8h, v4.8h , v2.4h[0]   //weight mult. for rows 1,2
-    mul       v6.8h, v6.8h , v2.4h[0]   //weight mult. for rows 3,4
+    mul       v4.8h, v4.8h , v2.h[0]    //weight mult. for rows 1,2
+    mul       v6.8h, v6.8h , v2.h[0]    //weight mult. for rows 3,4
 
     subs      w7, w7, #4                //decrement ht by 4
     srshl     v4.8h, v4.8h , v0.8h      //rounds off the weighted samples from rows 1,2
@@ -175,11 +175,11 @@ loop_8:                                 //each iteration processes four rows
     uxtl      v6.8h, v6.8b              //converting row 2 to 16-bit
 
     uxtl      v8.8h, v8.8b              //converting row 3 to 16-bit
-    mul       v4.8h, v4.8h , v2.4h[0]   //weight mult. for row 1
+    mul       v4.8h, v4.8h , v2.h[0]    //weight mult. for row 1
     uxtl      v10.8h, v10.8b            //converting row 4 to 16-bit
-    mul       v6.8h, v6.8h , v2.4h[0]   //weight mult. for row 2
-    mul       v8.8h, v8.8h , v2.4h[0]   //weight mult. for row 3
-    mul       v10.8h, v10.8h , v2.4h[0] //weight mult. for row 4
+    mul       v6.8h, v6.8h , v2.h[0]    //weight mult. for row 2
+    mul       v8.8h, v8.8h , v2.h[0]    //weight mult. for row 3
+    mul       v10.8h, v10.8h , v2.h[0]  //weight mult. for row 4
 
     srshl     v4.8h, v4.8h , v0.8h      //rounds off the weighted samples from row 1
     srshl     v6.8h, v6.8h , v0.8h      //rounds off the weighted samples from row 2
@@ -214,20 +214,20 @@ loop_16:                                //each iteration processes two rows
     uxtl      v14.8h, v5.8b             //converting row 1H to 16-bit
     ld1       {v10.8b, v11.8b}, [x0], x2 //load row 4 in source
     uxtl      v16.8h, v6.8b             //converting row 2L to 16-bit
-    mul       v12.8h, v12.8h , v2.4h[0] //weight mult. for row 1L
+    mul       v12.8h, v12.8h , v2.h[0]  //weight mult. for row 1L
     uxtl      v18.8h, v7.8b             //converting row 2H to 16-bit
-    mul       v14.8h, v14.8h , v2.4h[0] //weight mult. for row 1H
+    mul       v14.8h, v14.8h , v2.h[0]  //weight mult. for row 1H
     uxtl      v20.8h, v8.8b             //converting row 3L to 16-bit
-    mul       v16.8h, v16.8h , v2.4h[0] //weight mult. for row 2L
+    mul       v16.8h, v16.8h , v2.h[0]  //weight mult. for row 2L
     uxtl      v22.8h, v9.8b             //converting row 3H to 16-bit
-    mul       v18.8h, v18.8h , v2.4h[0] //weight mult. for row 2H
+    mul       v18.8h, v18.8h , v2.h[0]  //weight mult. for row 2H
     uxtl      v24.8h, v10.8b            //converting row 4L to 16-bit
-    mul       v20.8h, v20.8h , v2.4h[0] //weight mult. for row 3L
+    mul       v20.8h, v20.8h , v2.h[0]  //weight mult. for row 3L
     uxtl      v26.8h, v11.8b            //converting row 4H to 16-bit
-    mul       v22.8h, v22.8h , v2.4h[0] //weight mult. for row 3H
-    mul       v24.8h, v24.8h , v2.4h[0] //weight mult. for row 4L
+    mul       v22.8h, v22.8h , v2.h[0]  //weight mult. for row 3H
+    mul       v24.8h, v24.8h , v2.h[0]  //weight mult. for row 4L
     srshl     v12.8h, v12.8h , v0.8h    //rounds off the weighted samples from row 1L
-    mul       v26.8h, v26.8h , v2.4h[0] //weight mult. for row 4H
+    mul       v26.8h, v26.8h , v2.h[0]  //weight mult. for row 4H
     srshl     v14.8h, v14.8h , v0.8h    //rounds off the weighted samples from row 1H
     srshl     v16.8h, v16.8h , v0.8h    //rounds off the weighted samples from row 2L
     saddw     v12.8h, v12.8h , v3.8b    //adding offset for row 1L

@@ -501,7 +501,7 @@ ih264_intra_pred_chroma_8x8_mode_plane_av8:
     add       v16.8h, v0.8h , v16.8h
     dup       v20.8h, v22.h[0]
     mul       v4.8h, v6.8h , v20.8h
-    dup       v30.8h, v22.4h[1]
+    dup       v30.8h, v22.h[1]
     mul       v18.8h, v6.8h , v20.8h
     mul       v14.8h, v6.8h , v30.8h
     mul       v8.8h, v6.8h , v30.8h
@@ -511,7 +511,7 @@ ih264_intra_pred_chroma_8x8_mode_plane_av8:
     sqrshrun  v28.8b, v24.8h, #5
     add       v26.8h, v16.8h , v8.8h
     sqrshrun  v29.8b, v0.8h, #5
-    dup       v20.8h, v22.4h[2]
+    dup       v20.8h, v22.h[2]
     st1       {v28.8b, v29.8b}, [x1], x3
     sqrshrun  v28.8b, v2.8h, #5
     sqrshrun  v29.8b, v26.8h, #5
@@ -520,7 +520,7 @@ ih264_intra_pred_chroma_8x8_mode_plane_av8:
     st1       {v28.8b, v29.8b}, [x1], x3
     add       v24.8h, v12.8h , v4.8h
     add       v0.8h, v16.8h , v18.8h
-    dup       v30.8h, v22.4h[3]
+    dup       v30.8h, v22.h[3]
     sqrshrun  v28.8b, v24.8h, #5
     sqrshrun  v29.8b, v0.8h, #5
     mul       v14.8h, v6.8h , v30.8h
