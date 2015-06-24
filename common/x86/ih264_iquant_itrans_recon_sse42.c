@@ -30,8 +30,8 @@
  *  Mohit [100664]
  *
  * @par List of Functions:
- *  - ihevc_iquant_itrans_recon_4x4_sse42()
- *  - ihevc_iquant_itrans_recon_chroma_4x4_sse42()
+ *  - ih264_iquant_itrans_recon_4x4_sse42()
+ *  - ih264_iquant_itrans_recon_chroma_4x4_sse42()
  *
  * @remarks
  *  None
@@ -370,6 +370,7 @@ void ih264_iquant_itrans_recon_chroma_4x4_sse42(WORD16 *pi2_src,
     __m128i add_rshift = _mm_set1_epi32((1 << (3 - u4_qp_div_6)));
     __m128i value_32 = _mm_set1_epi32(32);
     __m128i chroma_mask = _mm_set1_epi16 (0xFF);
+    __m128i out_r0, out_r1, out_r2, out_r3;
     UNUSED (pi2_tmp);
 
     /*************************************************************/
@@ -548,10 +549,24 @@ void ih264_iquant_itrans_recon_chroma_4x4_sse42(WORD16 *pi2_src,
     resq_r2 = _mm_cvtepu8_epi16(resq_r2); //p20 p21 p22 p23 -- all 16 bits
     resq_r3 = _mm_cvtepu8_epi16(resq_r3); //p30 p31 p32 p33 -- all 16 bits
 
-    chroma_mask = _mm_unpacklo_epi64(chroma_mask, zero_8x16b);
+    chroma_mask = _mm_set1_epi16 (0xFF00);
+    out_r0 = _mm_loadl_epi64((__m128i *) (&pu1_out[0]));
+    out_r1 = _mm_loadl_epi64((__m128i *) (&pu1_out[out_strd]));
+    out_r2 = _mm_loadl_epi64((__m128i *) (&pu1_out[2 * out_strd]));
+    out_r3 = _mm_loadl_epi64((__m128i *) (&pu1_out[3 * out_strd]));
 
-    _mm_maskmoveu_si128(resq_r0, chroma_mask, (char *)(&pu1_out[0]));
-    _mm_maskmoveu_si128(resq_r1, chroma_mask, (char *)(&pu1_out[out_strd]));
-    _mm_maskmoveu_si128(resq_r2, chroma_mask, (char *)(&pu1_out[2*out_strd]));
-    _mm_maskmoveu_si128(resq_r3, chroma_mask, (char *)(&pu1_out[3*out_strd]));
+    out_r0 = _mm_and_si128(out_r0, chroma_mask);
+    out_r1 = _mm_and_si128(out_r1, chroma_mask);
+    out_r2 = _mm_and_si128(out_r2, chroma_mask);
+    out_r3 = _mm_and_si128(out_r3, chroma_mask);
+
+    out_r0 = _mm_add_epi8(out_r0, resq_r0);
+    out_r1 = _mm_add_epi8(out_r1, resq_r1);
+    out_r2 = _mm_add_epi8(out_r2, resq_r2);
+    out_r3 = _mm_add_epi8(out_r3, resq_r3);
+
+    _mm_storel_epi64((__m128i *)(&pu1_out[0]), out_r0);
+    _mm_storel_epi64((__m128i *)(&pu1_out[out_strd]), out_r1);
+    _mm_storel_epi64((__m128i *)(&pu1_out[2 * out_strd]), out_r2);
+    _mm_storel_epi64((__m128i *)(&pu1_out[3 * out_strd]), out_r3);
 }

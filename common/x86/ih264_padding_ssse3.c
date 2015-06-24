@@ -97,9 +97,6 @@ void ih264_pad_left_luma_ssse3(UWORD8 *pu1_src,
     WORD32 row;
     WORD32 i;
     UWORD8 *pu1_dst;
-    __m128i const0_16x8b;
-
-    const0_16x8b = _mm_setzero_si128();
 
     ASSERT(pad_size % 8 == 0);
 
@@ -107,9 +104,8 @@ void ih264_pad_left_luma_ssse3(UWORD8 *pu1_src,
     {
         __m128i src_temp0_16x8b;
 
-        src_temp0_16x8b =  _mm_loadu_si128((__m128i *)pu1_src);
         pu1_dst = pu1_src - pad_size;
-        src_temp0_16x8b = _mm_shuffle_epi8(src_temp0_16x8b, const0_16x8b);
+        src_temp0_16x8b = _mm_set1_epi8(*pu1_src);
         for(i = 0; i < pad_size; i += 8)
         {
             _mm_storel_epi64((__m128i *)(pu1_dst + i), src_temp0_16x8b);
@@ -168,20 +164,14 @@ void ih264_pad_left_chroma_ssse3(UWORD8 *pu1_src,
     WORD32 row;
     WORD32 col;
     UWORD8 *pu1_dst;
-    __m128i const0_16x8b, const1_16x8b;
-    const0_16x8b = _mm_setzero_si128();
-    const1_16x8b = _mm_set1_epi8(1);
-    const0_16x8b = _mm_unpacklo_epi8(const0_16x8b, const1_16x8b);
 
     ASSERT(pad_size % 8 == 0);
     for(row = 0; row < ht; row++)
     {
         __m128i src_temp0_16x8b;
 
-        src_temp0_16x8b =  _mm_loadu_si128((__m128i *)pu1_src);
         pu1_dst = pu1_src - pad_size;
-        src_temp0_16x8b = _mm_shuffle_epi8(src_temp0_16x8b, const0_16x8b);
-
+        src_temp0_16x8b = _mm_set1_epi16(*((UWORD16 *)pu1_src));
         for(col = 0; col < pad_size; col += 8)
         {
             _mm_storel_epi64((__m128i *)(pu1_dst + col), src_temp0_16x8b);
@@ -240,7 +230,6 @@ void ih264_pad_right_luma_ssse3(UWORD8 *pu1_src,
     WORD32 row;
     WORD32 col;
     UWORD8 *pu1_dst;
-    __m128i const0_16x8b;
 
     ASSERT(pad_size % 8 == 0);
 
@@ -248,10 +237,8 @@ void ih264_pad_right_luma_ssse3(UWORD8 *pu1_src,
     {
         __m128i src_temp0_16x8b;
 
-        src_temp0_16x8b =  _mm_loadu_si128((__m128i *)(pu1_src - 1));
-        const0_16x8b = _mm_setzero_si128();
         pu1_dst = pu1_src;
-        src_temp0_16x8b = _mm_shuffle_epi8(src_temp0_16x8b, const0_16x8b);
+        src_temp0_16x8b = _mm_set1_epi8(*(pu1_src - 1));
         for(col = 0; col < pad_size; col += 8)
         {
             _mm_storel_epi64((__m128i *)(pu1_dst + col), src_temp0_16x8b);
@@ -310,10 +297,6 @@ void ih264_pad_right_chroma_ssse3(UWORD8 *pu1_src,
     WORD32 row;
     WORD32 col;
     UWORD8 *pu1_dst;
-    __m128i const0_16x8b, const1_16x8b;
-    const0_16x8b = _mm_setzero_si128();
-    const1_16x8b = _mm_set1_epi8(1);
-    const0_16x8b = _mm_unpacklo_epi8(const0_16x8b, const1_16x8b);
 
     ASSERT(pad_size % 8 == 0);
 
@@ -321,9 +304,8 @@ void ih264_pad_right_chroma_ssse3(UWORD8 *pu1_src,
     {
         __m128i src_temp0_16x8b;
 
-        src_temp0_16x8b =  _mm_loadu_si128((__m128i *)(pu1_src - 2));
         pu1_dst = pu1_src;
-        src_temp0_16x8b = _mm_shuffle_epi8(src_temp0_16x8b, const0_16x8b);
+        src_temp0_16x8b = _mm_set1_epi16(*((UWORD16 *)(pu1_src - 2)));
         for(col = 0; col < pad_size; col += 8)
         {
             _mm_storel_epi64((__m128i *)(pu1_dst + col), src_temp0_16x8b);

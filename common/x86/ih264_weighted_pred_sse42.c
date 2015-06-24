@@ -96,12 +96,6 @@ void ih264_default_weighted_pred_luma_sse42(UWORD8 *pu1_src1,
 
     if(wd == 4)
     {
-        __m128i mask_full_16x8b, mask_ll4B_16x8b;
-
-        mask_full_16x8b = _mm_set1_epi8(0xff);
-        mask_ll4B_16x8b = _mm_srli_si128(mask_full_16x8b, 12);
-        // mask for first four bytes
-
         do
         {
             y0_0_16x8b = _mm_loadl_epi64((__m128i *)pu1_src1);
@@ -121,13 +115,10 @@ void ih264_default_weighted_pred_luma_sse42(UWORD8 *pu1_src1,
             y0_2_16x8b = _mm_avg_epu8(y0_2_16x8b, y1_2_16x8b);
             y0_3_16x8b = _mm_avg_epu8(y0_3_16x8b, y1_3_16x8b);
 
-            _mm_maskmoveu_si128(y0_0_16x8b, mask_ll4B_16x8b, (char*)pu1_dst);
-            _mm_maskmoveu_si128(y0_1_16x8b, mask_ll4B_16x8b,
-                                (char*)(pu1_dst + dst_strd));
-            _mm_maskmoveu_si128(y0_2_16x8b, mask_ll4B_16x8b,
-                                (char*)(pu1_dst + (dst_strd << 1)));
-            _mm_maskmoveu_si128(y0_3_16x8b, mask_ll4B_16x8b,
-                                (char*)(pu1_dst + dst_strd * 3));
+            *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(y0_0_16x8b);
+            *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(y0_1_16x8b);
+            *((WORD32 *)(pu1_dst + (dst_strd << 1))) = _mm_cvtsi128_si32(y0_2_16x8b);
+            *((WORD32 *)(pu1_dst + dst_strd * 3)) = _mm_cvtsi128_si32(y0_3_16x8b);
 
             ht -= 4;
             pu1_src1 += src_strd1 << 2;
@@ -268,12 +259,6 @@ void ih264_default_weighted_pred_chroma_sse42(UWORD8 *pu1_src1,
 
     if(wd == 2)
     {
-        __m128i mask_full_16x8b, mask_ll4B_16x8b;
-
-        mask_full_16x8b = _mm_set1_epi8(0xff);
-        mask_ll4B_16x8b = _mm_srli_si128(mask_full_16x8b, 12);
-        // mask for first four bytes
-
         do
         {
             uv0_0_16x8b = _mm_loadl_epi64((__m128i *)pu1_src1);
@@ -285,9 +270,8 @@ void ih264_default_weighted_pred_chroma_sse42(UWORD8 *pu1_src1,
             uv0_0_16x8b = _mm_avg_epu8(uv0_0_16x8b, uv1_0_16x8b);
             uv0_1_16x8b = _mm_avg_epu8(uv0_1_16x8b, uv1_1_16x8b);
 
-            _mm_maskmoveu_si128(uv0_0_16x8b, mask_ll4B_16x8b, (char*)pu1_dst);
-            _mm_maskmoveu_si128(uv0_1_16x8b, mask_ll4B_16x8b,
-                                (char*)(pu1_dst + dst_strd));
+            *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(uv0_0_16x8b);
+            *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(uv0_1_16x8b);
 
             ht -= 2;
             pu1_src1 += src_strd1 << 1;
@@ -419,12 +403,6 @@ void ih264_weighted_pred_luma_sse42(UWORD8 *pu1_src,
     {
         __m128i y_0_8x16b, y_2_8x16b;
 
-        __m128i mask_full_16x8b, mask_ll4B_16x8b;
-
-        mask_full_16x8b = _mm_set1_epi8(0xff);
-        mask_ll4B_16x8b = _mm_srli_si128(mask_full_16x8b, 12);
-        // mask for first four bytes
-
         do
         {
             y_0_16x8b = _mm_loadl_epi64((__m128i *)pu1_src);
@@ -455,13 +433,10 @@ void ih264_weighted_pred_luma_sse42(UWORD8 *pu1_src,
             y_2_16x8b = _mm_srli_si128(y_0_16x8b, 8);
             y_3_16x8b = _mm_srli_si128(y_0_16x8b, 12);
 
-            _mm_maskmoveu_si128(y_0_16x8b, mask_ll4B_16x8b, (char*)pu1_dst);
-            _mm_maskmoveu_si128(y_1_16x8b, mask_ll4B_16x8b,
-                                (char*)(pu1_dst + dst_strd));
-            _mm_maskmoveu_si128(y_2_16x8b, mask_ll4B_16x8b,
-                                (char*)(pu1_dst + (dst_strd << 1)));
-            _mm_maskmoveu_si128(y_3_16x8b, mask_ll4B_16x8b,
-                                (char*)(pu1_dst + dst_strd * 3));
+            *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(y_0_16x8b);
+            *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(y_1_16x8b);
+            *((WORD32 *)(pu1_dst + (dst_strd << 1))) = _mm_cvtsi128_si32(y_2_16x8b);
+            *((WORD32 *)(pu1_dst + dst_strd * 3)) = _mm_cvtsi128_si32(y_3_16x8b);
 
             ht -= 4;
             pu1_src += src_strd << 2;
@@ -660,12 +635,6 @@ void ih264_weighted_pred_chroma_sse42(UWORD8 *pu1_src,
     {
         __m128i y_0_8x16b;
 
-        __m128i mask_full_16x8b, mask_ll4B_16x8b;
-
-        mask_full_16x8b = _mm_set1_epi8(0xff);
-        mask_ll4B_16x8b = _mm_srli_si128(mask_full_16x8b, 12);
-        // mask for first four bytes
-
         do
         {
             y_0_16x8b = _mm_loadl_epi64((__m128i *)pu1_src);
@@ -686,9 +655,8 @@ void ih264_weighted_pred_chroma_sse42(UWORD8 *pu1_src,
             y_0_16x8b = _mm_packus_epi16(y_0_8x16b, y_0_8x16b);
             y_1_16x8b = _mm_srli_si128(y_0_16x8b, 4);
 
-            _mm_maskmoveu_si128(y_0_16x8b, mask_ll4B_16x8b, (char*)pu1_dst);
-            _mm_maskmoveu_si128(y_1_16x8b, mask_ll4B_16x8b,
-                                (char*)(pu1_dst + dst_strd));
+            *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(y_0_16x8b);
+            *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(y_1_16x8b);
 
             ht -= 2;
             pu1_src += src_strd << 1;
@@ -890,12 +858,6 @@ void ih264_weighted_bi_pred_luma_sse42(UWORD8 *pu1_src1,
         __m128i y1_0_8x16b, y1_2_8x16b;
         __m128i y2_0_8x16b, y2_2_8x16b;
 
-        __m128i mask_ll4B_16x8b;
-
-        mask_ll4B_16x8b = _mm_set1_epi8(0xff);
-        mask_ll4B_16x8b = _mm_srli_si128(mask_ll4B_16x8b, 12);
-        // mask for first four bytes
-
         do
         {
             y1_0_16x8b = _mm_loadl_epi64((__m128i *)pu1_src1);
@@ -942,13 +904,11 @@ void ih264_weighted_bi_pred_luma_sse42(UWORD8 *pu1_src1,
             y1_2_16x8b = _mm_srli_si128(y1_0_16x8b, 8);
             y1_3_16x8b = _mm_srli_si128(y1_0_16x8b, 12);
 
-            _mm_maskmoveu_si128(y1_0_16x8b, mask_ll4B_16x8b, (char*)pu1_dst);
-            _mm_maskmoveu_si128(y1_1_16x8b, mask_ll4B_16x8b,
-                                (char*)(pu1_dst + dst_strd));
-            _mm_maskmoveu_si128(y1_2_16x8b, mask_ll4B_16x8b,
-                                (char*)(pu1_dst + (dst_strd << 1)));
-            _mm_maskmoveu_si128(y1_3_16x8b, mask_ll4B_16x8b,
-                                (char*)(pu1_dst + dst_strd * 3));
+            *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(y1_0_16x8b);
+            *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(y1_1_16x8b);
+            *((WORD32 *)(pu1_dst + (dst_strd << 1))) = _mm_cvtsi128_si32(y1_2_16x8b);
+            *((WORD32 *)(pu1_dst + dst_strd * 3)) = _mm_cvtsi128_si32(y1_3_16x8b);
+
 
             ht -= 4;
             pu1_src1 += src_strd1 << 2;
@@ -1187,11 +1147,6 @@ void ih264_weighted_bi_pred_chroma_sse42(UWORD8 *pu1_src1,
     {
         __m128i y1_0_8x16b, y2_0_8x16b;
 
-        __m128i mask_full_16x8b, mask_ll4B_16x8b;
-
-        mask_full_16x8b = _mm_set1_epi8(0xff);
-        mask_ll4B_16x8b = _mm_srli_si128(mask_full_16x8b, 12);
-
         do
         {
             y1_0_16x8b = _mm_loadl_epi64((__m128i *)pu1_src1);
@@ -1218,9 +1173,8 @@ void ih264_weighted_bi_pred_chroma_sse42(UWORD8 *pu1_src1,
             y1_0_16x8b = _mm_packus_epi16(y1_0_8x16b, y1_0_8x16b);
             y1_1_16x8b = _mm_srli_si128(y1_0_16x8b, 4);
 
-            _mm_maskmoveu_si128(y1_0_16x8b, mask_ll4B_16x8b, (char*)pu1_dst);
-            _mm_maskmoveu_si128(y1_1_16x8b, mask_ll4B_16x8b,
-                                (char*)(pu1_dst + dst_strd));
+            *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(y1_0_16x8b);
+            *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(y1_1_16x8b);
 
             ht -= 2;
             pu1_src1 += src_strd1 << 1;
