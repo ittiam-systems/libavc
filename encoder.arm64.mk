@@ -47,5 +47,4 @@ LOCAL_C_INCLUDES_arm64 += $(libavce_inc_dir_arm64)
 LOCAL_CFLAGS_arm64 += $(libavce_cflags_arm64)
 
 # CLANG WORKAROUNDS
-LOCAL_CLANG_ASFLAGS_arm64 += -no-integrated-as
 LOCAL_CLANG_ASFLAGS_arm64 += $(addprefix -Wa$(comma)-I,$(libavce_inc_dir_arm64))
