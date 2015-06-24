@@ -1916,42 +1916,63 @@ WORD32 ih264e_process(process_ctxt_t *ps_proc)
     /* temp variables */
     WORD32 ctxt_sel = ps_proc->i4_encode_api_call_cnt % MAX_CTXT_SETS;
 
-    /* list of modes for evaluation */
+    /*
+     * list of modes for evaluation
+     * -------------------------------------------------------------------------
+     * Note on enabling I4x4 and I16x16
+     * At very low QP's the hadamard transform in I16x16 will push up the maximum
+     * coeff value very high. CAVLC may not be able to represent the value and
+     * hence the stream may not be decodable in some clips.
+     * Hence at low QPs, we will enable I4x4 and disable I16x16 irrespective of preset.
+     */
     if (ps_proc->i4_slice_type == ISLICE)
     {
-        /* enable intra 16x16 */
-        u4_valid_modes |= ps_codec->s_cfg.u4_enable_intra_16x16 ? (1 << I16x16) : 0;
+        if (ps_proc->u4_frame_qp > 10)
+        {
+            /* enable intra 16x16 */
+            u4_valid_modes |= ps_codec->s_cfg.u4_enable_intra_16x16 ? (1 << I16x16) : 0;
 
-        /* enable intra 8x8 */
-        u4_valid_modes |= ps_codec->s_cfg.u4_enable_intra_8x8 ? (1 << I8x8) : 0;
+            /* enable intra 8x8 */
+            u4_valid_modes |= ps_codec->s_cfg.u4_enable_intra_8x8 ? (1 << I8x8) : 0;
+        }
 
         /* enable intra 4x4 */
         u4_valid_modes |= ps_codec->s_cfg.u4_enable_intra_4x4 ? (1 << I4x4) : 0;
+        u4_valid_modes |= (ps_proc->u4_frame_qp <= 10) << I4x4;
+
     }
     else if (ps_proc->i4_slice_type == PSLICE)
     {
-        /* enable intra 16x16 */
-        u4_valid_modes |= ps_codec->s_cfg.u4_enable_intra_16x16 ? (1 << I16x16) : 0;
+        if (ps_proc->u4_frame_qp > 10)
+        {
+            /* enable intra 16x16 */
+            u4_valid_modes |= ps_codec->s_cfg.u4_enable_intra_16x16 ? (1 << I16x16) : 0;
+        }
 
         /* enable intra 4x4 */
         if (ps_codec->s_cfg.u4_enc_speed_preset == IVE_SLOWEST)
         {
             u4_valid_modes |= ps_codec->s_cfg.u4_enable_intra_4x4 ? (1 << I4x4) : 0;
         }
+        u4_valid_modes |= (ps_proc->u4_frame_qp <= 10) << I4x4;
 
         /* enable inter P16x16 */
         u4_valid_modes |= (1 << P16x16);
     }
     else if (ps_proc->i4_slice_type == BSLICE)
     {
-        /* enable intra 16x16 */
-        u4_valid_modes |= ps_codec->s_cfg.u4_enable_intra_16x16 ? (1 << I16x16) : 0;
+        if (ps_proc->u4_frame_qp > 10)
+        {
+            /* enable intra 16x16 */
+            u4_valid_modes |= ps_codec->s_cfg.u4_enable_intra_16x16 ? (1 << I16x16) : 0;
+        }
 
         /* enable intra 4x4 */
         if (ps_codec->s_cfg.u4_enc_speed_preset == IVE_SLOWEST)
         {
             u4_valid_modes |= ps_codec->s_cfg.u4_enable_intra_4x4 ? (1 << I4x4) : 0;
         }
+        u4_valid_modes |= (ps_proc->u4_frame_qp <= 10) << I4x4;
 
         /* enable inter B16x16 */
         u4_valid_modes |= (1 << B16x16);

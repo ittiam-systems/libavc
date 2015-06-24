@@ -73,7 +73,7 @@
 
 #define DEFAULT_MAX_REF_FRM         2
 #define DEFAULT_MAX_REORDER_FRM     0
-#define DEFAULT_QP_MIN              0
+#define DEFAULT_QP_MIN              4
 #define DEFAULT_QP_MAX              51
 #define DEFAULT_MAX_BITRATE         20000000
 #define DEFAULT_NUM_BFRAMES         0
