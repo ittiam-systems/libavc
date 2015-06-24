@@ -42,6 +42,8 @@
 #include "ive2.h"
 #ifdef WINDOWS_TIMER
 #include <windows.h>
+#else
+#include <sys/time.h>
 #endif
 /*****************************************************************************/
 /* Function Macros                                                           */
