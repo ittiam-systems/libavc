@@ -646,8 +646,11 @@ WORD32 ih264d_get_dpb_size(dec_seq_params_t *ps_seq, dec_struct_t *ps_dec)
         case 51:
             i4_size = 70778880;
             break;
+        case 52:
+            i4_size = 70778880;
+            break;
         default:
-            i4_size = 6912000;
+            i4_size = 70778880;
             break;
     }
 
@@ -712,9 +715,12 @@ WORD32 ih264d_get_dpb_size_new(UWORD32 u4_level_idc,
         case 51:
             i4_size = 70778880;
             break;
+        case 52:
+            i4_size = 70778880;
+            break;
         default:
         {
-            return -1;
+            i4_size = 70778880;
         }
             break;
     }
