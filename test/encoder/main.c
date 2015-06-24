@@ -28,7 +28,6 @@
 #include <stddef.h>
 #include <assert.h>
 #include <string.h>
-#include <sys/time.h>
 
 #ifndef IOS
 #include <malloc.h>
@@ -36,6 +35,8 @@
 
 #ifdef WINDOWS_TIMER
 #include "windows.h"
+#else
+#include <sys/time.h>
 #endif
 /* User include files */
 #include "ih264_typedefs.h"
