@@ -1492,7 +1492,6 @@ void ih264d_init_decoder(void * ps_dec_params)
     ps_dec->u2_mbx = 0xffff;
     ps_dec->u2_mby = 0;
     ps_dec->u2_total_mbs_coded = 0;
-    ps_cur_slice->u1_end_of_frame_signal = 0;
 
     /* POC initializations */
     ps_prev_poc = &ps_dec->s_prev_pic_poc;
@@ -2850,8 +2849,9 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ps_dec->u2_cur_slice_num = 0;
     ps_dec->cur_dec_mb_num = 0;
     ps_dec->cur_recon_mb_num = 0;
-    ps_dec->u4_first_slice_in_pic = 1;
+    ps_dec->u4_first_slice_in_pic = 2;
     ps_dec->u1_slice_header_done = 0;
+    ps_dec->u1_dangling_field = 0;
 
     ps_dec->u4_dec_thread_created = 0;
     ps_dec->u4_bs_deblk_thread_created = 0;
@@ -2905,7 +2905,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                 {
                     ps_dec->u2_total_mbs_coded =
                                     ps_dec->ps_cur_sps->u2_max_mb_addr + 1;
-                    ps_dec->ps_cur_slice->u1_end_of_frame_signal = 1;
                 }
 
                 /* close deblock thread if it is not closed yet*/
@@ -3020,16 +3019,39 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             ps_dec_op->u4_error_code = error | ret;
             api_ret_value = IV_FAIL;
 
-            if((ret == IVD_RES_CHANGED)||(ret == IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED))
+            if((ret == IVD_RES_CHANGED) || (ret == IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED))
             {
                 /*dont consume the SPS*/
                 ps_dec_op->u4_num_bytes_consumed -= bytes_consumed;
                 return IV_FAIL;
             }
-            if(ret == ERROR_IN_LAST_SLICE_OF_PIC)
+
+            if((ret == IVD_RES_CHANGED) || (ret == IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED))
+            {
+                /*dont consume the SPS*/
+                ps_dec_op->u4_num_bytes_consumed -= bytes_consumed;
+                return IV_FAIL;
+            }
+
+            if((ret == ERROR_UNAVAIL_PICBUF_T) || (ret == ERROR_UNAVAIL_MVBUF_T))
             {
                 ps_dec_op->u4_num_bytes_consumed -= bytes_consumed;
+                return IV_FAIL;
             }
+
+            if((ret == ERROR_INCOMPLETE_FRAME) || (ret == ERROR_DANGLING_FIELD_IN_PIC))
+            {
+                ps_dec_op->u4_num_bytes_consumed -= bytes_consumed;
+                api_ret_value = IV_FAIL;
+                break;
+            }
+
+            if(ret == ERROR_IN_LAST_SLICE_OF_PIC)
+            {
+                api_ret_value = IV_FAIL;
+                break;
+            }
+
         }
 
         if(ps_dec->u4_return_to_app)
@@ -3070,11 +3092,24 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     {
         // last slice - missing/corruption
         WORD32 num_mb_skipped;
+        WORD32 prev_slice_err;
         pocstruct_t temp_poc;
 
         num_mb_skipped = (ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
                             - ps_dec->u2_total_mbs_coded;
-        ih264d_mark_err_slice_skip(ps_dec, num_mb_skipped, ps_dec->u1_nal_unit_type == IDR_SLICE_NAL,&temp_poc,3);
+
+        if(ps_dec->u4_first_slice_in_pic)
+            prev_slice_err = 1;
+        else
+            prev_slice_err = 2;
+
+        ret = ih264d_mark_err_slice_skip(ps_dec, num_mb_skipped, ps_dec->u1_nal_unit_type == IDR_SLICE_NAL, ps_dec->ps_cur_slice->u2_frame_num,
+                                   &temp_poc, prev_slice_err);
+
+        if((ret == ERROR_UNAVAIL_PICBUF_T) || (ret == ERROR_UNAVAIL_MVBUF_T))
+        {
+            return IV_FAIL;
+        }
     }
 
 
@@ -3172,19 +3207,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
          * For field pictures, set the bottom and top picture decoded u4_flag correctly.
          */
 
-        if(ps_dec->u4_pic_buf_got == 0)
-        {
-            ih264d_fill_output_struct_from_context(ps_dec, ps_dec_op);
-
-            ps_dec_op->u4_frame_decoded_flag = 0;
-            /* close deblock thread if it is not closed yet*/
-            if(ps_dec->u4_num_cores == 3)
-            {
-                ih264d_signal_bs_deblk_thread(ps_dec);
-            }
-            return (IV_FAIL);
-        }
-
         if(ps_dec->ps_cur_slice->u1_field_pic_flag)
         {
             if(1 == ps_dec->ps_cur_slice->u1_bottom_field_flag)
@@ -3197,10 +3219,19 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             }
         }
 
-        /* Calling Function to deblock Picture and Display */
-        ret = ih264d_deblock_display(ps_dec);
-        if(ret != 0)
-            return IV_FAIL;
+        /* if new frame in not found (if we are still getting slices from previous frame)
+         * ih264d_deblock_display is not called. Such frames will not be added to reference /display
+         */
+        if((ps_dec->ps_dec_err_status->u1_err_flag & REJECT_CUR_PIC) == 0)
+        {
+            /* Calling Function to deblock Picture and Display */
+            ret = ih264d_deblock_display(ps_dec);
+            if(ret != 0)
+            {
+                return IV_FAIL;
+            }
+        }
+
 
         /*set to complete ,as we dont support partial frame decode*/
         if(ps_dec->i4_header_decoded == 3)

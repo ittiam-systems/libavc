@@ -1432,6 +1432,7 @@ WORD32 ih264d_parse_inter_slice_data_cavlc(dec_struct_t * ps_dec,
 WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                                 WORD32 num_mb_skip,
                                 UWORD8 u1_is_idr_slice,
+                                UWORD16 u2_frame_num,
                                 pocstruct_t *ps_cur_poc,
                                 WORD32 prev_slice_err)
 {
@@ -1457,14 +1458,20 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
     UWORD16 u2_total_mbs_coded;
     UWORD32 u1_mbaff = ps_slice->u1_mbaff_frame_flag;
     parse_part_params_t *ps_part_info;
+    WORD32 ret;
+
+
+    if(ps_dec->ps_dec_err_status->u1_err_flag & REJECT_CUR_PIC)
+    {
+        ih264d_err_pic_dispbuf_mgr(ps_dec);
+        return 0;
+    }
 
     if(prev_slice_err == 1)
     {
-        // first slice - missing/header corruption
-        if(u1_is_idr_slice)
-            ps_dec->ps_cur_slice->u2_frame_num = 0;
-        else
-            ps_dec->ps_cur_slice->u2_frame_num++;
+        /* first slice - missing/header corruption */
+        ps_dec->ps_cur_slice->u2_frame_num = u2_frame_num;
+
 
         if(!ps_dec->u1_first_slice_in_stream)
         {
@@ -1482,7 +1489,6 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
             ps_dec->pf_mvpred = ih264d_mvpred_nonmbaff;
             ps_dec->p_form_mb_part_info = ih264d_form_mb_part_info_bp;
             ps_dec->p_motion_compensate = ih264d_motion_compensate_bp;
-            ps_dec->ps_pps->ps_sps = ps_dec->ps_cur_sps;
 
             if(ps_dec->ps_cur_pic != NULL)
                 poc = ps_dec->ps_cur_pic->i4_poc + 2;
@@ -1491,10 +1497,16 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
             for(i = 0; i < MAX_NUM_PIC_PARAMS; i++)
                    if(ps_dec->ps_pps[i].u1_is_valid == TRUE)
                        j = i;
+            {
+                ret = ih264d_start_of_pic(ps_dec, poc, ps_cur_poc,
+                        ps_dec->ps_cur_slice->u2_frame_num,
+                        &ps_dec->ps_pps[j]);
 
-            ih264d_start_of_pic(ps_dec, poc, ps_cur_poc,
-                    ps_dec->ps_cur_slice->u2_frame_num,
-                    &ps_dec->ps_pps[j]);
+                if(ret != OK)
+                {
+                    return ret;
+                }
+            }
 
             ps_dec->ps_ref_pic_buf_lx[0][0]->u1_pic_buf_id = 0;
 
@@ -1617,7 +1629,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                     >= ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
             {
                 ps_dec->u1_pic_decode_done = 1;
-                return 1;
+                return 0;
             }
 
             // Inserting new slice
@@ -1685,8 +1697,6 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
     /******************************************************/
     /* Parsing / decoding the slice                       */
     /******************************************************/
-    ps_dec->u4_first_slice_in_pic = 0;
-    ps_dec->u1_first_slice_in_stream = 0;
     ps_dec->u1_slice_header_done = 2;
     ps_dec->u1_qp = ps_slice->u1_slice_qp;
     ih264d_update_qp(ps_dec, 0);
@@ -1823,6 +1833,11 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
     H264_DEC_DEBUG_PRINT("Mbs in slice: %d\n", ps_dec->ps_cur_slice->u4_mbs_in_slice);
 
     ps_dec->u2_cur_slice_num++;
+
+    /* incremented here only if first slice is inserted */
+    if(ps_dec->u4_first_slice_in_pic != 0)
+        ps_dec->ps_parse_cur_slice++;
+
     ps_dec->i2_prev_slice_mbx = ps_dec->u2_mbx;
     ps_dec->i2_prev_slice_mby = ps_dec->u2_mby;
 
@@ -1830,7 +1845,6 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
             >= ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
     {
         ps_dec->u1_pic_decode_done = 1;
-        return 1;
     }
 
     return 0;
