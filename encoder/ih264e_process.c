@@ -138,7 +138,7 @@
 IH264E_ERROR_T ih264e_generate_sps_pps(codec_t *ps_codec)
 {
     /* choose between ping-pong process buffer set */
-    WORD32 ctxt_sel = ps_codec->i4_encode_api_call_cnt & 1;
+    WORD32 ctxt_sel = ps_codec->i4_encode_api_call_cnt % MAX_CTXT_SETS;
 
     /* entropy ctxt */
     entropy_ctxt_t *ps_entropy = &ps_codec->as_process[ctxt_sel * MAX_PROCESS_THREADS].s_entropy;
@@ -308,7 +308,7 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
     UWORD8  *pu1_entropy_map_curr;
 
     /* proc base idx */
-    WORD32 ctxt_sel = ps_proc->i4_encode_api_call_cnt & 1;
+    WORD32 ctxt_sel = ps_proc->i4_encode_api_call_cnt % MAX_CTXT_SETS;
 
     /* temp var */
     WORD32 i4_wd_mbs, i4_ht_mbs;
@@ -1037,7 +1037,7 @@ WORD32 ih264e_update_proc_ctxt(process_ctxt_t *ps_proc)
         s_job.i2_mb_y = ps_proc->i4_mb_y;
 
         /* proc base idx */
-        s_job.i2_proc_base_idx = (ps_codec->i4_encode_api_call_cnt & 1) ? (MAX_PROCESS_CTXT / 2): 0 ;
+        s_job.i2_proc_base_idx = (ps_codec->i4_encode_api_call_cnt % MAX_CTXT_SETS) ? (MAX_PROCESS_CTXT / 2) : 0;
 
         /* queue the job */
         error_status |= ih264_list_queue(ps_proc->pv_entropy_jobq, &s_job, 1);
@@ -1182,8 +1182,8 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
     i4_mb_y = ps_proc->i4_mb_y;
 
     /* Number of mbs processed in one loop of process function */
-    ps_proc->i4_nmb_ntrpy = (ps_proc->i4_wd_mbs > MAX_NMB) ? MAX_NMB : ps_proc->i4_wd_mbs;
-    ps_proc->u4_nmb_me = (ps_proc->i4_wd_mbs > MAX_NMB)? MAX_NMB : ps_proc->i4_wd_mbs;
+    ps_proc->i4_nmb_ntrpy = ps_proc->i4_wd_mbs;
+    ps_proc->u4_nmb_me = ps_proc->i4_wd_mbs;
 
     /* init buffer pointers */
     convert_uv_only = 1;
@@ -1371,10 +1371,12 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
     /*********************************************************************/
 
     /* init mv buffer ptr */
-    ps_proc->ps_pu = ps_cur_mv_buf->ps_pic_pu + (i4_mb_y * ps_proc->i4_wd_mbs * (MIN_PU_SIZE * MIN_PU_SIZE));
+    ps_proc->ps_pu = ps_cur_mv_buf->ps_pic_pu + (i4_mb_y * ps_proc->i4_wd_mbs *
+                     ((MB_SIZE * MB_SIZE) / (ENC_MIN_PU_SIZE * ENC_MIN_PU_SIZE)));
 
     /* Init co-located mv buffer */
-    ps_proc->ps_colpu = ps_proc->aps_mv_buf[1]->ps_pic_pu + (i4_mb_y * ps_proc->i4_wd_mbs * (MIN_PU_SIZE * MIN_PU_SIZE));
+    ps_proc->ps_colpu = ps_proc->aps_mv_buf[1]->ps_pic_pu + (i4_mb_y * ps_proc->i4_wd_mbs *
+                        ((MB_SIZE * MB_SIZE) / (ENC_MIN_PU_SIZE * ENC_MIN_PU_SIZE)));
 
     if (i4_mb_y == 0)
     {
@@ -1382,7 +1384,8 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
     }
     else
     {
-        ps_proc->ps_top_row_pu_ME = ps_cur_mv_buf->ps_pic_pu + ((i4_mb_y - 1) * ps_proc->i4_wd_mbs * (MIN_PU_SIZE * MIN_PU_SIZE));
+        ps_proc->ps_top_row_pu_ME = ps_cur_mv_buf->ps_pic_pu + ((i4_mb_y - 1) * ps_proc->i4_wd_mbs *
+                                    ((MB_SIZE * MB_SIZE) / (ENC_MIN_PU_SIZE * ENC_MIN_PU_SIZE)));
     }
 
     ps_proc->pu4_mb_pu_cnt = ps_cur_mv_buf->pu4_mb_pu_cnt + (i4_mb_y * ps_proc->i4_wd_mbs);
@@ -1911,7 +1914,7 @@ WORD32 ih264e_process(process_ctxt_t *ps_proc)
     WORD32 luma_idx, chroma_idx, is_intra;
 
     /* temp variables */
-    WORD32 ctxt_sel = ps_proc->i4_encode_api_call_cnt & 1;
+    WORD32 ctxt_sel = ps_proc->i4_encode_api_call_cnt % MAX_CTXT_SETS;
 
     /* list of modes for evaluation */
     if (ps_proc->i4_slice_type == ISLICE)
@@ -2435,7 +2438,7 @@ WORD32 ih264e_process_thread(void *pv_proc)
             int error = ithread_mutex_lock(ps_codec->pv_entropy_mutex);
 
             /* codec context selector */
-            WORD32 ctxt_sel = ps_codec->i4_encode_api_call_cnt & 1;
+            WORD32 ctxt_sel = ps_codec->i4_encode_api_call_cnt % MAX_CTXT_SETS;
 
             volatile UWORD32 *pu4_buf = &ps_codec->au4_entropy_thread_active[ctxt_sel];
 
