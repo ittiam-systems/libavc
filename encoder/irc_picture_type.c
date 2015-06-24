@@ -225,7 +225,7 @@ WORD32 irc_pic_handling_num_fill_use_free_memtab(pic_handling_t **pps_pic_handli
                                                  ITT_FUNC_TYPE_E e_func_type)
 {
     WORD32 i4_mem_tab_idx = 0;
-    static pic_handling_t s_pic_handling_temp;
+    pic_handling_t s_pic_handling_temp;
 
     /*
      * Hack for al alloc, during which we dont have any state memory.

@@ -251,7 +251,7 @@ WORD32 irc_ba_num_fill_use_free_memtab(bit_allocation_t **pps_bit_allocation,
                                        ITT_FUNC_TYPE_E e_func_type)
 {
     WORD32 i4_mem_tab_idx = 0;
-    static bit_allocation_t s_bit_allocation_temp;
+    bit_allocation_t s_bit_allocation_temp;
 
     /*
      * Hack for all alloc, during which we don't have any state memory.

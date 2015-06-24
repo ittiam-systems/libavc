@@ -55,7 +55,7 @@ WORD32 irc_rd_model_num_fill_use_free_memtab(rc_rd_model_t **pps_rc_rd_model,
                                              ITT_FUNC_TYPE_E e_func_type)
 {
     WORD32 i4_mem_tab_idx = 0;
-    static rc_rd_model_t s_rc_rd_model_temp;
+    rc_rd_model_t s_rc_rd_model_temp;
 
     /*
      * Hack for al alloc, during which we don't have any state memory.
