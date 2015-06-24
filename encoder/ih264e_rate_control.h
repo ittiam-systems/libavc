@@ -90,6 +90,9 @@
 * @param[in] u4_intra_frame_interval
 *  Intra frame interval
 *
+* @param[in] i4_inter_frm_int
+*  Inter frame interval
+*
 * @param[in] pu1_init_qp
 *  Initial qp
 *
@@ -120,6 +123,7 @@ void ih264e_rc_init(void *pv_rc_api,
                     UWORD32 u4_peak_bit_rate,
                     UWORD32 u4_max_delay,
                     UWORD32 u4_intra_frame_interval,
+                    WORD32  i4_inter_frm_int,
                     UWORD8 *pu1_init_qp,
                     WORD32 i4_max_inter_frm_int,
                     UWORD8 *pu1_min_max_qp,
@@ -143,13 +147,15 @@ void ih264e_rc_init(void *pv_rc_api,
 *
 *******************************************************************************
 */
-picture_type_e ih264e_rc_get_picture_details(void *pv_rc_api);
+picture_type_e ih264e_rc_get_picture_details(void *pv_rc_api,
+                                             WORD32 *pi4_pic_id,
+                                             WORD32 *pi4_pic_disp_order_no);
 
 
 /**
 *******************************************************************************
 *
-* @brief  Function to get rate control output before encoding
+* @brief  Function to set frame rate inside RC.
 *
 * @par Description
 *  This function is called before encoding the current frame and gets the qp
@@ -167,18 +173,6 @@ picture_type_e ih264e_rc_get_picture_details(void *pv_rc_api);
 * @param[in] ps_frame_time
 *  Handle to frame time context
 *
-* @param[in] i4_delta_time_stamp
-*  Time stamp difference between frames
-*
-* @param[in] i4_total_mb_in_frame
-*  Total Macro Blocks in frame
-*
-* @param[in/out] pe_vop_coding_type
-*  Picture coding type(I/P/B)
-*
-* @param[in/out] pu1_frame_qp
-*  QP for current frame
-*
 * @returns
 *  Skip or encode the current frame
 *
@@ -186,14 +180,11 @@ picture_type_e ih264e_rc_get_picture_details(void *pv_rc_api);
 *
 *******************************************************************************
 */
-WORD32 ih264e_rc_pre_enc(void * ps_rate_control_api,
-                         void * ps_pd_frm_rate,
-                         void * ps_time_stamp,
-                         void * ps_frame_time,
-                         WORD32 i4_delta_time_stamp,
-                         WORD32 i4_total_mb_in_frame,
-                         picture_type_e *pe_vop_coding_type,
-                         UWORD8 *pu1_frame_qp);
+WORD32 ih264e_update_rc_framerates(void *ps_rate_control_api,
+                         void *ps_pd_frm_rate,
+                         void *ps_time_stamp,
+                         void *ps_frame_time
+                         );
 
 /**
 *******************************************************************************

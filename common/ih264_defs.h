@@ -270,6 +270,9 @@ typedef enum
     P8x8        = 6,
     PSKIP       = 7,
     IPCM        = 8,
+    B16x16      = 9,
+    BSKIP       = 10,
+    BDIRECT     = 11,
     MAX_MBTYPES,
 }MBTYPES_T;
 

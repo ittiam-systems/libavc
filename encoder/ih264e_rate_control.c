@@ -63,6 +63,7 @@
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
 #include "ih264_common_tables.h"
+#include "ih264_cabac_tables.h"
 #include "ih264e_defs.h"
 #include "ih264e_globals.h"
 #include "irc_mem_req_and_acq.h"
@@ -75,7 +76,9 @@
 #include "ih264e_error.h"
 #include "ih264e_bitstream.h"
 #include "ime_distortion_metrics.h"
+#include "ime_defs.h"
 #include "ime_structs.h"
+#include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264e_utils.h"
 #include "irc_trace_support.h"
@@ -186,6 +189,7 @@ void ih264e_rc_init(void *pv_rc_api,
                     UWORD32 u4_peak_bit_rate,
                     UWORD32 u4_max_delay,
                     UWORD32 u4_intra_frame_interval,
+                    WORD32  i4_inter_frm_int,
                     UWORD8 *pu1_init_qp,
                     WORD32 i4_max_inter_frm_int,
                     UWORD8 *pu1_min_max_qp,
@@ -230,6 +234,9 @@ void ih264e_rc_init(void *pv_rc_api,
     u4_src_ticks = ih264e_frame_time_get_src_ticks(pv_frame_time);
     u4_tgt_ticks = ih264e_frame_time_get_tgt_ticks(pv_frame_time);
 
+    /* Init max_inter_frame int */
+    i4_max_inter_frm_int = (i4_inter_frm_int == 1) ? 2 : (i4_inter_frm_int + 2);
+
     /* Initialize the rate control */
     irc_initialise_rate_control(pv_rc_api,                  /* RC handle */
                                 e_rate_control_type,        /* RC algo type */
@@ -240,6 +247,7 @@ void ih264e_rc_init(void *pv_rc_api,
                                 u4_src_frm_rate,            /* Src frame_rate */
                                 u4_max_delay,               /* Max buffer delay */
                                 u4_intra_frame_interval,    /* Intra frm_interval */
+                                i4_inter_frm_int,           /* Inter frame interval */
                                 pu1_init_qp,                /* Init QP array[3]:[I][P][B] */
                                 u4_max_cpb_size,            /* Max VBV/CPB Buffer Size */
                                 i4_max_inter_frm_int,       /* Max inter frm_interval */
@@ -268,13 +276,13 @@ void ih264e_rc_init(void *pv_rc_api,
 *
 *******************************************************************************
 */
-picture_type_e ih264e_rc_get_picture_details(void *pv_rc_api)
+picture_type_e ih264e_rc_get_picture_details(void *pv_rc_api,
+                                             WORD32 *pi4_pic_id,
+                                             WORD32 *pi4_pic_disp_order_no)
 {
-    WORD32 i4_pic_id = 0;
-    WORD32 i4_pic_disp_order_no = 0;
     picture_type_e e_rc_pic_type = P_PIC;
 
-    irc_get_picture_details(pv_rc_api, &i4_pic_id, &i4_pic_disp_order_no,
+    irc_get_picture_details(pv_rc_api, pi4_pic_id, pi4_pic_disp_order_no,
                             &e_rc_pic_type);
 
     return (e_rc_pic_type);
@@ -286,8 +294,9 @@ picture_type_e ih264e_rc_get_picture_details(void *pv_rc_api)
 * @brief  Function to get rate control output before encoding
 *
 * @par Description
-*  This function is called before encoding the current frame and gets the qp
-*  for the current frame from rate control module
+*  This function is called before queing the current frame. It decides if we should
+*  skip the current iput buffer due to frame rate mismatch. It also updates RC about
+*  the acehivble frame rate
 *
 * @param[in] ps_rate_control_api
 *  Handle to rate control api
@@ -314,138 +323,58 @@ picture_type_e ih264e_rc_get_picture_details(void *pv_rc_api)
 *  QP for current frame
 *
 * @returns
-*  Skip or encode the current frame
+*  Skip or queue the current frame
 *
 * @remarks
 *
 *******************************************************************************
 */
-WORD32 ih264e_rc_pre_enc(void * ps_rate_control_api,
-                         void * ps_pd_frm_rate,
-                         void * ps_time_stamp,
-                         void * ps_frame_time,
-                         WORD32 i4_delta_time_stamp,
-                         WORD32 i4_total_mb_in_frame,
-                         picture_type_e *pe_vop_coding_type,
-                         UWORD8 *pu1_frame_qp)
+WORD32 ih264e_update_rc_framerates(void *ps_rate_control_api,
+                                   void *ps_pd_frm_rate,
+                                   void *ps_time_stamp,
+                                   void *ps_frame_time)
 {
-    WORD8 i4_skip_src = 0, i4_num_app_skips = 0;
+    WORD8 i4_skip_src = 0;
     UWORD32 u4_src_not_skipped_for_dts = 0;
-
-    /* Variables for the update_frm_level_info */
-    WORD32  ai4_tot_mb_in_type[MAX_MB_TYPE];
-    WORD32  ai4_tot_mb_type_qp[MAX_MB_TYPE]    = {0, 0};
-    WORD32  ai4_mb_type_sad[MAX_MB_TYPE]       = {0, 0};
-    WORD32  ai4_mb_type_tex_bits[MAX_MB_TYPE]  = {0, 0};
-    WORD32   i4_total_frame_bits               = 0;
-    WORD32   i4_total_hdr_bits                 = 0;
-    WORD32   i4_avg_mb_activity                = 0;
-    WORD32   i4_intra_frm_cost                 = 0;
-    UWORD8   u1_is_scd                         = 0;
-
-    /* Set all the MBs to Intra */
-    ai4_tot_mb_in_type[0] = i4_total_mb_in_frame;
-    ai4_tot_mb_in_type[1] = 0;
-
-    /* If delta time stamp is greater than 1, do rcupdate that many times */
-    for (i4_num_app_skips = 0; (i4_num_app_skips < i4_delta_time_stamp - 1); i4_num_app_skips++)
-    {
-        /*update the missing frames frm_rate with 0 */
-        ih264e_update_pd_frm_rate(ps_pd_frm_rate,0);
-
-        /* Update the time stamp */
-        ih264e_update_time_stamp(ps_time_stamp);
-
-        /* Do a pre encode skip update */
-
-        irc_update_frame_level_info(ps_rate_control_api,
-                                    (*pe_vop_coding_type),
-                                    ai4_mb_type_sad,        /* Frame level SAD for each type of MB[Intra/Inter] */
-                                    i4_total_frame_bits,    /* Total frame bits actually consumed */
-                                    i4_total_hdr_bits,      /*header bits for model updation*/
-                                    ai4_mb_type_tex_bits,   /* Total texture bits consumed for each type of MB[Intra/Inter] used for model */
-                                    ai4_tot_mb_type_qp,     /* Total qp of all MBs based on mb type */
-                                    ai4_tot_mb_in_type,     /* total number of mbs in each mb type */
-                                    i4_avg_mb_activity,     /* Average mb activity in frame */
-                                    u1_is_scd,              /* Is a scene change detected at the current frame */
-                                    1,                      /* If it's a pre-encode skip */
-                                    i4_intra_frm_cost,      /* Sum of Intra cost for each frame */
-                                    0);                     /* Is pic handling [irc_update_pic_handling_state] done before update */
-    }
 
     /* Update the time stamp for the current frame */
     ih264e_update_time_stamp(ps_time_stamp);
 
     /* Check if a src not needs to be skipped */
     i4_skip_src = ih264e_should_src_be_skipped(ps_frame_time,
-                                               i4_delta_time_stamp,
+                                               1,
                                                &u4_src_not_skipped_for_dts);
 
-    /***********************************************************************
-       Based on difference in source and target frame rate frames are skipped
-     ***********************************************************************/
     if (i4_skip_src)
     {
+        /***********************************************************************
+         *Based on difference in source and target frame rate frames are skipped
+         ***********************************************************************/
         /*update the missing frames frm_rate with 0 */
-        ih264e_update_pd_frm_rate(ps_pd_frm_rate,0);
-
-        /* Do a pre encode skip update */
-        irc_update_frame_level_info(ps_rate_control_api,
-                                    (*pe_vop_coding_type),
-                                    ai4_mb_type_sad,        /* Frame level SAD for each type of MB[Intra/Inter] */
-                                    i4_total_frame_bits,    /* Total frame bits actually consumed */
-                                    i4_total_hdr_bits,      /*header bits for model updation*/
-                                    ai4_mb_type_tex_bits,   /* Total texture bits consumed for each type of MB[Intra/Inter] used for model */
-                                    ai4_tot_mb_type_qp,     /* Total qp of all MBs based on mb type */
-                                    ai4_tot_mb_in_type,     /* total number of mbs in each mb type */
-                                    i4_avg_mb_activity,     /* Average mb activity in frame */
-                                    u1_is_scd,              /* Is a scene change detected at the current frame */
-                                    1,                      /* If it's a pre-encode skip */
-                                    i4_intra_frm_cost,      /* Sum of Intra cost for each frame */
-                                    0);                     /* Is pic handling [irc_update_pic_handling_state] done before update */
-
-        /* Set the current frame type to NA */
-        *pe_vop_coding_type = BUF_PIC;
+        ih264e_update_pd_frm_rate(ps_pd_frm_rate, 0);
     }
     else
     {
-#define MAX_FRAME_BITS 0x7FFFFFFF
-//        WORD32         i4_pic_id;
-//        WORD32         i4_pic_disp_order_no;
         WORD32 i4_avg_frm_rate, i4_source_frame_rate;
 
-        i4_source_frame_rate = ih264e_frame_time_get_src_frame_rate(ps_frame_time);
+        i4_source_frame_rate = ih264e_frame_time_get_src_frame_rate(
+                        ps_frame_time);
 
         /* Update the frame rate of the frame present with the tgt_frm_rate */
         /* If the frm was not skipped due to delta_time_stamp, update the
-           frame_rate with double the tgt_frame_rate value, so that it makes
-           up for one of the frames skipped by the application */
-        ih264e_update_pd_frm_rate(ps_pd_frm_rate,
-                                  i4_source_frame_rate);
+         frame_rate with double the tgt_frame_rate value, so that it makes
+         up for one of the frames skipped by the application */
+        ih264e_update_pd_frm_rate(ps_pd_frm_rate, i4_source_frame_rate);
 
         /* Based on the update get the average frame rate */
         i4_avg_frm_rate = ih264e_get_pd_avg_frm_rate(ps_pd_frm_rate);
 
         /* Call the RC library function to change the frame_rate to the
-           actually achieved frm_rate */
+         actually achieved frm_rate */
         irc_change_frm_rate_for_bit_alloc(ps_rate_control_api, i4_avg_frm_rate);
-
-        /* --------Rate control related things.  Get pic type and frame Qp---------*/
-        /* Add picture to the stack. For IPP encoder we push the variable
-           into the stack and get back the variables by requesting RC.
-           This interface is designed for IPB encoder */
-        irc_add_picture_to_stack(ps_rate_control_api, 1);
-
-        /* Query the picture_type */
-        *pe_vop_coding_type = ih264e_rc_get_picture_details(ps_rate_control_api);
-
-        /* Get current frame Qp */
-        pu1_frame_qp[0] = (UWORD8)irc_get_frame_level_qp(ps_rate_control_api,
-                                                         (picture_type_e)(pe_vop_coding_type[0]),
-                                                         MAX_FRAME_BITS);
     }
 
-    return(i4_skip_src);
+    return (i4_skip_src);
 }
 
 /**
@@ -678,8 +607,8 @@ WORD32 ih264e_rc_post_enc(void * ps_rate_control_api,
             &u1_enc_buf_overflow,&u1_enc_buf_underflow);
 
         /* We skip the frame if decoder buffer is underflowing. But we never skip first I frame */
-        // if((u1_enc_buf_overflow == 1) && (i4_is_first_frame != 1))
-        if ((u1_enc_buf_overflow == 1) && (i4_is_first_frame != 0))
+        if ((u1_enc_buf_overflow == 1) && (i4_is_first_frame != 1))
+        // if ((u1_enc_buf_overflow == 1) && (i4_is_first_frame != 0))
         {
             irc_post_encode_frame_skip(ps_rate_control_api, (picture_type_e)pe_vop_coding_type[0]);
             // i4_total_frame_bits = imp4_write_skip_frame_header(ps_enc);

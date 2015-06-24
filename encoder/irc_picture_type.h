@@ -34,6 +34,7 @@ WORD32 irc_pic_handling_num_fill_use_free_memtab(pic_handling_handle *pps_pic_ha
 
 void irc_init_pic_handling(pic_handling_handle ps_pic_handling,
                            WORD32 i4_intra_frm_int,
+                           WORD32 i4_inter_frm_int,
                            WORD32 i4_max_inter_frm_int,
                            WORD32 i4_is_gop_closed);
 

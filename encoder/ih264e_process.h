@@ -284,36 +284,6 @@ WORD32 ih264e_process(process_ctxt_t *ps_proc);
 *******************************************************************************
 *
 * @brief
-*  function to receive frame qp and pic type before encoding
-*
-* @par Description:
-*  Before encoding the frame, this function calls the rc library for frame qp
-*  and picture type
-*
-* @param[in] ps_codec
-*  Pointer to codec context
-*
-* @param[in] pic_cnt
-*  pic count
-*
-* @param[out] pi4_pic_type
-*  pic type
-
-* @returns skip_src
-*  if the source frame rate and target frame rate are not identical, the encoder
-*  skips few source frames. skip_src is set when the source need not be encoded.
-*
-* @remarks none
-*
-*******************************************************************************
-*/
-WORD32 ih264e_set_rc_pic_params(codec_t *ps_codec, WORD32 cur_pic_cnt, WORD32 *pi4_pic_type);
-
-
-/**
-*******************************************************************************
-*
-* @brief
 *  Function to update rc context after encoding
 *
 * @par   Description

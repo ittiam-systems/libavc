@@ -90,7 +90,7 @@ typedef struct
     /**
      * Search position for least cost among the list of candidates
      */
-    UWORD32 u4_srch_pos_idx;
+    WORD32 i4_srch_pos_idx;
 
     /**
      * Search position for least cost among the list of candidates
@@ -116,9 +116,9 @@ typedef struct
 typedef struct
 {
     /**
-     * Ref pointer to current MB luma
+     * Ref pointer to current MB luma for each ref list
      */
-    UWORD8 *pu1_ref_buf_luma;
+    UWORD8 *apu1_ref_buf_luma[MAX_NUM_REFLIST];
 
     /**
      * Src pointer to current MB luma
@@ -190,13 +190,13 @@ typedef struct
     /**
      * Number of valid candidates for the Initial search position
      */
-    UWORD32 u4_num_candidates;
+    UWORD32 u4_num_candidates[MAX_NUM_REFLIST + 1];
 
     /**
-     * Motion vector predictors derived from neighbouring
+     * Motion vector predictors derived from neighboring
      * blocks for each of the six block partitions
      */
-    ime_mv_t as_mv_init_search[5];
+    ime_mv_t as_mv_init_search[MAX_NUM_REFLIST + 1][6];
 
     /**
      * mv bits
@@ -247,10 +247,17 @@ typedef struct
 
     UWORD32 u4_left_is_skip;
 
+    /* skip_type can be PREDL0, PREDL1 or  BIPRED */
+    WORD32 i4_skip_type;
+
+    /* Biasing given for skip prediction */
+    WORD32 i4_skip_bias[2];
+
     /**
      * Structure to store the MB partition info
+     * We need 1(L0)+1(L1)+1(bi)
      */
-    mb_part_ctxt s_mb_part;
+    mb_part_ctxt as_mb_part[MAX_NUM_REFLIST + 1];
     /*
      * Threshold to compare the sad with
      */
@@ -277,26 +284,16 @@ typedef struct
     UWORD8 u1_mb_qp;
 
     /*
-     * Buffers for holding half_x , half_y and half_xy
-     * values when halfpel generation
-     *  for the entire plane is not enabled
+     * Buffers for holding subpel and bipred temp buffers
      */
-    UWORD8 *pu1_half_x;
-    UWORD8 *pu1_half_y;
-    UWORD8 *pu1_half_xy;
+    UWORD8 *apu1_subpel_buffs[SUBPEL_BUFF_CNT];
 
+    WORD32 u4_subpel_buf_strd;
 
     /*
      * Buffers to store the best halfpel plane*
      */
     UWORD8 *pu1_hpel_buf;
-
-    /*
-     * Stride for hpel buffer
-     */
-    UWORD32 u4_hpel_buf_strd;
-
-    WORD32 u4_hp_buf_strd;
 
 } me_ctxt_t;
 

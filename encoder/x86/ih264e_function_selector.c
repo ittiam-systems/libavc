@@ -58,8 +58,8 @@
 #include "ih264e_error.h"
 #include "ih264e_bitstream.h"
 #include "ime_distortion_metrics.h"
+#include "ime_defs.h"
 #include "ime_structs.h"
-#include "ih264_defs.h"
 #include "ih264_error.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
@@ -68,14 +68,15 @@
 #include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
-
+#include "ih264_cabac_tables.h"
 #include "ih264_macros.h"
 #include "ih264_platform_macros.h"
-#include "ih264e_defs.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
+#include "ih264e_cabac.h"
 #include "ih264e_platform_macros.h"
 
 /**

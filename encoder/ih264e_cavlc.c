@@ -35,8 +35,8 @@
 *  - ih264e_write_coeff4x4_cavlc()
 *  - ih264e_write_coeff8x8_cavlc()
 *  - ih264e_encode_residue()
-*  - ih264e_write_islice_mb()
-*  - ih264e_write_pslice_mb()
+*  - ih264e_write_islice_mb_cavlc()
+*  - ih264e_write_pslice_mb_cavlc()
 *
 * @remarks
 *  None
@@ -65,8 +65,8 @@
 #include "ih264e_error.h"
 #include "ih264e_bitstream.h"
 #include "ime_distortion_metrics.h"
+#include "ime_defs.h"
 #include "ime_structs.h"
-#include "ih264_defs.h"
 #include "ih264_error.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
@@ -75,9 +75,11 @@
 #include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_cabac_tables.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264e_encode_header.h"
 #include "ih264_cavlc_tables.h"
@@ -712,8 +714,8 @@ static IH264E_ERROR_T ih264e_encode_residue(entropy_ctxt_t *ps_ent_ctxt,
     /* temp var */
     UWORD32 u4_nC, u4_ngbr_avlb;
     UWORD8 au1_nnz[4], *pu1_ngbr_avlb, *pu1_top_nnz, *pu1_left_nnz;
-    UWORD16 au2_sig_coeff_map[4];
-    WORD16 *pi2_res_block[4];
+    UWORD16 au2_sig_coeff_map[4] = {0};
+    WORD16 *pi2_res_block[4] = {NULL};
     UWORD8 *pu1_slice_idx = ps_ent_ctxt->pu1_slice_idx;
     tu_sblk_coeff_data_t *ps_mb_coeff_data;
     ENTROPY_BLK_TYPE e_entropy_blk_type = CAVLC_LUMA_4x4;
@@ -925,7 +927,6 @@ static IH264E_ERROR_T ih264e_encode_residue(entropy_ctxt_t *ps_ent_ctxt,
     return error_status;
 }
 
-#define GET_NUM_BITS(ps_bitstream) ((ps_bitstream->u4_strm_buf_offset << 3) + 32 - ps_bitstream->i4_bits_left_in_cw)
 
 /**
 *******************************************************************************
@@ -948,7 +949,7 @@ static IH264E_ERROR_T ih264e_encode_residue(entropy_ctxt_t *ps_ent_ctxt,
 *
 *******************************************************************************
 */
-IH264E_ERROR_T ih264e_write_islice_mb(entropy_ctxt_t *ps_ent_ctxt)
+IH264E_ERROR_T ih264e_write_islice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 {
     /* error status */
     IH264E_ERROR_T error_status = IH264E_SUCCESS;
@@ -1170,7 +1171,7 @@ IH264E_ERROR_T ih264e_write_islice_mb(entropy_ctxt_t *ps_ent_ctxt)
 *
 *******************************************************************************
 */
-IH264E_ERROR_T ih264e_write_pslice_mb(entropy_ctxt_t *ps_ent_ctxt)
+IH264E_ERROR_T ih264e_write_pslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 {
     /* error status */
     IH264E_ERROR_T error_status = IH264E_SUCCESS;
@@ -1406,7 +1407,6 @@ IH264E_ERROR_T ih264e_write_pslice_mb(entropy_ctxt_t *ps_ent_ctxt)
         for (i = 0; i < (WORD32)u4_part_cnt; i++)
         {
             PUT_BITS_SEV(ps_bitstream, *pi2_mv_ptr++, error_status, "mv x");
-
             PUT_BITS_SEV(ps_bitstream, *pi2_mv_ptr++, error_status, "mv y");
         }
 
@@ -1425,6 +1425,323 @@ IH264E_ERROR_T ih264e_write_pslice_mb(entropy_ctxt_t *ps_ent_ctxt)
         PUT_BITS_SEV(ps_bitstream, mb_qp_delta, error_status, "mb_qp_delta");
     }
 
+    /* Ending bitstream offset for header in bits */
+    bitstream_end_offset = GET_NUM_BITS(ps_bitstream);
+
+    ps_ent_ctxt->u4_header_bits[is_inter] += bitstream_end_offset - bitstream_start_offset;
+
+    /* start bitstream offset for residue in bits */
+    bitstream_start_offset = bitstream_end_offset;
+
+    /* residual */
+    error_status = ih264e_encode_residue(ps_ent_ctxt, mb_type, cbp);
+
+    /* Ending bitstream offset for residue in bits */
+    bitstream_end_offset = GET_NUM_BITS(ps_bitstream);
+
+    ps_ent_ctxt->u4_residue_bits[is_inter] += bitstream_end_offset - bitstream_start_offset;
+
+    /* store the index of the next mb syntax layer */
+    ps_ent_ctxt->pv_mb_header_data = pu1_byte;
+
+    return error_status;
+}
+
+
+/**
+*******************************************************************************
+*
+* @brief
+*  This function generates CAVLC coded bit stream for B slices
+*
+* @description
+*  The mb syntax layer for inter slices constitutes luma mb mode, luma sub modes
+*  (if present), mb qp delta, coded block pattern, chroma mb mode and
+*  luma/chroma residue. These syntax elements are written as directed by table
+*  7.3.5 of h264 specification
+*
+* @param[in] ps_ent_ctxt
+*  pointer to entropy context
+*
+* @returns error code
+*
+* @remarks none
+*
+*******************************************************************************
+*/
+IH264E_ERROR_T ih264e_write_bslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
+{
+    /* error status */
+    IH264E_ERROR_T error_status = IH264E_SUCCESS;
+
+    /* bit stream ptr */
+    bitstrm_t *ps_bitstream = ps_ent_ctxt->ps_bitstrm;
+
+    /* packed header data */
+    UWORD8 *pu1_byte = ps_ent_ctxt->pv_mb_header_data;
+
+    /* mb header info */
+    /*
+     * mb_tpm : mb type plus mode
+     * mb_type : luma mb type and chroma mb type are packed
+     * cbp : coded block pattern
+     * mb_qp_delta : mb qp delta
+     * chroma_intra_mode : chroma intra mode
+     * luma_intra_mode : luma intra mode
+     * ps_pu :  Pointer to the array of structures having motion vectors, size
+     * and position of sub partitions
+     */
+    WORD32 mb_tpm, mb_type, cbp, chroma_intra_mode, luma_intra_mode;
+    WORD8 mb_qp_delta;
+
+    /* temp var */
+    WORD32 i, mb_type_stream, cbptable = 1;
+
+    WORD32 is_inter = 0;
+
+    WORD32 bitstream_start_offset, bitstream_end_offset;
+
+    /* Starting bitstream offset for header in bits */
+    bitstream_start_offset = GET_NUM_BITS(ps_bitstream);
+
+    /********************************************************************/
+    /*                    BEGIN HEADER GENERATION                       */
+    /********************************************************************/
+
+    mb_tpm = *pu1_byte++;
+
+    /* mb type */
+    mb_type = mb_tpm & 0xF;
+
+    /* check for skip */
+    if (mb_type == BSKIP)
+    {
+        UWORD32 *nnz;
+
+        is_inter = 1;
+
+        /* increment skip counter */
+        (*ps_ent_ctxt->pi4_mb_skip_run)++;
+
+        /* store the index of the next mb syntax layer */
+        ps_ent_ctxt->pv_mb_header_data = pu1_byte;
+
+        /* set nnz to zero */
+        ps_ent_ctxt->u4_left_nnz_luma = 0;
+        nnz = (UWORD32 *)ps_ent_ctxt->pu1_top_nnz_luma[ps_ent_ctxt->i4_mb_x];
+        *nnz = 0;
+        ps_ent_ctxt->u4_left_nnz_cbcr = 0;
+        nnz = (UWORD32 *)ps_ent_ctxt->pu1_top_nnz_cbcr[ps_ent_ctxt->i4_mb_x];
+        *nnz = 0;
+
+        /* residual */
+        error_status = ih264e_encode_residue(ps_ent_ctxt, B16x16, 0);
+
+        bitstream_end_offset = GET_NUM_BITS(ps_bitstream);
+
+        ps_ent_ctxt->u4_header_bits[is_inter] += bitstream_end_offset
+                        - bitstream_start_offset;
+
+        return error_status;
+    }
+
+
+    /* remaining mb header info */
+    cbp = *pu1_byte++;
+    mb_qp_delta = *pu1_byte++;
+
+    /* mb skip run */
+    PUT_BITS_UEV(ps_bitstream, *ps_ent_ctxt->pi4_mb_skip_run, error_status, "mb skip run");
+
+    /* reset skip counter */
+    *ps_ent_ctxt->pi4_mb_skip_run = 0;
+
+    /* is intra ? */
+    if (mb_type == I16x16)
+    {
+        UWORD32 u4_cbp_l, u4_cbp_c;
+
+        is_inter = 0;
+
+        u4_cbp_c = (cbp >> 4);
+        u4_cbp_l = (cbp & 0xF);
+        luma_intra_mode = (mb_tpm >> 4) & 3;
+        chroma_intra_mode = (mb_tpm >> 6);
+
+        mb_type_stream =  luma_intra_mode + 1 + (u4_cbp_c << 2) + (u4_cbp_l == 15) * 12;
+
+        mb_type_stream += 23;
+
+        /* write mb type */
+        PUT_BITS_UEV(ps_bitstream, mb_type_stream, error_status, "mb type");
+
+        /* intra_chroma_pred_mode */
+        PUT_BITS_UEV(ps_bitstream, chroma_intra_mode, error_status, "intra_chroma_pred_mode");
+    }
+    else if (mb_type == I4x4)
+    {
+        /* mb sub blk modes */
+        WORD32 intra_pred_mode_flag, rem_intra_mode;
+        WORD32 byte;
+
+        is_inter = 0;
+
+        chroma_intra_mode = (mb_tpm >> 6);
+        cbptable = 0;
+
+        /* write mb type */
+        PUT_BITS_UEV(ps_bitstream, 23, error_status, "mb type");
+
+        for (i = 0; i < 16; i += 2)
+        {
+            /* sub blk idx 1 */
+            byte = *pu1_byte++;
+
+            intra_pred_mode_flag = byte & 0x1;
+
+            /* prev_intra4x4_pred_mode_flag */
+            PUT_BITS(ps_bitstream, intra_pred_mode_flag, 1, error_status, "prev_intra4x4_pred_mode_flag");
+
+            /* rem_intra4x4_pred_mode */
+            if (!intra_pred_mode_flag)
+            {
+                rem_intra_mode = (byte & 0xF) >> 1;
+                PUT_BITS(ps_bitstream, rem_intra_mode, 3, error_status, "rem_intra4x4_pred_mode");
+            }
+
+            /* sub blk idx 2 */
+            byte >>= 4;
+
+            intra_pred_mode_flag = byte & 0x1;
+
+            /* prev_intra4x4_pred_mode_flag */
+            PUT_BITS(ps_bitstream, intra_pred_mode_flag, 1, error_status, "prev_intra4x4_pred_mode_flag");
+
+            /* rem_intra4x4_pred_mode */
+            if (!intra_pred_mode_flag)
+            {
+                rem_intra_mode = (byte & 0xF) >> 1;
+                PUT_BITS(ps_bitstream, rem_intra_mode, 3, error_status, "rem_intra4x4_pred_mode");
+            }
+        }
+
+        /* intra_chroma_pred_mode */
+        PUT_BITS_UEV(ps_bitstream, chroma_intra_mode, error_status, "intra_chroma_pred_mode");
+    }
+    else if (mb_type == I8x8)
+    {
+        /* transform 8x8 flag */
+        UWORD32 u4_transform_size_8x8_flag = ps_ent_ctxt->i1_transform_8x8_mode_flag;
+
+        /* mb sub blk modes */
+        WORD32 intra_pred_mode_flag, rem_intra_mode;
+        WORD32 byte;
+
+        is_inter = 0;
+
+        chroma_intra_mode = (mb_tpm >> 6);
+        cbptable = 0;
+
+        ASSERT(0);
+
+        /* write mb type */
+        PUT_BITS_UEV(ps_bitstream, 23, error_status, "mb type");
+
+        /* u4_transform_size_8x8_flag */
+        PUT_BITS(ps_bitstream, u4_transform_size_8x8_flag, 1, error_status, "u4_transform_size_8x8_flag");
+
+        /* write sub block modes */
+        for (i = 0; i < 4; i++)
+        {
+            /* sub blk idx 1 */
+            byte = *pu1_byte++;
+
+            intra_pred_mode_flag = byte & 0x1;
+
+            /* prev_intra4x4_pred_mode_flag */
+            PUT_BITS(ps_bitstream, intra_pred_mode_flag, 1, error_status, "prev_intra4x4_pred_mode_flag");
+
+            /* rem_intra4x4_pred_mode */
+            if (!intra_pred_mode_flag)
+            {
+                rem_intra_mode = (byte & 0xF) >> 1;
+                PUT_BITS(ps_bitstream, rem_intra_mode, 3, error_status, "rem_intra4x4_pred_mode");
+            }
+
+            /* sub blk idx 2 */
+            byte >>= 4;
+
+            intra_pred_mode_flag = byte & 0x1;
+
+            /* prev_intra4x4_pred_mode_flag */
+            PUT_BITS(ps_bitstream, intra_pred_mode_flag, 1, error_status, "prev_intra4x4_pred_mode_flag");
+
+            /* rem_intra4x4_pred_mode */
+            if (!intra_pred_mode_flag)
+            {
+                rem_intra_mode = (byte & 0xF) >> 1;
+                PUT_BITS(ps_bitstream, rem_intra_mode, 3, error_status, "rem_intra4x4_pred_mode");
+            }
+        }
+
+        /* intra_chroma_pred_mode */
+        PUT_BITS_UEV(ps_bitstream, chroma_intra_mode, error_status, "intra_chroma_pred_mode");
+    }
+    else if(mb_type == BDIRECT)
+    {
+        is_inter = 1;
+        /* write mb type */
+        PUT_BITS_UEV(ps_bitstream, B_DIRECT_16x16, error_status, "mb type");
+    }
+    else /* if mb_type == B16x16 */
+    {
+        /* inter macro block partition cnt for 16x16 16x8 8x16 8x8 */
+        const UWORD8 au1_part_cnt[] = { 1, 2, 2, 4 };
+
+        /* mv ptr */
+        WORD16 *pi2_mvd_ptr = (WORD16 *)pu1_byte;
+
+        /* number of partitions for the current mb */
+        UWORD32 u4_part_cnt = au1_part_cnt[mb_type - B16x16];
+
+        /* Get the pred modes */
+        WORD32 i4_mb_part_pred_mode = (mb_tpm >> 4);
+
+        is_inter = 1;
+
+        mb_type_stream = mb_type - B16x16 + B_L0_16x16 + i4_mb_part_pred_mode;
+
+        /* write mb type */
+        PUT_BITS_UEV(ps_bitstream, mb_type_stream, error_status, "mb type");
+
+        for (i = 0; i < (WORD32)u4_part_cnt; i++)
+        {
+            if (i4_mb_part_pred_mode != PRED_L1)/* || PRED_BI */
+            {
+                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr++, error_status, "mv l0 x");
+                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr++, error_status, "mv l0 y");
+            }
+            if (i4_mb_part_pred_mode != PRED_L0)/* || PRED_BI */
+            {
+                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr++, error_status, "mv l1 x");
+                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr++, error_status, "mv l1 y");
+            }
+        }
+
+        pu1_byte = (UWORD8 *)pi2_mvd_ptr;
+    }
+
+    /* coded_block_pattern */
+    if (mb_type != I16x16)
+    {
+        PUT_BITS_UEV(ps_bitstream, gu1_cbp_map_tables[cbp][cbptable], error_status, "coded_block_pattern");
+    }
+
+    if (cbp || mb_type == I16x16)
+    {
+        /* mb_qp_delta */
+        PUT_BITS_SEV(ps_bitstream, mb_qp_delta, error_status, "mb_qp_delta");
+    }
 
     /* Ending bitstream offset for header in bits */
     bitstream_end_offset = GET_NUM_BITS(ps_bitstream);
