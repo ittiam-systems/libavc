@@ -268,7 +268,6 @@ ih264e_fmt_conv_422i_to_420sp_a9q:
 @   SUB         r10,r10,r7,ASR #1           ;// u2_offset3          = u4_stride_v - u4_width >> 1
     mov           r14, r14, lsl #1      @// u2_offset_yuv422i   = u2_offset_yuv422i * 2
 
-    mov           r7, r7, asr #4        @// u4_width = u4_width / 16 (u4_width >> 4)
     mov           r11, r11, asr #1      @// u4_width = u4_width / 2 (u4_width >> 1)
 
     add           r4, r12, r4           @// u2_offset1 = u2_offset1 + u4_stride_y
@@ -288,14 +287,14 @@ ih264e_fmt_conv_422i_to_420sp_a9q:
 @// u4_width / 16       - r7
 @// u4_height / 2       - r11
 @// inner loop count    - r12
-yuv420_to_yuv422i_hight_loop:
+yuv422i_to_420sp_height_loop:
 
     mov           r12, r7               @// Inner loop count = u4_width / 16
 
-yuv420_to_yuv422i_width_loop:
+yuv422i_to_420sp_width_loop:
     vld4.8        {d0, d1, d2, d3}, [r3]! @// Load the 16 elements of row 1
     vld4.8        {d4, d5, d6, d7}, [r8]! @// Load the 16 elements of row 2
-    subs          r12, r12, #1
+    sub           r12, r12, #16
 
     vrhadd.u8     d0, d0, d4
     vrhadd.u8     d2, d2, d6
@@ -305,8 +304,34 @@ yuv420_to_yuv422i_width_loop:
 
     vst2.8        {d0, d2}, [r1]!       @// Store the 8 elements of row1/2 U
 
-    bgt           yuv420_to_yuv422i_width_loop
+    cmp           r12, #15
+    bgt           yuv422i_to_420sp_width_loop
+    cmp           r12, #0
+    beq           yuv422i_to_420sp_row_loop_end
 
+    @//If non-multiple of 16, then go back by few bytes to ensure 16 bytes can be read
+    @//Ex if width is 162, above loop will process 160 pixels. And
+    @//Both source and destination will point to 146th pixel and then 16 bytes will be read
+    @// and written using VLD1 and VST1
+    rsb           r12, r12, #16
+    sub           r3, r3, r12, lsl #1
+    sub           r8, r8, r12, lsl #1
+    sub           r0, r0, r12
+    sub           r6, r6, r12
+    sub           r1, r1, r12
+
+    vld4.8        {d0, d1, d2, d3}, [r3]! @// Load the 16 elements of row 1
+    vld4.8        {d4, d5, d6, d7}, [r8]! @// Load the 16 elements of row 2
+
+    vrhadd.u8     d0, d0, d4
+    vrhadd.u8     d2, d2, d6
+
+    vst2.8        {d1, d3}, [r0]!       @// Store the 16 elements of row1 Y
+    vst2.8        {d5, d7}, [r6]!       @// Store the 16 elements of row2 Y
+
+    vst2.8        {d0, d2}, [r1]!       @// Store the 8 elements of row1/2 U
+
+yuv422i_to_420sp_row_loop_end:
     @// Update the buffer pointer so that they will refer to next pair of rows
     add           r0, r0, r4            @// pu1_y               = pu1_y                 + u2_offset1
     add           r6, r6, r4            @// pu1_y_nxt_row       = pu1_y_nxt_row         + u2_offset1
@@ -317,7 +342,7 @@ yuv420_to_yuv422i_width_loop:
     add           r3, r3, r5            @// pu2_yuv422i         = pu2_yuv422i           + u2_offset_yuv422i
 
     add           r8, r8, r5            @// pu2_yuv422i_nxt_row = pu2_yuv422i_nxt_row   + u2_offset_yuv422i
-    bgt           yuv420_to_yuv422i_hight_loop
+    bgt           yuv422i_to_420sp_height_loop
     ldmfd         sp!, {r4-r12, pc}     @// Restore the register which are used
 
 
