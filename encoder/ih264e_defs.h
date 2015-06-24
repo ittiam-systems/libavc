@@ -140,6 +140,11 @@
 #define MAX_REF_CNT  32
 
 /*****************************************************************************/
+/* Minimum size of inter prediction unit supported by encoder                */
+/*****************************************************************************/
+#define ENC_MIN_PU_SIZE     16
+
+/*****************************************************************************/
 /* Num cores releated defs                                                   */
 /*****************************************************************************/
 /**
@@ -156,7 +161,7 @@
  * Maximum process context sets
  * Used to stagger encoding of MAX_CTXT_SETS in parallel
  */
-#define MAX_CTXT_SETS   2
+#define MAX_CTXT_SETS   1
 /**
  * Maximum number of contexts
  * Kept as twice the number of threads, to make it easier to initialize the contexts
@@ -528,8 +533,6 @@ enum
 #define MIN_RAW_BUFS_RGB565_COMP     1
 #define MIN_RAW_BUFS_RGBA8888_COMP   1
 #define MIN_RAW_BUFS_420SP_COMP      2
-
-#define MAX_NMB 120
 
 /** Maximum number of active config paramter sets */
 #define MAX_ACTIVE_CONFIG_PARAMS 32

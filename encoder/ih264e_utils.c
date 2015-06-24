@@ -331,7 +331,7 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
 
     /* Mark the skip flag   */
     i4_skip = 0;
-    ctxt_sel = ps_codec->i4_encode_api_call_cnt & 0x01;
+    ctxt_sel = ps_codec->i4_encode_api_call_cnt % MAX_CTXT_SETS;
     ps_codec->s_rate_control.pre_encode_skip[ctxt_sel] = i4_skip;
 
     /* Get a buffer to encode */
@@ -375,13 +375,15 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
 *
 *******************************************************************************
 */
-WORD32 ih264e_get_min_level(WORD32 pic_size)
+WORD32 ih264e_get_min_level(WORD32 wd, WORD32 ht)
 {
     WORD32 lvl_idx = MAX_LEVEL, i;
-
+    WORD32 pic_size = wd * ht;
+    WORD32 max = MAX(wd, ht);
     for (i = 0; i < MAX_LEVEL; i++)
     {
-        if (pic_size <= gai4_ih264_max_luma_pic_size[i])
+        if ((pic_size <= gai4_ih264_max_luma_pic_size[i]) &&
+            (max <= gai4_ih264_max_wd_ht[i]))
         {
             lvl_idx = i;
             break;
@@ -645,7 +647,7 @@ WORD32 ih264e_get_pic_mv_bank_size(WORD32 num_luma_samples)
     WORD32 mv_bank_size = 0;
 
     /* number of sub mb partitions possible */
-    WORD32 num_pu = num_luma_samples / (MIN_PU_SIZE * MIN_PU_SIZE);
+    WORD32 num_pu = num_luma_samples / (ENC_MIN_PU_SIZE * ENC_MIN_PU_SIZE);
 
     /* number of mbs */
     WORD32 num_mb = num_luma_samples / (MB_SIZE * MB_SIZE);
@@ -655,10 +657,10 @@ WORD32 ih264e_get_pic_mv_bank_size(WORD32 num_luma_samples)
     mv_bank_size += num_mb * sizeof(WORD32);
 
     /* Size for pu_map */
-    mv_bank_size += num_pu;
+    mv_bank_size += ALIGN4(num_pu);
 
     /* Size for storing enc_pu_t for each PU */
-    mv_bank_size += num_pu * sizeof(enc_pu_t);
+    mv_bank_size += ALIGN4(num_pu * sizeof(enc_pu_t));
 
     return mv_bank_size;
 }
@@ -789,7 +791,7 @@ IH264E_ERROR_T ih264e_mv_buf_mgr_add_bufs(codec_t *ps_codec)
 
     /* num of luma samples */
     WORD32 num_luma_samples = ALIGN16(ps_codec->s_cfg.u4_wd)
-                    * ALIGN16(ps_codec->s_cfg.u4_ht);
+                            * ALIGN16(ps_codec->s_cfg.u4_ht);
 
     /* number of mb's & frame partitions */
     WORD32 num_pu, num_mb;
@@ -815,7 +817,7 @@ IH264E_ERROR_T ih264e_mv_buf_mgr_add_bufs(codec_t *ps_codec)
     /* compute MV bank size per picture */
     pic_mv_bank_size = ih264e_get_pic_mv_bank_size(num_luma_samples);
 
-    num_pu = num_luma_samples / (MIN_PU_SIZE * MIN_PU_SIZE);
+    num_pu = num_luma_samples / (ENC_MIN_PU_SIZE * ENC_MIN_PU_SIZE);
     num_mb = num_luma_samples / (MB_SIZE * MB_SIZE);
     i = 0;
     ps_mv_buf = ps_codec->pv_mv_bank_buf_base;
@@ -834,11 +836,13 @@ IH264E_ERROR_T ih264e_mv_buf_mgr_add_bufs(codec_t *ps_codec)
         }
 
         ps_mv_buf->pu4_mb_pu_cnt = (UWORD32 *) pu1_buf;
+        pu1_buf += num_mb * sizeof(WORD32);
 
-        ps_mv_buf->pu1_pic_pu_map = (pu1_buf + num_mb * sizeof(WORD32));
+        ps_mv_buf->pu1_pic_pu_map = pu1_buf;
+        pu1_buf += ALIGN4(num_pu);
 
-        ps_mv_buf->ps_pic_pu = (enc_pu_t *) (pu1_buf + num_mb * sizeof(WORD32)
-                        + num_pu);
+        ps_mv_buf->ps_pic_pu = (enc_pu_t *) (pu1_buf);
+        pu1_buf += ALIGN4(num_pu * sizeof(enc_pu_t));
 
         ret = ih264_buf_mgr_add((buf_mgr_t *) ps_codec->pv_mv_buf_mgr,
                                 ps_mv_buf, i);
@@ -850,7 +854,6 @@ IH264E_ERROR_T ih264e_mv_buf_mgr_add_bufs(codec_t *ps_codec)
             return error_status;
         }
 
-        pu1_buf += pic_mv_bank_size;
         ps_mv_buf++;
         i++;
     }
@@ -1321,7 +1324,7 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
     UWORD32 u4_timestamp_low = ps_inp_buf->u4_timestamp_low;
 
     /* indices to access curr/prev frame info */
-    WORD32 ctxt_sel = ps_codec->i4_encode_api_call_cnt & 1;
+    WORD32 ctxt_sel = ps_codec->i4_encode_api_call_cnt % MAX_CTXT_SETS;
 
     /* curr pic type */
     PIC_TYPE_T *pic_type = &ps_codec->pic_type;
