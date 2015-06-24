@@ -70,7 +70,7 @@
  *  @brief  Stream buffer allocated per frame should be atleast MIN_STREAM_SIZE
 ******************************************************************************
  */
-#define MIN_STREAM_SIZE            0x20000
+#define MIN_STREAM_SIZE            0x800
 
 
 /*****************************************************************************/

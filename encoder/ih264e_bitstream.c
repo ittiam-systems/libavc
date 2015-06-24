@@ -97,7 +97,7 @@ IH264E_ERROR_T ih264e_bitstrm_init(bitstrm_t *ps_bitstrm,
                                    UWORD32 u4_max_bitstrm_size)
 {
     ps_bitstrm->pu1_strm_buffer  = pu1_bitstrm_buf;
-    ps_bitstrm->u4_max_strm_size = MAX(u4_max_bitstrm_size, MIN_STREAM_SIZE);
+    ps_bitstrm->u4_max_strm_size = u4_max_bitstrm_size;
 
     /* Default init values for other members of bitstream context */
     ps_bitstrm->u4_strm_buf_offset  = 0;
