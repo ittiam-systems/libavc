@@ -43,7 +43,3 @@ libavcd_srcs_asm_arm    +=  common/arm/ih264_arm_memory_barrier.s
 LOCAL_SRC_FILES_arm += $(libavcd_srcs_c_arm) $(libavcd_srcs_asm_arm)
 LOCAL_C_INCLUDES_arm += $(libavcd_inc_dir_arm)
 LOCAL_CFLAGS_arm += $(libavcd_cflags_arm)
-
-# CLANG WORKAROUNDS
-LOCAL_CLANG_ASFLAGS_arm += -no-integrated-as
-LOCAL_CLANG_ASFLAGS_arm += $(addprefix -Wa$(comma)-I,$(libavcd_inc_dir_arm))
