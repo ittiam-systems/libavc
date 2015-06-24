@@ -841,6 +841,8 @@ void ih264e_init_me(process_ctxt_t *ps_proc)
 
     /* src ptr */
     ps_me_ctxt->pu1_src_buf_luma = ps_proc->pu1_src_buf_luma;
+    /* src stride */
+    ps_me_ctxt->i4_src_strd = ps_proc->i4_src_strd;
 
     /* ref ptrs and corresponding lagrange params */
     ps_me_ctxt->apu1_ref_buf_luma[0] = ps_proc->apu1_ref_buf_luma[0];
