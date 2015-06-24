@@ -68,8 +68,8 @@
 #include "ih264_defs.h"
 #include "ih264_size_defs.h"
 #include "ime_distortion_metrics.h"
+#include "ime_defs.h"
 #include "ime_structs.h"
-#include "ih264_defs.h"
 #include "ih264_error.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
@@ -78,6 +78,7 @@
 #include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_cabac_tables.h"
 #include "ih264_macros.h"
 #include "ih264_common_tables.h"
 #include "ih264_debug.h"
@@ -91,7 +92,9 @@
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
+#include "ih264e_cabac.h"
 #include "ih264e_utils.h"
 #include "ih264e_config.h"
 #include "ih264e_statistics.h"
@@ -99,9 +102,7 @@
 #include "ih264_list.h"
 #include "ih264e_encode_header.h"
 #include "ih264e_me.h"
-#include "ime_defs.h"
 #include "ime.h"
-#include "ih264e_rate_control.h"
 #include "ih264e_core_coding.h"
 #include "ih264e_rc_mem_interface.h"
 #include "ih264e_time_stamp.h"
@@ -114,6 +115,235 @@
 /*****************************************************************************/
 /* Function Definitions                                                      */
 /*****************************************************************************/
+
+/**
+ *******************************************************************************
+ *
+ * @brief
+ *  Queues the current buffer, gets back a another buffer for encoding with corrent
+ *  picture type
+ *
+ * @par Description:
+ *      This function performs 3 distinct but related functions.
+ *      1) Maintains an input queue [Note the the term queue donot imply a
+ *         first-in first-out logic here] that queues input and dequeues them so
+ *         that input frames can be encoded at any predetermined encoding order
+ *      2) Uses RC library to decide which frame must be encoded in current pass
+ *         and which picture type it must be encoded to.
+ *      3) Uses RC library to decide the QP at which current frame has to be
+ *         encoded
+ *      4) Determines if the current picture must be encoded or not based on
+ *         PRE-ENC skip
+ *
+ *     Input queue is used for storing input buffers till they are used for
+ *     encoding. This queue is maintained at ps_codec->as_inp_list. Whenever a
+ *     valid input comes, it is added to the end of queue. This same input is
+ *     added to RC queue using the identifier as ps_codec->i4_pic_cnt. Hence any
+ *     pic from RC can be located in the input queue easily.
+ *
+ *     The dequeue operation does not start till we have ps_codec->s_cfg.u4_max_num_bframes
+ *     frames in the queue. THis is done in order to ensure that once output starts
+ *     we will have a constant stream of output with no gaps.
+ *
+ *     THe output frame order is governed by RC library. When ever we dequeue a
+ *     buffer from RC library, it ensures that we will get them in encoding order
+ *     With the output of RC library, we can use the picture id to dequeue the
+ *     corresponding buffer from input queue and encode it.
+ *
+ *     Condition at the end of stream.
+ *     -------------------------------
+ *      At the last valid buffer from the app, we will get ps_ive_ip->u4_is_last
+ *      to be set. This will the given to lib when appropriate input buffer is
+ *      given to encoding.
+ *
+ *      Since we have to output is not in sync with input, we will have frames to
+ *      encode even after we recive the last vaild input buffer. Hence we have to
+ *      make sure that we donot queue any new buffers once we get the flag [It may
+ *      mess up GOP ?]. This is acheived by setting ps_codec->i4_last_inp_buff_received
+ *      to act as a permenent marker for last frame recived [This may not be needed,
+ *      because in our current app, all buffers after the last are marked as last.
+ *      But can we rely on that?] . Hence after this flgag is set no new buffers are
+ *      queued.
+ *
+ * @param[in] ps_codec
+ *   Pointer to codec descriptor
+ *
+ * @param[in] ps_ive_ip
+ *   Current input buffer to the encoder
+ *
+ * @param[out] ps_inp
+ *   Buffer to be encoded in the current pass
+ *
+ * @returns
+ *   Flag indicating if we have a pre-enc skip or not
+ *
+ * @remarks
+ * TODO (bpic)
+ *  The check for null ans is last is redudent.
+ *  Need to see if we can remove it
+ *
+ *******************************************************************************
+ */
+WORD32 ih264e_input_queue_update(codec_t *ps_codec,
+                                 ive_video_encode_ip_t *ps_ive_ip,
+                                 inp_buf_t *ps_enc_buff)
+{
+
+    inp_buf_t *ps_inp_buf;
+    picture_type_e e_pictype;
+    WORD32 i4_skip;
+    UWORD32 ctxt_sel, u4_pic_id, u4_pic_disp_id;
+    UWORD8 u1_frame_qp;
+    UWORD32 max_frame_bits = 0x7FFFFFFF;
+
+    /*  Mark that the last input frame has been received */
+    if (ps_ive_ip->u4_is_last == 1)
+    {
+        ps_codec->i4_last_inp_buff_received = 1;
+    }
+
+    if (ps_ive_ip->s_inp_buf.apv_bufs[0] == NULL
+                    && !ps_codec->i4_last_inp_buff_received)
+    {
+        ps_enc_buff->s_raw_buf.apv_bufs[0] = NULL;
+        return 0;
+    }
+
+    /***************************************************************************
+     * Check for pre enc skip
+     *   When src and target frame rates donot match, we skip some frames to
+     *   maintain the relation ship between them
+     **************************************************************************/
+    {
+        WORD32 skip_src;
+
+        skip_src = ih264e_update_rc_framerates(
+                        ps_codec->s_rate_control.pps_rate_control_api,
+                        ps_codec->s_rate_control.pps_pd_frm_rate,
+                        ps_codec->s_rate_control.pps_time_stamp,
+                        ps_codec->s_rate_control.pps_frame_time);
+
+        if (skip_src) return 1;
+    }
+
+    /***************************************************************************
+     *Queue the input to the queue
+     **************************************************************************/
+    ps_inp_buf = &(ps_codec->as_inp_list[ps_codec->i4_pic_cnt
+                                         % MAX_NUM_BFRAMES]);
+
+    /* copy input info. to internal structure */
+    ps_inp_buf->s_raw_buf = ps_ive_ip->s_inp_buf;
+    ps_inp_buf->u4_timestamp_low = ps_ive_ip->u4_timestamp_low;
+    ps_inp_buf->u4_timestamp_high = ps_ive_ip->u4_timestamp_high;
+    ps_inp_buf->u4_is_last = ps_ive_ip->u4_is_last;
+    ps_inp_buf->pv_mb_info = ps_ive_ip->pv_mb_info;
+    ps_inp_buf->u4_mb_info_type = ps_ive_ip->u4_mb_info_type;
+    ps_inp_buf->pv_pic_info = ps_ive_ip->pv_pic_info;
+    ps_inp_buf->u4_pic_info_type = ps_ive_ip->u4_pic_info_type;
+
+    /***************************************************************************
+     * Now we should add the picture to RC stack here
+     **************************************************************************/
+    irc_add_picture_to_stack(ps_codec->s_rate_control.pps_rate_control_api,
+                             ps_codec->i4_pic_cnt);
+
+    /*
+     * Rc has a problem with this delayed processing
+     */
+    if (ps_codec->i4_encode_api_call_cnt
+                    < (WORD32)(ps_codec->s_cfg.u4_num_bframes))
+    {
+        ps_enc_buff->s_raw_buf.apv_bufs[0] = NULL;
+        return 0;
+    }
+
+    /***************************************************************************
+     * Get a new pic to encode
+     **************************************************************************/
+
+    /*
+     * If a frame is forced, apply it
+     * We cannot force an I frame for first frame
+     */
+    if ((ps_codec->i4_frame_num > 0)&&
+        ((ps_codec->force_curr_frame_type == IV_I_FRAME)||
+         (ps_codec->force_curr_frame_type == IV_IDR_FRAME)))
+    {
+        irc_force_I_frame(ps_codec->s_rate_control.pps_rate_control_api);
+    }
+
+    /* Query the picture_type */
+    e_pictype = ih264e_rc_get_picture_details(
+                    ps_codec->s_rate_control.pps_rate_control_api, (WORD32 *)(&u4_pic_id),
+                    (WORD32 *)(&u4_pic_disp_id));
+
+    switch (e_pictype)
+    {
+        case I_PIC:
+            ps_codec->pic_type = PIC_I;
+            break;
+        case P_PIC:
+            ps_codec->pic_type = PIC_P;
+            break;
+        case B_PIC:
+            ps_codec->pic_type = PIC_B;
+            break;
+        default:
+            ps_codec->pic_type = PIC_NA;
+            ps_enc_buff->s_raw_buf.apv_bufs[0] = NULL;
+            return 0;
+    }
+
+
+    ps_codec->pic_type = ( (u4_pic_id % ps_codec->s_cfg.u4_idr_frm_interval) ||
+                           (ps_codec->force_curr_frame_type != IV_IDR_FRAME) ) ?
+                                    ps_codec->pic_type : PIC_IDR;
+
+    ps_codec->force_curr_frame_type = IV_NA_FRAME;
+
+    /* Get current frame Qp */
+    u1_frame_qp = (UWORD8)irc_get_frame_level_qp(
+                    ps_codec->s_rate_control.pps_rate_control_api, e_pictype,
+                    max_frame_bits);
+    ps_codec->u4_frame_qp = gau1_mpeg2_to_h264_qmap[u1_frame_qp];
+
+    /*
+     * copy the pic id to poc because the display order is assumed to be same
+     * as input order
+     */
+    ps_codec->i4_poc = u4_pic_id;
+
+    /***************************************************************************
+     * Now retrieve the correct picture from the queue
+     **************************************************************************/
+
+    /* Mark the skip flag   */
+    i4_skip = 0;
+    ctxt_sel = ps_codec->i4_encode_api_call_cnt & 0x01;
+    ps_codec->s_rate_control.pre_encode_skip[ctxt_sel] = i4_skip;
+
+    /* Get a buffer to encode */
+    ps_inp_buf = &(ps_codec->as_inp_list[u4_pic_id % MAX_NUM_BFRAMES]);
+
+    /* copy dequeued input to output */
+    ps_enc_buff->s_raw_buf = ps_inp_buf->s_raw_buf;
+    ps_enc_buff->u4_timestamp_low = ps_inp_buf->u4_timestamp_low;
+    ps_enc_buff->u4_timestamp_high = ps_inp_buf->u4_timestamp_high;
+    ps_enc_buff->u4_is_last = ps_inp_buf->u4_is_last;
+    ps_enc_buff->pv_mb_info = ps_inp_buf->pv_mb_info;
+    ps_enc_buff->u4_mb_info_type = ps_inp_buf->u4_mb_info_type;
+    ps_enc_buff->pv_pic_info = ps_inp_buf->pv_pic_info;
+    ps_enc_buff->u4_pic_info_type = ps_inp_buf->u4_pic_info_type;
+
+    if (ps_enc_buff->u4_is_last)
+    {
+        ps_codec->pic_type = PIC_NA;
+    }
+
+    /* Return the buffer status */
+    return (0);
+}
 
 /**
 *******************************************************************************
@@ -331,7 +561,7 @@ WORD32 ih264e_get_total_pic_buf_size(WORD32 pic_size,
     WORD32 num_samples;
     WORD32 max_num_bufs;
     WORD32 pad = MAX(horz_pad, vert_pad);
-    UNUSED(pic_size);
+
     /*
      * If num_ref_frames and num_reorder_frmaes is specified
      * Use minimum value
@@ -343,6 +573,7 @@ WORD32 ih264e_get_total_pic_buf_size(WORD32 pic_size,
 
     /* Maximum number of luma samples in a picture at given level */
     num_luma_samples = gai4_ih264_max_luma_pic_size[lvl_idx];
+    num_luma_samples = MAX(num_luma_samples, pic_size);
 
     /* Account for chroma */
     num_samples = num_luma_samples * 3 / 2;
@@ -1002,8 +1233,9 @@ IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec)
                        ps_codec->s_cfg.u4_target_bitrate,
                        ps_codec->s_cfg.u4_max_bitrate,
                        ps_codec->s_cfg.u4_vbv_buffer_delay,
-                       ps_codec->s_cfg.u4_i_frm_interval, au1_init_qp,
-                       H264_ALLOC_INTER_FRM_INTV, au1_min_max_qp,
+                       ps_codec->s_cfg.u4_i_frm_interval,
+                       ps_codec->s_cfg.u4_num_bframes + 1, au1_init_qp,
+                       ps_codec->s_cfg.u4_num_bframes + 2 , au1_min_max_qp,
                        ps_codec->s_cfg.u4_max_level);
     }
 
@@ -1019,6 +1251,11 @@ IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec)
     ps_codec->i4_ref_buf_cnt += MAX_CTXT_SETS;
 
     DEBUG_HISTOGRAM_INIT();
+
+
+    /* Init dependecy vars */
+    ps_codec->i4_last_inp_buff_received = 0;
+
 
     return IH264E_SUCCESS;
 }
@@ -1067,7 +1304,8 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
     UWORD8 *pu1_cur_pic_luma, *pu1_cur_pic_chroma;
 
     /* ref buffer set */
-    pic_buf_t *ps_ref_pic;
+    pic_buf_t *aps_ref_pic[MAX_REF_PIC_CNT] = {NULL, NULL};
+    mv_buf_t *aps_mv_buf[MAX_REF_PIC_CNT] = {NULL, NULL};
     WORD32 ref_set_id;
 
     /* pic time stamp */
@@ -1080,9 +1318,6 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
     /* curr pic type */
     PIC_TYPE_T *pic_type = &ps_codec->pic_type;
 
-    /* should src be skipped */
-    WORD32 *skip_src = &ps_codec->s_rate_control.pre_encode_skip[ctxt_sel];
-
     /* Diamond search Iteration Max Cnt */
     UWORD32 u4_num_layers =
                     (ps_codec->s_cfg.u4_enc_speed_preset == IVE_FASTEST) ?
@@ -1094,53 +1329,7 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
     /********************************************************************/
     /*                     INITIALIZE CODEC CONTEXT                     */
     /********************************************************************/
-
-    /* pre enc rc call */
-    *skip_src = ih264e_set_rc_pic_params(ps_codec,
-                                         ps_codec->i4_encode_api_call_cnt,
-                                         (WORD32 *) pic_type);
-    if (*skip_src == 1)
-    {
-        ps_codec->as_process[ctxt_sel * MAX_PROCESS_THREADS].s_inp_buf =
-                        *ps_inp_buf;
-
-        /* inform output bytes generated as zero */
-        ps_codec->as_out_buf[ctxt_sel].s_bits_buf.u4_bytes = 0;
-
-        return error_status;
-    }
-
-    /********************************************************************/
-    /*                     Alternate reference frame                    */
-    /********************************************************************/
-    if (ps_codec->s_cfg.u4_enable_alt_ref)
-    {
-        if (PIC_IDR == *pic_type || PIC_I == *pic_type)
-        {
-            ps_codec->u4_is_curr_frm_ref = 1;
-        }
-        else
-        {
-            ps_codec->u4_is_curr_frm_ref = 1;
-                if(ps_codec->i4_encode_api_call_cnt % (ps_codec->s_cfg.u4_enable_alt_ref + 1))
-                    ps_codec->u4_is_curr_frm_ref = 0;
-            }
-
-        if ((ps_codec->u4_is_curr_frm_ref == 1) || (ps_codec->i4_frame_num < 0))
-        {
-            ps_codec->i4_frame_num++;
-        }
-    }
-    else
-    {
-        ps_codec->u4_is_curr_frm_ref = 1;
-
-        ps_codec->i4_frame_num++;
-    }
-
     /* slice_type */
-    ps_codec->i4_slice_type = PSLICE;
-
     if ((PIC_I == *pic_type) || (PIC_IDR == *pic_type))
     {
         ps_codec->i4_slice_type = ISLICE;
@@ -1149,6 +1338,42 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
     {
         ps_codec->i4_slice_type = PSLICE;
     }
+    else if(PIC_B == *pic_type)
+    {
+        ps_codec->i4_slice_type = BSLICE;
+    }
+
+
+    /***************************************************************************
+     * Set up variables for sending frame number, poc and reference
+     *   a) Set up alt ref too
+     **************************************************************************/
+
+    /* In case of alt ref and B pics we will have non reference frame in stream */
+    if (ps_codec->s_cfg.u4_enable_alt_ref || ps_codec->s_cfg.u4_num_bframes)
+    {
+        ps_codec->i4_non_ref_frames_in_stream = 1;
+    }
+
+    /* Check and set if the current frame is reference or not */
+    ps_codec->u4_is_curr_frm_ref = 0;
+
+    /* This frame is reference if its not a B pic, pending approval from alt ref */
+    ps_codec->u4_is_curr_frm_ref = (*pic_type != PIC_B);
+
+    /* In case if its a P pic, we will decide according to alt ref also */
+    if (ps_codec->s_cfg.u4_enable_alt_ref && (*pic_type == PIC_P)
+                    && (ps_codec->i4_pic_cnt
+                                    % (ps_codec->s_cfg.u4_enable_alt_ref + 1)))
+    {
+        ps_codec->u4_is_curr_frm_ref = 0;
+    }
+
+    /*
+     * Override everything in case of IDR
+     * Note that in case of IDR, at this point ps_codec->u4_is_curr_frm_ref must
+     * be 1
+     */
 
     /* is this an IDR pic */
     ps_codec->u4_is_idr = 0;
@@ -1164,6 +1389,10 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
         /* idr_pic_id */
         ps_codec->i4_idr_pic_id++;
     }
+
+    /***************************************************************************
+     * Set up Deblock
+     **************************************************************************/
 
     /* set deblock disable flags based on disable deblock level */
     ps_codec->i4_disable_deblk_pic = 1;
@@ -1235,93 +1464,132 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
         ih264e_populate_pps(ps_codec, ps_pps);
     }
 
-    /* Reference and MV bank Buffer Manager */
-    {
-        /* min pic cnt among the list of pics stored in ref list */
-        WORD32 min_pic_cnt;
+    /***************************************************************************
+     *  Reference and MV bank Buffer Manager
+     *  Here we will
+     *      1) Find the correct ref pics for the current frame
+     *      2) Free the ref pic that is not going to be used anywhere
+     *      3) Find a free buff from the list and assign it as the recon of
+     *         current frame
+     *
+     *  1) Finding correct ref pic
+     *      All pics needed for future are arranged in a picture list called
+     *      ps_codec->as_ref_set. Each picture in this will have a pic buffer and
+     *      MV buffer that is marked appropriately as BUF_MGR_REF, BUF_MGR_IO or
+     *      BUF_MGR_CODEC. Also the pic_cnt and poc will also be present.
+     *      Hence to find the ref pic we will loop through the list and find
+     *      2 pictures with maximum i4_pic_cnt .
+     *
+     *      note that i4_pic_cnt == -1 is used to filter uninit ref pics.
+     *      Now since we only have max two ref pics, we will always find max 2
+     *      ref pics.
 
-        /* max pic cnt among the list of pics stored in ref list */
-        WORD32 max_pic_cnt;
+     *
+     *  2) 3) Self explanatory
+     ***************************************************************************/
+    {
+        /* Search for buffs with maximum pic cnt */
+
+        WORD32 max_pic_cnt[] = { -1, -1 };
+
+        mv_buf_t *ps_mv_buf_to_free[] = { NULL, NULL };
 
         /* temp var */
-        WORD32 i;
-
-        ps_ref_pic = NULL;
-
-        /* get reference picture when necessary */
-        /* Only nearest picture encoded (max pic cnt) is used as reference */
-        if ((*pic_type != PIC_IDR) && (*pic_type != PIC_I))
-        {
-            max_pic_cnt = ps_codec->as_ref_set[0].i4_pic_cnt;
-
-            ps_ref_pic = ps_codec->as_ref_set[0].ps_pic_buf;
-
-            /* loop through to get the max pic cnt among the list of pics stored in ref list */
-            for (i = 1; i < ps_codec->i4_ref_buf_cnt; i++)
-            {
-                if (max_pic_cnt < ps_codec->as_ref_set[i].i4_pic_cnt)
-                {
-                    max_pic_cnt = ps_codec->as_ref_set[i].i4_pic_cnt;
-                    ps_ref_pic = ps_codec->as_ref_set[i].ps_pic_buf;
-                }
-            }
-        }
-
-        /* get a location at which the curr pic info can be stored for future reference */
-        ref_set_id = -1;
+        WORD32 i, buf_status;
 
         for (i = 0; i < ps_codec->i4_ref_buf_cnt; i++)
         {
-            if (-1 == ps_codec->as_ref_set[i].i4_pic_cnt)
+            if (ps_codec->as_ref_set[i].i4_pic_cnt == -1)
+                continue;
+
+            buf_status = ih264_buf_mgr_get_status(
+                            ps_codec->pv_ref_buf_mgr,
+                            ps_codec->as_ref_set[i].ps_pic_buf->i4_buf_id);
+
+            /* Ideally we should look for buffer status of MV BUFF also. But since
+             * the correponding MV buffs also will be at the same state. It dosent
+             * matter as of now. But the check will make the logic better */
+            if ((max_pic_cnt[0] < ps_codec->as_ref_set[i].i4_pic_cnt)
+                            && (buf_status & BUF_MGR_REF))
             {
-                ref_set_id = i;
-                break;
-            }
-        }
-
-        /* If all the entries in the ref_set array are filled, then remove the entry with least pic_cnt */
-        if (ref_set_id == -1)
-        {
-            /* pic info */
-            pic_buf_t *ps_cur_pic;
-
-            /* mv info */
-            mv_buf_t *ps_cur_mv_buf;
-
-            ref_set_id = 0;
-            min_pic_cnt = ps_codec->as_ref_set[0].i4_pic_cnt;
-
-            /* loop through to get the min pic cnt among the list of pics stored in ref list */
-            for (i = 1; i < ps_codec->i4_ref_buf_cnt; i++)
-            {
-                if (min_pic_cnt > ps_codec->as_ref_set[i].i4_pic_cnt)
+                if (max_pic_cnt[1] < ps_codec->as_ref_set[i].i4_pic_cnt)
                 {
-                    min_pic_cnt = ps_codec->as_ref_set[i].i4_pic_cnt;
-                    ref_set_id = i;
+                    max_pic_cnt[0] = max_pic_cnt[1];
+                    aps_ref_pic[0] = aps_ref_pic[1];
+                    aps_mv_buf[0] = aps_mv_buf[1];
+
+                    ps_mv_buf_to_free[0] = ps_mv_buf_to_free[1];
+
+                    max_pic_cnt[1] = ps_codec->as_ref_set[i].i4_pic_cnt;
+                    aps_ref_pic[1] = ps_codec->as_ref_set[i].ps_pic_buf;
+                    aps_mv_buf[1] = ps_codec->as_ref_set[i].ps_mv_buf;
+                    ps_mv_buf_to_free[1] = ps_codec->as_ref_set[i].ps_mv_buf;
+
+                }
+                else
+                {
+                    max_pic_cnt[0] = ps_codec->as_ref_set[i].i4_pic_cnt;
+                    aps_ref_pic[0] = ps_codec->as_ref_set[i].ps_pic_buf;
+                    aps_mv_buf[0] = ps_codec->as_ref_set[i].ps_mv_buf;
+                    ps_mv_buf_to_free[0] = ps_codec->as_ref_set[i].ps_mv_buf;
                 }
             }
-
-            ps_cur_pic = ps_codec->as_ref_set[ref_set_id].ps_pic_buf;
-
-            ps_cur_mv_buf = ps_codec->as_ref_set[ref_set_id].ps_mv_buf;
-
-            /* release this frame from reference list */
-            ih264_buf_mgr_release(ps_codec->pv_mv_buf_mgr,
-                                  ps_cur_mv_buf->i4_buf_id, BUF_MGR_REF);
-
-            ih264_buf_mgr_release(ps_codec->pv_ref_buf_mgr,
-                                  ps_cur_pic->i4_buf_id, BUF_MGR_REF);
         }
 
-        if (ps_codec->s_cfg.u4_enable_recon)
+        /*
+         * Now if the current picture is I or P, we discard the back ref pic and
+         * assign forward ref as backward ref
+         */
+        if (*pic_type != PIC_B)
         {
-            ret = ih264_buf_mgr_check_free((buf_mgr_t *)ps_codec->pv_ref_buf_mgr);
-
-            if (ret != IH264_SUCCESS)
+            if (ps_mv_buf_to_free[0])
             {
-                return IH264E_NO_FREE_RECONBUF;
+                /* release this frame from reference list */
+                ih264_buf_mgr_release(ps_codec->pv_mv_buf_mgr,
+                                      ps_mv_buf_to_free[0]->i4_buf_id,
+                                      BUF_MGR_REF);
+
+                ih264_buf_mgr_release(ps_codec->pv_ref_buf_mgr,
+                                      aps_ref_pic[0]->i4_buf_id, BUF_MGR_REF);
+            }
+
+            max_pic_cnt[0] = max_pic_cnt[1];
+            aps_ref_pic[0] = aps_ref_pic[1];
+            aps_mv_buf[0] = aps_mv_buf[1];
+
+            /* Dummy */
+            max_pic_cnt[1] = -1;
+        }
+
+        /*
+         * Mark all reference pic with unused buffers to be free
+         * We need this step since each one, ie ref, recon io etc only unset their
+         * respective flags. Hence we need to combine togather and mark the ref set
+         * accordingly
+         */
+        ref_set_id = -1;
+        for (i = 0; i < ps_codec->i4_ref_buf_cnt; i++)
+        {
+            if (ps_codec->as_ref_set[i].i4_pic_cnt == -1)
+            {
+                ref_set_id = i;
+                continue;
+            }
+
+            buf_status = ih264_buf_mgr_get_status(
+                            ps_codec->pv_ref_buf_mgr,
+                            ps_codec->as_ref_set[i].ps_pic_buf->i4_buf_id);
+
+            if ((buf_status & (BUF_MGR_REF | BUF_MGR_CODEC | BUF_MGR_IO)) == 0)
+            {
+                ps_codec->as_ref_set[i].i4_pic_cnt = -1;
+                ps_codec->as_ref_set[i].i4_poc = 32768;
+
+                ref_set_id = i;
             }
         }
+        /* An asssert failure here means we donot have any free buffs */
+        ASSERT(ref_set_id >= 0);
     }
 
     {
@@ -1353,7 +1621,6 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
          * and getting a buffer id to free
          */
         ps_mv_buf->i4_abs_poc = ps_codec->i4_abs_pic_order_cnt;
-
         ps_mv_buf->i4_buf_id = cur_mv_bank_buf_id;
     }
 
@@ -1375,7 +1642,7 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
         }
 
         /* mark the buffer as needed for reference if the curr pic is available for ref */
-        if (1 == ps_codec->u4_is_curr_frm_ref)
+        if (ps_codec->u4_is_curr_frm_ref)
         {
             ih264_buf_mgr_set_status(ps_codec->pv_ref_buf_mgr, cur_pic_buf_id,
                                      BUF_MGR_REF);
@@ -1392,7 +1659,7 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
         ps_cur_pic->u4_timestamp_high = ps_inp_buf->u4_timestamp_high;
         ps_cur_pic->u4_timestamp_low = ps_inp_buf->u4_timestamp_low;
 
-        ps_cur_pic->i4_abs_poc = ps_codec->i4_abs_pic_order_cnt;
+        ps_cur_pic->i4_abs_poc = ps_codec->i4_poc;
         ps_cur_pic->i4_poc_lsb = ps_codec->i4_pic_order_cnt_lsb;
 
         ps_cur_pic->i4_buf_id = cur_pic_buf_id;
@@ -1401,18 +1668,17 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
         pu1_cur_pic_chroma = ps_cur_pic->pu1_chroma;
     }
 
-    /* in case the current picture is used for reference then add it to the reference set */
-    if (ps_codec->u4_is_curr_frm_ref
-                    && ((*pic_type == PIC_IDR) || (*pic_type == PIC_I)
-                                    || (*pic_type == PIC_P)))
+    /*
+     * Add the current picture to ref list independent of the fact that it is used
+     * as reference or not. This is because, now recon is not in sync with output
+     * hence we may need the current recon after some delay. By adding it to ref list
+     * we can retrieve the recon any time we want. The information that it is used
+     * for ref can still be found by checking the buffer status of pic buf.
+     */
     {
         ps_codec->as_ref_set[ref_set_id].i4_pic_cnt = ps_codec->i4_pic_cnt;
-
-        /* TODO: Currently pic_cnt and poc are same - Once frame drops are introduced change appropriately */
-        ps_codec->as_ref_set[ref_set_id].i4_poc = ps_codec->i4_pic_cnt;
-
+        ps_codec->as_ref_set[ref_set_id].i4_poc = ps_codec->i4_poc;
         ps_codec->as_ref_set[ref_set_id].ps_mv_buf = ps_mv_buf;
-
         ps_codec->as_ref_set[ref_set_id].ps_pic_buf = ps_cur_pic;
     }
 
@@ -1592,16 +1858,37 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
             /* Pointer to current pictures mv buffers */
             ps_proc->ps_cur_mv_buf = ps_mv_buf;
 
-            /* pointer to ref picture */
-            ps_proc->ps_ref_pic = ps_ref_pic;
+            /*
+             * pointer to ref picture
+             * 0    : Temporal back reference
+             * 1    : Temporal forward reference
+             */
+            ps_proc->aps_ref_pic[PRED_L0] = aps_ref_pic[PRED_L0];
+            ps_proc->aps_ref_pic[PRED_L1] = aps_ref_pic[PRED_L1];
+            if (ps_codec->pic_type == PIC_B)
+            {
+                ps_proc->aps_mv_buf[PRED_L0] = aps_mv_buf[PRED_L0];
+                ps_proc->aps_mv_buf[PRED_L1] = aps_mv_buf[PRED_L1];
+            }
+            else
+            {
+                /*
+                 * Else is dummy since for non B pic we does not need this
+                 * But an assignment here will help in not having a segfault
+                 * when we calcualte colpic in P slices
+                 */
+                ps_proc->aps_mv_buf[PRED_L0] = ps_mv_buf;
+                ps_proc->aps_mv_buf[PRED_L1] = ps_mv_buf;
+            }
 
             if ((*pic_type != PIC_IDR) && (*pic_type != PIC_I))
             {
-                /* ref pointer luma */
-                ps_proc->pu1_ref_buf_luma_base = ps_ref_pic->pu1_luma;
+                /* temporal back an forward  ref pointer luma and chroma */
+                ps_proc->apu1_ref_buf_luma_base[PRED_L0] = aps_ref_pic[PRED_L0]->pu1_luma;
+                ps_proc->apu1_ref_buf_chroma_base[PRED_L0] = aps_ref_pic[PRED_L0]->pu1_chroma;
 
-                /* ref pointer chroma */
-                ps_proc->pu1_ref_buf_chroma_base = ps_ref_pic->pu1_chroma;
+                ps_proc->apu1_ref_buf_luma_base[PRED_L1] = aps_ref_pic[PRED_L1]->pu1_luma;
+                ps_proc->apu1_ref_buf_chroma_base[PRED_L1] = aps_ref_pic[PRED_L1]->pu1_chroma;
             }
 
             /* Structure for current input buffer */
@@ -1649,6 +1936,9 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
                 /* slice hdr base */
                 ps_entropy->ps_slice_hdr_base = ps_proc->ps_slice_hdr_base;
 
+                /* Abs poc */
+                ps_entropy->i4_abs_pic_order_cnt = ps_proc->ps_codec->i4_poc;
+
                 /* initialize entropy map */
                 if (i == j)
                 {
@@ -1656,6 +1946,9 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
                     memset(ps_entropy->pu1_entropy_map - ps_proc->i4_wd_mbs, 1, ps_proc->i4_wd_mbs);
                     /* row 0 to ht in mbs */
                     memset(ps_entropy->pu1_entropy_map, 0, ps_proc->i4_wd_mbs * ps_proc->i4_ht_mbs);
+
+                    /* intialize cabac tables */
+                    ih264e_init_cabac_table(ps_entropy);
                 }
 
                 /* wd in mbs */
@@ -1751,7 +2044,7 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
                 /* qp */
                 ps_me_ctxt->u1_mb_qp = ps_codec->u4_frame_qp;
 
-                if ((i == 0) && (0 == ps_codec->i4_pic_cnt))
+                if ((i == j) && (0 == ps_codec->i4_poc))
                 {
                     /* init mv bits tables */
                     ih264e_init_mv_bits(ps_me_ctxt);

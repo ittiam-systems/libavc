@@ -30,6 +30,7 @@
 *  Harish
 *
 * @par List of Functions:
+*  -ih264e_input_queue_update()
 *  -ih264e_get_min_level()
 *  -ih264e_get_lvl_idx()
 *  -ih264e_get_dpb_size()
@@ -50,6 +51,35 @@
 
 #ifndef IH264E_UTILS_H_
 #define IH264E_UTILS_H_
+
+/**
+ *******************************************************************************
+ *
+ * @brief
+ *  Queues the current buffer, gets back a another buffer for encoding with corrent
+ *  picture type
+ *
+ * @par Description:
+ *
+ * @param[in] ps_codec
+ *   Pointer to codec descriptor
+ *
+ * @param[in] ps_ive_ip
+ *   Current input buffer to the encoder
+ *
+ * @param[out] ps_inp
+ *   Buffer to be encoded in the current pass
+ *
+ * @returns
+ *   Flag indicating if we have a pre-enc skip or not
+ *
+ * @remarks
+ *
+ *******************************************************************************
+ */
+WORD32 ih264e_input_queue_update(codec_t *ps_codec,
+                                 ive_video_encode_ip_t *ps_ive_ip,
+                                 inp_buf_t *ps_enc_buff);
 
 /**
 *******************************************************************************

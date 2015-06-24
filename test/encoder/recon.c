@@ -54,7 +54,7 @@
 IV_STATUS_T write_recon(FILE *fp, iv_raw_buf_t *ps_raw_buf)
 {
     WORD32 bytes;
-    WORD32 wd, ht, strd;
+    WORD32 wd, ht;
     UWORD8 *pu1_buf;
     WORD32 i;
     WORD32 comp;
@@ -68,7 +68,6 @@ IV_STATUS_T write_recon(FILE *fp, iv_raw_buf_t *ps_raw_buf)
     {
         wd = ps_raw_buf->au4_wd[comp];
         ht = ps_raw_buf->au4_ht[comp];
-        strd = ps_raw_buf->au4_strd[comp];
         pu1_buf = ps_raw_buf->apv_bufs[comp];
         for(i = 0; i < ht; i++)
         {
@@ -163,7 +162,7 @@ void init_raw_buf_descr(app_ctxt_t *ps_app_ctxt, iv_raw_buf_t *ps_raw_buf, UWORD
 
     /* All the pointers and dimensions are initialized here
      * to support change in resolution from the application */
-    luma_size = ALIGN16(ps_app_ctxt->u4_wd) * ALIGN16(ps_app_ctxt->u4_ht);
+    luma_size = ALIGN16(ps_app_ctxt->u4_max_wd) * ALIGN16(ps_app_ctxt->u4_max_ht);
     chroma_size = (luma_size) / 4;
 
     ps_raw_buf->apv_bufs[0] = pu1_buf;

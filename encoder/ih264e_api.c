@@ -93,6 +93,7 @@
 #include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_cabac_tables.h"
 #include "ih264_macros.h"
 #include "ih264e_defs.h"
 #include "ih264e_globals.h"
@@ -109,10 +110,10 @@
 #include "ime_defs.h"
 #include "ime_distortion_metrics.h"
 #include "ime_structs.h"
+#include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264e_utils.h"
 #include "ih264e_core_coding.h"
-#include "ih264_buf_mgr.h"
 #include "ih264_platform_macros.h"
 #include "ih264e_platform_macros.h"
 #include "ih264_list.h"
@@ -399,7 +400,8 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                 return (IV_FAIL);
             }
 
-            if (ps_ip->s_ive_ip.u4_max_ref_cnt != 1)
+            if (ps_ip->s_ive_ip.u4_max_ref_cnt > MAX_REF_PIC_CNT ||
+                           ps_ip->s_ive_ip.u4_max_ref_cnt < MIN_REF_PIC_CNT)
             {
                 ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
                 ps_op->s_ive_op.u4_error_code |= IH264E_NUM_REF_UNSUPPORTED;
@@ -482,7 +484,15 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                 return (IV_FAIL);
             }
 
-            if (ps_ip->s_ive_ip.u4_max_num_bframes != 0)
+            if (ps_ip->s_ive_ip.u4_num_bframes > MAX_NUM_BFRAMES)
+            {
+                ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                ps_op->s_ive_op.u4_error_code |= IH264E_BFRAMES_NOT_SUPPORTED;
+                return (IV_FAIL);
+            }
+
+            if (ps_ip->s_ive_ip.u4_num_bframes
+                            && (ps_ip->s_ive_ip.u4_max_ref_cnt < 2))
             {
                 ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
                 ps_op->s_ive_op.u4_error_code |= IH264E_BFRAMES_NOT_SUPPORTED;
@@ -1472,15 +1482,6 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                         return IV_FAIL;
                     }
 
-                    if (ps_ip->s_ive_ip.u4_num_b_frames != 0)
-                    {
-                        ps_op->s_ive_op.u4_error_code |= 1
-                                        << IVE_UNSUPPORTEDPARAM;
-                        ps_op->s_ive_op.u4_error_code |=
-                                        IH264E_BFRAMES_NOT_SUPPORTED;
-                        return IV_FAIL;
-                    }
-
                     break;
                 }
 
@@ -2091,7 +2092,6 @@ IH264E_ERROR_T ih264e_codec_update_config(codec_t *ps_codec,
 
         ps_curr_cfg->u4_idr_frm_interval = ps_cfg->u4_idr_frm_interval;
 
-        ps_curr_cfg->u4_num_b_frames = ps_cfg->u4_num_b_frames;
     }
     else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_DEBLOCK_PARAMS)
     {
@@ -2188,6 +2188,7 @@ IH264E_ERROR_T ih264e_codec_update_config(codec_t *ps_codec,
     else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_PROFILE_PARAMS)
     {
         ps_codec->s_cfg.e_profile = ps_cfg->e_profile;
+        ps_codec->s_cfg.u4_entropy_coding_mode = ps_cfg->u4_entropy_coding_mode;
     }
     else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_NUM_CORES)
     {
@@ -2259,8 +2260,9 @@ IH264E_ERROR_T ih264e_codec_update_config(codec_t *ps_codec,
                        ps_codec->s_cfg.u4_target_bitrate,
                        ps_codec->s_cfg.u4_max_bitrate,
                        ps_codec->s_cfg.u4_vbv_buffer_delay,
-                       ps_codec->s_cfg.u4_i_frm_interval, au1_init_qp,
-                       H264_ALLOC_INTER_FRM_INTV, au1_min_max_qp,
+                       ps_codec->s_cfg.u4_i_frm_interval,
+                       ps_codec->s_cfg.u4_num_bframes + 1, au1_init_qp,
+                       ps_codec->s_cfg.u4_num_bframes + 2, au1_min_max_qp,
                        ps_codec->s_cfg.u4_max_level);
     }
 
@@ -2302,7 +2304,7 @@ static WORD32 ih264e_set_default_params(cfg_params_t *ps_cfg)
     ps_cfg->e_rc_mode = DEFAULT_RC;
     ps_cfg->u4_max_framerate = DEFAULT_MAX_FRAMERATE;
     ps_cfg->u4_max_bitrate = DEFAULT_MAX_BITRATE;
-    ps_cfg->u4_max_num_bframes = 0;
+    ps_cfg->u4_num_bframes = DEFAULT_MAX_NUM_BFRAMES;
     ps_cfg->e_content_type = IV_PROGRESSIVE;
     ps_cfg->u4_max_srch_rng_x = DEFAULT_MAX_SRCH_RANGE_X;
     ps_cfg->u4_max_srch_rng_y = DEFAULT_MAX_SRCH_RANGE_Y;
@@ -2350,7 +2352,6 @@ static WORD32 ih264e_set_default_params(cfg_params_t *ps_cfg)
     ps_cfg->u4_srch_rng_y = DEFAULT_SRCH_RNG_Y;
     ps_cfg->u4_i_frm_interval = DEFAULT_I_INTERVAL;
     ps_cfg->u4_idr_frm_interval = DEFAULT_IDR_INTERVAL;
-    ps_cfg->u4_num_b_frames = DEFAULT_B_FRAMES;
     ps_cfg->u4_disable_deblock_level = DEFAULT_DISABLE_DEBLK_LEVEL;
     ps_cfg->e_profile = DEFAULT_PROFILE;
     ps_cfg->u4_timestamp_low = 0;
@@ -2396,7 +2397,7 @@ static WORD32 ih264e_init(codec_t *ps_codec)
     WORD32 i;
 
     /* coded pic count */
-    ps_codec->i4_coded_pic_cnt = 0;
+    ps_codec->i4_poc = 0;
 
     /* Number of API calls to encode are made */
     ps_codec->i4_encode_api_call_cnt = -1;
@@ -2422,7 +2423,7 @@ static WORD32 ih264e_init(codec_t *ps_codec)
     ps_codec->i4_disable_deblk_pic_cnt = 0;
 
     /* frame num */
-    ps_codec->i4_frame_num = -1;
+    ps_codec->i4_frame_num = 0;
 
     /* set the current frame type to I frame, since we are going to start  encoding*/
     ps_codec->force_curr_frame_type = IV_NA_FRAME;
@@ -2739,10 +2740,30 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
     DEBUG("\nMemory record Id %d = %d \n", MEM_REC_CODEC, ps_mem_rec->u4_mem_size);
 
     /************************************************************************
+     * Request memory for CABAC context                                     *
+     ***********************************************************************/
+    ps_mem_rec = &ps_mem_rec_base[MEM_REC_CABAC];
+    {
+        ps_mem_rec->u4_mem_size = sizeof(cabac_ctxt_t);
+    }
+    DEBUG("\nMemory record Id %d = %d \n", MEM_REC_CABAC, ps_mem_rec->u4_mem_size);
+
+    /************************************************************************
+     * Request memory for CABAC MB info                                     *
+     ***********************************************************************/
+    ps_mem_rec = &ps_mem_rec_base[MEM_REC_CABAC_MB_INFO];
+    {
+        ps_mem_rec->u4_mem_size = ((max_mb_cols + 1) + 1)
+                        * sizeof(mb_info_ctxt_t);
+    }
+    DEBUG("\nMemory record Id %d = %d \n", MEM_REC_CABAC_MB_INFO, ps_mem_rec->u4_mem_size);
+
+
+    /************************************************************************
      *  Request memory for entropy context                                  *
      *  In multi core encoding, each row is assumed to be launched on a     *
      *  thread. The rows below can only start after its neighbors are coded *
-     *  The status of an mb coded/uncoded is signaled via entropy map.     *
+     *  The status of an mb coded/uncoded is signaled via entropy map.      *
      *         1. One word32 to store skip run cnt                          *
      *         2. mb entropy map (mb status entropy coded/uncoded). The size*
      *            of the entropy map is max mb cols. Further allocate one   *
@@ -3177,6 +3198,7 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
     ps_mem_rec = &ps_mem_rec_base[MEM_REC_PROC_SCRATCH];
     {
         WORD32 total_size = 0;
+        WORD32 i4_tmp_size;
 
         /* size to hold prediction buffer */
         total_size += sizeof(UWORD8) * 16 * 16;
@@ -3215,14 +3237,8 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
         total_size = ALIGN64(total_size);
 
         /* Buffers for holding half_x , half_y and half_xy planes */
-        total_size += sizeof(UWORD8) * (HP_BUFF_WD * HP_BUFF_HT);
-        total_size = ALIGN64(total_size);
-
-        total_size += sizeof(UWORD8) * (HP_BUFF_WD * HP_BUFF_HT);
-        total_size = ALIGN64(total_size);
-
-        total_size += sizeof(UWORD8) * (HP_BUFF_WD * HP_BUFF_HT);
-        total_size = ALIGN64(total_size);
+        i4_tmp_size = sizeof(UWORD8) * (HP_BUFF_WD * HP_BUFF_HT);
+        total_size += (ALIGN64(i4_tmp_size) * SUBPEL_BUFF_CNT);
 
         /* Allocate for each process thread */
         total_size *= MAX_PROCESS_CTXT;
@@ -3517,6 +3533,9 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
     /* codec variables */
     codec_t * ps_codec;
+    cabac_ctxt_t *ps_cabac;
+    mb_info_ctxt_t *ps_mb_map_ctxt_inc;
+
     cfg_params_t *ps_cfg;
 
     /* frame dimensions */
@@ -3524,7 +3543,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
     WORD32 max_mb_rows, max_mb_cols, max_mb_cnt;
 
     /* temp var */
-    WORD32 i;
+    WORD32 i, j;
     WORD32 status = IV_SUCCESS;
 
     /* frame dimensions */
@@ -3543,11 +3562,23 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
         ps_codec_obj->pv_codec_handle = ps_mem_rec->pv_base;
         ps_codec = (codec_t *) (ps_codec_obj->pv_codec_handle);
     }
+    /* Init mem records_cabac ctxt */
+    ps_mem_rec = &ps_mem_rec_base[MEM_REC_CABAC];
+    {
+        ps_cabac = (cabac_ctxt_t *)(ps_mem_rec->pv_base);
+    }
+
+    /* Init mem records mb info array for CABAC */
+    ps_mem_rec = &ps_mem_rec_base[MEM_REC_CABAC_MB_INFO];
+    {
+        ps_mb_map_ctxt_inc = (mb_info_ctxt_t *)(ps_mem_rec->pv_base);
+    }
 
     /* Note this memset can not be done in init() call, since init will called
      during reset as well. And calling this during reset will mean all pointers
      need to reinitialized */
     memset(ps_codec, 0, sizeof(codec_t));
+    memset(ps_cabac, 0, sizeof(cabac_ctxt_t));
 
     /* Set default Config Params */
     ps_cfg = &ps_codec->s_cfg;
@@ -3565,7 +3596,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
     ps_cfg->e_recon_color_fmt = ps_ip->s_ive_ip.e_recon_color_fmt;
     ps_cfg->u4_max_framerate = ps_ip->s_ive_ip.u4_max_framerate;
     ps_cfg->u4_max_bitrate = ps_ip->s_ive_ip.u4_max_bitrate;
-    ps_cfg->u4_max_num_bframes = ps_ip->s_ive_ip.u4_max_num_bframes;
+    ps_cfg->u4_num_bframes = ps_ip->s_ive_ip.u4_num_bframes;
     ps_cfg->e_content_type = ps_ip->s_ive_ip.e_content_type;
     ps_cfg->u4_max_srch_rng_x = ps_ip->s_ive_ip.u4_max_srch_rng_x;
     ps_cfg->u4_max_srch_rng_y = ps_ip->s_ive_ip.u4_max_srch_rng_y;
@@ -3652,6 +3683,8 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
                 size += (max_mb_cols * 4 * sizeof(UWORD8));
                 size = ALIGN128(size);
                 offset = size;
+                /* cabac Context */
+                ps_codec->as_process[i].s_entropy.ps_cabac = ps_cabac;
             }
             else
             {
@@ -3693,8 +3726,12 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
                                 (void *) (pu1_buf + size);
                 size += (max_mb_cols * 4 * sizeof(UWORD8));
                 size = ALIGN128(size);
+                /* cabac Context */
+                ps_codec->as_process[i].s_entropy.ps_cabac = ps_cabac;
            }
         }
+        ps_codec->as_process[0].s_entropy.ps_cabac->ps_mb_map_ctxt_inc_base =
+                        ps_mb_map_ctxt_inc;
     }
 
     ps_mem_rec = &ps_mem_rec_base[MEM_REC_MB_COEFF_DATA];
@@ -4102,18 +4139,11 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
             size += size_inv;
             size = ALIGN64(size);
 
-            /* Buffers for holding half_x , half_y and half_xy values */
-            ps_codec->as_process[i].pu1_half_x = (void *) (pu1_buf + size);
-            size += size_hp;
-            size = ALIGN64(size);
-
-            ps_codec->as_process[i].pu1_half_y = (void *) (pu1_buf + size);
-            size += size_hp;
-            size = ALIGN64(size);
-
-            ps_codec->as_process[i].pu1_half_xy = (void *) (pu1_buf + size);
-            size += size_hp;
-            size = ALIGN64(size);
+            for (j = 0; j < SUBPEL_BUFF_CNT; j++)
+            {
+                ps_codec->as_process[i].apu1_subpel_buffs[j] = (pu1_buf + size);
+                size += ALIGN64(size_hp);
+            }
         }
     }
 
@@ -5073,7 +5103,6 @@ static IV_STATUS_T ih264_set_gop_params(void *pv_api_ip,
 
     ps_cfg->u4_i_frm_interval = ps_ip->s_ive_ip.u4_i_frm_interval;
     ps_cfg->u4_idr_frm_interval = ps_ip->s_ive_ip.u4_idr_frm_interval;
-    ps_cfg->u4_num_b_frames = ps_ip->s_ive_ip.u4_num_b_frames;
 
     ps_cfg->u4_timestamp_high = ps_ip->s_ive_ip.u4_timestamp_high;
     ps_cfg->u4_timestamp_low = ps_ip->s_ive_ip.u4_timestamp_low;
@@ -5116,6 +5145,8 @@ static IV_STATUS_T ih264_set_profile_params(void *pv_api_ip,
     ps_op->s_ive_op.u4_error_code = 0;
 
     ps_cfg->e_profile = ps_ip->s_ive_ip.e_profile;
+
+    ps_cfg->u4_entropy_coding_mode = ps_ip->s_ive_ip.u4_entropy_coding_mode;
 
     ps_cfg->u4_timestamp_high = ps_ip->s_ive_ip.u4_timestamp_high;
     ps_cfg->u4_timestamp_low = ps_ip->s_ive_ip.u4_timestamp_low;
@@ -5297,7 +5328,7 @@ static WORD32 ih264e_ctl(iv_obj_t *ps_codec_obj,
     IVE_CONTROL_API_COMMAND_TYPE_T sub_cmd = ps_ctl_ip->s_ive_ip.e_sub_cmd;
 
     /* error status */
-    IV_STATUS_T ret = 0;
+    IV_STATUS_T ret = IV_SUCCESS;
 
     /* temp var */
     WORD32 i;

@@ -38,6 +38,22 @@
 #define IH264E_DEFS_H_
 
 
+#define PARSE_COEFF_DATA_BLOCK_4x4(pv_mb_coeff_data, ps_mb_coeff_data, u4_nnz, u4_sig_coeff_map, pi2_res_block)   \
+{                                                                          \
+    ps_mb_coeff_data = pv_mb_coeff_data;                                   \
+    u4_nnz = ps_mb_coeff_data->i4_sig_map_nnz & 0xff;                      \
+    if (u4_nnz)                                                            \
+    {                                                                      \
+        u4_sig_coeff_map = ps_mb_coeff_data->i4_sig_map_nnz >> 16;         \
+        pi2_res_block = ps_mb_coeff_data->ai2_residue;                     \
+        pv_mb_coeff_data = ps_mb_coeff_data->ai2_residue + ALIGN2(u4_nnz); \
+    }                                                                      \
+    else                                                                   \
+    {                                                                      \
+      pv_mb_coeff_data = ps_mb_coeff_data->ai2_residue;                    \
+    }                                                                      \
+}
+
 /*****************************************************************************/
 /* Width and height restrictions                                             */
 /*****************************************************************************/
@@ -104,6 +120,21 @@
 /* Number of frame restrictions                                              */
 /*****************************************************************************/
 /**
+ *  Maximum number of reference pictures
+ */
+#define MAX_REF_PIC_CNT  2
+
+/**
+ *  Minimum number of reference pictures
+ */
+#define MIN_REF_PIC_CNT  1
+
+/**
+ *  Maximum number of B pictures between two I/P pictures
+ */
+#define MAX_NUM_BFRAMES     10
+
+/**
  *  Maximum number of reference buffers in DPB manager
  */
 #define MAX_REF_CNT  32
@@ -165,6 +196,7 @@
 #define DEFAULT_RC                      IVE_RC_STORAGE
 #define DEFAULT_MAX_FRAMERATE           120000
 #define DEFAULT_MAX_BITRATE             20000000
+#define DEFAULT_MAX_NUM_BFRAMES         0
 #define DEFAULT_MAX_SRCH_RANGE_X        256
 #define DEFAULT_MAX_SRCH_RANGE_Y        256
 #define DEFAULT_SLICE_PARAM             256
@@ -206,6 +238,7 @@
 #define DEFAULT_ENC_SPEED_PRESET        IVE_USER_DEFINED
 #define DEFAULT_PRE_ENC_ME              0
 #define DEFAULT_PRE_ENC_IPE             0
+#define DEFAULT_ENTROPY_CODING_MODE     0
 
 /** Maximum number of entries in input buffer list */
 #define MAX_INP_BUF_LIST_ENTRIES         32
@@ -217,7 +250,10 @@
 #define MAX_REC_LIST_ENTRIES             16
 
 /** Number of buffers created to hold half-pel planes for every reference buffer */
-    #define HPEL_PLANES_CNT                 1
+#define HPEL_PLANES_CNT                 1
+
+/** Number of buffers Needed for SUBPEL and BIPRED computation */
+#define SUBPEL_BUFF_CNT                 4
 
 /**
  *****************************************************************************
@@ -260,6 +296,16 @@ enum
      * Codec context
      */
     MEM_REC_CODEC,
+
+    /**
+     * Cabac context
+     */
+    MEM_REC_CABAC,
+
+    /**
+     * Cabac context_mb_info
+     */
+    MEM_REC_CABAC_MB_INFO,
 
     /**
      * entropy context
@@ -525,9 +571,9 @@ enum
 /* [0 - 00 - 00110] */
 #define NAL_SEI_FIRST_BYTE 0x06
 
-#define H264_ALLOC_INTER_FRM_INTV        1
+#define H264_ALLOC_INTER_FRM_INTV        2
 
-#define H264_MPEG_QP_MAP    191
+#define H264_MPEG_QP_MAP    255
 
 #define MPEG2_QP_ELEM       (H264_MPEG_QP_MAP + 1)
 #define H264_QP_ELEM        (MAX_H264_QP + 1)

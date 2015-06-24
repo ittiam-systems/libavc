@@ -130,6 +130,7 @@ ime_compute_satqd_16x16_lumainter_ft ime_compute_satqd_16x16_lumainter;
 ime_compute_satqd_8x16_chroma_ft ime_compute_satqd_8x16_chroma;
 ime_compute_satqd_16x16_lumaintra_ft ime_compute_satqd_16x16_lumaintra;
 
+
 /*SSE4.2 Declarations*/
 ime_compute_sad_ft ime_compute_sad_16x16_sse42;
 ime_compute_sad_ft ime_compute_sad_16x16_fast_sse42;
@@ -163,7 +164,6 @@ ime_compute_sad2_diamond ime_calculate_sad2_prog_av8;
 ime_sub_pel_compute_sad_16x16_ft ime_sub_pel_compute_sad_16x16_av8;
 ime_compute_sad_stat ime_compute_16x16_sad_stat_av8;
 ime_compute_satqd_16x16_lumainter_ft ime_compute_satqd_16x16_lumainter_av8;
-
 
 #endif /* IME_DISTORTION_METRICS_H_ */
 

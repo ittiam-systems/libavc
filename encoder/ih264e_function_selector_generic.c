@@ -60,8 +60,8 @@
 #include "ih264e_error.h"
 #include "ih264e_bitstream.h"
 #include "ime_distortion_metrics.h"
+#include "ime_defs.h"
 #include "ime_structs.h"
-#include "ih264_defs.h"
 #include "ih264_error.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
@@ -70,24 +70,21 @@
 #include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_cabac_tables.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264e_platform_macros.h"
-#include "ih264_intra_pred_filters.h"
-#include "ih264_trans_quant_itrans_iquant.h"
-#include "ih264e_defs.h"
-#include "ih264e_structs.h"
-#include "ih264_deblk_edge_filters.h"
+#include "ih264e_cabac.h"
 #include "ih264e_core_coding.h"
 #include "ih264_cavlc_tables.h"
 #include "ih264e_cavlc.h"
-#include "ih264_padding.h"
 #include "ih264e_intra_modes_eval.h"
-#include "ih264_mem_fns.h"
 #include "ih264e_fmt_conv.h"
 #include "ih264e_half_pel.h"
+#include "ih264e_me.h"
 
 
 /*****************************************************************************/
@@ -197,8 +194,12 @@ void ih264e_init_function_ptr_generic(codec_t *ps_codec)
     ps_codec->pf_deblk_chroma_horz_bslt4 = ih264_deblk_chroma_horz_bslt4;
 
     /* write mb syntax layer */
-    ps_codec->pf_write_mb_syntax_layer[ISLICE] = ih264e_write_islice_mb;
-    ps_codec->pf_write_mb_syntax_layer[PSLICE] = ih264e_write_pslice_mb;
+    ps_codec->pf_write_mb_syntax_layer[CAVLC][ISLICE] = ih264e_write_islice_mb_cavlc;
+    ps_codec->pf_write_mb_syntax_layer[CAVLC][PSLICE] = ih264e_write_pslice_mb_cavlc;
+    ps_codec->pf_write_mb_syntax_layer[CAVLC][BSLICE] = ih264e_write_bslice_mb_cavlc;
+    ps_codec->pf_write_mb_syntax_layer[CABAC][ISLICE] = ih264e_write_islice_mb_cabac;
+    ps_codec->pf_write_mb_syntax_layer[CABAC][PSLICE] = ih264e_write_pslice_mb_cabac;
+    ps_codec->pf_write_mb_syntax_layer[CABAC][BSLICE] = ih264e_write_bslice_mb_cabac;
 
     /* Padding Functions */
     ps_codec->pf_pad_top = ih264_pad_top;
@@ -254,6 +255,15 @@ void ih264e_init_function_ptr_generic(codec_t *ps_codec)
     /* Halp pel generation function - encoder level*/
     ps_codec->pf_ih264e_sixtapfilter_horz = ih264e_sixtapfilter_horz;
     ps_codec->pf_ih264e_sixtap_filter_2dvh_vert = ih264e_sixtap_filter_2dvh_vert;
+
+    /* ME compute */
+    ps_codec->apf_compute_me[PSLICE] = &ih264e_compute_me_single_reflist;
+    ps_codec->apf_compute_me[BSLICE] = &ih264e_compute_me_multi_reflist;
+
+    /* skip decision */
+    ps_codec->apf_find_skip_params_me[PSLICE] = &ih264e_find_pskip_params_me;
+    ps_codec->apf_find_skip_params_me[BSLICE] = &ih264e_find_bskip_params_me;
+
 
     return;
 }

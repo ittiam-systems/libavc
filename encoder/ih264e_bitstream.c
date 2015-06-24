@@ -97,7 +97,7 @@ IH264E_ERROR_T ih264e_bitstrm_init(bitstrm_t *ps_bitstrm,
                                    UWORD32 u4_max_bitstrm_size)
 {
     ps_bitstrm->pu1_strm_buffer  = pu1_bitstrm_buf;
-    ps_bitstrm->u4_max_strm_size = u4_max_bitstrm_size;
+    ps_bitstrm->u4_max_strm_size = MAX(u4_max_bitstrm_size, MIN_STREAM_SIZE);
 
     /* Default init values for other members of bitstream context */
     ps_bitstrm->u4_strm_buf_offset  = 0;
@@ -150,7 +150,6 @@ IH264E_ERROR_T ih264e_put_bits(bitstrm_t *ps_bitstrm,
 
     if(code_len < WORD_SIZE)
         ASSERT((u4_code_val >> code_len) == 0);
-
 
     /* sanity check on the bitstream engine state */
     ASSERT(bits_left_in_cw > 0 && bits_left_in_cw <= WORD_SIZE);

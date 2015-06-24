@@ -65,6 +65,14 @@
 #define EPB_BYTE            0x03
 
 
+/**
+******************************************************************************
+ *  @brief  Stream buffer allocated per frame should be atleast MIN_STREAM_SIZE
+******************************************************************************
+ */
+#define MIN_STREAM_SIZE            0x20000
+
+
 /*****************************************************************************/
 /* Function Macros                                                           */
 /*****************************************************************************/
@@ -106,12 +114,12 @@
  *  @brief   returns bits required to code a value
 ******************************************************************************
  */
-#define UE_LENGTH(bits,x)       \
-{                           \
-    UWORD32 r_bit;              \
-    GETRANGE(r_bit,x+1)         \
-    bits =(((r_bit - 1) << 1)+1);     \
-}                           \
+#define UE_LENGTH(bits,x)        \
+{                                \
+    UWORD32 r_bit;               \
+    GETRANGE(r_bit,x+1)          \
+    bits =(((r_bit - 1) << 1)+1);\
+}                                \
 
 /**
 ******************************************************************************
@@ -139,6 +147,51 @@
 ******************************************************************************
  */
 #define BYTE_ALIGNMENT(ps_bitstrm) ih264e_put_rbsp_trailing_bits(ps_bitstrm)
+
+/**
+******************************************************************************
+ *  @brief  Gets number of  bits coded
+******************************************************************************
+ */
+
+#define GET_NUM_BITS(ps_bitstream) ((ps_bitstream->u4_strm_buf_offset << 3) \
+                                    + 32 - ps_bitstream->i4_bits_left_in_cw);
+
+
+
+/**
+******************************************************************************
+ *  @macro Align bitstream to byte - Remainig bits are filled with '1'
+******************************************************************************
+*/
+#define BITSTREAM_BYTE_ALIGN(ps_bitstrm)                                    \
+   if (ps_bitstrm->i4_bits_left_in_cw & 0x07)                               \
+   {                                                                        \
+       const WORD32 len = (WORD32)((ps_bitstrm->i4_bits_left_in_cw) & 0x07);\
+       ih264e_put_bits(ps_bitstrm, (UWORD32)((1 << len) - 1), len);         \
+   }
+
+
+/**
+******************************************************************************
+* flush the bits in cur word byte by byte  and copy to stream                *
+* (current word is assumed to be byte aligned)                               *
+******************************************************************************
+*/
+#define  BITSTREAM_FLUSH(ps_bitstrm)                                           \
+{                                                                              \
+    WORD32 i;                                                                  \
+    for (i = WORD_SIZE; i > ps_bitstrm->i4_bits_left_in_cw; i -= 8)            \
+    {                                                                          \
+       UWORD8 u1_next_byte = (ps_bitstrm->u4_cur_word >> (i - 8)) & 0xFF;      \
+       PUTBYTE_EPB(ps_bitstrm->pu1_strm_buffer, ps_bitstrm->u4_strm_buf_offset,\
+                   u1_next_byte, ps_bitstrm->i4_zero_bytes_run);               \
+    }                                                                          \
+    ps_bitstrm->u4_cur_word = 0;                                               \
+    ps_bitstrm->i4_bits_left_in_cw = WORD_SIZE;                                \
+}                                                                              \
+
+
 
 
 /*****************************************************************************/

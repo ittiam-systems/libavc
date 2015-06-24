@@ -6,4 +6,3 @@ include $(LOCAL_PATH)/encoder.mk
 
 # decoder
 include $(LOCAL_PATH)/decoder.mk
-

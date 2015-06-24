@@ -97,7 +97,7 @@ typedef float number_t;
 /* The ratios between I to P and P to B Qp is specified here */
 #define K_Q 4
 #define I_TO_P_RATIO (19) /* In K_Q Q factor */
-#define P_TO_B_RATIO (21) /* In K_Q Q factor */
+#define P_TO_B_RATIO (32) /* In K_Q Q factor */
 #define P_TO_I_RATIO (13) /* In K_Q Q factor */
 
 #endif /* _RC_COMMON_H_ */

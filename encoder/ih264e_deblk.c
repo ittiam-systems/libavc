@@ -63,6 +63,7 @@
 #include "ih264e_error.h"
 #include "ih264e_bitstream.h"
 #include "ime_distortion_metrics.h"
+#include "ime_defs.h"
 #include "ime_structs.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
@@ -71,12 +72,13 @@
 #include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_cabac_tables.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264_trans_data.h"
-#include "ih264_deblk_edge_filters.h"
 #include "ih264_deblk_tables.h"
 #include "ih264e_deblk.h"
 
@@ -150,20 +152,15 @@ static const UWORD16  ih264e_gu2_4x4_v2h_reorder[16] =
 * @param[in] u4_left_mb_csbp
 *  coded sub block pattern of top mb
 *
-* @param[in] ps_leftMvPred
-*  MV of left mb
+* @param[in] ps_left_pu
+*  PU for left MB
 *
-* @param[in] ps_topMvPred
-*  MV of top mb
+* @param[in] ps_top_pu
+*  PU for top MB
 *
-* @param[in] ps_curMvPred
-*  MV of curr mb
+* @param[in] ps_curr_pu
+*  PU for current MB
 *
-* @param[in] u1_left_intra
-*  is left intra
-*
-* @param[in] u1_top_intra
-*  is top intra
 *
 * @returns  none
 *
@@ -176,64 +173,65 @@ static void ih264e_fill_bs_1mv_1ref_non_mbaff(UWORD32 *pu4_horz_bs,
                                               UWORD32 u4_left_mb_csbp,
                                               UWORD32 u4_top_mb_csbp,
                                               UWORD32 u4_cur_mb_csbp,
-                                              mv_t *ps_leftMvPred,
-                                              mv_t *ps_topMvPred,
-                                              mv_t *ps_curMvPred,
-                                              UWORD8 u1_left_intra,
-                                              UWORD8 u1_top_intra)
+                                              enc_pu_t *ps_left_pu,
+                                              enc_pu_t *ps_top_pu,
+                                              enc_pu_t *ps_curr_pu)
 {
     /* motion vectors of blks p & q */
-    WORD16   i16_qMv0, i16_qMv1, i16_pMv0, i16_pMv1;
+    WORD16 i16_qMvl0_x, i16_qMvl0_y, i16_pMvl0_x, i16_pMvl0_y;
+    WORD16 i16_qMvl1_x, i16_qMvl1_y, i16_pMvl1_x, i16_pMvl1_y;
 
     /* temp var */
-    UWORD32  u4_lft_flag, u4_top_flag;
-    const UWORD32  *bs_map;
-    UWORD32  u4_reordered_vert_bs_enc, u4_temp;
+    UWORD32 u4_left_flag, u4_top_flag;
+    const UWORD32 *bs_map;
+    UWORD32 u4_reordered_vert_bs_enc, u4_temp;
 
     /* Coded Pattern for Horizontal Edge */
     /*-----------------------------------------------------------------------*/
     /*u4_nbr_horz_csbp=11C|10C|9C|8C|7C|6C|5C|4C|3C|2C|1C|0C|15T|14T|13T|12T */
     /*-----------------------------------------------------------------------*/
-    UWORD32 u4_nbr_horz_csbp        = (u4_cur_mb_csbp << 4) | (u4_top_mb_csbp >> 12);
-    UWORD32 u4_horz_bs_enc          = u4_cur_mb_csbp | u4_nbr_horz_csbp;
+    UWORD32 u4_nbr_horz_csbp = (u4_cur_mb_csbp << 4) | (u4_top_mb_csbp >> 12);
+    UWORD32 u4_horz_bs_enc = u4_cur_mb_csbp | u4_nbr_horz_csbp;
 
     /* Coded Pattern for Vertical Edge */
     /*-----------------------------------------------------------------------*/
     /*u4_left_mb_masked_csbp = 15L|0|0|0|11L|0|0|0|7L|0|0|0|3L|0|0|0         */
     /*-----------------------------------------------------------------------*/
-    UWORD32 u4_left_mb_masked_csbp = u4_left_mb_csbp  & CSBP_RIGHT_BLOCK_MASK;
+    UWORD32 u4_left_mb_masked_csbp = u4_left_mb_csbp & CSBP_RIGHT_BLOCK_MASK;
 
     /*-----------------------------------------------------------------------*/
     /*u4_cur_mb_masked_csbp =14C|13C|12C|x|10C|9C|8C|x|6C|5C|4C|x|2C|1C|0C|x */
     /*-----------------------------------------------------------------------*/
-    UWORD32 u4_cur_mb_masked_csbp =(u4_cur_mb_csbp<<1)&(~CSBP_LEFT_BLOCK_MASK);
+    UWORD32 u4_cur_mb_masked_csbp = (u4_cur_mb_csbp << 1)
+                    & (~CSBP_LEFT_BLOCK_MASK);
 
     /*-----------------------------------------------------------------------*/
     /*u4_nbr_vert_csbp=14C|13C|12C|15L|10C|9C|8C|11L|6C|5C|4C|7L|2C|1C|0C|3L */
     /*-----------------------------------------------------------------------*/
-    UWORD32 u4_nbr_vert_csbp    = (u4_cur_mb_masked_csbp) | (u4_left_mb_masked_csbp >> 3);
-    UWORD32 u4_vert_bs_enc      = u4_cur_mb_csbp | u4_nbr_vert_csbp;
+    UWORD32 u4_nbr_vert_csbp = (u4_cur_mb_masked_csbp)
+                    | (u4_left_mb_masked_csbp >> 3);
+    UWORD32 u4_vert_bs_enc = u4_cur_mb_csbp | u4_nbr_vert_csbp;
 
     /* BS Calculation for MB Boundary Edges */
 
     /* BS calculation for 1 2 3 horizontal boundary */
-    bs_map  = gu4_bs_table[0];
+    bs_map = gu4_bs_table[0];
     pu4_horz_bs[1] = bs_map[(u4_horz_bs_enc >> 4) & 0xF];
     pu4_horz_bs[2] = bs_map[(u4_horz_bs_enc >> 8) & 0xF];
     pu4_horz_bs[3] = bs_map[(u4_horz_bs_enc >> 12) & 0xF];
 
     /* BS calculation for 5 6 7 vertical boundary */
     /* Do 4x4 tranpose of u4_vert_bs_enc by using look up table for reorder */
-    u4_reordered_vert_bs_enc    = ih264e_gu2_4x4_v2h_reorder[u4_vert_bs_enc & 0xF];
+    u4_reordered_vert_bs_enc = ih264e_gu2_4x4_v2h_reorder[u4_vert_bs_enc & 0xF];
 
-    u4_temp                     = ih264e_gu2_4x4_v2h_reorder[(u4_vert_bs_enc >> 4) & 0xF];
-    u4_reordered_vert_bs_enc   |= (u4_temp << 1);
+    u4_temp = ih264e_gu2_4x4_v2h_reorder[(u4_vert_bs_enc >> 4) & 0xF];
+    u4_reordered_vert_bs_enc |= (u4_temp << 1);
 
-    u4_temp                     = ih264e_gu2_4x4_v2h_reorder[(u4_vert_bs_enc >> 8) & 0xF];
-    u4_reordered_vert_bs_enc   |= (u4_temp << 2);
+    u4_temp = ih264e_gu2_4x4_v2h_reorder[(u4_vert_bs_enc >> 8) & 0xF];
+    u4_reordered_vert_bs_enc |= (u4_temp << 2);
 
-    u4_temp                     = ih264e_gu2_4x4_v2h_reorder[(u4_vert_bs_enc >> 12) & 0xF];
-    u4_reordered_vert_bs_enc   |= (u4_temp << 3);
+    u4_temp = ih264e_gu2_4x4_v2h_reorder[(u4_vert_bs_enc >> 12) & 0xF];
+    u4_reordered_vert_bs_enc |= (u4_temp << 3);
 
     pu4_vert_bs[1] = bs_map[(u4_reordered_vert_bs_enc >> 4) & 0xF];
     pu4_vert_bs[2] = bs_map[(u4_reordered_vert_bs_enc >> 8) & 0xF];
@@ -241,39 +239,96 @@ static void ih264e_fill_bs_1mv_1ref_non_mbaff(UWORD32 *pu4_horz_bs,
 
 
     /* BS Calculation for MB Boundary Edges */
-    i16_qMv0  = ps_curMvPred->i2_mvx;
-    i16_qMv1  = ps_curMvPred->i2_mvy;
-
-    if (u1_top_intra)
+    if (ps_top_pu->b1_intra_flag)
     {
         pu4_horz_bs[0] = 0x04040404;
     }
     else
     {
-        i16_pMv0  = ps_topMvPred->i2_mvx;
-        i16_pMv1  = ps_topMvPred->i2_mvy;
+        if (ps_curr_pu->b2_pred_mode != ps_top_pu->b2_pred_mode)
+        {
+            u4_top_flag = 1;
+        }
+        else if(ps_curr_pu->b2_pred_mode != 2)
+        {
+            i16_pMvl0_x = ps_top_pu->s_me_info[ps_top_pu->b2_pred_mode].s_mv.i2_mvx;
+            i16_pMvl0_y = ps_top_pu->s_me_info[ps_top_pu->b2_pred_mode].s_mv.i2_mvy;
 
-        u4_top_flag = (ABS((i16_pMv0 - i16_qMv0)) >= 4 ) |
-                        (ABS((i16_pMv1 - i16_qMv1)) >= 4);
+            i16_qMvl0_x = ps_curr_pu->s_me_info[ps_curr_pu->b2_pred_mode].s_mv.i2_mvx;
+            i16_qMvl0_y = ps_curr_pu->s_me_info[ps_curr_pu->b2_pred_mode].s_mv.i2_mvy;
 
-        bs_map  = gu4_bs_table[!!u4_top_flag];
+
+            u4_top_flag =  (ABS((i16_pMvl0_x - i16_qMvl0_x)) >= 4)
+                         | (ABS((i16_pMvl0_y - i16_qMvl0_y)) >= 4);
+        }
+        else
+        {
+
+            i16_pMvl0_x = ps_top_pu->s_me_info[PRED_L0].s_mv.i2_mvx;
+            i16_pMvl0_y = ps_top_pu->s_me_info[PRED_L0].s_mv.i2_mvy;
+            i16_pMvl1_x = ps_top_pu->s_me_info[PRED_L1].s_mv.i2_mvx;
+            i16_pMvl1_y = ps_top_pu->s_me_info[PRED_L1].s_mv.i2_mvy;
+
+            i16_qMvl0_x = ps_curr_pu->s_me_info[PRED_L0].s_mv.i2_mvx;
+            i16_qMvl0_y = ps_curr_pu->s_me_info[PRED_L0].s_mv.i2_mvy;
+            i16_qMvl1_x = ps_curr_pu->s_me_info[PRED_L1].s_mv.i2_mvx;
+            i16_qMvl1_y = ps_curr_pu->s_me_info[PRED_L1].s_mv.i2_mvy;
+
+
+            u4_top_flag =  (ABS((i16_pMvl0_x - i16_qMvl0_x)) >= 4)
+                         | (ABS((i16_pMvl0_y - i16_qMvl0_y)) >= 4)
+                         | (ABS((i16_pMvl1_x - i16_qMvl1_x)) >= 4)
+                         | (ABS((i16_pMvl1_y - i16_qMvl1_y)) >= 4);
+        }
+
+        bs_map = gu4_bs_table[!!u4_top_flag];
         pu4_horz_bs[0] = bs_map[u4_horz_bs_enc & 0xF];
     }
 
-    if (u1_left_intra)
+
+    if (ps_left_pu->b1_intra_flag)
     {
         pu4_vert_bs[0] = 0x04040404;
     }
     else
     {
-        i16_pMv0  = ps_leftMvPred->i2_mvx;
-        i16_pMv1  = ps_leftMvPred->i2_mvy;
+        if (ps_curr_pu->b2_pred_mode != ps_left_pu->b2_pred_mode)
+        {
+            u4_left_flag = 1;
+        }
+        else if(ps_curr_pu->b2_pred_mode != 2)/* Not bipred */
+        {
+            i16_pMvl0_x = ps_left_pu->s_me_info[ps_left_pu->b2_pred_mode].s_mv.i2_mvx;
+            i16_pMvl0_y = ps_left_pu->s_me_info[ps_left_pu->b2_pred_mode].s_mv.i2_mvy;
+
+            i16_qMvl0_x = ps_curr_pu->s_me_info[ps_curr_pu->b2_pred_mode].s_mv.i2_mvx;
+            i16_qMvl0_y = ps_curr_pu->s_me_info[ps_curr_pu->b2_pred_mode].s_mv.i2_mvy;
 
 
-        u4_lft_flag = (ABS((i16_pMv0 - i16_qMv0)) >= 4 ) |
-                        (ABS((i16_pMv1 - i16_qMv1)) >= 4);
+            u4_left_flag =  (ABS((i16_pMvl0_x - i16_qMvl0_x)) >= 4)
+                          | (ABS((i16_pMvl0_y - i16_qMvl0_y)) >= 4);
+        }
+        else
+        {
 
-        bs_map  = gu4_bs_table[!!u4_lft_flag];
+            i16_pMvl0_x = ps_left_pu->s_me_info[PRED_L0].s_mv.i2_mvx;
+            i16_pMvl0_y = ps_left_pu->s_me_info[PRED_L0].s_mv.i2_mvy;
+            i16_pMvl1_x = ps_left_pu->s_me_info[PRED_L1].s_mv.i2_mvx;
+            i16_pMvl1_y = ps_left_pu->s_me_info[PRED_L1].s_mv.i2_mvy;
+
+            i16_qMvl0_x = ps_curr_pu->s_me_info[PRED_L0].s_mv.i2_mvx;
+            i16_qMvl0_y = ps_curr_pu->s_me_info[PRED_L0].s_mv.i2_mvy;
+            i16_qMvl1_x = ps_curr_pu->s_me_info[PRED_L1].s_mv.i2_mvx;
+            i16_qMvl1_y = ps_curr_pu->s_me_info[PRED_L1].s_mv.i2_mvy;
+
+
+            u4_left_flag =  (ABS((i16_pMvl0_x - i16_qMvl0_x)) >= 4)
+                          | (ABS((i16_pMvl0_y - i16_qMvl0_y)) >= 4)
+                          | (ABS((i16_pMvl1_x - i16_qMvl1_x)) >= 4)
+                          | (ABS((i16_pMvl1_y - i16_qMvl1_y)) >= 4);
+        }
+
+        bs_map = gu4_bs_table[!!u4_left_flag];
         pu4_vert_bs[0] = bs_map[u4_reordered_vert_bs_enc & 0xF];
     }
 }
@@ -331,8 +386,7 @@ static UWORD32 ih264e_calculate_csbp(process_ctxt_t *ps_proc)
 *
 * @returns  none
 *
-* @remarks In this module it is assumed that their is only single reference
-* frame and is always the most recently used anchor frame
+* @remarks
 *
 *******************************************************************************
 */
@@ -394,14 +448,18 @@ void ih264e_compute_bs(process_ctxt_t * ps_proc)
         if (i4_mb_x == 0)
         {
             ps_left_mb_syntax_ele->u4_csbp = 0;
-            ps_left_mb_syntax_ele->u2_is_intra = 0;
-            ps_proc->s_left_mb_pu.s_l0_mv = ps_proc->ps_pu->s_l0_mv;
+            ps_proc->s_left_mb_pu.b1_intra_flag = 0;
+            ps_proc->s_left_mb_pu.b2_pred_mode = ps_proc->ps_pu->b2_pred_mode;
+            ps_proc->s_left_mb_pu.s_me_info[0].s_mv = ps_proc->ps_pu->s_me_info[0].s_mv;
+            ps_proc->s_left_mb_pu.s_me_info[1].s_mv = ps_proc->ps_pu->s_me_info[1].s_mv;
         }
         if (i4_mb_y == 0)
         {
             ps_top_mb_syntax_ele->u4_csbp = 0;
-            ps_top_mb_syntax_ele->u2_is_intra = 0;
-            ps_top_row_pu->s_l0_mv = ps_proc->ps_pu->s_l0_mv;
+            ps_top_row_pu->b1_intra_flag = 0;
+            ps_top_row_pu->b2_pred_mode = ps_proc->ps_pu->b2_pred_mode;
+            ps_top_row_pu->s_me_info[0].s_mv = ps_proc->ps_pu->s_me_info[0].s_mv;
+            ps_top_row_pu->s_me_info[1].s_mv = ps_proc->ps_pu->s_me_info[1].s_mv;
         }
 
         ih264e_fill_bs_1mv_1ref_non_mbaff(pu4_pic_horz_bs,
@@ -409,11 +467,9 @@ void ih264e_compute_bs(process_ctxt_t * ps_proc)
                                           ps_left_mb_syntax_ele->u4_csbp,
                                           ps_top_mb_syntax_ele->u4_csbp,
                                           ps_proc->u4_csbp,
-                                          &ps_proc->s_left_mb_pu.s_l0_mv,
-                                          &ps_top_row_pu->s_l0_mv,
-                                          &ps_proc->ps_pu->s_l0_mv,
-                                          ps_left_mb_syntax_ele->u2_is_intra,
-                                          ps_top_mb_syntax_ele->u2_is_intra);
+                                          &ps_proc->s_left_mb_pu,
+                                          ps_top_row_pu,
+                                          ps_proc->ps_pu);
     }
 
     return ;
