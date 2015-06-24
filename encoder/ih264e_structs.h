@@ -2005,12 +2005,6 @@ struct _codec_t
     IV_COLOR_FORMAT_T e_codec_color_format;
 
     /**
-     * source stride
-     * (strides for luma and chroma are the same)
-     */
-    WORD32 i4_src_strd;
-
-    /**
      * recon stride
      * (strides for luma and chroma are the same)
      */
