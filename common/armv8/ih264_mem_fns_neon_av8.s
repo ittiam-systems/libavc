@@ -119,7 +119,7 @@ loop_neon_memcpy:
 
     subs      x2, x2, #8
     bge       loop_neon_memcpy
-    cmp       x2, #-8
+    cmn       x2, #8
     beq       end_func1
 
 arm_memcpy:
@@ -184,7 +184,7 @@ loop_neon_memset:
 
     subs      x2, x2, #8
     bge       loop_neon_memset
-    cmp       x2, #-8
+    cmn       x2, #8
     beq       end_func2
 
 arm_memset:
@@ -254,7 +254,7 @@ loop_neon_memset_16bit:
 
     subs      x2, x2, #8
     bge       loop_neon_memset_16bit
-    cmp       x2, #-8
+    cmn       x2, #8
     beq       end_func3
 
 arm_memset_16bit:
