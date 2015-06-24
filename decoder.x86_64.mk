@@ -1,4 +1,4 @@
-libavcd_cflags_x86_64 += -DX86 -m64 -msse4.2 -mno-avx  -DDEFAULT_ARCH=D_ARCH_X86_SSE42
+libavcd_cflags_x86_64 += -DX86 -msse4.2 -mno-avx  -DDEFAULT_ARCH=D_ARCH_X86_SSE42
 
 libavcd_inc_dir_x86_64   +=  $(LOCAL_PATH)/decoder/x86
 libavcd_inc_dir_x86_64   +=  $(LOCAL_PATH)/common/x86

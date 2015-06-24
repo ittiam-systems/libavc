@@ -1,4 +1,4 @@
-libavce_cflags_x86_64   += -DX86 -m64 -msse4.2 -mno-avx
+libavce_cflags_x86_64   += -DX86 -msse4.2 -mno-avx
 
 libavce_inc_dir_x86_64  +=  $(LOCAL_PATH)/encoder/x86
 libavce_inc_dir_x86_64  +=  $(LOCAL_PATH)/common/x86
