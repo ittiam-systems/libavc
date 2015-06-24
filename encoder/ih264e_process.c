@@ -1187,7 +1187,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
 
     /* init buffer pointers */
     convert_uv_only = 1;
-    if ((u4_pad_bottom_sz && (ps_proc->i4_mb_y == ps_proc->i4_ht_mbs - 1)) ||
+    if (u4_pad_bottom_sz || u4_pad_right_sz ||
         ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_422ILE)
     {
         if (ps_proc->i4_mb_y == ps_proc->i4_ht_mbs - 1)
@@ -1206,7 +1206,8 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
 
     if (ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_422ILE ||
         ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_420P ||
-        ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1))
+        ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1) ||
+        u4_pad_bottom_sz || u4_pad_right_sz)
     {
         if ((ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_420SP_UV) ||
             (ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_420SP_VU))
@@ -1241,9 +1242,9 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
             /* In case of 420 semi-planar input, copy last few rows to intermediate
                buffer as chroma trans functions access one extra byte due to interleaved input.
                This data will be padded if required */
-            if (ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1))
+            if (ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1) || u4_pad_bottom_sz || u4_pad_right_sz)
             {
-                WORD32 num_rows = ps_codec->s_cfg.u4_disp_ht & 0xF;
+                WORD32 num_rows = MB_SIZE;
                 UWORD8 *pu1_src;
                 UWORD8 *pu1_dst;
                 WORD32 i;
@@ -1252,11 +1253,16 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
 
                 pu1_dst = ps_proc->pu1_src_buf_luma;
 
-                for (i = 0; i < num_rows; i++)
-                {
-                    memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_wd);
-                    pu1_src += ps_proc->s_inp_buf.s_raw_buf.au4_strd[0];
-                    pu1_dst += ps_proc->i4_src_strd;
+                /* If padding is required, we always copy luma, if padding isn't required we never copy luma. */
+                if (u4_pad_bottom_sz || u4_pad_right_sz) {
+                    if (ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1))
+                        num_rows = MB_SIZE - u4_pad_bottom_sz;
+                    for (i = 0; i < num_rows; i++)
+                    {
+                        memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_wd);
+                        pu1_src += ps_proc->s_inp_buf.s_raw_buf.au4_strd[0];
+                        pu1_dst += ps_proc->i4_src_strd;
+                    }
                 }
                 pu1_src = (UWORD8 *)ps_proc->s_inp_buf.s_raw_buf.apv_bufs[1] + (i4_mb_x * BLK8x8SIZE) +
                           ps_proc->s_inp_buf.s_raw_buf.au4_strd[1] * (i4_mb_y * BLK8x8SIZE);
@@ -1265,7 +1271,10 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
                 /* Last MB row of chroma is copied unconditionally, since trans functions access an extra byte
                  * due to interleaved input
                  */
-                num_rows = (ps_codec->s_cfg.u4_disp_ht >> 1) - (ps_proc->i4_mb_y * BLK8x8SIZE);
+                if (ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1))
+                    num_rows = (ps_codec->s_cfg.u4_disp_ht >> 1) - (ps_proc->i4_mb_y * BLK8x8SIZE);
+                else
+                    num_rows = BLK8x8SIZE;
                 for (i = 0; i < num_rows; i++)
                 {
                     memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_wd);
@@ -1316,8 +1325,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
             break;
     }
 
-    if (u4_pad_right_sz && (ps_proc->i4_mb_x == 0) &&
-                    (ps_proc->i4_src_strd > (WORD32)ps_codec->s_cfg.u4_disp_wd) )
+    if (u4_pad_right_sz && (ps_proc->i4_mb_x == 0))
     {
         UWORD32 u4_pad_wd, u4_pad_ht;
         u4_pad_wd = (UWORD32)(ps_proc->i4_src_strd - ps_codec->s_cfg.u4_disp_wd);
