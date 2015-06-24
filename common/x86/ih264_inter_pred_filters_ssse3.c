@@ -111,23 +111,12 @@ void ih264_inter_pred_luma_copy_ssse3(UWORD8 *pu1_src,
 
     if(wd == 4)
     {
-        __m128i mask_full_128b, mask_low_32b;
-
-        mask_full_128b = _mm_set1_epi8(0xff);
-        mask_low_32b = _mm_srli_si128(mask_full_128b, 12);
-        // mask for first four bytes
-
         do
         {
-            y_0_16x8b = _mm_loadl_epi64((__m128i *)pu1_src);
-            y_1_16x8b = _mm_loadl_epi64((__m128i *)(pu1_src + src_strd));
-            y_2_16x8b = _mm_loadl_epi64((__m128i *)(pu1_src + src_strd2));
-            y_3_16x8b = _mm_loadl_epi64((__m128i *)(pu1_src + src_strd3));
-
-            _mm_maskmoveu_si128(y_0_16x8b, mask_low_32b, (char*)pu1_dst);
-            _mm_maskmoveu_si128(y_1_16x8b, mask_low_32b, (char*)(pu1_dst + dst_strd));
-            _mm_maskmoveu_si128(y_2_16x8b, mask_low_32b, (char*)(pu1_dst + dst_strd2));
-            _mm_maskmoveu_si128(y_3_16x8b, mask_low_32b, (char*)(pu1_dst + dst_strd3));
+            *((WORD32 *)(pu1_dst)) =  *((WORD32 *)(pu1_src));
+            *((WORD32 *)(pu1_dst + dst_strd)) = *((WORD32 *)(pu1_src + src_strd));
+            *((WORD32 *)(pu1_dst + dst_strd2)) = *((WORD32 *)(pu1_src + src_strd2));
+            *((WORD32 *)(pu1_dst + dst_strd3)) = *((WORD32 *)(pu1_src + src_strd3));
 
             ht -= 4;
             pu1_src += src_strd4;
@@ -255,11 +244,6 @@ void ih264_inter_pred_luma_horz_ssse3(UWORD8 *pu1_src,
         __m128i res_r0r1_t1_8x16b, res_r0r1_t2_8x16b, res_r0r1_t3_8x16b;
         __m128i res_r0r1_16x8b;
 
-        __m128i mask_full_16x8b, mask_low32b;
-
-        mask_full_16x8b = _mm_set1_epi8(0xff);
-        mask_low32b = _mm_srli_si128(mask_full_16x8b, 12); // mask for first four bytes
-
         //Row0 : a0 a1 a2 a3 a4 a5 a6 a7 a8 a9.....
         //Row1 : b0 b1 b2 b3 b4 b5 b6 b7 b8 b9.....
 
@@ -307,9 +291,9 @@ void ih264_inter_pred_luma_horz_ssse3(UWORD8 *pu1_src,
 
             res_r0r1_16x8b = _mm_packus_epi16(res_r0r1_t1_8x16b, res_r0r1_t1_8x16b);
 
-            _mm_maskmoveu_si128(res_r0r1_16x8b, mask_low32b, (char*)pu1_dst);
+            *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(res_r0r1_16x8b);
             res_r0r1_16x8b = _mm_srli_si128(res_r0r1_16x8b, 4);
-            _mm_maskmoveu_si128(res_r0r1_16x8b, mask_low32b, (char*)(pu1_dst + dst_strd));
+            *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(res_r0r1_16x8b);
 
             ht -= 2;
             pu1_src += src_strd << 1;
@@ -525,10 +509,6 @@ void ih264_inter_pred_luma_vert_ssse3(UWORD8 *pu1_src,
 
     if(wd == 4)
     {
-        __m128i mask_low32b;
-
-        mask_low32b = _mm_set1_epi8(0xff);
-
         //Epilogue: Load all the pred rows except sixth and seventh row
         //          for the first and second row processing.
         src_r0_16x8b = _mm_loadl_epi64((__m128i *)pu1_src);
@@ -541,8 +521,6 @@ void ih264_inter_pred_luma_vert_ssse3(UWORD8 *pu1_src,
         pu1_src += src_strd;
         src_r4_16x8b = _mm_loadl_epi64((__m128i *)pu1_src);
         pu1_src += src_strd;
-
-        mask_low32b = _mm_srli_si128(mask_low32b, 12); // mask for first four bytes
 
         src_r0_16x8b = _mm_unpacklo_epi32(src_r0_16x8b, src_r1_16x8b);
         src_r1_16x8b = _mm_unpacklo_epi32(src_r1_16x8b, src_r2_16x8b);
@@ -572,9 +550,9 @@ void ih264_inter_pred_luma_vert_ssse3(UWORD8 *pu1_src,
             res_t1_8x16b = _mm_srai_epi16(res_t1_8x16b, 5); //shifting right by 5 bits.
             res_16x8b = _mm_packus_epi16(res_t1_8x16b, res_t1_8x16b);
 
-            _mm_maskmoveu_si128(res_16x8b, mask_low32b, (char*)pu1_dst);
+            *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(res_16x8b);
             res_16x8b = _mm_srli_si128(res_16x8b, 4);
-            _mm_maskmoveu_si128(res_16x8b, mask_low32b, (char*)(pu1_dst + dst_strd));
+            *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(res_16x8b);
 
             src_r0_16x8b = src_r2_16x8b;
             src_r1_16x8b = src_r3_16x8b;
@@ -893,15 +871,12 @@ void ih264_inter_pred_luma_horz_hpel_vert_hpel_ssse3(UWORD8 *pu1_src,
             __m128i res_8x16b, res_16x8b;
 
             __m128i coeff0_1_8x16b, coeff2_3_8x16b, coeff4_5_8x16b;
-            __m128i const_val512_4x32b, mask_low32b;
-
-            mask_low32b = _mm_set1_epi8(0xff);
+            __m128i const_val512_4x32b;
 
             coeff0_1_8x16b = _mm_set1_epi32(0xFFFB0001);
             coeff2_3_8x16b = _mm_set1_epi32(0x00140014);
             coeff4_5_8x16b = _mm_set1_epi32(0x0001FFFB);
 
-            mask_low32b = _mm_srli_si128(mask_low32b, 12);
             const_val512_4x32b = _mm_set1_epi32(512);
 
             src_r0_8x16b = _mm_loadl_epi64((__m128i *)(pi2_temp));
@@ -947,9 +922,9 @@ void ih264_inter_pred_luma_horz_hpel_vert_hpel_ssse3(UWORD8 *pu1_src,
                 res_8x16b = _mm_packs_epi32(res_t0_4x32b, res_t1_4x32b);
                 res_16x8b = _mm_packus_epi16(res_8x16b, res_8x16b);
 
-                _mm_maskmoveu_si128(res_16x8b, mask_low32b, (char*)pu1_dst);
+                *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(res_16x8b);
                 res_16x8b = _mm_srli_si128(res_16x8b, 4);
-                _mm_maskmoveu_si128(res_16x8b, mask_low32b, (char*)(pu1_dst + dst_strd));
+                *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(res_16x8b);
 
                 src_r0_8x16b = src_r2_8x16b;
                 src_r1_8x16b = src_r3_8x16b;
@@ -1551,11 +1526,6 @@ void ih264_inter_pred_luma_horz_qpel_ssse3(UWORD8 *pu1_src,
         __m128i res_r0r1_t1_8x16b, res_r0r1_t2_8x16b, res_r0r1_t3_8x16b;
         __m128i res_r0r1_16x8b;
 
-        __m128i mask_full_16x8b, mask_low32b;
-
-        mask_full_16x8b = _mm_set1_epi8(0xff);
-        mask_low32b = _mm_srli_si128(mask_full_16x8b, 12); // mask for first four bytes
-
         //Row0 : a0 a1 a2 a3 a4 a5 a6 a7 a8 a9.....
         //Row1 : b0 b1 b2 b3 b4 b5 b6 b7 b8 b9.....
 
@@ -1607,9 +1577,9 @@ void ih264_inter_pred_luma_horz_qpel_ssse3(UWORD8 *pu1_src,
             res_r0r1_16x8b = _mm_packus_epi16(res_r0r1_t1_8x16b, res_r0r1_t1_8x16b);
             res_r0r1_16x8b = _mm_avg_epu8(src_r0r1_16x8b, res_r0r1_16x8b);              //computing q-pel
 
-            _mm_maskmoveu_si128(res_r0r1_16x8b, mask_low32b, (char*)pu1_dst);
+            *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(res_r0r1_16x8b);
             res_r0r1_16x8b = _mm_srli_si128(res_r0r1_16x8b, 4);
-            _mm_maskmoveu_si128(res_r0r1_16x8b, mask_low32b, (char*)(pu1_dst + dst_strd));
+            *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(res_r0r1_16x8b);
 
             ht -= 2;
             pu1_src += src_strd << 1;
@@ -1849,10 +1819,6 @@ void ih264_inter_pred_luma_vert_qpel_ssse3(UWORD8 *pu1_src,
 
     if(wd == 4)
     {
-        __m128i mask_low32b;
-
-        mask_low32b = _mm_set1_epi8(0xff);
-
         //Epilogue: Load all the pred rows except sixth and seventh row
         //          for the first and second row processing.
         src_r0_16x8b = _mm_loadl_epi64((__m128i *)pu1_src);
@@ -1865,8 +1831,6 @@ void ih264_inter_pred_luma_vert_qpel_ssse3(UWORD8 *pu1_src,
         pu1_src += src_strd;
         src_r4_16x8b = _mm_loadl_epi64((__m128i *)pu1_src);
         pu1_src += src_strd;
-
-        mask_low32b = _mm_srli_si128(mask_low32b, 12); // mask for first four bytes
 
         src_r0_16x8b = _mm_unpacklo_epi32(src_r0_16x8b, src_r1_16x8b);
         src_r1_16x8b = _mm_unpacklo_epi32(src_r1_16x8b, src_r2_16x8b);
@@ -1904,9 +1868,9 @@ void ih264_inter_pred_luma_vert_qpel_ssse3(UWORD8 *pu1_src,
 
             res_16x8b = _mm_avg_epu8(src_r0r1_16x8b, res_16x8b); //computing q-pel
 
-            _mm_maskmoveu_si128(res_16x8b, mask_low32b, (char*)pu1_dst);
+            *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(res_16x8b);
             res_16x8b = _mm_srli_si128(res_16x8b, 4);
-            _mm_maskmoveu_si128(res_16x8b, mask_low32b, (char*)(pu1_dst + dst_strd));
+            *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(res_16x8b);
 
             src_r0_16x8b = src_r2_16x8b;
             src_r1_16x8b = src_r3_16x8b;
@@ -2257,11 +2221,6 @@ void ih264_inter_pred_luma_horz_qpel_vert_qpel_ssse3(UWORD8 *pu1_src,
             __m128i res_r0r1_t1_8x16b, res_r0r1_t2_8x16b, res_r0r1_t3_8x16b;
             __m128i res_r0r1_16x8b;
 
-            __m128i mask_low32b;
-
-            mask_low32b = _mm_set1_epi8(0xff);
-            mask_low32b = _mm_srli_si128(mask_low32b, 12);
-
             //Row0 : a0 a1 a2 a3 a4 a5 a6 a7 a8 a9.....
             //Row1 : b0 b1 b2 b3 b4 b5 b6 b7 b8 b9.....
 
@@ -2313,9 +2272,9 @@ void ih264_inter_pred_luma_horz_qpel_vert_qpel_ssse3(UWORD8 *pu1_src,
 
                 res_r0r1_16x8b = _mm_avg_epu8(res_r0r1_16x8b,src_r0r1_vpel_16x8b);
 
-                _mm_maskmoveu_si128(res_r0r1_16x8b, mask_low32b, (char*)pu1_dst);
+                *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(res_r0r1_16x8b);
                 res_r0r1_16x8b = _mm_srli_si128(res_r0r1_16x8b, 4);
-                _mm_maskmoveu_si128(res_r0r1_16x8b, mask_low32b, (char*)(pu1_dst + dst_strd));
+                *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(res_r0r1_16x8b);
 
                 ht -= 2;
                 pu1_pred_horiz += src_strd << 1;
@@ -2852,15 +2811,10 @@ void ih264_inter_pred_luma_horz_qpel_vert_hpel_ssse3(UWORD8 *pu1_src,
 
             __m128i coeff0_1_8x16b, coeff2_3_8x16b, coeff4_5_8x16b;
             __m128i const_val512_4x32b, const_val16_8x16b;
-            __m128i mask_low32b;
-
-            mask_low32b = _mm_set1_epi8(0xff);
 
             coeff0_1_8x16b = _mm_set1_epi32(0xFFFB0001);
             coeff2_3_8x16b = _mm_set1_epi32(0x00140014);
             coeff4_5_8x16b = _mm_set1_epi32(0x0001FFFB);
-
-            mask_low32b = _mm_srli_si128(mask_low32b, 12);
 
             const_val512_4x32b = _mm_set1_epi32(512);
             const_val16_8x16b = _mm_set1_epi16(16);
@@ -2897,7 +2851,7 @@ void ih264_inter_pred_luma_horz_qpel_vert_hpel_ssse3(UWORD8 *pu1_src,
 
                 res_16x8b = _mm_avg_epu8(res_16x8b, src_hpel_16x8b);
 
-                _mm_maskmoveu_si128(res_16x8b, mask_low32b, (char*)pu1_dst);
+                *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(res_16x8b);
 
                 ht--;
                 pi2_temp2 = pi2_temp2 + 4 + 5;
@@ -3424,12 +3378,9 @@ void ih264_inter_pred_luma_horz_hpel_vert_qpel_ssse3(UWORD8 *pu1_src,
 
             __m128i coeff0_1_8x16b, coeff2_3_8x16b, coeff4_5_8x16b;
             __m128i const_val512_4x32b, const_val16_8x16b;
-            __m128i mask_low32b;
 
-            mask_low32b = _mm_set1_epi8(0xff);
             const_val512_4x32b = _mm_set1_epi32(512);
             const_val16_8x16b = _mm_set1_epi16(16);
-            mask_low32b = _mm_srli_si128(mask_low32b, 12);
 
             coeff0_1_8x16b = _mm_set1_epi32(0xFFFB0001);
             coeff2_3_8x16b = _mm_set1_epi32(0x00140014);
@@ -3483,9 +3434,9 @@ void ih264_inter_pred_luma_horz_hpel_vert_qpel_ssse3(UWORD8 *pu1_src,
 
                 res_16x8b = _mm_avg_epu8(res_16x8b, src_hpel_16x8b);
 
-                _mm_maskmoveu_si128(res_16x8b, mask_low32b, (char *)(pu1_dst));
+                *((WORD32 *)(pu1_dst)) = _mm_cvtsi128_si32(res_16x8b);
                 res_16x8b = _mm_srli_si128(res_16x8b, 4);
-                _mm_maskmoveu_si128(res_16x8b, mask_low32b, (char *)(pu1_dst + dst_strd));
+                *((WORD32 *)(pu1_dst + dst_strd)) = _mm_cvtsi128_si32(res_16x8b);
 
                 src_r0_8x16b = src_r2_8x16b;
                 src_r1_8x16b = src_r3_8x16b;
@@ -4106,65 +4057,6 @@ void ih264_inter_pred_chroma_ssse3(UWORD8 *pu1_src,
         }
         while(ht > 0);
 
-        /*
-        WORD32 AB, CD;
-
-        __m128i src_r1_16x8b, src_r2_16x8b, src_r3_16x8b;
-        __m128i src_r1r2_16x8b, src_r2r3_16x8b;
-        __m128i res_AB_8x16b, res_CD_8x16b, res_8x16b, res_16x8b;
-        __m128i mask_low32b;
-
-        __m128i coeffAB_16x8b, coeffCD_16x8b, round_add32_8x16b;
-        __m128i const_shuff_16x8b;
-
-        AB = (B << 8) + A;
-        CD = (D << 8) + C;
-
-        coeffAB_16x8b = _mm_set1_epi16(AB);
-        coeffCD_16x8b = _mm_set1_epi16(CD);
-
-        round_add32_8x16b = _mm_set1_epi16(32);
-
-        mask_low32b = _mm_set1_epi8(0xff);
-        src_r1_16x8b = _mm_loadl_epi64((__m128i *)pu1_src);                       //u1[0] v1[0] u1[1] v1[1] u1[2] v1[2] u1[3] v1[3]
-        pu1_src += src_strd;
-
-        const_shuff_16x8b = _mm_setr_epi32(0x03010200, 0x05030402, 0x0b090a08, 0x0d0b0c0a);
-        mask_low32b = _mm_srli_si128(mask_low32b, 12);
-
-        do
-        {
-            src_r2_16x8b = _mm_loadl_epi64((__m128i *)pu1_src);                   //u2[0] v2[0] u2[1] v2[1] u1[2] v2[2] u2[3] v2[3]
-            src_r3_16x8b = _mm_loadl_epi64((__m128i *)(pu1_src + src_strd));      //u3[0] v3[0] u3[1] v3[1] u3[2] v3[2] u3[3] v3[3]
-
-            src_r1r2_16x8b = _mm_unpacklo_epi64(src_r1_16x8b, src_r2_16x8b);
-            src_r2r3_16x8b = _mm_unpacklo_epi64(src_r2_16x8b, src_r3_16x8b);
-
-            src_r1r2_16x8b = _mm_shuffle_epi8(src_r1r2_16x8b, const_shuff_16x8b); //u1[0] u1[1] v1[0] v1[1] u1[1] u1[2] v1[1] v1[2]
-                                                                                  //u2[0] u2[1] v2[0] v2[1] u2[1] u2[2] v2[1] v2[2]
-            src_r2r3_16x8b = _mm_shuffle_epi8(src_r2r3_16x8b, const_shuff_16x8b); //u2[0] u2[1] v2[0] v2[1] u2[1] u2[2] v2[1] v2[2]
-                                                                                  //u3[0] u3[1] v3[0] v3[1] u3[1] u3[2] v3[1] v3[2]
-            res_AB_8x16b = _mm_maddubs_epi16(src_r1r2_16x8b, coeffAB_16x8b);
-            res_CD_8x16b = _mm_maddubs_epi16(src_r2r3_16x8b, coeffCD_16x8b);
-
-            res_8x16b = _mm_add_epi16(res_AB_8x16b, round_add32_8x16b);
-            res_8x16b = _mm_add_epi16(res_8x16b, res_CD_8x16b);
-            res_8x16b = _mm_srai_epi16(res_8x16b, 6);
-            res_16x8b = _mm_packus_epi16(res_8x16b, res_8x16b);
-
-            _mm_maskmoveu_si128(res_16x8b, mask_low32b, (char *)pu1_dst);
-
-            ht -= 2;
-            pu1_src += src_strd << 1;
-            res_16x8b = _mm_srli_si128(res_16x8b, 4);
-            src_r1_16x8b = src_r3_16x8b;
-
-            _mm_maskmoveu_si128(res_16x8b, mask_low32b, (char *)(pu1_dst + dst_strd));
-
-            pu1_dst += dst_strd << 1;
-        }
-        while(ht > 0);
-        */
     }
     else if(wd == 4)
     {

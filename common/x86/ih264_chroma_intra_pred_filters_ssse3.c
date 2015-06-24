@@ -103,47 +103,35 @@ void ih264_intra_pred_chroma_8x8_mode_horz_ssse3(UWORD8 *pu1_src,
     UWORD8 *pu1_left; /* Pointer to start of top predictors */
     WORD32 dst_strd2;
 
-    __m128i left_16x8b, left_sh_16x8b;
     __m128i row1_16x8b, row2_16x8b;
-    __m128i const_14_15_16x8b;
 
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
 
     pu1_left = pu1_src + 2 * BLK8x8SIZE - 2;
 
-    left_16x8b = _mm_loadu_si128((__m128i *)(pu1_left - 14));
-
-    const_14_15_16x8b = _mm_set1_epi16(0x0f0e);
 
     dst_strd2 = dst_strd << 1;
-    left_sh_16x8b = _mm_slli_si128(left_16x8b, 2);
-    row1_16x8b = _mm_shuffle_epi8(left_16x8b, const_14_15_16x8b);
-    row2_16x8b = _mm_shuffle_epi8(left_sh_16x8b, const_14_15_16x8b);
+    row1_16x8b = _mm_set1_epi16(*((WORD16 *)(pu1_left)));
+    row2_16x8b = _mm_set1_epi16(*((WORD16 *)(pu1_left - 2)));
     _mm_storeu_si128((__m128i *)pu1_dst, row1_16x8b);
     _mm_storeu_si128((__m128i *)(pu1_dst + dst_strd), row2_16x8b);
 
-    left_16x8b = _mm_slli_si128(left_16x8b, 4);
-    left_sh_16x8b = _mm_slli_si128(left_sh_16x8b, 4);
     pu1_dst += dst_strd2;
-    row1_16x8b = _mm_shuffle_epi8(left_16x8b, const_14_15_16x8b);
-    row2_16x8b = _mm_shuffle_epi8(left_sh_16x8b, const_14_15_16x8b);
+    row1_16x8b = _mm_set1_epi16(*((WORD16 *)(pu1_left - 4)));
+    row2_16x8b = _mm_set1_epi16(*((WORD16 *)(pu1_left - 6)));
     _mm_storeu_si128((__m128i *)pu1_dst, row1_16x8b);
     _mm_storeu_si128((__m128i *)(pu1_dst + dst_strd), row2_16x8b);
 
-    left_16x8b = _mm_slli_si128(left_16x8b, 4);
-    left_sh_16x8b = _mm_slli_si128(left_sh_16x8b, 4);
     pu1_dst += dst_strd2;
-    row1_16x8b = _mm_shuffle_epi8(left_16x8b, const_14_15_16x8b);
-    row2_16x8b = _mm_shuffle_epi8(left_sh_16x8b, const_14_15_16x8b);
+    row1_16x8b = _mm_set1_epi16(*((WORD16 *)(pu1_left - 8)));
+    row2_16x8b = _mm_set1_epi16(*((WORD16 *)(pu1_left - 10)));
     _mm_storeu_si128((__m128i *)pu1_dst, row1_16x8b);
     _mm_storeu_si128((__m128i *)(pu1_dst + dst_strd), row2_16x8b);
 
-    left_16x8b = _mm_slli_si128(left_16x8b, 4);
-    left_sh_16x8b = _mm_slli_si128(left_sh_16x8b, 4);
     pu1_dst += dst_strd2;
-    row1_16x8b = _mm_shuffle_epi8(left_16x8b, const_14_15_16x8b);
-    row2_16x8b = _mm_shuffle_epi8(left_sh_16x8b, const_14_15_16x8b);
+    row1_16x8b = _mm_set1_epi16(*((WORD16 *)(pu1_left - 12)));
+    row2_16x8b = _mm_set1_epi16(*((WORD16 *)(pu1_left - 14)));
     _mm_storeu_si128((__m128i *)pu1_dst, row1_16x8b);
     _mm_storeu_si128((__m128i *)(pu1_dst + dst_strd), row2_16x8b);
 }
@@ -273,7 +261,6 @@ void ih264_intra_pred_chroma_8x8_mode_plane_ssse3(UWORD8 *pu1_src,
     //calculating a, b and c
     {
         WORD32 h_u, h_v, v_u, v_v;
-        WORD32 temp1, temp2;
 
         __m128i h_val1_16x8b, h_val2_16x8b;
         __m128i h_val1_8x16b, h_val2_8x16b, h_val_4x32b;
@@ -302,13 +289,10 @@ void ih264_intra_pred_chroma_8x8_mode_plane_ssse3(UWORD8 *pu1_src,
         h_val_4x32b = _mm_madd_epi16(mul_8x16b, h_val1_8x16b);
         v_val_4x32b = _mm_madd_epi16(mul_8x16b, v_val1_8x16b);
 
-        temp1 = _mm_extract_epi16(h_val1_16x8b, 3);
-        temp2 = _mm_extract_epi16(v_val1_16x8b, 3);
-
         hv_val_4x32b = _mm_hadd_epi32(h_val_4x32b, v_val_4x32b);
 
-        a_u = ((temp1 & 0xff) + (temp2 & 0xff)) << 4;
-        a_v = ((temp1 >> 8) + (temp2 >> 8)) << 4;
+        a_u = (pu1_left[7 * (-2)] + pu1_top[14]) << 4;
+        a_v = (pu1_left[7 * (-2) + 1] + pu1_top[15]) << 4;
 
         h_u = _mm_extract_epi16(hv_val_4x32b, 0);
         h_v = _mm_extract_epi16(hv_val_4x32b, 2);
