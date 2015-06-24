@@ -221,7 +221,7 @@ WORD32 ih264e_frame_time_get_init_free_memtab(frame_time_handle *pps_frame_time,
                                               ITT_FUNC_TYPE_E e_func_type)
 {
     WORD32 i4_mem_tab_idx = 0;
-    static frame_time_t s_temp_frame_time_t;
+    frame_time_t s_temp_frame_time_t;
 
     /* Hack for al alloc, during which we dont have any state memory.
      Dereferencing can cause issues */
@@ -404,7 +404,7 @@ WORD32 ih264e_time_stamp_get_init_free_memtab(time_stamp_handle *pps_time_stamp,
                                               ITT_FUNC_TYPE_E e_func_type)
 {
     WORD32 i4_mem_tab_idx = 0;
-    static time_stamp_t s_temp_time_stamp_t;
+    time_stamp_t s_temp_time_stamp_t;
 
     /* Hack for al alloc, during which we dont have any state memory.
      Dereferencing can cause issues */

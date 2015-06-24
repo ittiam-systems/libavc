@@ -47,7 +47,7 @@ WORD32 irc_mbrc_num_fill_use_free_memtab(mb_rate_control_t **pps_mb_rate_control
                                          ITT_FUNC_TYPE_E e_func_type)
 {
     WORD32 i4_mem_tab_idx = 0;
-    static mb_rate_control_t s_mb_rate_control_temp;
+    mb_rate_control_t s_mb_rate_control_temp;
 
     /*
      * Hack for al alloc, during which we don't have any state memory.
