@@ -2,7 +2,7 @@ libavcd_inc_dir_arm +=  $(LOCAL_PATH)/decoder/arm
 libavcd_inc_dir_arm +=  $(LOCAL_PATH)/common/arm
 
 libavcd_srcs_c_arm  += decoder/arm/ih264d_function_selector.c
-libavcd_cflags_arm  += -DDISABLE_NEONINTR  -DARM -DARMGCC
+libavcd_cflags_arm  += -DARM
 
 #LOCAL_ARM_MODE         := arm
 
