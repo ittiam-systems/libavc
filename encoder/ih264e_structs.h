@@ -2622,6 +2622,10 @@ struct _codec_t
      */
     inp_buf_t as_inp_list[MAX_NUM_BFRAMES];
 
+    /**
+     * IDR flags for each input
+     */
+    WORD32 i4_idr_inp_list[MAX_NUM_BFRAMES];
 
     /*
     *Flag to indicate if we have recived the last input frame

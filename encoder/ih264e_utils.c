@@ -245,12 +245,35 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
     /***************************************************************************
      * Now we should add the picture to RC stack here
      **************************************************************************/
+    /*
+     * If an I frame has been requested, ask  RC to force it
+     * For IDR requests, we have to ask RC to force I and set IDR by our selves
+     * since RC Donot know about IDR. For forcing an IDR at dequeue stage we
+     * should record that an IDR has been requested some where. Hence we will
+     * store it in the u4_idr_inp_list at a position same as that of input frame
+     */
+    {
+        WORD32 i4_force_idr, i4_force_i;
+
+        i4_force_idr = (ps_codec->force_curr_frame_type == IV_IDR_FRAME);
+        i4_force_idr |= !(ps_codec->i4_pic_cnt % ps_codec->s_cfg.u4_idr_frm_interval);
+
+        i4_force_i = (ps_codec->force_curr_frame_type == IV_I_FRAME);
+
+        ps_codec->i4_idr_inp_list[ps_codec->i4_pic_cnt % MAX_NUM_BFRAMES] = i4_force_idr;
+
+        if ((ps_codec->i4_frame_num > 0) && (i4_force_idr || i4_force_i))
+        {
+            irc_force_I_frame(ps_codec->s_rate_control.pps_rate_control_api);
+        }
+        ps_codec->force_curr_frame_type = IV_NA_FRAME;
+    }
+
     irc_add_picture_to_stack(ps_codec->s_rate_control.pps_rate_control_api,
                              ps_codec->i4_pic_cnt);
 
-    /*
-     * Rc has a problem with this delayed processing
-     */
+
+    /* Delay */
     if (ps_codec->i4_encode_api_call_cnt
                     < (WORD32)(ps_codec->s_cfg.u4_num_bframes))
     {
@@ -261,18 +284,6 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
     /***************************************************************************
      * Get a new pic to encode
      **************************************************************************/
-
-    /*
-     * If a frame is forced, apply it
-     * We cannot force an I frame for first frame
-     */
-    if ((ps_codec->i4_frame_num > 0)&&
-        ((ps_codec->force_curr_frame_type == IV_I_FRAME)||
-         (ps_codec->force_curr_frame_type == IV_IDR_FRAME)))
-    {
-        irc_force_I_frame(ps_codec->s_rate_control.pps_rate_control_api);
-    }
-
     /* Query the picture_type */
     e_pictype = ih264e_rc_get_picture_details(
                     ps_codec->s_rate_control.pps_rate_control_api, (WORD32 *)(&u4_pic_id),
@@ -295,12 +306,12 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
             return 0;
     }
 
+    /* Set IDR if it has been requested or its the IDR interval */
+    ps_codec->pic_type = ps_codec->i4_idr_inp_list[u4_pic_id % MAX_NUM_BFRAMES] ?
+                                    PIC_IDR : ps_codec->pic_type;
+    ps_codec->i4_idr_inp_list[u4_pic_id % MAX_NUM_BFRAMES] = 0;
 
-    ps_codec->pic_type = ( (u4_pic_id % ps_codec->s_cfg.u4_idr_frm_interval) ||
-                           (ps_codec->force_curr_frame_type != IV_IDR_FRAME) ) ?
-                                    ps_codec->pic_type : PIC_IDR;
 
-    ps_codec->force_curr_frame_type = IV_NA_FRAME;
 
     /* Get current frame Qp */
     u1_frame_qp = (UWORD8)irc_get_frame_level_qp(
