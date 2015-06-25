@@ -1360,12 +1360,6 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
      *   a) Set up alt ref too
      **************************************************************************/
 
-    /* In case of alt ref and B pics we will have non reference frame in stream */
-    if (ps_codec->s_cfg.u4_enable_alt_ref || ps_codec->s_cfg.u4_num_bframes)
-    {
-        ps_codec->i4_non_ref_frames_in_stream = 1;
-    }
-
     /* Check and set if the current frame is reference or not */
     ps_codec->u4_is_curr_frm_ref = 0;
 
