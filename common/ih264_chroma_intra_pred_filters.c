@@ -117,7 +117,6 @@ void ih264_intra_pred_chroma_8x8_mode_dc(UWORD8 *pu1_src,
     WORD32 top_avail; /* availability of top predictors (only for DC) */
     UWORD8 *pu1_left = NULL; /* Pointer to start of left predictors */
     UWORD8 *pu1_top = NULL; /* Pointer to start of top predictors */
-    UNUSED(src_strd);
 
     /* temporary variables to store accumulated first left half,second left half,
      * first top half,second top half of U and  V values*/
@@ -127,6 +126,7 @@ void ih264_intra_pred_chroma_8x8_mode_dc(UWORD8 *pu1_src,
     WORD32 val_u1 = 0, val_u2 = 0, val_v1 = 0, val_v2 = 0;
 
     WORD32 col, row; /*loop variables*/
+    UNUSED(src_strd);
 
     left_avail = ngbr_avail & 0x11;
     left_avail1 = ngbr_avail & 1;
