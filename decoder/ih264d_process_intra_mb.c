@@ -1944,10 +1944,11 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                 UWORD8 *pu1_ngbr_pels = (UWORD8 *)au2_ngbr_pels;
                 UWORD16 *pu2_left_uv;
                 UWORD16 *pu2_topleft_uv;
-                pu2_topleft_uv = (UWORD16 *)pu1_u_top_left;
-                pu2_left_uv = (UWORD16 *)pu1_uleft;
                 WORD32 use_left1 = (u2_use_left_mb_pack & 0x0ff);
                 WORD32 use_left2 = (u2_use_left_mb_pack & 0xff00) >> 8;
+
+                pu2_topleft_uv = (UWORD16 *)pu1_u_top_left;
+                pu2_left_uv = (UWORD16 *)pu1_uleft;
 
                 /* Get neighbour pixels */
                 /* left pels */

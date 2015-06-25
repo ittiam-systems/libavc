@@ -132,21 +132,23 @@ WORD32 ih264d_parse_imb_cavlc(dec_struct_t * ps_dec,
         /*--------------------------------------------------------------------*/
         if (!ps_cur_mb_info->u1_tran_form8x8)
         {
+            UWORD8 *pu1_temp;
             ih264d_read_intra_pred_modes(ps_dec,
                                           ((UWORD8 *)ps_dec->pv_parse_tu_coeff_data),
                                           ((UWORD8 *)ps_dec->pv_parse_tu_coeff_data+16),
                                           ps_cur_mb_info->u1_tran_form8x8);
-            UWORD8 *pu1_temp = (UWORD8 *)ps_dec->pv_parse_tu_coeff_data;
+            pu1_temp = (UWORD8 *)ps_dec->pv_parse_tu_coeff_data;
             pu1_temp += 32;
             ps_dec->pv_parse_tu_coeff_data = (void *)pu1_temp;
         }
         else
         {
+            UWORD8 *pu1_temp;
             ih264d_read_intra_pred_modes(ps_dec,
                                           ((UWORD8 *)ps_dec->pv_parse_tu_coeff_data),
                                           ((UWORD8 *)ps_dec->pv_parse_tu_coeff_data+4),
                                           ps_cur_mb_info->u1_tran_form8x8);
-            UWORD8 *pu1_temp = (UWORD8 *)ps_dec->pv_parse_tu_coeff_data;
+            pu1_temp = (UWORD8 *)ps_dec->pv_parse_tu_coeff_data;
             pu1_temp += 8;
             ps_dec->pv_parse_tu_coeff_data = (void *)pu1_temp;
         }
@@ -403,8 +405,8 @@ WORD32 ih264d_parse_imb_cavlc(dec_struct_t * ps_dec,
                                 (tu_sblk4x4_coeff_data_t *)ps_dec->pv_parse_tu_coeff_data;
                 WORD16 *pi2_coeff_block =
                                 (WORD16 *)ps_dec->pv_parse_tu_coeff_data;
-                ps_tu_4x4->u2_sig_coeff_map = 0;
                 UWORD32 u4_num_coeff;
+                ps_tu_4x4->u2_sig_coeff_map = 0;
 
                 ret = ps_dec->pf_cavlc_parse4x4coeff[(ui_N > 7)](pi2_dc_coef, 0, ui_N,
                                                                  ps_dec, &u4_num_coeff);
@@ -542,23 +544,25 @@ WORD32 ih264d_parse_imb_cabac(dec_struct_t * ps_dec,
         /*--------------------------------------------------------------------*/
         if (!ps_cur_mb_info->u1_tran_form8x8)
         {
+            UWORD8 *pu1_temp;
             ih264d_read_intra_pred_modes_cabac(
                             ps_dec,
                             ((UWORD8 *)ps_dec->pv_parse_tu_coeff_data),
                             ((UWORD8 *)ps_dec->pv_parse_tu_coeff_data+16),
                             ps_cur_mb_info->u1_tran_form8x8);
-            UWORD8 *pu1_temp = (UWORD8 *)ps_dec->pv_parse_tu_coeff_data;
+            pu1_temp = (UWORD8 *)ps_dec->pv_parse_tu_coeff_data;
             pu1_temp += 32;
             ps_dec->pv_parse_tu_coeff_data = (void *)pu1_temp;
         }
         else
         {
+            UWORD8 *pu1_temp;
             ih264d_read_intra_pred_modes_cabac(
                             ps_dec,
                             ((UWORD8 *)ps_dec->pv_parse_tu_coeff_data),
                             ((UWORD8 *)ps_dec->pv_parse_tu_coeff_data+4),
                             ps_cur_mb_info->u1_tran_form8x8);
-            UWORD8 *pu1_temp = (UWORD8 *)ps_dec->pv_parse_tu_coeff_data;
+            pu1_temp = (UWORD8 *)ps_dec->pv_parse_tu_coeff_data;
             pu1_temp += 8;
             ps_dec->pv_parse_tu_coeff_data = (void *)pu1_temp;
         }

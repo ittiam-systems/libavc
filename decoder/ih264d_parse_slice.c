@@ -447,8 +447,8 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
 
         if(!ps_dec->ps_cur_pic)
         {
-            H264_DEC_DEBUG_PRINT("------- Display Buffers Reset --------\n");
             WORD32 j;
+            H264_DEC_DEBUG_PRINT("------- Display Buffers Reset --------\n");
             for(j = 0; j < MAX_DISP_BUFS_NEW; j++)
             {
 
