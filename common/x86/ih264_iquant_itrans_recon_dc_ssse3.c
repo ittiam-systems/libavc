@@ -113,6 +113,13 @@ void ih264_iquant_itrans_recon_4x4_dc_ssse3(WORD16 *pi2_src,
     UWORD32 *pu4_out = (UWORD32 *)pu1_out;
     WORD32 q0 = pi2_src[0];
     WORD16 i_macro, rnd_fact = (u4_qp_div_6 < 4) ? 1 << (3 - u4_qp_div_6) : 0;
+
+    __m128i predload_r,pred_r0, pred_r1, pred_r2, pred_r3;
+    __m128i sign_reg;
+    __m128i zero_8x16b = _mm_setzero_si128();          // all bits reset to zero
+    __m128i temp4, temp5, temp6, temp7;
+    __m128i value_add;
+
     UNUSED (pi2_tmp);
 
     INV_QUANT(q0, pu2_iscal_mat[0], pu2_weigh_mat[0], u4_qp_div_6, rnd_fact, 4);
@@ -122,11 +129,7 @@ void ih264_iquant_itrans_recon_4x4_dc_ssse3(WORD16 *pi2_src,
 
     i_macro = ((q0 + 32) >> 6);
 
-    __m128i predload_r,pred_r0, pred_r1, pred_r2, pred_r3;
-    __m128i sign_reg;
-    __m128i zero_8x16b = _mm_setzero_si128();          // all bits reset to zero
-    __m128i temp4, temp5, temp6, temp7;
-    __m128i value_add = _mm_set1_epi16(i_macro);
+    value_add = _mm_set1_epi16(i_macro);
 
     zero_8x16b = _mm_setzero_si128();                  // all bits reset to zero
     //Load pred buffer
@@ -235,6 +238,13 @@ void ih264_iquant_itrans_recon_8x8_dc_ssse3 (WORD16 *pi2_src,
 {
     WORD32 q0 = pi2_src[0];
     WORD16 i_macro, rnd_fact = (qp_div < 6) ? 1 << (5 - qp_div) : 0;
+
+    __m128i predload_r,pred_r0, pred_r1, pred_r2, pred_r3,pred_r4,pred_r5,pred_r6,pred_r7;
+    __m128i sign_reg;
+    __m128i zero_8x16b = _mm_setzero_si128();          // all bits reset to zero
+    __m128i temp1,temp2,temp3,temp4, temp5, temp6, temp7,temp8;
+    __m128i value_add;
+
     UNUSED (pi2_tmp);
     UNUSED (iq_start_idx);
     UNUSED (pi2_dc_ld_addr);
@@ -242,11 +252,7 @@ void ih264_iquant_itrans_recon_8x8_dc_ssse3 (WORD16 *pi2_src,
     INV_QUANT(q0, pu2_iscale_mat[0], pu2_weigh_mat[0], qp_div, rnd_fact, 6);
     i_macro = ((q0 + 32) >> 6);
 
-    __m128i predload_r,pred_r0, pred_r1, pred_r2, pred_r3,pred_r4,pred_r5,pred_r6,pred_r7;
-    __m128i sign_reg;
-    __m128i zero_8x16b = _mm_setzero_si128();          // all bits reset to zero
-    __m128i temp1,temp2,temp3,temp4, temp5, temp6, temp7,temp8;
-    __m128i value_add = _mm_set1_epi16(i_macro);
+    value_add = _mm_set1_epi16(i_macro);
 
     //Load pred buffer row 0
     predload_r = _mm_loadl_epi64((__m128i *)(&pu1_pred[0])); //p0 p1 p2 p3 p4 p5 p6 p7 0 0 0 0 0 0 0 0 -- all 8 bits
