@@ -68,7 +68,7 @@
 #include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
-
+#include "ih264_cabac_tables.h"
 #include "ih264_macros.h"
 #include "ih264_platform_macros.h"
 #include "irc_cntrl_param.h"
