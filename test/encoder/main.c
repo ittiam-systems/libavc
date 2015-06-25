@@ -2088,6 +2088,11 @@ int main(int argc, char *argv[])
     }
     else if(argc == 2)
     {
+        if (!strcmp(argv[1], "--help"))
+        {
+            print_usage();
+            exit(-1);
+        }
         strcpy(ac_cfg_fname, argv[1]);
     }
 
