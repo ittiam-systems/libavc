@@ -198,7 +198,7 @@ void ih264e_rc_init(void *pv_rc_api,
 //    UWORD8  u1_is_mb_level_rc_on = 0;
     UWORD32 au4_peak_bit_rate[2] = {0,0};
     UWORD32 u4_min_bit_rate      = 0;
-    WORD32  i4_is_gop_closed     = 0;
+    WORD32  i4_is_gop_closed     = 1;
 //    WORD32  i4_use_est_intra_sad = 1;
     UWORD32 u4_src_ticks         = 0;
     UWORD32 u4_tgt_ticks         = 0;
