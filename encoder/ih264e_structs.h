@@ -2623,9 +2623,9 @@ struct _codec_t
     inp_buf_t as_inp_list[MAX_NUM_BFRAMES];
 
     /**
-     * IDR flags for each input
+     * Flag to indicate if any IDR requests are pending
      */
-    WORD32 i4_idr_inp_list[MAX_NUM_BFRAMES];
+    WORD32 i4_pending_idr_flag;
 
     /*
     *Flag to indicate if we have recived the last input frame

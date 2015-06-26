@@ -265,9 +265,9 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
 
         i4_force_i = (ps_codec->force_curr_frame_type == IV_I_FRAME);
 
-        ps_codec->i4_idr_inp_list[ps_codec->i4_pic_cnt % MAX_NUM_BFRAMES] = i4_force_idr;
+        ps_codec->i4_pending_idr_flag |= i4_force_idr;
 
-        if ((ps_codec->i4_frame_num > 0) && (i4_force_idr || i4_force_i))
+        if ((ps_codec->i4_pic_cnt > 0) && (i4_force_idr || i4_force_i))
         {
             irc_force_I_frame(ps_codec->s_rate_control.pps_rate_control_api);
         }
@@ -312,12 +312,13 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
             return 0;
     }
 
-    /* Set IDR if it has been requested or its the IDR interval */
-    ps_codec->pic_type = ps_codec->i4_idr_inp_list[u4_pic_id % MAX_NUM_BFRAMES] ?
+    /* Set IDR if it has been requested */
+    if (ps_codec->pic_type == PIC_I)
+    {
+        ps_codec->pic_type = ps_codec->i4_pending_idr_flag ?
                                     PIC_IDR : ps_codec->pic_type;
-    ps_codec->i4_idr_inp_list[u4_pic_id % MAX_NUM_BFRAMES] = 0;
-
-
+        ps_codec->i4_pending_idr_flag = 0;
+    }
 
     /* Get current frame Qp */
     u1_frame_qp = (UWORD8)irc_get_frame_level_qp(
@@ -1354,6 +1355,8 @@ IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec)
     /* Init dependecy vars */
     ps_codec->i4_last_inp_buff_received = 0;
 
+    /* At codec start no IDR is pending */
+    ps_codec->i4_pending_idr_flag = 0;
 
     return IH264E_SUCCESS;
 }
