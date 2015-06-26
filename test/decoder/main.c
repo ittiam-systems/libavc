@@ -1824,7 +1824,7 @@ int main(WORD32 argc, CHAR *argv[])
     UWORD32 frm_cnt = 0;
     WORD32 total_bytes_comsumed;
     UWORD32 max_op_frm_ts;
-    UWORD32 u4_num_disp_bufs_with_dec;;
+    UWORD32 u4_num_disp_bufs_with_dec;
 
 #ifdef PROFILE_ENABLE
     UWORD32 u4_tot_cycles = 0;
