@@ -918,6 +918,7 @@ void init_default_params(app_ctxt_t *ps_app_ctxt)
     ps_app_ctxt->u4_pic_info_size        = 0;
     ps_app_ctxt->u4_start_frm            = DEFAULT_START_FRM;
     ps_app_ctxt->u4_max_num_frms         = DEFAULT_NUM_FRMS;
+    ps_app_ctxt->avg_time                = 0;
     ps_app_ctxt->u4_total_bytes          = 0;
     ps_app_ctxt->u4_pics_cnt             = 0;
     ps_app_ctxt->e_inp_color_fmt         = DEFAULT_INP_COLOR_FMT;
