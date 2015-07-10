@@ -2589,7 +2589,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     UWORD32 cur_slice_is_nonref = 0;
     UWORD32 u4_next_is_aud;
     UWORD32 u4_first_start_code_found = 0;
-    WORD32 ret,api_ret_value = IV_SUCCESS;
+    WORD32 ret = 0,api_ret_value = IV_SUCCESS;
     WORD32 header_data_left = 0,frame_data_left = 0;
     UWORD8 *pu1_bitstrm_buf;
     ivd_video_decode_ip_t *ps_dec_ip;
@@ -3019,24 +3019,12 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             ps_dec_op->u4_error_code = error | ret;
             api_ret_value = IV_FAIL;
 
-            if((ret == IVD_RES_CHANGED) || (ret == IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED))
+            if((ret == IVD_RES_CHANGED)
+                            || (ret == IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED)
+                            || (ret == ERROR_UNAVAIL_PICBUF_T)
+                            || (ret == ERROR_UNAVAIL_MVBUF_T))
             {
-                /*dont consume the SPS*/
-                ps_dec_op->u4_num_bytes_consumed -= bytes_consumed;
-                return IV_FAIL;
-            }
-
-            if((ret == IVD_RES_CHANGED) || (ret == IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED))
-            {
-                /*dont consume the SPS*/
-                ps_dec_op->u4_num_bytes_consumed -= bytes_consumed;
-                return IV_FAIL;
-            }
-
-            if((ret == ERROR_UNAVAIL_PICBUF_T) || (ret == ERROR_UNAVAIL_MVBUF_T))
-            {
-                ps_dec_op->u4_num_bytes_consumed -= bytes_consumed;
-                return IV_FAIL;
+                break;
             }
 
             if((ret == ERROR_INCOMPLETE_FRAME) || (ret == ERROR_DANGLING_FIELD_IN_PIC))
@@ -3094,6 +3082,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         WORD32 num_mb_skipped;
         WORD32 prev_slice_err;
         pocstruct_t temp_poc;
+        WORD32 ret1;
 
         num_mb_skipped = (ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
                             - ps_dec->u2_total_mbs_coded;
@@ -3103,13 +3092,31 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         else
             prev_slice_err = 2;
 
-        ret = ih264d_mark_err_slice_skip(ps_dec, num_mb_skipped, ps_dec->u1_nal_unit_type == IDR_SLICE_NAL, ps_dec->ps_cur_slice->u2_frame_num,
+        ret1 = ih264d_mark_err_slice_skip(ps_dec, num_mb_skipped, ps_dec->u1_nal_unit_type == IDR_SLICE_NAL, ps_dec->ps_cur_slice->u2_frame_num,
                                    &temp_poc, prev_slice_err);
 
-        if((ret == ERROR_UNAVAIL_PICBUF_T) || (ret == ERROR_UNAVAIL_MVBUF_T))
+        if((ret1 == ERROR_UNAVAIL_PICBUF_T) || (ret1 == ERROR_UNAVAIL_MVBUF_T))
         {
             return IV_FAIL;
         }
+    }
+
+    if((ret == IVD_RES_CHANGED)
+                    || (ret == IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED)
+                    || (ret == ERROR_UNAVAIL_PICBUF_T)
+                    || (ret == ERROR_UNAVAIL_MVBUF_T))
+    {
+
+        /* signal the decode thread */
+        ih264d_signal_decode_thread(ps_dec);
+        /* close deblock thread if it is not closed yet */
+        if(ps_dec->u4_num_cores == 3)
+        {
+            ih264d_signal_bs_deblk_thread(ps_dec);
+        }
+        /* dont consume bitstream */
+        ps_dec_op->u4_num_bytes_consumed -= bytes_consumed;
+        return IV_FAIL;
     }
 
 
