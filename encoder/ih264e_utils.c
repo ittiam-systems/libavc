@@ -347,6 +347,86 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
     ps_enc_buff->pv_pic_info = ps_inp_buf->pv_pic_info;
     ps_enc_buff->u4_pic_info_type = ps_inp_buf->u4_pic_info_type;
 
+    /* Special case for encoding trailing B frames
+     *
+     * In encoding streams with B frames it may happen that we have a B frame
+     * at the end without a P/I frame after it. Hence when we are dequeing from
+     * the RC, it will return the P frame [next in display order but before in
+     * encoding order] first. Since the dequeue happens for an invalid frame we
+     * will get a frame with null buff and set u4_is_last. Hence lib with return
+     * last frame flag at this point and will stop encoding.
+     *
+     * Since for the last B frame, we does not have the forward ref frame
+     * it makes sense to force it into P.
+     *
+     * To solve this, in case the current frame is P and if the last frame flag
+     * is set, we need to see if there is and pending B frames. If there are any,
+     * we should just encode that picture as the current P frame and set
+     * that B frame as the last frame. Hence the encoder will terminate naturally
+     * once that B-frame is encoded after all the in between frames.
+     *
+     * Since we cannot touch RC stack directly, the option of actually swapping
+     * frames in RC is ruled out. We have to modify the as_inp_list to simulate
+     * such a behavior by RC. We can do that by
+     *  1) Search through as_inp_list to locate the largest u4_timestamp_low less
+     *     than current u4_timestamp_low. This will give us the last B frame before
+     *     the current P frame. Note that this will handle pre encode skip too since
+     *     queue happens after pre enc skip.
+     *  2) Swap the position in as_inp_list. Hence now the last B frame is
+     *     encoded as P frame. And the new last B frame will have u4_is_last
+     *     set so that encoder will end naturally once we reached that B frame
+     *     or any subsequent frame. Also the current GOP will have 1 less B frame
+     *     Since we are swapping, the poc will also be in-order.
+     *  3) In case we have an IPP stream, the result of our search will be an
+     *     I/P frame which is already encoded. Thus swap and encode will result
+     *     in encoding of duplicate frames. Hence to avoid this we will only
+     *     have this work around in case of u4_num_bframes > 0.
+     *
+     *     In case we have forced an I/IDR frame In between this P frame and
+     *     the last B frame -> This cannot happen as the current P frame is
+     *     supposed to have u4_is_last set. Thus forcing an I/ IDR after this
+     *     is illogical.
+     *
+     *     In cae if we have forced an I such that the frame just before last frame
+     *     in is I/P -> This case will never arise. Since we have a closed GOP now,
+     *     once we force an I, the gop gets reset, hence there will be a B between
+     *     I/P and I/P.
+     */
+    if (ps_enc_buff->u4_is_last && (ps_codec->pic_type == PIC_P)
+                    && ps_codec->s_cfg.u4_num_bframes && (ps_codec->i4_poc > 1))
+    {
+        UWORD32 u4_cntr, u4_lst_bframe;
+        inp_buf_t *ps_swap_buff, *ps_inp_list, *ps_cur_pic;
+
+        u4_cntr = (u4_pic_id + 1) % MAX_NUM_BFRAMES;
+        u4_lst_bframe = u4_pic_id ? ((u4_pic_id - 1) % MAX_NUM_BFRAMES) : (MAX_NUM_BFRAMES - 1);
+
+        ps_inp_list = &ps_codec->as_inp_list[0];
+        ps_cur_pic = &ps_inp_list[u4_pic_id % MAX_NUM_BFRAMES];
+
+        /* Now search the pic in most recent past to current frame */
+        for(; u4_cntr != (u4_pic_id % MAX_NUM_BFRAMES);
+                        u4_cntr = ((u4_cntr + 1) % MAX_NUM_BFRAMES))
+        {
+            if ( (ps_inp_list[u4_cntr].u4_timestamp_low  <= ps_cur_pic->u4_timestamp_low) &&
+                 (ps_inp_list[u4_cntr].u4_timestamp_high <= ps_cur_pic->u4_timestamp_high) &&
+                 (ps_inp_list[u4_cntr].u4_timestamp_low  >= ps_inp_list[u4_lst_bframe].u4_timestamp_low) &&
+                 (ps_inp_list[u4_cntr].u4_timestamp_high >= ps_inp_list[u4_lst_bframe].u4_timestamp_high))
+            {
+                u4_lst_bframe = u4_cntr;
+            }
+        }
+
+        ps_swap_buff = &(ps_codec->as_inp_list[u4_lst_bframe]);
+
+        /* copy the last B buffer to output */
+        *ps_enc_buff = *ps_swap_buff;
+
+        /* Store the current buf into the queue in place of last B buf */
+        *ps_swap_buff = *ps_inp_buf;
+
+    }
+
     if (ps_enc_buff->u4_is_last)
     {
         ps_codec->pic_type = PIC_NA;
