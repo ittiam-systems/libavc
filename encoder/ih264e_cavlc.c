@@ -1718,13 +1718,17 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
         {
             if (i4_mb_part_pred_mode != PRED_L1)/* || PRED_BI */
             {
-                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr++, error_status, "mv l0 x");
-                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr++, error_status, "mv l0 y");
+                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr, error_status, "mv l0 x");
+                pi2_mvd_ptr++;
+                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr, error_status, "mv l0 y");
+                pi2_mvd_ptr++;
             }
             if (i4_mb_part_pred_mode != PRED_L0)/* || PRED_BI */
             {
-                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr++, error_status, "mv l1 x");
-                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr++, error_status, "mv l1 y");
+                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr, error_status, "mv l1 x");
+                pi2_mvd_ptr++;
+                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr, error_status, "mv l1 y");
+                pi2_mvd_ptr++;
             }
         }
 
