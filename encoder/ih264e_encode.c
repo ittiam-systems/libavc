@@ -393,16 +393,6 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     /* Only encode if the current frame is not pre-encode skip */
     if (!i4_rc_pre_enc_skip && s_inp_buf.s_raw_buf.apv_bufs[0])
     {
-        /* array giving pic cnt that is being processed in curr context set */
-        ps_codec->ai4_pic_cnt[ctxt_sel] = ps_codec->i4_pic_cnt;
-
-        /* initialize all relevant process ctxts */
-        error_status |= ih264e_pic_init(ps_codec, &s_inp_buf);
-        SET_ERROR_ON_RETURN(error_status,
-                            IVE_FATALERROR,
-                            ps_video_encode_op->s_ive_op.u4_error_code,
-                            IV_FAIL);
-
         /* proc ctxt base idx */
         WORD32 proc_ctxt_select = ctxt_sel * MAX_PROCESS_THREADS;
 
@@ -413,6 +403,16 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
         /* number of addl. threads to be created */
         WORD32 num_thread_cnt = ps_codec->s_cfg.u4_num_cores - 1;
+
+        /* array giving pic cnt that is being processed in curr context set */
+        ps_codec->ai4_pic_cnt[ctxt_sel] = ps_codec->i4_pic_cnt;
+
+        /* initialize all relevant process ctxts */
+        error_status |= ih264e_pic_init(ps_codec, &s_inp_buf);
+        SET_ERROR_ON_RETURN(error_status,
+                            IVE_FATALERROR,
+                            ps_video_encode_op->s_ive_op.u4_error_code,
+                            IV_FAIL);
 
         for (i = 0; i < num_thread_cnt; i++)
         {

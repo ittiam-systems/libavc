@@ -241,6 +241,9 @@ static void ih264e_get_search_candidates(process_ctxt_t *ps_proc,
     WORD32 i4_srch_range_e = ps_me_ctxt->i4_srch_range_e;
     WORD32 i4_srch_range_w = ps_me_ctxt->i4_srch_range_w;
 
+    /* num of candidate search candidates */
+    UWORD32 u4_num_candidates = 0;
+
     ps_left_mv = &ps_proc->s_left_mb_pu_ME.s_me_info[i4_reflist].s_mv;
     ps_top_mv = &(ps_proc->ps_top_row_pu_ME + i4_mb_x)->s_me_info[i4_reflist].s_mv;
     ps_top_left_mv = &ps_proc->s_top_left_mb_pu_ME.s_me_info[i4_reflist].s_mv;
@@ -250,9 +253,6 @@ static void ih264e_get_search_candidates(process_ctxt_t *ps_proc,
     i4_top_mode = (ps_proc->ps_top_row_pu_ME + i4_mb_x)->b2_pred_mode != i4_cmpl_predmode;
     i4_top_left_mode = ps_proc->s_top_left_mb_pu_ME.b2_pred_mode != i4_cmpl_predmode;
     i4_top_right_mode = (ps_proc->ps_top_row_pu_ME + i4_mb_x + 1)->b2_pred_mode != i4_cmpl_predmode;
-
-    /* num of candidate search candidates */
-    UWORD32 u4_num_candidates =0 ;
 
     /* Taking the Zero motion vector as one of the candidates   */
     ps_me_ctxt->as_mv_init_search[i4_reflist][u4_num_candidates].i2_mvx = 0;
@@ -893,11 +893,11 @@ void ih264e_compute_me_single_reflist(process_ctxt_t *ps_proc)
     /* quantization parameters */
     quant_params_t *ps_qp_params = ps_proc->ps_qp_params[0];
 
-    /* Sad therholds */
-    ps_me_ctxt->pu2_sad_thrsh = ps_qp_params->pu2_sad_thrsh;
-
     /* Mb part ctxts for SKIP */
     mb_part_ctxt s_skip_mbpart;
+
+    /* Sad therholds */
+    ps_me_ctxt->pu2_sad_thrsh = ps_qp_params->pu2_sad_thrsh;
 
     {
         WORD32 rows_above, rows_below, columns_left, columns_right;
@@ -1800,11 +1800,11 @@ void ih264e_compute_me_multi_reflist(process_ctxt_t *ps_proc)
     /* quantization parameters */
     quant_params_t *ps_qp_params = ps_proc->ps_qp_params[0];
 
-    /* Sad therholds */
-    ps_me_ctxt->pu2_sad_thrsh = ps_qp_params->pu2_sad_thrsh;
-
     /* Mb part ctxts for SKIP */
     mb_part_ctxt as_skip_mbpart[2];
+
+    /* Sad therholds */
+    ps_me_ctxt->pu2_sad_thrsh = ps_qp_params->pu2_sad_thrsh;
 
     {
         WORD32 rows_above, rows_below, columns_left, columns_right;
