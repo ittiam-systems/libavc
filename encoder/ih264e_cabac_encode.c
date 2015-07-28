@@ -1206,11 +1206,13 @@ static void ih264e_cabac_encode_residue(entropy_ctxt_t *ps_ent_ctxt,
             }
             else
             {
+                UWORD8 u1_csbf;
+
                 PARSE_COEFF_DATA_BLOCK_4x4(pv_mb_coeff_data, ps_mb_coeff_data,
                                            u1_nnz, u2_sig_coeff_map,
                                            pi2_res_block);
 
-                UWORD8 u1_csbf = !!(u1_nnz);
+                u1_csbf = !!(u1_nnz);
                 {
                     UWORD8 u1_a, u1_b;
                     UWORD32 u4_ctx_inc;
