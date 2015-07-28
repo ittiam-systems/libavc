@@ -1819,18 +1819,11 @@ IH264E_ERROR_T ih264e_codec_update_config(codec_t *ps_codec,
         UWORD32 ht_aln = ALIGN16(ps_cfg->u4_ht);
 
         if (ps_curr_cfg->u4_wd != wd_aln || ps_curr_cfg->u4_ht != ht_aln
-                        || ps_curr_cfg->u4_strd != ps_cfg->u4_strd
                         || ps_curr_cfg->u4_disp_wd != ps_cfg->u4_disp_wd
                         || ps_curr_cfg->u4_disp_ht != ps_cfg->u4_disp_ht)
         {
             ps_curr_cfg->u4_wd = wd_aln;
             ps_curr_cfg->u4_ht = ht_aln;
-            ps_curr_cfg->u4_strd = ps_cfg->u4_strd;
-
-            if (ps_curr_cfg->u4_strd == 0)
-            {
-                ps_curr_cfg->u4_strd = ps_curr_cfg->u4_wd;
-            }
 
             ps_curr_cfg->u4_disp_wd = ps_cfg->u4_disp_wd;
             ps_curr_cfg->u4_disp_ht = ps_cfg->u4_disp_ht;
@@ -2320,7 +2313,6 @@ static WORD32 ih264e_set_default_params(cfg_params_t *ps_cfg)
     ps_cfg->u4_disp_ht = MAX_HT;
     ps_cfg->u4_wd = MAX_WD;
     ps_cfg->u4_ht = MAX_HT;
-    ps_cfg->u4_strd = ALIGN16(MAX_WD);
     ps_cfg->u4_src_frame_rate = DEFAULT_SRC_FRAME_RATE;
     ps_cfg->u4_tgt_frame_rate = DEFAULT_TGT_FRAME_RATE;
     ps_cfg->u4_target_bitrate = DEFAULT_BITRATE;
@@ -4667,7 +4659,6 @@ static IV_STATUS_T ih264e_set_dimensions(void *pv_api_ip,
 
     ps_cfg->u4_wd = ALIGN16(ps_ip->s_ive_ip.u4_wd);
     ps_cfg->u4_ht = ALIGN16(ps_ip->s_ive_ip.u4_ht);
-    ps_cfg->u4_strd = ps_ip->s_ive_ip.u4_strd;
     ps_cfg->i4_wd_mbs = ps_cfg->u4_wd >> 4;
     ps_cfg->i4_ht_mbs = ps_cfg->u4_ht >> 4;
     ps_cfg->u4_disp_wd = ps_ip->s_ive_ip.u4_wd;
