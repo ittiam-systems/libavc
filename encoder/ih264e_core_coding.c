@@ -1823,27 +1823,19 @@ UWORD8 ih264e_code_luma_intra_macroblock_4x4(process_ctxt_t *ps_proc)
             /*  itransform                                          */
             /*  iquantization                                       */
             /********************************************************/
-            /* If the frame is not to be used for P frame reference or dumping recon
-             * we only will use the recon for only predicting intra Mbs
-             * This will need only right and bottom edge 4x4 blocks recon
-             * Hence we selectively enable them
-             */
-            if (ps_proc->u4_compute_recon || (0xF888 & (1 << ((b8 << 2) + b4))))
-            {
-                if (u1_nnz)
-                    ps_codec->pf_iquant_itrans_recon_4x4(
-                                    pi2_res_mb, pu1_pred_mb, pu1_ref_mb,
-                                    /*No input stride,*/i4_pred_strd,
-                                    i4_rec_strd, ps_qp_params->pu2_iscale_mat,
-                                    ps_qp_params->pu2_weigh_mat,
-                                    ps_qp_params->u1_qp_div,
-                                    ps_proc->pv_scratch_buff, 0, 0);
-                else
-                    ps_codec->pf_inter_pred_luma_copy(pu1_pred_mb, pu1_ref_mb,
-                                                      i4_pred_strd, i4_rec_strd,
-                                                      BLK_SIZE, BLK_SIZE, NULL,
-                                                      0);
-            }
+            if (u1_nnz)
+                ps_codec->pf_iquant_itrans_recon_4x4(
+                                pi2_res_mb, pu1_pred_mb, pu1_ref_mb,
+                                /*No input stride,*/i4_pred_strd,
+                                i4_rec_strd, ps_qp_params->pu2_iscale_mat,
+                                ps_qp_params->pu2_weigh_mat,
+                                ps_qp_params->u1_qp_div,
+                                ps_proc->pv_scratch_buff, 0, 0);
+            else
+                ps_codec->pf_inter_pred_luma_copy(pu1_pred_mb, pu1_ref_mb,
+                                                  i4_pred_strd, i4_rec_strd,
+                                                  BLK_SIZE, BLK_SIZE, NULL,
+                                                  0);
 
         }
 
