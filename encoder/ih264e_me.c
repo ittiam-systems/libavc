@@ -1733,7 +1733,7 @@ void ih264e_evaluate_bipred(me_ctxt_t *ps_me_ctxt,
         ps_me_ctxt->pf_ime_compute_sad_16x16[u4_fast_sad](
                         ps_me_ctxt->pu1_src_buf_luma, pu1_dst_buf,
                         ps_me_ctxt->i4_src_strd, ps_me_ctxt->u4_subpel_buf_strd,
-                        ps_mb_ctxt_bi->i4_mb_distortion, &i4_mb_distortion);
+                        INT_MAX, &i4_mb_distortion);
 
         /* compute cost */
         i4_mb_cost =  ps_me_ctxt->pu1_mv_bits[( s_l0_mv.i2_mvy << 2 ) - ps_l0_pred_mv->i2_mvx];
