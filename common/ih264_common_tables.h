@@ -108,8 +108,8 @@ extern const UWORD8 gau1_ih264_inv_scan_int8x8_cavlc[64];
 extern const UWORD8 gau1_ih264_inv_scan_prog8x8_cabac[64];
 extern const UWORD8 gau1_ih264_inv_scan_int8x8_cabac[64];
 
-extern const UWORD8 *gpau1_ih264_inv_scan8x8[];
-extern const UWORD8 *gpau1_ih264_inv_scan4x4[];
+extern const UWORD8 *const gpau1_ih264_inv_scan8x8[];
+extern const UWORD8 *const gpau1_ih264_inv_scan4x4[];
 
 extern const UWORD8 gau1_ih264_8x8_subblk_idx[];
 
