@@ -361,7 +361,11 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
         ps_codec->i4_gen_header = 0;
 
         /* send the input to app */
-        ps_video_encode_op->s_ive_op.s_inp_buf = s_inp_buf.s_raw_buf;
+        ps_video_encode_op->s_ive_op.s_inp_buf = ps_video_encode_ip->s_ive_ip.s_inp_buf;
+        ps_video_encode_op->s_ive_op.u4_timestamp_low = ps_video_encode_ip->s_ive_ip.u4_timestamp_low;
+        ps_video_encode_op->s_ive_op.u4_timestamp_high = ps_video_encode_ip->s_ive_ip.u4_timestamp_high;
+
+        ps_video_encode_op->s_ive_op.u4_is_last = ps_video_encode_ip->s_ive_ip.u4_is_last;
 
         /* send the output to app */
         ps_video_encode_op->s_ive_op.output_present  = 1;

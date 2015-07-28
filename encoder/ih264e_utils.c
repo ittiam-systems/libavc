@@ -206,6 +206,7 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
                     && !ps_codec->i4_last_inp_buff_received)
     {
         ps_enc_buff->s_raw_buf.apv_bufs[0] = NULL;
+        ps_enc_buff->u4_is_last = ps_ive_ip->u4_is_last;
         return 0;
     }
 
@@ -223,7 +224,11 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
                         ps_codec->s_rate_control.pps_time_stamp,
                         ps_codec->s_rate_control.pps_frame_time);
 
-        if (skip_src) return 1;
+        if (skip_src)
+        {
+            ps_enc_buff->u4_is_last = ps_ive_ip->u4_is_last;
+            return 1;
+        }
     }
 
     /***************************************************************************
@@ -278,6 +283,7 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
                     < (WORD32)(ps_codec->s_cfg.u4_num_bframes))
     {
         ps_enc_buff->s_raw_buf.apv_bufs[0] = NULL;
+        ps_enc_buff->u4_is_last = 0;
         return 0;
     }
 
