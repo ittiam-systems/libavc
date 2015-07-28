@@ -1281,7 +1281,7 @@ WORD32 ih264e_find_bskip_params_me(process_ctxt_t *ps_proc, WORD32 i4_reflist)
     enc_pu_t *ps_a_pu, *ps_c_pu, *ps_b_pu;
 
     /* Variables to check if a particular mB is available */
-    WORD32 i4_a, i4_b, i4_c, i4_c_avail;;
+    WORD32 i4_a, i4_b, i4_c, i4_c_avail;
 
     /* Mode availability, init to no modes available     */
     WORD32 i4_mode_avail;
