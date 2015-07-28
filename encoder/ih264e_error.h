@@ -223,6 +223,9 @@ typedef enum
     /**Not enough memory allocated as output buffer */
     IH264E_INSUFFICIENT_OUTPUT_BUFFER                               = IH264E_CODEC_ERROR_START + 0x30,
 
+    /**Invalid entropy coding mode */
+    IH264E_INVALID_ENTROPY_CODING_MODE                              = IH264E_CODEC_ERROR_START + 0x31,
+
     /**max failure error code to ensure enum is 32 bits wide */
     IH264E_FAIL                                                     = -1,
 
