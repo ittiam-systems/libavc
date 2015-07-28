@@ -1011,7 +1011,6 @@ void set_dimensions(app_ctxt_t *ps_app_ctxt,
 
     s_frame_dimensions_ip.s_ive_ip.u4_ht = ps_app_ctxt->u4_ht;
     s_frame_dimensions_ip.s_ive_ip.u4_wd = ps_app_ctxt->u4_wd;
-    s_frame_dimensions_ip.s_ive_ip.u4_strd = ps_app_ctxt->u4_strd;
 
     s_frame_dimensions_ip.s_ive_ip.u4_timestamp_high = u4_timestamp_high;
     s_frame_dimensions_ip.s_ive_ip.u4_timestamp_low = u4_timestamp_low;
