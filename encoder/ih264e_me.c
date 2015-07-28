@@ -1736,10 +1736,10 @@ void ih264e_evaluate_bipred(me_ctxt_t *ps_me_ctxt,
                         INT_MAX, &i4_mb_distortion);
 
         /* compute cost */
-        i4_mb_cost =  ps_me_ctxt->pu1_mv_bits[( s_l0_mv.i2_mvy << 2 ) - ps_l0_pred_mv->i2_mvx];
-        i4_mb_cost += ps_me_ctxt->pu1_mv_bits[( s_l0_mv.i2_mvy << 2 ) - ps_l0_pred_mv->i2_mvy];
-        i4_mb_cost += ps_me_ctxt->pu1_mv_bits[( s_l1_mv.i2_mvx << 2 ) - ps_l1_pred_mv->i2_mvx];
-        i4_mb_cost += ps_me_ctxt->pu1_mv_bits[( s_l1_mv.i2_mvy << 2 ) - ps_l1_pred_mv->i2_mvy];
+        i4_mb_cost =  ps_me_ctxt->pu1_mv_bits[ps_me_ctxt->as_mv_init_search[PRED_BI][i].i2_mvx - ps_l0_pred_mv->i2_mvx];
+        i4_mb_cost += ps_me_ctxt->pu1_mv_bits[ps_me_ctxt->as_mv_init_search[PRED_BI][i].i2_mvy - ps_l0_pred_mv->i2_mvy];
+        i4_mb_cost += ps_me_ctxt->pu1_mv_bits[ps_me_ctxt->as_mv_init_search[PRED_BI][i + 1].i2_mvx - ps_l1_pred_mv->i2_mvx];
+        i4_mb_cost += ps_me_ctxt->pu1_mv_bits[ps_me_ctxt->as_mv_init_search[PRED_BI][i + 1].i2_mvy - ps_l1_pred_mv->i2_mvy];
 
         i4_mb_cost -= (ps_me_ctxt->i4_skip_bias[BSLICE]) * (ps_me_ctxt->i4_skip_type == PRED_BI) * (i == 0);
 
