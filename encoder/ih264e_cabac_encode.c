@@ -856,7 +856,7 @@ static void ih264e_cabac_write_coeff4x4(WORD16 *pi2_res_block, UWORD8 u1_nnz,
                 }
                 /* encode coeff_sign_flag[i] */
                 u1_sign = ((*pi16_coeffs) < 0) ? 1 : 0;
-                ih264e_cabac_encode_bypass_bins(ps_cabac_ctxt, u1_sign, 1);
+                ih264e_cabac_encode_bypass_bin(ps_cabac_ctxt, u1_sign);
                 i = CLZ(u4_sig_coeff);
                 i = 31 - i;
                 pi16_coeffs--;
@@ -1375,7 +1375,7 @@ static void ih264e_cabac_enc_ctx_mvd(WORD16 u1_mvd, UWORD32 u4_ctx_idx_offset,
             {
                 if (i2_sufs >= (1 << k))
                 {
-                    u4_bins = (u4_bins | (1 << i1_bins_len));
+                    u4_bins = (u4_bins | (1 << (31 - i1_bins_len)));
                     i1_bins_len++;
                     i2_sufs = i2_sufs - (1 << k);
                     k++;
@@ -1386,12 +1386,13 @@ static void ih264e_cabac_enc_ctx_mvd(WORD16 u1_mvd, UWORD32 u4_ctx_idx_offset,
                     while (k--)
                     {
                         u1_bin = ((i2_sufs >> k) & 0x01);
-                        u4_bins = (u4_bins | (u1_bin << i1_bins_len));
+                        u4_bins = (u4_bins | (u1_bin << (31 - i1_bins_len)));
                         i1_bins_len++;
                     }
                     break;
                 }
             }
+            u4_bins >>= (32 - i1_bins_len);
             ih264e_cabac_encode_bypass_bins(ps_cabac_ctxt, u4_bins,
                                             i1_bins_len);
         }
@@ -1428,9 +1429,9 @@ static void ih264e_cabac_enc_ctx_mvd(WORD16 u1_mvd, UWORD32 u4_ctx_idx_offset,
         }
         /* sign bit, uses EncodeBypass */
         if (u1_mvd > 0)
-            ih264e_cabac_encode_bypass_bins(ps_cabac_ctxt, 0, 1);
+            ih264e_cabac_encode_bypass_bin(ps_cabac_ctxt, 0);
         else
-            ih264e_cabac_encode_bypass_bins(ps_cabac_ctxt, 1, 1);
+            ih264e_cabac_encode_bypass_bin(ps_cabac_ctxt, 1);
     }
 }
 
