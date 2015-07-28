@@ -469,7 +469,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
     ps_video_encode_op->s_ive_op.dump_recon = 0;
 
-    if (ps_codec->s_cfg.u4_enable_recon && (ps_codec->i4_frame_num > 1)
+    if (ps_codec->s_cfg.u4_enable_recon && (ps_codec->i4_frame_num > 1 || s_inp_buf.u4_is_last)
                     && (s_inp_buf.s_raw_buf.apv_bufs[0] || s_inp_buf.u4_is_last))
     {
         /* error status */
