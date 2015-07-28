@@ -111,29 +111,28 @@
  *
  *******************************************************************************
  */
+
 UWORD32 ih264e_cabac_UEGk0_binarization(WORD16 i2_sufs, WORD8 *pi1_bins_len)
 {
-    UWORD32 u4_bins;
-    WORD32 i4_len;
-    WORD16 x, y;
+    WORD32 unary_length;
+    UWORD32 u4_sufs_shiftk_plus1, u4_egk, u4_unary_bins;
 
-    x = i2_sufs + 1;
-    i4_len = CLZ(x);
-    i4_len = 31 - i4_len;
-    y = 1 << i4_len;
-    y = y - 1;
-    i2_sufs = i2_sufs - y;
-    u4_bins = y << 1;
-    u4_bins = u4_bins << i4_len;
-    u4_bins = u4_bins + i2_sufs;
+    u4_sufs_shiftk_plus1 = i2_sufs + 1;
 
-    REV(u4_bins, u4_bins);
-    u4_bins = u4_bins >> (31 - 2 * i4_len);
-    (*pi1_bins_len) = 2 * i4_len + 1;
+    unary_length = (32 - CLZ(u4_sufs_shiftk_plus1) + (0 == u4_sufs_shiftk_plus1));
 
-    return (u4_bins);
+    /* unary code with (unary_length-1) '1's and terminating '0' bin */
+    u4_unary_bins = (1 << unary_length) - 2;
+
+    /* insert the symbol prefix of (unary length - 1)  bins */
+    u4_egk = (u4_unary_bins << (unary_length - 1))
+                    | (u4_sufs_shiftk_plus1 & ((1 << (unary_length - 1)) - 1));
+
+    /* length of the code = 2 *(unary_length - 1) + 1 + k */
+    *pi1_bins_len = (2 * unary_length) - 1;
+
+    return (u4_egk);
 }
-
 
 /**
  *******************************************************************************
@@ -236,14 +235,14 @@ void ih264e_get_cabac_context(entropy_ctxt_t *ps_ent_ctxt, WORD32 u4_mb_type)
  *  @param[in]   ps_cabac_ctxt
  *  pointer to cabac context (handle)
  *
- * @returns  success or failure error code
+ * @returns  none
  *
  * @remarks
  *  None
  *
  *******************************************************************************
  */
-WORD32 ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
+void ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
 {
 
     /* bit stream ptr */
@@ -266,17 +265,6 @@ WORD32 ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
         WORD32 last_byte;
         WORD32 bits_left;
         WORD32 rem_bits;
-
-        /*********************************************************************/
-        /* Bitstream overflow check                                          */
-        /* NOTE: corner case of epb bytes (max 2 for 32bit word) not handled */
-        /*********************************************************************/
-        if ((u4_strm_buf_offset + u4_out_standing_bytes + 1)
-                        >= ps_stream->u4_max_strm_size)
-        {
-            /* return without corrupting the buffer beyond its size */
-            return (IH264E_BITSTREAM_BUFFER_OVERFLOW);
-        }
 
         if (carry)
         {
@@ -336,7 +324,6 @@ WORD32 ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
         ps_stream->u4_cur_word = 0;
         ps_stream->i4_bits_left_in_cw = WORD_SIZE;
 
-        return (IH264E_SUCCESS);
     }
 }
 
@@ -763,7 +750,6 @@ void ih264e_cabac_encode_bypass_bins(cabac_ctxt_t *ps_cabac, UWORD32 u4_bins,
 
     UWORD32 u4_range = ps_cab_enc_env->u4_code_int_range;
     WORD32 next_byte;
-    UWORD32 rev_next_byte;
 
     /* Sanity checks */
     ASSERT((num_bins < 33) && (num_bins > 0));
@@ -777,14 +763,11 @@ void ih264e_cabac_encode_bypass_bins(cabac_ctxt_t *ps_cabac, UWORD32 u4_bins,
     {
         num_bins -= 8;
 
-        /* extract the leading 8 bins */
-        next_byte = (u4_bins) & 0xff;
-        u4_bins >>= 8;
-        REV_NBITS(next_byte, 8, rev_next_byte);
+        next_byte = (u4_bins >> (num_bins)) & 0xff;
 
         /*  L = (L << 8) +  (R * next_byte) */
         ps_cab_enc_env->u4_code_int_low <<= 8;
-        ps_cab_enc_env->u4_code_int_low += (rev_next_byte * u4_range);
+        ps_cab_enc_env->u4_code_int_low += (next_byte * u4_range);
         ps_cab_enc_env->u4_bits_gen += 8;
 
         if (ps_cab_enc_env->u4_bits_gen > CABAC_BITS)
@@ -797,10 +780,8 @@ void ih264e_cabac_encode_bypass_bins(cabac_ctxt_t *ps_cabac, UWORD32 u4_bins,
     /* Update low with remaining bins and return */
     next_byte = (u4_bins & ((1 << num_bins) - 1));
 
-    REV_NBITS(next_byte, num_bins, rev_next_byte);
-
     ps_cab_enc_env->u4_code_int_low <<= num_bins;
-    ps_cab_enc_env->u4_code_int_low += (rev_next_byte * u4_range);
+    ps_cab_enc_env->u4_code_int_low += (next_byte * u4_range);
     ps_cab_enc_env->u4_bits_gen += num_bins;
 
     if (ps_cab_enc_env->u4_bits_gen > CABAC_BITS)
@@ -810,10 +791,3 @@ void ih264e_cabac_encode_bypass_bins(cabac_ctxt_t *ps_cabac, UWORD32 u4_bins,
     }
 
 }
-
-
-
-
-
-
-
