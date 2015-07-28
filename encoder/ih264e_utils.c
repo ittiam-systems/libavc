@@ -1330,7 +1330,8 @@ IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec)
                        ps_codec->s_cfg.u4_i_frm_interval,
                        ps_codec->s_cfg.u4_num_bframes + 1, au1_init_qp,
                        ps_codec->s_cfg.u4_num_bframes + 2 , au1_min_max_qp,
-                       ps_codec->s_cfg.u4_max_level);
+                       MAX(ps_codec->s_cfg.u4_max_level,
+                               (UWORD32)ih264e_get_min_level(ps_codec->s_cfg.u4_max_wd, ps_codec->s_cfg.u4_max_ht)));
     }
 
     /* recon stride */
