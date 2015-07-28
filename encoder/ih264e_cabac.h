@@ -47,24 +47,6 @@
 #define CABAC_BITS  9
 
 
-
-
-/**
-******************************************************************************
- *  @macro Count number of bits set
-******************************************************************************
-*/
-#define REV_NBITS(word, size, rev_word)               \
-{                                                     \
-    WORD32 i;                                         \
-    rev_word = 0;                                     \
-    for (i = 0; i < (size); i++)                      \
-    {                                                 \
-        UWORD32 bit = ((word) >> i) & 1;              \
-        rev_word += (1 << ((size) - i - 1)) * bit;    \
-    }                                                 \
-}                                                     \
-
 /**
 ******************************************************************************
  *  @macro Reverse bits in an unsigned integer
@@ -201,14 +183,14 @@ void ih264e_get_cabac_context(entropy_ctxt_t *ps_ent_ctxt, WORD32 u4_mb_type);
  *  @param[in]   ps_cabac_ctxt
  *  pointer to cabac context (handle)
  *
- * @returns  success or failure error code
+ * @returns  none
  *
  * @remarks
  *  None
  *
  *******************************************************************************
  */
-WORD32 ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt);
+void ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt);
 
 
 /**
