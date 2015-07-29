@@ -2080,6 +2080,8 @@ WORD16 ih264d_get_memory_dec_params(dec_struct_t * ps_dec)
                     ps_dec->ps_mem_tab[MEM_REC_SLICE_NUM_MAP].pv_base;
 
     ps_dec->ps_dec_slice_buf = ps_dec->ps_mem_tab[MEM_REC_SLICE_HDR].pv_base;
+    memset(ps_dec->ps_mem_tab[MEM_REC_SLICE_HDR].pv_base, 0,
+           ps_dec->ps_mem_tab[MEM_REC_SLICE_HDR].u4_mem_size);
     pu1_buf = (UWORD8 *)ps_dec->ps_dec_slice_buf;
     pu1_buf += sizeof(dec_slice_struct_t) * u4_total_mbs;
     ps_dec->pv_map_ref_idx_to_poc_buf = (void *)pu1_buf;
