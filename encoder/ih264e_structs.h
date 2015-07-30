@@ -2618,6 +2618,11 @@ struct _codec_t
     rate_control_ctxt_t s_rate_control;
 
     /**
+     * VUI structure
+     */
+    vui_t s_vui;
+
+    /**
      * input buffer queue
      */
     inp_buf_t as_inp_list[MAX_NUM_BFRAMES];
