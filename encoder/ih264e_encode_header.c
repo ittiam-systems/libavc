@@ -136,6 +136,82 @@ static WORD32 ih264e_generate_nal_unit_header(bitstrm_t *ps_bitstrm,
 
     return(return_status);
 }
+/**
+******************************************************************************
+*
+* @brief Generates VUI (Video usability information)
+*
+* @par   Description
+*  This function generates VUI header as per the spec
+*
+* @param[in]   ps_bitstrm
+*  pointer to bitstream context (handle)
+*
+* @param[in]   ps_vui
+*  pointer to structure containing VUI data
+
+*
+* @return      success or failure error code
+*
+******************************************************************************
+*/
+WORD32 ih264e_generate_vui(bitstrm_t *ps_bitstrm, vui_t *ps_vui)
+{
+    WORD32 return_status = IH264E_SUCCESS;
+
+    /* aspect_ratio_info_present_flag */
+    PUT_BITS(ps_bitstrm, ps_vui->u1_aspect_ratio_info_present_flag, 1, return_status, "aspect_ratio_info_present_flag");
+
+    /* overscan_info_present_flag */
+    PUT_BITS(ps_bitstrm, ps_vui->u1_overscan_info_present_flag, 1, return_status, "overscan_info_present_flag");
+
+    /* video_signal_type_present_flag */
+    PUT_BITS(ps_bitstrm, ps_vui->u1_video_signal_type_present_flag, 1, return_status, "video_signal_type_present_flag");
+
+    /* chroma_loc_info_present_flag */
+    PUT_BITS(ps_bitstrm, ps_vui->u1_chroma_loc_info_present_flag, 1, return_status, "chroma_loc_info_present_flag");
+
+    /* timing_info_present_flag */
+    PUT_BITS(ps_bitstrm, ps_vui->u1_vui_timing_info_present_flag, 1, return_status, "timing_info_present_flag");
+
+    /* nal_hrd_parameters_present_flag */
+    PUT_BITS(ps_bitstrm, ps_vui->u1_nal_hrd_parameters_present_flag, 1, return_status, "nal_hrd_parameters_present_flag");
+
+    /* vcl_hrd_parameters_present_flag */
+    PUT_BITS(ps_bitstrm, ps_vui->u1_vcl_hrd_parameters_present_flag, 1, return_status, "vcl_hrd_parameters_present_flag");
+
+    /* pic_struct_present_flag */
+    PUT_BITS(ps_bitstrm, ps_vui->u1_pic_struct_present_flag, 1, return_status, "pic_struct_present_flag");
+
+    /* bitstream_restriction_flag */
+    PUT_BITS(ps_bitstrm, ps_vui->u1_bitstream_restriction_flag, 1, return_status, "bitstream_restriction_flag");
+
+    if(ps_vui->u1_bitstream_restriction_flag == 1)
+    {
+        /* motion_vectors_over_pic_boundaries_flag */
+        PUT_BITS(ps_bitstrm, ps_vui->u1_motion_vectors_over_pic_boundaries_flag, 1, return_status, "motion_vectors_over_pic_boundaries_flag");
+
+        /* max_bytes_per_pic_denom */
+        PUT_BITS_UEV(ps_bitstrm,ps_vui->u1_max_bytes_per_pic_denom,return_status,"max_bytes_per_pic_denom");
+
+        /* max_bits_per_mb_denom */
+        PUT_BITS_UEV(ps_bitstrm,ps_vui->u1_max_bits_per_mb_denom,return_status,"max_bits_per_mb_denom");
+
+        /* log2_max_mv_length_horizontal */
+        PUT_BITS_UEV(ps_bitstrm,ps_vui->u1_log2_max_mv_length_horizontal,return_status,"log2_max_mv_length_horizontal");
+
+        /* log2_max_mv_length_vertical */
+        PUT_BITS_UEV(ps_bitstrm,ps_vui->u1_log2_max_mv_length_vertical,return_status,"log2_max_mv_length_vertical");
+
+        /* max_num_reorder_frames */
+        PUT_BITS_UEV(ps_bitstrm,ps_vui->u1_num_reorder_frames,return_status,"max_num_reorder_frames");
+
+        /* max_dec_frame_buffering */
+        PUT_BITS_UEV(ps_bitstrm,ps_vui->u1_max_dec_frame_buffering,return_status,"max_dec_frame_buffering");
+    }
+
+    return return_status;
+}
 
 /**
 ******************************************************************************
@@ -151,11 +227,14 @@ static WORD32 ih264e_generate_nal_unit_header(bitstrm_t *ps_bitstrm,
 * @param[in]   ps_sps
 *  pointer to structure containing SPS data
 *
+* @param[in]   ps_vui
+*  pointer to structure containing VUI data
+*
 * @return      success or failure error code
 *
 ******************************************************************************
 */
-WORD32 ih264e_generate_sps(bitstrm_t *ps_bitstrm, sps_t *ps_sps)
+WORD32 ih264e_generate_sps(bitstrm_t *ps_bitstrm, sps_t *ps_sps, vui_t *ps_vui)
 {
     WORD32 return_status = IH264E_SUCCESS;
     WORD32 i;
@@ -297,6 +376,7 @@ WORD32 ih264e_generate_sps(bitstrm_t *ps_bitstrm, sps_t *ps_sps)
     if (ps_sps->i1_vui_parameters_present_flag)
     {
         /* Add vui parameters to the bitstream */;
+        return_status |= ih264e_generate_vui(ps_bitstrm, ps_vui);
     }
 
     /* rbsp trailing bits */
@@ -637,6 +717,58 @@ WORD32 ih264e_generate_slice_header(bitstrm_t *ps_bitstrm,
     return return_status;
 }
 
+/**
+******************************************************************************
+*
+* @brief Populates VUI structure
+*
+* @par   Description
+*  Populates VUI structure for its use in header generation
+*
+* @param[in]   ps_codec
+*  pointer to encoder context
+*
+* @param[out]  ps_vui
+*  pointer to vui params that needs to be populated
+*
+* @return      success or failure error code
+*
+******************************************************************************
+*/
+IH264E_ERROR_T ih264e_populate_vui(codec_t *ps_codec, vui_t *ps_vui)
+{
+    sps_t *ps_sps;
+
+    ps_sps = ps_codec->ps_sps_base + ps_codec->i4_sps_id;
+    ps_vui->u1_aspect_ratio_info_present_flag = 0;
+    ps_vui->u1_overscan_info_present_flag = 0;
+    ps_vui->u1_video_signal_type_present_flag = 0;
+    ps_vui->u1_chroma_loc_info_present_flag = 0;
+    ps_vui->u1_vui_timing_info_present_flag = 0;
+    ps_vui->u1_nal_hrd_parameters_present_flag = 0;
+    ps_vui->u1_vcl_hrd_parameters_present_flag = 0;
+    ps_vui->u1_pic_struct_present_flag = 0;
+    ps_vui->u1_bitstream_restriction_flag = 1;
+    ps_vui->u1_motion_vectors_over_pic_boundaries_flag = 1;
+    ps_vui->u1_max_bytes_per_pic_denom = 0;
+    ps_vui->u1_max_bits_per_mb_denom = 0;
+    ps_vui->u1_log2_max_mv_length_horizontal = 16;
+    ps_vui->u1_log2_max_mv_length_vertical = 16;
+
+    if(ps_codec->s_cfg.u4_num_bframes == 0)
+    {
+        ps_vui->u1_num_reorder_frames = 0;
+    }
+    else
+    {
+        ps_vui->u1_num_reorder_frames = 1;
+    }
+
+    ps_vui->u1_max_dec_frame_buffering = ps_sps->u1_max_num_ref_frames;
+
+    return 0;
+}
+
 
 
 /**
@@ -824,11 +956,12 @@ IH264E_ERROR_T ih264e_populate_sps(codec_t *ps_codec, sps_t *ps_sps)
     }
 
     /* vui params */
-    ps_sps->i1_vui_parameters_present_flag = 0;
+    ps_sps->i1_vui_parameters_present_flag = 1;
 
     if (ps_sps->i1_vui_parameters_present_flag)
     {
         /* populate vui params */
+        ih264e_populate_vui(ps_codec,&(ps_codec->s_vui));
     }
 
     return i4_err_code;
