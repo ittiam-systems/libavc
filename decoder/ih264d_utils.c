@@ -831,7 +831,7 @@ WORD32 ih264d_init_dec_mb_grp(dec_struct_t *ps_dec)
 
 /*!
  **************************************************************************
- * \if Function name : get_numbuf_dpb_bank \endif
+ * \if Function name : ih264d_get_numbuf_dpb_bank \endif
  *
  * \brief
  *    Initializes the picture.
@@ -844,7 +844,7 @@ WORD32 ih264d_init_dec_mb_grp(dec_struct_t *ps_dec)
  *    NON -IDR picture is encountered.
  **************************************************************************
  */
-static WORD32 get_numbuf_dpb_bank(dec_struct_t *ps_dec)
+WORD32 ih264d_get_numbuf_dpb_bank(dec_struct_t *ps_dec, UWORD32 u4_frame_wd, UWORD32 u4_frame_ht)
 {
     WORD32 i4_DPB_size;
     WORD32 i4_pic_size;
@@ -852,13 +852,11 @@ static WORD32 get_numbuf_dpb_bank(dec_struct_t *ps_dec)
     UWORD32 Ysize;
     UWORD32 UVsize;
     UWORD32 one_frm_size;
-    UWORD32 luma_height;
 
-    luma_height = ps_dec->u2_pic_ht;
 
     i4_DPB_size = ps_dec->ps_mem_tab[MEM_REC_REF_PIC].u4_mem_size;
 
-    Ysize = (ps_dec->u2_frm_wd_y) * (luma_height + (PAD_LEN_Y_V << 2));
+    Ysize = u4_frame_wd * u4_frame_ht;
 
     UVsize = Ysize >> 2;
 
@@ -888,6 +886,32 @@ static WORD32 get_numbuf_dpb_bank(dec_struct_t *ps_dec)
     i4_num_buf_alloc = i4_DPB_size / (one_frm_size);
 
     return i4_num_buf_alloc;
+}
+
+/*!
+ **************************************************************************
+ * \if Function name : ih264d_get_numbuf_mv_bank \endif
+ *
+ * \brief
+ *    Computes number of MVbank buffers that can be allocated.
+ *
+ * \return
+ *    Number of MV bank buffers that can be allocated.
+ *
+ * \note
+ **************************************************************************
+ */
+UWORD32 ih264d_get_numbuf_mv_bank(dec_struct_t *ps_dec, UWORD32 width,
+                                  UWORD32 height)
+{
+    UWORD32 u4_mv_bank_size,one_frame_size;
+    UWORD32 u4_num_buf_alloc;
+
+    u4_mv_bank_size = ps_dec->ps_mem_tab[MEM_REC_MVBANK].u4_mem_size;
+    one_frame_size = sizeof(mv_pred_t)
+                    * ((width * (height + PAD_MV_BANK_ROW)) >> 4);
+    u4_num_buf_alloc = u4_mv_bank_size / one_frame_size;
+    return u4_num_buf_alloc;
 }
 /*!
  **************************************************************************
@@ -955,7 +979,8 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
 
         if(ps_dec->u4_share_disp_buf == 0)
         {
-            i4_pic_bufs = get_numbuf_dpb_bank(ps_dec);
+            i4_pic_bufs = ih264d_get_numbuf_dpb_bank(ps_dec, ps_dec->u2_frm_wd_y,
+                                              ps_dec->u2_frm_ht_y);
         }
         else
         {
@@ -2514,6 +2539,7 @@ WORD32 ih264d_create_mv_bank(void *pv_dec,
     UWORD8 *pu1_col_zero_flag_buf;
     dec_struct_t *ps_dec = (dec_struct_t *)pv_dec;
     WORD32 buf_ret;
+    UWORD32 u4_num_bufs;
 
     pu1_mv_buf_mgr_base = ps_dec->ps_mem_tab[MEM_REC_MV_BUF_MGR].pv_base;
     u4_mv_buf_mgr_mem_used = 0;
@@ -2532,7 +2558,11 @@ WORD32 ih264d_create_mv_bank(void *pv_dec,
     u4_mv_buf_mgr_mem_used += sizeof(col_mv_buf_t) * (H264_MAX_REF_PICS * 2);
     u4_mv_buf_mgr_mem_used = ALIGN128(u4_mv_buf_mgr_mem_used);
 
-    for(i = 0 ; i < ps_dec->u1_max_dec_frame_buffering + 1; i++)
+    u4_num_bufs = ih264d_get_numbuf_mv_bank(ps_dec, ui_width, ui_height);
+
+    u4_num_bufs = MIN(u4_num_bufs, ps_dec->u1_pic_bufs);
+
+    for(i = 0 ; i < u4_num_bufs ; i++)
     {
         pu1_col_zero_flag_buf = pu1_mv_buf_mgr_base + u4_mv_buf_mgr_mem_used;
         u4_mv_buf_mgr_mem_used +=  col_flag_buffer_size;
