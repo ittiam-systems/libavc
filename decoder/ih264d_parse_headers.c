@@ -728,6 +728,12 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
         return ERROR_NUM_REF;
     }
     ps_seq->u1_num_ref_frames = u4_temp;
+
+    if(ps_seq->u1_num_ref_frames > ps_dec->u4_num_ref_frames_at_init)
+    {
+        return IH264D_UNSUPPORTED_NUM_REF_FRAMES;
+    }
+
     COPYTHECONTEXT("SPS: num_ref_frames",ps_seq->u1_num_ref_frames);
 
     ps_seq->u1_gaps_in_frame_num_value_allowed_flag = ih264d_get_bit_h264(
@@ -930,10 +936,6 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
         ps_dec->u2_disp_width = i4_cropped_wd;
 
     }
-     if(ps_dec->u4_level_at_init < u1_level_idc)
-     {
-         return IH264D_UNSUPPORTED_LEVEL;
-     }
 
     ps_seq->u1_is_valid = TRUE;
 
@@ -942,6 +944,44 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
         ret = ih264d_parse_vui_parametres(&ps_seq->s_vui, ps_bitstrm);
         if(ret != OK)
             return ret;
+    }
+
+    if(ps_dec->u4_level_at_init < u1_level_idc)
+    {
+        UWORD32 u4_num_pic_bufs_reqd, u4_num_reorder_frames,
+                        u4_num_mv_bufs_reqd;
+        UWORD32 u4_num_pic_bufs_memory, u4_num_mv_bufs_memory;
+        UWORD32 u4_num_ref_frames;
+
+        u4_num_ref_frames = ps_seq->u1_num_ref_frames;
+        if(1 == ps_seq->u1_vui_parameters_present_flag)
+        {
+            u4_num_reorder_frames = ps_seq->s_vui.u4_num_reorder_frames;
+        }
+        else
+        {
+            u4_num_reorder_frames = ps_dec->u4_num_reorder_frames_at_init;
+        }
+
+        u4_num_pic_bufs_reqd = u4_num_ref_frames + u4_num_reorder_frames + 1;
+
+        u4_num_pic_bufs_memory = ih264d_get_numbuf_dpb_bank(ps_dec, u2_frm_wd_y,
+                                                     u2_frm_ht_y);
+
+        u4_num_mv_bufs_reqd = u4_num_ref_frames + 1;
+
+        if(u4_num_mv_bufs_reqd < 2)
+            u4_num_mv_bufs_reqd = 2;
+
+        u4_num_mv_bufs_memory = ih264d_get_numbuf_mv_bank(ps_dec, u2_pic_wd,
+                                                   u2_pic_ht);
+
+        if((u4_num_pic_bufs_reqd > u4_num_pic_bufs_memory)
+                        || (u4_num_mv_bufs_reqd > u4_num_mv_bufs_memory))
+        {
+            return IH264D_UNSUPPORTED_LEVEL;
+        }
+
     }
 
     ps_dec->u2_pic_wd = u2_pic_wd;

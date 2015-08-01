@@ -97,5 +97,9 @@ WORD32 ih264d_get_next_nal_unit(UWORD8 *pu1_buf,
                                 UWORD32 u4_cur_pos,
                                 UWORD32 u4_max_ofst,
                                 UWORD32 *pu4_length_of_start_code);
+UWORD32 ih264d_get_numbuf_mv_bank(dec_struct_t *ps_dec, UWORD32 width, UWORD32 height);
+WORD32 ih264d_get_numbuf_dpb_bank(dec_struct_t *ps_dec,
+                           UWORD32 u2_frame_wd,
+                           UWORD32 u2_frame_ht);
 
 #endif /* _IH264D_UTILS_H_ */
