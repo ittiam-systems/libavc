@@ -84,6 +84,7 @@
 #include "ih264e_structs.h"
 #include "ih264e_rc_mem_interface.h"
 #include "ih264e_time_stamp.h"
+#include "irc_common.h"
 #include "irc_rate_control_api.h"
 
 
@@ -278,8 +279,15 @@ void ih264e_init_frame_time(frame_time_t *ps_frame_time,
      * frame times increase */
     WORD32 i4_gcd = gcd(u4_src_frm_rate, u4_tgt_frm_rate);
 
-    ps_frame_time->common_time_base = (u4_src_frm_rate * u4_tgt_frm_rate)
-                    / i4_gcd;
+    /* Avoiding overflow by doing calculations in float */
+    number_t s_src_frm_rate, s_tgt_frm_rate, s_gcd, s_common_time_base, s_numerator;
+
+    SET_VAR_Q(s_src_frm_rate, u4_src_frm_rate, 0);
+    SET_VAR_Q(s_tgt_frm_rate, u4_tgt_frm_rate, 0);
+    SET_VAR_Q(s_gcd, i4_gcd, 0);
+    mult32_var_q(s_src_frm_rate, s_tgt_frm_rate, &s_numerator);
+    div32_var_q(s_numerator, s_gcd, &s_common_time_base);
+    number_t_to_word32(s_common_time_base, &(ps_frame_time->common_time_base));
 
     /* The source and target increment per vop is initialized */
     ps_frame_time->u4_src_frm_time_incr = ps_frame_time->common_time_base
