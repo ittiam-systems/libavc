@@ -1461,11 +1461,7 @@ void ih264d_transfer_mb_group_data(dec_struct_t * ps_dec,
 
     /* Increment deblock parameters pointer in external memory */
 
-    if(ps_dec->u1_separate_parse == 1)
-    {
-        ps_dec->ps_deblk_mbn_dec_thrd += u1_num_mbs;
-    }
-    else
+    if(ps_dec->u1_separate_parse == 0)
     {
         ps_dec->ps_deblk_mbn += u1_num_mbs;
     }

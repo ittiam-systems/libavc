@@ -344,15 +344,12 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
     ps_dec->ps_nmb_info = ps_dec->ps_frm_mb_info;
     if(ps_dec->u1_separate_parse)
     {
-        UWORD16 pic_wd = ps_dec->u4_width_at_init;
-        UWORD16 pic_ht = ps_dec->u4_height_at_init;
+        UWORD16 pic_wd;
+        UWORD16 pic_ht;
         UWORD32 num_mbs;
 
-        if((NULL != ps_dec->ps_cur_sps) && (1 == (ps_dec->ps_cur_sps->u1_is_valid)))
-        {
-            pic_wd = ps_dec->u2_pic_wd;
-            pic_ht = ps_dec->u2_pic_ht;
-        }
+        pic_wd = ps_dec->u2_pic_wd;
+        pic_ht = ps_dec->u2_pic_ht;
         num_mbs = (pic_wd * pic_ht) >> 8;
 
         if(ps_dec->pu1_dec_mb_map)
@@ -546,18 +543,13 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
                     << 2);
 
     ps_dec->ps_cur_mb_row = ps_dec->ps_nbr_mb_row; //[0];
-    ps_dec->ps_cur_mb_row++; //Increment by 1 ,so that left mb will always be valid
-    ps_dec->ps_top_mb_row =
-                    ps_dec->ps_nbr_mb_row
-                                    + ((ps_dec->u2_frm_wd_in_mbs + 1)
-                                                    << (1
-                                                                    - ps_dec->ps_cur_sps->u1_frame_mbs_only_flag));
-    ps_dec->ps_top_mb_row++; //Increment by 1 ,so that left mb will always be valid
+    //Increment by 2 ,so that left mb (mbaff decrements by 2)  will always be valid
+    ps_dec->ps_cur_mb_row += 2;
+    ps_dec->ps_top_mb_row = ps_dec->ps_nbr_mb_row;
+    ps_dec->ps_top_mb_row += ((ps_dec->u2_frm_wd_in_mbs + 2) << (1 - ps_dec->ps_cur_sps->u1_frame_mbs_only_flag));
+    //Increment by 2 ,so that left mb (mbaff decrements by 2)  will always be valid
+    ps_dec->ps_top_mb_row += 2;
 
-    ps_dec->pu1_y = ps_dec->pu1_y_scratch[0];
-    ps_dec->pu1_u = ps_dec->pu1_u_scratch[0];
-    ps_dec->pu1_v = ps_dec->pu1_v_scratch[0];
-    ps_dec->u1_yuv_scratch_idx = 0;
     /* CHANGED CODE */
     ps_dec->ps_mv_cur = ps_dec->s_cur_pic.ps_mv;
     ps_dec->ps_mv_top = ps_dec->ps_mv_top_p[0];
@@ -566,10 +558,6 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
     ps_dec->u1_mb_idx = 0;
     /* CHANGED CODE */
     ps_dec->ps_mv_left = ps_dec->s_cur_pic.ps_mv;
-    ps_dec->pu1_yleft = 0;
-    ps_dec->pu1_uleft = 0;
-    ps_dec->pu1_vleft = 0;
-    ps_dec->u1_not_wait_rec = 2;
     ps_dec->u2_total_mbs_coded = 0;
     ps_dec->i4_submb_ofst = -(SUB_BLK_SIZE);
     ps_dec->u4_pred_info_idx = 0;
@@ -610,8 +598,6 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
                     + ps_dec->u2_frm_wd_in_mbs * BLK8x8SIZE;
 
     ps_dec->ps_deblk_mbn = ps_dec->ps_deblk_pic;
-    ps_dec->ps_deblk_mbn_curr = ps_dec->ps_deblk_mbn;
-    ps_dec->ps_deblk_mbn_prev = ps_dec->ps_deblk_mbn + ps_dec->u1_recon_mb_grp;
     /* Initialize The Function Pointer Depending Upon the Entropy and MbAff Flag */
     {
         if(ps_cur_slice->u1_mbaff_frame_flag)
@@ -770,7 +756,7 @@ WORD32 ih264d_end_of_pic_dispbuf_mgr(dec_struct_t * ps_dec)
                     ih264d_reset_ref_bufs(ps_dec->ps_dpb_mgr);
                 ih264d_release_display_bufs(ps_dec);
             }
-            if(ps_dec->u4_num_reorder_frames_at_init != 0)
+            if(IVD_DECODE_FRAME_OUT != ps_dec->e_frm_out_mode)
             {
                 ret = ih264d_assign_display_seq(ps_dec);
                 if(ret != OK)
@@ -854,7 +840,7 @@ WORD32 ih264d_end_of_pic_dispbuf_mgr(dec_struct_t * ps_dec)
                         || ((TOP_FIELD_ONLY | BOT_FIELD_ONLY)
                                         == ps_dec->u1_top_bottom_decoded))
         {
-            if(ps_dec->u4_num_reorder_frames_at_init == 0)
+            if(IVD_DECODE_FRAME_OUT == ps_dec->e_frm_out_mode)
             {
                 ret = ih264d_assign_display_seq(ps_dec);
                 if(ret != OK)
@@ -1854,8 +1840,17 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         WORD32 size;
         UWORD8 *pu1_buf;
 
-        num_entries = MIN(MAX_FRAMES, ps_dec->u4_num_ref_frames_at_init);
-        num_entries = 2 * ((2 * num_entries) + 1);
+        num_entries = MAX_FRAMES;
+        if((1 >= ps_dec->ps_cur_sps->u1_num_ref_frames) &&
+            (0 == ps_dec->i4_display_delay))
+        {
+            num_entries = 1;
+        }
+        num_entries = ((2 * num_entries) + 1);
+        if(BASE_PROFILE_IDC != ps_dec->ps_cur_sps->u1_profile_idc)
+        {
+            num_entries *= 2;
+        }
 
         size = num_entries * sizeof(void *);
         size += PAD_MAP_IDX_POC * sizeof(void *);

@@ -97,7 +97,6 @@ WORD32 ih264d_mv_pred_ref_tfr_nby2_pmb(dec_struct_t * ps_dec,
         *ps_mv_pred = ps_dec->s_default_mv_pred;
 
         ps_dec->i4_submb_ofst += SUB_BLK_SIZE;
-        ps_dec->u2_wait_id = i;
 
         /* Restore the slice scratch MbX and MbY context */
         ps_cur_mb_info = ps_dec->ps_nmb_info + i;

@@ -40,6 +40,8 @@
 #include "ih264d_structs.h"
 #include "ih264d_parse_cavlc.h"
 
+#define PS_DEC_ALIGNED_FREE(ps_dec, y) \
+if(y) {ps_dec->pf_aligned_free(ps_dec->pv_mem_ctxt, ((void *)y)); (y) = NULL;}
 void pad_frm_buff_vert(dec_struct_t *ps_dec);
 
 UWORD8 ih264d_is_end_of_pic(UWORD16 u2_frame_num,
@@ -90,16 +92,11 @@ WORD32 ih264d_get_next_display_field(dec_struct_t * ps_dec,
 void ih264d_release_display_field(dec_struct_t *ps_dec,
                                   ivd_get_display_frame_op_t *pv_disp_op);
 void ih264d_close_video_decoder(iv_obj_t *iv_obj_t);
-WORD32 ih264d_get_dpb_size_new(UWORD32 u4_level_idc,
-                                UWORD32 width,
-                                UWORD32 height);
+WORD32 ih264d_get_dpb_size(dec_seq_params_t *ps_seq);
 WORD32 ih264d_get_next_nal_unit(UWORD8 *pu1_buf,
                                 UWORD32 u4_cur_pos,
                                 UWORD32 u4_max_ofst,
                                 UWORD32 *pu4_length_of_start_code);
-UWORD32 ih264d_get_numbuf_mv_bank(dec_struct_t *ps_dec, UWORD32 width, UWORD32 height);
-WORD32 ih264d_get_numbuf_dpb_bank(dec_struct_t *ps_dec,
-                           UWORD32 u2_frame_wd,
-                           UWORD32 u2_frame_ht);
 
+WORD16 ih264d_free_dynamic_bufs(dec_struct_t * ps_dec);
 #endif /* _IH264D_UTILS_H_ */
