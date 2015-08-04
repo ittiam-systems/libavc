@@ -76,7 +76,7 @@ WORD32 ih264d_create_pic_buffers(UWORD8 u1_num_of_buf,
 WORD32 ih264d_create_mv_bank(void * pv_codec_handle,
                              UWORD32 u4_wd,
                              UWORD32 u4_ht);
-WORD16 ih264d_get_memory_dec_params(dec_struct_t * ps_dec);
+WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec);
 
 
 #endif  /* _IH264D_MEM_REQUEST_H_ */
