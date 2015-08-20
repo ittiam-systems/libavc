@@ -27,11 +27,8 @@
 /*                                                                           */
 /*  List of Functions : api_check_struct_sanity                              */
 /*          ih264d_set_processor                                             */
-/*          ih264d_get_num_rec                                               */
-/*          ih264d_init_decoder                                              */
-/*          ih264d_init_video_decoder                                        */
-/*          ih264d_fill_num_mem_rec                                          */
-/*          ih264d_clr                                                       */
+/*          ih264d_create                                                    */
+/*          ih264d_delete                                                    */
 /*          ih264d_init                                                      */
 /*          ih264d_map_error                                                 */
 /*          ih264d_video_decode                                              */
@@ -103,7 +100,7 @@
 //Move this to where it is used
 #define CODEC_NAME              "H264VDEC"
 #define CODEC_RELEASE_TYPE      "production"
-#define CODEC_RELEASE_VER       "04.00"
+#define CODEC_RELEASE_VER       "05.00"
 #define CODEC_VENDOR            "ITTIAM"
 #define MAXVERSION_STRLEN       511
 #define VERSION(version_string, codec_name, codec_release_type, codec_release_ver, codec_vendor)    \
@@ -111,16 +108,12 @@
              "@(#)Id:%s_%s Ver:%s Released by %s Build: %s @ %s",                                   \
              codec_name, codec_release_type, codec_release_ver, codec_vendor, __DATE__, __TIME__)
 
-#define MAX_NAL_UNIT_SIZE       MAX((H264_MAX_FRAME_HEIGHT * H264_MAX_FRAME_HEIGHT),MIN_NALUNIT_SIZE)
-#define MIN_NALUNIT_SIZE        200000
-
 
 #define MIN_IN_BUFS             1
 #define MIN_OUT_BUFS_420        3
 #define MIN_OUT_BUFS_422ILE     1
 #define MIN_OUT_BUFS_RGB565     1
 #define MIN_OUT_BUFS_420SP      2
-#define MIN_IN_BUF_SIZE (2*1024*1024)  // Currently, i4_size set to 500kb, CHECK LATER
 
 #define NUM_FRAMES_LIMIT_ENABLED 0
 
@@ -173,32 +166,14 @@ static IV_API_CALL_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
     /* error checks on handle */
     switch((WORD32)e_cmd)
     {
-        case IV_CMD_GET_NUM_MEM_REC:
-        case IV_CMD_FILL_NUM_MEM_REC:
+        case IVD_CMD_CREATE:
             break;
-        case IV_CMD_INIT:
-            if(ps_handle == NULL)
-            {
-                *(pu4_api_op + 1) |= 1 << IVD_UNSUPPORTEDPARAM;
-                *(pu4_api_op + 1) |= IVD_HANDLE_NULL;
-                return IV_FAIL;
-            }
 
-            if(ps_handle->u4_size != sizeof(iv_obj_t))
-            {
-                *(pu4_api_op + 1) |= 1 << IVD_UNSUPPORTEDPARAM;
-                *(pu4_api_op + 1) |= IVD_HANDLE_STRUCT_SIZE_INCORRECT;
-                H264_DEC_DEBUG_PRINT(
-                                "Sizes do not match. Expected: %d, Got: %d",
-                                sizeof(iv_obj_t), ps_handle->u4_size);
-                return IV_FAIL;
-            }
-            break;
         case IVD_CMD_REL_DISPLAY_FRAME:
         case IVD_CMD_SET_DISPLAY_FRAME:
         case IVD_CMD_GET_DISPLAY_FRAME:
         case IVD_CMD_VIDEO_DECODE:
-        case IV_CMD_RETRIEVE_MEMREC:
+        case IVD_CMD_DELETE:
         case IVD_CMD_VIDEO_CTL:
             if(ps_handle == NULL)
             {
@@ -236,528 +211,55 @@ static IV_API_CALL_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
 
     switch((WORD32)e_cmd)
     {
-        case IV_CMD_GET_NUM_MEM_REC:
+        case IVD_CMD_CREATE:
         {
-            ih264d_num_mem_rec_ip_t *ps_ip =
-                            (ih264d_num_mem_rec_ip_t *)pv_api_ip;
-            ih264d_num_mem_rec_op_t *ps_op =
-                            (ih264d_num_mem_rec_op_t *)pv_api_op;
-            ps_op->s_ivd_num_mem_rec_op_t.u4_error_code = 0;
+            ih264d_create_ip_t *ps_ip = (ih264d_create_ip_t *)pv_api_ip;
+            ih264d_create_op_t *ps_op = (ih264d_create_op_t *)pv_api_op;
 
-            if(ps_ip->s_ivd_num_mem_rec_ip_t.u4_size
-                            != sizeof(ih264d_num_mem_rec_ip_t))
+
+            ps_op->s_ivd_create_op_t.u4_error_code = 0;
+
+            if((ps_ip->s_ivd_create_ip_t.u4_size > sizeof(ih264d_create_ip_t))
+                            || (ps_ip->s_ivd_create_ip_t.u4_size
+                                            < sizeof(ivd_create_ip_t)))
             {
-                ps_op->s_ivd_num_mem_rec_op_t.u4_error_code |= 1
+                ps_op->s_ivd_create_op_t.u4_error_code |= 1
                                 << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_num_mem_rec_op_t.u4_error_code |=
-                                IVD_IP_API_STRUCT_SIZE_INCORRECT;
-                return (IV_FAIL);
-            }
-
-            if(ps_op->s_ivd_num_mem_rec_op_t.u4_size
-                            != sizeof(ih264d_num_mem_rec_op_t))
-            {
-                ps_op->s_ivd_num_mem_rec_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_num_mem_rec_op_t.u4_error_code |=
-                                IVD_OP_API_STRUCT_SIZE_INCORRECT;
-                return (IV_FAIL);
-            }
-        }
-            break;
-        case IV_CMD_FILL_NUM_MEM_REC:
-        {
-            ih264d_fill_mem_rec_ip_t *ps_ip =
-                            (ih264d_fill_mem_rec_ip_t *)pv_api_ip;
-            ih264d_fill_mem_rec_op_t *ps_op =
-                            (ih264d_fill_mem_rec_op_t *)pv_api_op;
-            iv_mem_rec_t *ps_mem_rec;
-            WORD32 max_wd = ps_ip->s_ivd_fill_mem_rec_ip_t.u4_max_frm_wd;
-            WORD32 max_ht = ps_ip->s_ivd_fill_mem_rec_ip_t.u4_max_frm_ht;
-
-            max_wd = ALIGN16(max_wd);
-            max_ht = ALIGN32(max_ht);
-
-            ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code = 0;
-
-            if((ps_ip->s_ivd_fill_mem_rec_ip_t.u4_size
-                            > sizeof(ih264d_fill_mem_rec_ip_t))
-                            || (ps_ip->s_ivd_fill_mem_rec_ip_t.u4_size
-                                            < sizeof(iv_fill_mem_rec_ip_t)))
-            {
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |=
-                                IVD_IP_API_STRUCT_SIZE_INCORRECT;
-                return (IV_FAIL);
-            }
-
-            if((ps_op->s_ivd_fill_mem_rec_op_t.u4_size
-                            != sizeof(ih264d_fill_mem_rec_op_t))
-                            && (ps_op->s_ivd_fill_mem_rec_op_t.u4_size
-                                            != sizeof(iv_fill_mem_rec_op_t)))
-            {
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |=
-                                IVD_OP_API_STRUCT_SIZE_INCORRECT;
-                return (IV_FAIL);
-            }
-
-            if(max_wd < H264_MIN_FRAME_WIDTH)
-            {
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |=
-                                IVD_REQUESTED_WIDTH_NOT_SUPPPORTED;
-                return (IV_FAIL);
-            }
-
-            if(max_wd > H264_MAX_FRAME_WIDTH)
-            {
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |=
-                                IVD_REQUESTED_WIDTH_NOT_SUPPPORTED;
-                return (IV_FAIL);
-            }
-
-            if(max_ht < H264_MIN_FRAME_HEIGHT)
-            {
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |=
-                                IVD_REQUESTED_HEIGHT_NOT_SUPPPORTED;
-                return (IV_FAIL);
-            }
-
-            if((max_ht * max_wd)
-                            > (H264_MAX_FRAME_HEIGHT * H264_MAX_FRAME_WIDTH))
-
-            {
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |=
-                                IVD_REQUESTED_HEIGHT_NOT_SUPPPORTED;
-                return (IV_FAIL);
-            }
-
-            if(NULL == ps_ip->s_ivd_fill_mem_rec_ip_t.pv_mem_rec_location)
-            {
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |=
-                                IVD_NUM_REC_NOT_SUFFICIENT;
-                return (IV_FAIL);
-            }
-
-            /* check memrecords sizes are correct */
-            ps_mem_rec = ps_ip->s_ivd_fill_mem_rec_ip_t.pv_mem_rec_location;
-            for(i = 0; i < MEM_REC_CNT; i++)
-            {
-                if(ps_mem_rec[i].u4_size != sizeof(iv_mem_rec_t))
-                {
-                    ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |= 1
-                                    << IVD_UNSUPPORTEDPARAM;
-                    ps_op->s_ivd_fill_mem_rec_op_t.u4_error_code |=
-                                    IVD_MEM_REC_STRUCT_SIZE_INCORRECT;
-                    return IV_FAIL;
-                }
-            }
-        }
-            break;
-
-        case IV_CMD_INIT:
-        {
-            ih264d_init_ip_t *ps_ip = (ih264d_init_ip_t *)pv_api_ip;
-            ih264d_init_op_t *ps_op = (ih264d_init_op_t *)pv_api_op;
-            iv_mem_rec_t *ps_mem_rec;
-            WORD32 max_wd = ps_ip->s_ivd_init_ip_t.u4_frm_max_wd;
-            WORD32 max_ht = ps_ip->s_ivd_init_ip_t.u4_frm_max_ht;
-
-            max_wd = ALIGN16(max_wd);
-            max_ht = ALIGN32(max_ht);
-
-            ps_op->s_ivd_init_op_t.u4_error_code = 0;
-
-            if((ps_ip->s_ivd_init_ip_t.u4_size > sizeof(ih264d_init_ip_t))
-                            || (ps_ip->s_ivd_init_ip_t.u4_size
-                                            < sizeof(ivd_init_ip_t)))
-            {
-                ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_init_op_t.u4_error_code |=
+                ps_op->s_ivd_create_op_t.u4_error_code |=
                                 IVD_IP_API_STRUCT_SIZE_INCORRECT;
                 H264_DEC_DEBUG_PRINT("\n");
                 return (IV_FAIL);
             }
 
-            if((ps_op->s_ivd_init_op_t.u4_size != sizeof(ih264d_init_op_t))
-                            && (ps_op->s_ivd_init_op_t.u4_size
-                                            != sizeof(ivd_init_op_t)))
+            if((ps_op->s_ivd_create_op_t.u4_size != sizeof(ih264d_create_op_t))
+                            && (ps_op->s_ivd_create_op_t.u4_size
+                                            != sizeof(ivd_create_op_t)))
             {
-                ps_op->s_ivd_init_op_t.u4_error_code |= 1
+                ps_op->s_ivd_create_op_t.u4_error_code |= 1
                                 << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_init_op_t.u4_error_code |=
+                ps_op->s_ivd_create_op_t.u4_error_code |=
                                 IVD_OP_API_STRUCT_SIZE_INCORRECT;
                 H264_DEC_DEBUG_PRINT("\n");
                 return (IV_FAIL);
             }
 
-            if(ps_ip->s_ivd_init_ip_t.u4_num_mem_rec != MEM_REC_CNT)
-            {
-                ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_init_op_t.u4_error_code |=
-                                IVD_INIT_DEC_NOT_SUFFICIENT;
-                H264_DEC_DEBUG_PRINT("\n");
-                return (IV_FAIL);
-            }
 
-            if(max_wd < H264_MIN_FRAME_WIDTH)
-            {
-                ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_init_op_t.u4_error_code |=
-                                IVD_INIT_DEC_WIDTH_NOT_SUPPPORTED;
-                H264_DEC_DEBUG_PRINT("\n");
-                return (IV_FAIL);
-            }
-
-            if(max_wd > H264_MAX_FRAME_WIDTH)
-            {
-                ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_init_op_t.u4_error_code |=
-                                IVD_INIT_DEC_WIDTH_NOT_SUPPPORTED;
-                H264_DEC_DEBUG_PRINT("\n");
-                return (IV_FAIL);
-            }
-
-            if(max_ht < H264_MIN_FRAME_HEIGHT)
-            {
-                ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_init_op_t.u4_error_code |=
-                                IVD_INIT_DEC_HEIGHT_NOT_SUPPPORTED;
-                H264_DEC_DEBUG_PRINT("\n");
-                return (IV_FAIL);
-            }
-
-            if((max_ht * max_wd)
-                            > (H264_MAX_FRAME_HEIGHT * H264_MAX_FRAME_WIDTH))
-
-            {
-                ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_init_op_t.u4_error_code |=
-                                IVD_INIT_DEC_HEIGHT_NOT_SUPPPORTED;
-                H264_DEC_DEBUG_PRINT("\n");
-                return (IV_FAIL);
-            }
-
-            if(NULL == ps_ip->s_ivd_init_ip_t.pv_mem_rec_location)
-            {
-                ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_init_op_t.u4_error_code |=
-                                IVD_NUM_REC_NOT_SUFFICIENT;
-                H264_DEC_DEBUG_PRINT("\n");
-                return (IV_FAIL);
-            }
-
-            if((ps_ip->s_ivd_init_ip_t.e_output_format != IV_YUV_420P)
-                            && (ps_ip->s_ivd_init_ip_t.e_output_format
+            if((ps_ip->s_ivd_create_ip_t.e_output_format != IV_YUV_420P)
+                            && (ps_ip->s_ivd_create_ip_t.e_output_format
                                             != IV_YUV_422ILE)
-                            && (ps_ip->s_ivd_init_ip_t.e_output_format
+                            && (ps_ip->s_ivd_create_ip_t.e_output_format
                                             != IV_RGB_565)
-                            && (ps_ip->s_ivd_init_ip_t.e_output_format
+                            && (ps_ip->s_ivd_create_ip_t.e_output_format
                                             != IV_YUV_420SP_UV)
-                            && (ps_ip->s_ivd_init_ip_t.e_output_format
+                            && (ps_ip->s_ivd_create_ip_t.e_output_format
                                             != IV_YUV_420SP_VU))
             {
-                ps_op->s_ivd_init_op_t.u4_error_code |= 1
+                ps_op->s_ivd_create_op_t.u4_error_code |= 1
                                 << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_init_op_t.u4_error_code |=
+                ps_op->s_ivd_create_op_t.u4_error_code |=
                                 IVD_INIT_DEC_COL_FMT_NOT_SUPPORTED;
                 H264_DEC_DEBUG_PRINT("\n");
                 return (IV_FAIL);
-            }
-
-            /* verify number of mem records */
-            if(ps_ip->s_ivd_init_ip_t.u4_num_mem_rec < MEM_REC_CNT)
-            {
-                ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_init_op_t.u4_error_code |=
-                                IVD_INIT_DEC_MEM_REC_NOT_SUFFICIENT;
-                H264_DEC_DEBUG_PRINT("\n");
-                return IV_FAIL;
-            }
-
-            ps_mem_rec = ps_ip->s_ivd_init_ip_t.pv_mem_rec_location;
-            /* check memrecords sizes are correct */
-            for(i = 0; i < ps_ip->s_ivd_init_ip_t.u4_num_mem_rec; i++)
-            {
-                if(ps_mem_rec[i].u4_size != sizeof(iv_mem_rec_t))
-                {
-                    ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                    << IVD_UNSUPPORTEDPARAM;
-                    ps_op->s_ivd_init_op_t.u4_error_code |=
-                                    IVD_MEM_REC_STRUCT_SIZE_INCORRECT;
-                    H264_DEC_DEBUG_PRINT("i: %d\n", i);
-                    return IV_FAIL;
-                }
-                /* check memrecords pointers are not NULL */
-
-                if(ps_mem_rec[i].pv_base == NULL)
-                {
-
-                    ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                    << IVD_UNSUPPORTEDPARAM;
-                    ps_op->s_ivd_init_op_t.u4_error_code |=
-                                    IVD_INIT_DEC_MEM_REC_BASE_NULL;
-                    H264_DEC_DEBUG_PRINT("i: %d\n", i);
-                    return IV_FAIL;
-
-                }
-
-            }
-
-            /* verify memtabs for overlapping regions */
-            {
-                void *start[MEM_REC_CNT];
-                void *end[MEM_REC_CNT];
-
-                start[0] = (void *)(ps_mem_rec[0].pv_base);
-                end[0] = (void *)((UWORD8 *)ps_mem_rec[0].pv_base
-                                + ps_mem_rec[0].u4_mem_size - 1);
-                for(i = 1; i < MEM_REC_CNT; i++)
-                {
-                    /* This array is populated to check memtab overlapp */
-                    start[i] = (void *)(ps_mem_rec[i].pv_base);
-                    end[i] = (void *)((UWORD8 *)ps_mem_rec[i].pv_base
-                                    + ps_mem_rec[i].u4_mem_size - 1);
-
-                    for(j = 0; j < i; j++)
-                    {
-                        if((start[i] >= start[j]) && (start[i] <= end[j]))
-                        {
-                            ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                            << IVD_UNSUPPORTEDPARAM;
-                            ps_op->s_ivd_init_op_t.u4_error_code |=
-                                            IVD_INIT_DEC_MEM_REC_OVERLAP_ERR;
-                            H264_DEC_DEBUG_PRINT("i: %d, j: %d\n", i, j);
-                            return IV_FAIL;
-                        }
-
-                        if((end[i] >= start[j]) && (end[i] <= end[j]))
-                        {
-                            ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                            << IVD_UNSUPPORTEDPARAM;
-                            ps_op->s_ivd_init_op_t.u4_error_code |=
-                                            IVD_INIT_DEC_MEM_REC_OVERLAP_ERR;
-                            H264_DEC_DEBUG_PRINT("i: %d, j: %d\n", i, j);
-                            return IV_FAIL;
-                        }
-
-                        if((start[i] < start[j]) && (end[i] > end[j]))
-                        {
-                            ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                            << IVD_UNSUPPORTEDPARAM;
-                            ps_op->s_ivd_init_op_t.u4_error_code |=
-                                            IVD_INIT_DEC_MEM_REC_OVERLAP_ERR;
-                            H264_DEC_DEBUG_PRINT("i: %d, j: %d\n", i, j);
-                            return IV_FAIL;
-                        }
-                    }
-
-                }
-            }
-
-            {
-                iv_mem_rec_t mem_rec_ittiam_api[MEM_REC_CNT];
-                ih264d_fill_mem_rec_ip_t s_fill_mem_rec_ip;
-                ih264d_fill_mem_rec_op_t s_fill_mem_rec_op;
-                IV_API_CALL_STATUS_T e_status;
-
-                UWORD32 i;
-                s_fill_mem_rec_ip.s_ivd_fill_mem_rec_ip_t.e_cmd =
-                                IV_CMD_FILL_NUM_MEM_REC;
-                s_fill_mem_rec_ip.s_ivd_fill_mem_rec_ip_t.pv_mem_rec_location =
-                                mem_rec_ittiam_api;
-                s_fill_mem_rec_ip.s_ivd_fill_mem_rec_ip_t.u4_max_frm_wd =
-                                max_wd;
-                s_fill_mem_rec_ip.s_ivd_fill_mem_rec_ip_t.u4_max_frm_ht =
-                                max_ht;
-
-                if(ps_ip->s_ivd_init_ip_t.u4_size
-                                > offsetof(ih264d_init_ip_t, i4_level))
-                {
-                    s_fill_mem_rec_ip.i4_level = ps_ip->i4_level;
-                }
-                else
-                {
-                    s_fill_mem_rec_ip.i4_level = H264_LEVEL_3_1;
-                }
-
-                if(ps_ip->s_ivd_init_ip_t.u4_size
-                                > offsetof(ih264d_init_ip_t, u4_num_ref_frames))
-                {
-                    s_fill_mem_rec_ip.u4_num_ref_frames =
-                                    ps_ip->u4_num_ref_frames;
-                }
-                else
-                {
-                    s_fill_mem_rec_ip.u4_num_ref_frames =
-                                    (H264_MAX_REF_PICS + 1);
-                }
-
-                if(ps_ip->s_ivd_init_ip_t.u4_size
-                                > offsetof(ih264d_init_ip_t,
-                                           u4_num_reorder_frames))
-                {
-                    s_fill_mem_rec_ip.u4_num_reorder_frames =
-                                    ps_ip->u4_num_reorder_frames;
-                }
-                else
-                {
-                    s_fill_mem_rec_ip.u4_num_reorder_frames = (H264_MAX_REF_PICS
-                                    + 1);
-                }
-
-                if(ps_ip->s_ivd_init_ip_t.u4_size
-                                > offsetof(ih264d_init_ip_t,
-                                           u4_num_extra_disp_buf))
-                {
-                    s_fill_mem_rec_ip.u4_num_extra_disp_buf =
-                                    ps_ip->u4_num_extra_disp_buf;
-                }
-                else
-                {
-                    s_fill_mem_rec_ip.u4_num_extra_disp_buf = 0;
-                }
-
-                if(ps_ip->s_ivd_init_ip_t.u4_size
-                                > offsetof(ih264d_init_ip_t, u4_share_disp_buf))
-                {
-#ifndef LOGO_EN
-                    s_fill_mem_rec_ip.u4_share_disp_buf =
-                                    ps_ip->u4_share_disp_buf;
-#else
-                    s_fill_mem_rec_ip.u4_share_disp_buf = 0;
-#endif
-                }
-                else
-                {
-                    s_fill_mem_rec_ip.u4_share_disp_buf = 0;
-                }
-
-                s_fill_mem_rec_ip.e_output_format =
-                                ps_ip->s_ivd_init_ip_t.e_output_format;
-
-                if((s_fill_mem_rec_ip.e_output_format != IV_YUV_420P)
-                                && (s_fill_mem_rec_ip.e_output_format
-                                                != IV_YUV_420SP_UV)
-                                && (s_fill_mem_rec_ip.e_output_format
-                                                != IV_YUV_420SP_VU))
-                {
-                    s_fill_mem_rec_ip.u4_share_disp_buf = 0;
-                }
-
-                s_fill_mem_rec_ip.s_ivd_fill_mem_rec_ip_t.u4_size =
-                                sizeof(ih264d_fill_mem_rec_ip_t);
-                s_fill_mem_rec_op.s_ivd_fill_mem_rec_op_t.u4_size =
-                                sizeof(ih264d_fill_mem_rec_op_t);
-
-                for(i = 0; i < MEM_REC_CNT; i++)
-                    mem_rec_ittiam_api[i].u4_size = sizeof(iv_mem_rec_t);
-
-                e_status = ih264d_api_function(NULL,
-                                                    (void *)&s_fill_mem_rec_ip,
-                                                    (void *)&s_fill_mem_rec_op);
-                if(IV_FAIL == e_status)
-                {
-                    ps_op->s_ivd_init_op_t.u4_error_code =
-                                    s_fill_mem_rec_op.s_ivd_fill_mem_rec_op_t.u4_error_code;
-                    H264_DEC_DEBUG_PRINT("Fail\n");
-                    return (IV_FAIL);
-                }
-
-                for(i = 0; i < MEM_REC_CNT; i++)
-                {
-                    if(ps_mem_rec[i].u4_mem_size
-                                    < mem_rec_ittiam_api[i].u4_mem_size)
-                    {
-                        ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                        << IVD_UNSUPPORTEDPARAM;
-                        ps_op->s_ivd_init_op_t.u4_error_code |=
-                                        IVD_INIT_DEC_MEM_REC_INSUFFICIENT_SIZE;
-                        H264_DEC_DEBUG_PRINT("i: %d \n", i);
-                        return IV_FAIL;
-                    }
-                    if(ps_mem_rec[i].u4_mem_alignment
-                                    != mem_rec_ittiam_api[i].u4_mem_alignment)
-                    {
-                        ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                        << IVD_UNSUPPORTEDPARAM;
-                        ps_op->s_ivd_init_op_t.u4_error_code |=
-                                        IVD_INIT_DEC_MEM_REC_ALIGNMENT_ERR;
-                        H264_DEC_DEBUG_PRINT("i: %d \n", i);
-                        return IV_FAIL;
-                    }
-                    if(ps_mem_rec[i].e_mem_type
-                                    != mem_rec_ittiam_api[i].e_mem_type)
-                    {
-                        UWORD32 check = IV_SUCCESS;
-                        UWORD32 diff = mem_rec_ittiam_api[i].e_mem_type
-                                        - ps_mem_rec[i].e_mem_type;
-
-                        if((ps_mem_rec[i].e_mem_type
-                                        <= IV_EXTERNAL_CACHEABLE_SCRATCH_MEM)
-                                        && (mem_rec_ittiam_api[i].e_mem_type
-                                                        >= IV_INTERNAL_NONCACHEABLE_PERSISTENT_MEM))
-                        {
-                            check = IV_FAIL;
-                        }
-                        if(3 != MOD(mem_rec_ittiam_api[i].e_mem_type, 4))
-                        {
-                            /*
-                             * It is not IV_EXTERNAL_NONCACHEABLE_PERSISTENT_MEM or IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM
-                             */
-                            if((diff < 1) || (diff > 3))
-                            {
-                                // Difference between 1 and 3 is okay for all cases other than the two filtered
-                                // with the MOD condition above
-                                check = IV_FAIL;
-                            }
-                        }
-                        else
-                        {
-                            if(diff == 1)
-                            {
-                                /*
-                                 * This particular case is when codec asked for External Persistent, but got
-                                 * Internal Scratch.
-                                 */
-                                check = IV_FAIL;
-                            }
-                            if((diff != 2) && (diff != 3))
-                            {
-                                check = IV_FAIL;
-                            }
-                        }
-                        if(check == IV_FAIL)
-                        {
-                            ps_op->s_ivd_init_op_t.u4_error_code |= 1
-                                            << IVD_UNSUPPORTEDPARAM;
-                            ps_op->s_ivd_init_op_t.u4_error_code |=
-                                            IVD_INIT_DEC_MEM_REC_INCORRECT_TYPE;
-                            H264_DEC_DEBUG_PRINT("i: %d \n", i);
-                            return IV_FAIL;
-                        }
-                    }
-                }
             }
 
         }
@@ -955,49 +457,35 @@ static IV_API_CALL_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
         }
             break;
 
-        case IV_CMD_RETRIEVE_MEMREC:
+        case IVD_CMD_DELETE:
         {
-            ih264d_retrieve_mem_rec_ip_t *ps_ip =
-                            (ih264d_retrieve_mem_rec_ip_t *)pv_api_ip;
-            ih264d_retrieve_mem_rec_op_t *ps_op =
-                            (ih264d_retrieve_mem_rec_op_t *)pv_api_op;
-            iv_mem_rec_t *ps_mem_rec;
+            ih264d_delete_ip_t *ps_ip =
+                            (ih264d_delete_ip_t *)pv_api_ip;
+            ih264d_delete_op_t *ps_op =
+                            (ih264d_delete_op_t *)pv_api_op;
 
-            ps_op->s_ivd_retrieve_mem_rec_op_t.u4_error_code = 0;
+            ps_op->s_ivd_delete_op_t.u4_error_code = 0;
 
-            if(ps_ip->s_ivd_retrieve_mem_rec_ip_t.u4_size
-                            != sizeof(ih264d_retrieve_mem_rec_ip_t))
+            if(ps_ip->s_ivd_delete_ip_t.u4_size
+                            != sizeof(ih264d_delete_ip_t))
             {
-                ps_op->s_ivd_retrieve_mem_rec_op_t.u4_error_code |= 1
+                ps_op->s_ivd_delete_op_t.u4_error_code |= 1
                                 << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_retrieve_mem_rec_op_t.u4_error_code |=
+                ps_op->s_ivd_delete_op_t.u4_error_code |=
                                 IVD_IP_API_STRUCT_SIZE_INCORRECT;
                 return (IV_FAIL);
             }
 
-            if(ps_op->s_ivd_retrieve_mem_rec_op_t.u4_size
-                            != sizeof(ih264d_retrieve_mem_rec_op_t))
+            if(ps_op->s_ivd_delete_op_t.u4_size
+                            != sizeof(ih264d_delete_op_t))
             {
-                ps_op->s_ivd_retrieve_mem_rec_op_t.u4_error_code |= 1
+                ps_op->s_ivd_delete_op_t.u4_error_code |= 1
                                 << IVD_UNSUPPORTEDPARAM;
-                ps_op->s_ivd_retrieve_mem_rec_op_t.u4_error_code |=
+                ps_op->s_ivd_delete_op_t.u4_error_code |=
                                 IVD_OP_API_STRUCT_SIZE_INCORRECT;
                 return (IV_FAIL);
             }
 
-            ps_mem_rec = ps_ip->s_ivd_retrieve_mem_rec_ip_t.pv_mem_rec_location;
-            /* check memrecords sizes are correct */
-            for(i = 0; i < MEM_REC_CNT; i++)
-            {
-                if(ps_mem_rec[i].u4_size != sizeof(iv_mem_rec_t))
-                {
-                    ps_op->s_ivd_retrieve_mem_rec_op_t.u4_error_code |= 1
-                                    << IVD_UNSUPPORTEDPARAM;
-                    ps_op->s_ivd_retrieve_mem_rec_op_t.u4_error_code |=
-                                    IVD_MEM_REC_STRUCT_SIZE_INCORRECT;
-                    return IV_FAIL;
-                }
-            }
         }
             break;
 
@@ -1365,38 +853,6 @@ WORD32 ih264d_set_processor(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ps_op->u4_error_code = 0;
     return IV_SUCCESS;
 }
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name :  ih264d_get_num_rec                                      */
-/*                                                                           */
-/*  Description   : returns number of mem records required                   */
-/*                                                                           */
-/*  Inputs        : pv_api_ip input api structure                            */
-/*                : pv_api_op output api structure                           */
-/*  Outputs       :                                                          */
-/*  Outputs       :                                                          */
-/*  Returns       : void                                                     */
-/*                                                                           */
-/*  Issues        : none                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         22 10 2008    100356         Draft                                */
-/*                                                                           */
-/*****************************************************************************/
-WORD32 ih264d_get_num_rec(void *pv_api_ip, void *pv_api_op)
-{
-    iv_num_mem_rec_ip_t *ps_mem_q_ip;
-    iv_num_mem_rec_op_t *ps_mem_q_op;
-    ps_mem_q_ip = (iv_num_mem_rec_ip_t *)pv_api_ip;
-    ps_mem_q_op = (iv_num_mem_rec_op_t *)pv_api_op;
-    UNUSED(ps_mem_q_ip);
-    ps_mem_q_op->u4_num_mem_rec = MEM_REC_CNT;
-
-    return IV_SUCCESS;
-
-}
 
 
 /**************************************************************************
@@ -1427,11 +883,8 @@ void ih264d_init_decoder(void * ps_dec_params)
     dec_slice_params_t *ps_cur_slice;
     pocstruct_t *ps_prev_poc, *ps_cur_poc;
 
-
-
-    /* Set pic_parameter_set_id to -1 */
-
-
+    /* Free any dynamic buffers that are allocated */
+    ih264d_free_dynamic_bufs(ps_dec);
 
     ps_cur_slice = ps_dec->ps_cur_slice;
     ps_dec->init_done = 0;
@@ -1579,12 +1032,6 @@ void ih264d_init_decoder(void * ps_dec_params)
     /* Initialize Reference Pic Buffers */
     ih264d_init_ref_bufs(ps_dec->ps_dpb_mgr);
 
-#if VERT_SCALE_UP_AND_422
-    ps_dec->u1_vert_up_scale_flag = 1;
-#else
-    ps_dec->u1_vert_up_scale_flag = 0;
-#endif
-
     ps_dec->u2_prv_frame_num = 0;
     ps_dec->u1_top_bottom_decoded = 0;
     ps_dec->u1_dangling_field = 0;
@@ -1615,750 +1062,341 @@ void ih264d_init_decoder(void * ps_dec_params)
 
     ih264d_init_arch(ps_dec);
     ih264d_init_function_ptr(ps_dec);
-
+    ps_dec->e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
     ps_dec->init_done = 1;
-    ps_dec->process_called = 1;
 
-    ps_dec->pv_pic_buf_mgr = NULL;
-    ps_dec->pv_mv_buf_mgr = NULL;
 }
-
-/**************************************************************************
- * \if Function name : ih264d_init_video_decoder \endif
- *
- * \brief
- *    Wrapper for the decoder init
- *
- * \param p_NALBufAPI: Pointer to NAL Buffer API.
- * \param ih264d_dec_mem_manager  :Pointer to the function that will be called by decoder
- *                        for memory allocation and freeing.
- *
- * \return
- *    pointer to the decparams
- *
- **************************************************************************
- */
-
-WORD32 ih264d_init_video_decoder(iv_obj_t *dec_hdl,
-                                 ih264d_init_ip_t *ps_init_ip,
-                                 ih264d_init_op_t *ps_init_op)
+WORD32 ih264d_free_static_bufs(iv_obj_t *dec_hdl)
 {
-    dec_struct_t * ps_dec;
-    iv_mem_rec_t *memtab;
-    UWORD8 *pu1_extra_mem_base,*pu1_mem_base;
+    dec_struct_t *ps_dec;
 
-    memtab = ps_init_ip->s_ivd_init_ip_t.pv_mem_rec_location;
+    void (*pf_aligned_free)(void *pv_mem_ctxt, void *pv_buf);
+    void *pv_mem_ctxt;
 
-    dec_hdl->pv_codec_handle = memtab[MEM_REC_CODEC].pv_base;
-    ps_dec = dec_hdl->pv_codec_handle;
+    ps_dec = (dec_struct_t *)dec_hdl->pv_codec_handle;
+    pf_aligned_free = ps_dec->pf_aligned_free;
+    pv_mem_ctxt = ps_dec->pv_mem_ctxt;
+
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_sps);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_pps);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pv_dec_thread_handle);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pv_bs_deblk_thread_handle);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_dpb_mgr);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_pred);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pv_disp_buf_mgr);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pv_pic_buf_mgr);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_pic_buf_base);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_dec_err_status);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_sei);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_dpb_cmds);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_bitstrm);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_cur_slice);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pv_scratch_sps_pps);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_bits_buf_static);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ppv_map_ref_idx_to_poc_base);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->p_cabac_ctxt_table_t);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_left_mb_ctxt_info);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_ref_buff_base);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pi2_pred1);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_temp_mc_buffer);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_init_dpb_base);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu4_mbaff_wt_mat);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu4_wts_ofsts_mat);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_left_mvpred_addr);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pv_mv_buf_mgr);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_col_mv_base);
+    PS_DEC_ALIGNED_FREE(ps_dec, dec_hdl->pv_codec_handle);
+
+    if(dec_hdl)
+    {
+        pf_aligned_free(pv_mem_ctxt, dec_hdl);
+    }
+    return IV_SUCCESS;
+}
+/*****************************************************************************/
+/*                                                                           */
+/*  Function Name : ih264d_create                                              */
+/*                                                                           */
+/*  Description   : creates decoder                                          */
+/*                                                                           */
+/*  Inputs        :iv_obj_t decoder handle                                   */
+/*                :pv_api_ip pointer to input structure                      */
+/*                :pv_api_op pointer to output structure                     */
+/*  Outputs       :                                                          */
+/*  Returns       : void                                                     */
+/*                                                                           */
+/*  Issues        : none                                                     */
+/*                                                                           */
+/*  Revision History:                                                        */
+/*                                                                           */
+/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
+/*         22 10 2008    100356         Draft                                */
+/*                                                                           */
+/*****************************************************************************/
+WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv_api_op)
+{
+    ih264d_create_ip_t *ps_create_ip;
+    ih264d_create_op_t *ps_create_op;
+    void *pv_buf;
+    UWORD8 *pu1_buf;
+    dec_struct_t *ps_dec;
+    void *(*pf_aligned_alloc)(void *pv_mem_ctxt, WORD32 alignment, WORD32 size);
+    void (*pf_aligned_free)(void *pv_mem_ctxt, void *pv_buf);
+    void *pv_mem_ctxt;
+    WORD32 size;
+
+    ps_create_ip = (ih264d_create_ip_t *)pv_api_ip;
+    ps_create_op = (ih264d_create_op_t *)pv_api_op;
+
+    ps_create_op->s_ivd_create_op_t.u4_error_code = 0;
+
+    pf_aligned_alloc = ps_create_ip->s_ivd_create_ip_t.pf_aligned_alloc;
+    pf_aligned_free = ps_create_ip->s_ivd_create_ip_t.pf_aligned_free;
+    pv_mem_ctxt  = ps_create_ip->s_ivd_create_ip_t.pv_mem_ctxt;
+
+    /* Initialize return handle to NULL */
+    ps_create_op->s_ivd_create_op_t.pv_handle = NULL;
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, sizeof(iv_obj_t));
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    *dec_hdl = (iv_obj_t *)pv_buf;
+    ps_create_op->s_ivd_create_op_t.pv_handle = *dec_hdl;
+
+    (*dec_hdl)->pv_codec_handle = NULL;
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, sizeof(dec_struct_t));
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    (*dec_hdl)->pv_codec_handle = (dec_struct_t *)pv_buf;
+    ps_dec = (dec_struct_t *)pv_buf;
 
     memset(ps_dec, 0, sizeof(dec_struct_t));
 
-    if(ps_init_ip->s_ivd_init_ip_t.u4_size
-                    > offsetof(ih264d_init_ip_t, i4_level))
-    {
-        ps_dec->u4_level_at_init = ps_init_ip->i4_level;
-    }
-    else
-    {
-        ps_dec->u4_level_at_init = H264_LEVEL_3_1;
-    }
-
-    if(ps_init_ip->s_ivd_init_ip_t.u4_size
-                    > offsetof(ih264d_init_ip_t, u4_num_ref_frames))
-    {
-        ps_dec->u4_num_ref_frames_at_init = ps_init_ip->u4_num_ref_frames;
-    }
-    else
-    {
-        ps_dec->u4_num_ref_frames_at_init = H264_MAX_REF_PICS;
-    }
-
-    if(ps_init_ip->s_ivd_init_ip_t.u4_size
-                    > offsetof(ih264d_init_ip_t, u4_num_reorder_frames))
-    {
-        ps_dec->u4_num_reorder_frames_at_init =
-                        ps_init_ip->u4_num_reorder_frames;
-    }
-    else
-    {
-        ps_dec->u4_num_reorder_frames_at_init = H264_MAX_REF_PICS;
-    }
-
-    if(ps_init_ip->s_ivd_init_ip_t.u4_size
-                    > offsetof(ih264d_init_ip_t, u4_num_extra_disp_buf))
-    {
-        ps_dec->u4_num_extra_disp_bufs_at_init =
-                        ps_init_ip->u4_num_extra_disp_buf;
-    }
-    else
-    {
-        ps_dec->u4_num_extra_disp_bufs_at_init = 0;
-    }
-
-    if(ps_init_ip->s_ivd_init_ip_t.u4_size
-                    > offsetof(ih264d_init_ip_t, u4_share_disp_buf))
-    {
 #ifndef LOGO_EN
-        ps_dec->u4_share_disp_buf = ps_init_ip->u4_share_disp_buf;
+    ps_dec->u4_share_disp_buf = ps_create_ip->s_ivd_create_ip_t.u4_share_disp_buf;
 #else
-        ps_dec->u4_share_disp_buf = 0;
+    ps_dec->u4_share_disp_buf = 0;
 #endif
-    }
-    else
-    {
-        ps_dec->u4_share_disp_buf = 0;
-    }
 
-    if((ps_init_ip->s_ivd_init_ip_t.e_output_format != IV_YUV_420P)
-                    && (ps_init_ip->s_ivd_init_ip_t.e_output_format
+    ps_dec->u1_chroma_format =
+                    (UWORD8)(ps_create_ip->s_ivd_create_ip_t.e_output_format);
+
+    if((ps_dec->u1_chroma_format != IV_YUV_420P)
+                    && (ps_dec->u1_chroma_format
                                     != IV_YUV_420SP_UV)
-                    && (ps_init_ip->s_ivd_init_ip_t.e_output_format
+                    && (ps_dec->u1_chroma_format
                                     != IV_YUV_420SP_VU))
     {
         ps_dec->u4_share_disp_buf = 0;
     }
 
-    if((ps_dec->u4_level_at_init < MIN_LEVEL_SUPPORTED)
-                    || (ps_dec->u4_level_at_init > MAX_LEVEL_SUPPORTED))
-    {
-        ps_init_op->s_ivd_init_op_t.u4_error_code |= ERROR_LEVEL_UNSUPPORTED;
-        return (IV_FAIL);
-    }
+    ps_dec->pf_aligned_alloc = pf_aligned_alloc;
+    ps_dec->pf_aligned_free = pf_aligned_free;
+    ps_dec->pv_mem_ctxt = pv_mem_ctxt;
+
 
-    if(ps_dec->u4_num_ref_frames_at_init > H264_MAX_REF_PICS)
-    {
-        ps_init_op->s_ivd_init_op_t.u4_error_code |= ERROR_NUM_REF;
-        ps_dec->u4_num_ref_frames_at_init = H264_MAX_REF_PICS;
-    }
+    size = ((sizeof(dec_seq_params_t)) * MAX_NUM_SEQ_PARAMS);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_sps = pv_buf;
+
+    size = (sizeof(dec_pic_params_t)) * MAX_NUM_PIC_PARAMS;
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_pps = pv_buf;
 
-    if(ps_dec->u4_num_reorder_frames_at_init > H264_MAX_REF_PICS)
-    {
-        ps_init_op->s_ivd_init_op_t.u4_error_code |= ERROR_NUM_REF;
-        ps_dec->u4_num_reorder_frames_at_init = H264_MAX_REF_PICS;
-    }
+    size = ithread_get_handle_size();
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pv_dec_thread_handle = pv_buf;
 
-    if(ps_dec->u4_num_extra_disp_bufs_at_init > H264_MAX_REF_PICS)
-    {
-        ps_init_op->s_ivd_init_op_t.u4_error_code |= ERROR_NUM_REF;
-        ps_dec->u4_num_extra_disp_bufs_at_init = 0;
-    }
+    size = ithread_get_handle_size();
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pv_bs_deblk_thread_handle = pv_buf;
 
-    if(0 == ps_dec->u4_share_disp_buf)
-        ps_dec->u4_num_extra_disp_bufs_at_init = 0;
+    size = sizeof(dpb_manager_t);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_dpb_mgr = pv_buf;
 
-    ps_dec->u4_num_disp_bufs_requested = 1;
+    size = sizeof(pred_info_t) * 2 * 32;
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_pred = pv_buf;
 
-    ps_dec->u4_width_at_init = ps_init_ip->s_ivd_init_ip_t.u4_frm_max_wd;
-    ps_dec->u4_height_at_init = ps_init_ip->s_ivd_init_ip_t.u4_frm_max_ht;
+    size = sizeof(disp_mgr_t);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pv_disp_buf_mgr = pv_buf;
 
-    ps_dec->u4_width_at_init = ALIGN16(ps_dec->u4_width_at_init);
-    ps_dec->u4_height_at_init = ALIGN32(ps_dec->u4_height_at_init);
+    size = sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pv_pic_buf_mgr = pv_buf;
 
-    ps_dec->pv_dec_thread_handle = memtab[MEM_REC_THREAD_HANDLE].pv_base;
+    size = sizeof(struct pic_buffer_t) * (H264_MAX_REF_PICS * 2);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_pic_buf_base = pv_buf;
 
-    pu1_mem_base = memtab[MEM_REC_THREAD_HANDLE].pv_base;
-    ps_dec->pv_bs_deblk_thread_handle = pu1_mem_base
-                    + ithread_get_handle_size();
+    size = sizeof(dec_err_status_t);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_dec_err_status = (dec_err_status_t *)pv_buf;
 
-    ps_dec->u4_extra_mem_used = 0;
+    size = sizeof(sei);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_sei = (sei *)pv_buf;
 
-    pu1_extra_mem_base = memtab[MEM_REC_EXTRA_MEM].pv_base;
+    size = sizeof(dpb_commands_t);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_dpb_cmds = (dpb_commands_t *)pv_buf;
 
-    ps_dec->ps_dec_err_status = (dec_err_status_t *)(pu1_extra_mem_base + ps_dec->u4_extra_mem_used);
-    ps_dec->u4_extra_mem_used += (((sizeof(dec_err_status_t) + 127) >> 7) << 7);
+    size = sizeof(dec_bit_stream_t);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_bitstrm = (dec_bit_stream_t *)pv_buf;
 
-    ps_dec->ps_mem_tab = memtab[MEM_REC_BACKUP].pv_base;
+    size = sizeof(dec_slice_params_t);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_cur_slice = (dec_slice_params_t *)pv_buf;
 
-    memcpy(ps_dec->ps_mem_tab, memtab, sizeof(iv_mem_rec_t) * MEM_REC_CNT);
+    size = MAX(sizeof(dec_seq_params_t), sizeof(dec_pic_params_t));
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pv_scratch_sps_pps = pv_buf;
 
-    ps_dec->ps_pps = memtab[MEM_REC_PPS].pv_base;
 
-    ps_dec->ps_sps = memtab[MEM_REC_SPS].pv_base;
+    ps_dec->u4_static_bits_buf_size = 256000;
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, ps_dec->u4_static_bits_buf_size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pu1_bits_buf_static = pv_buf;
 
-    ps_dec->ps_sei = (sei *)(pu1_extra_mem_base + ps_dec->u4_extra_mem_used);
-    ps_dec->u4_extra_mem_used += sizeof(sei);
 
-    ps_dec->ps_dpb_mgr = memtab[MEM_REC_DPB_MGR].pv_base;
+    size = ((TOTAL_LIST_ENTRIES + PAD_MAP_IDX_POC)
+                        * sizeof(void *));
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ppv_map_ref_idx_to_poc_base = pv_buf;
+    memset(ps_dec->ppv_map_ref_idx_to_poc_base, 0, size);
 
-    ps_dec->ps_dpb_cmds = (dpb_commands_t *)(pu1_extra_mem_base + ps_dec->u4_extra_mem_used);
-    ps_dec->u4_extra_mem_used += sizeof(dpb_commands_t);
+    ps_dec->ppv_map_ref_idx_to_poc = ps_dec->ppv_map_ref_idx_to_poc_base + OFFSET_MAP_IDX_POC;
 
-    ps_dec->ps_bitstrm = (dec_bit_stream_t *)(pu1_extra_mem_base + ps_dec->u4_extra_mem_used);
-    ps_dec->u4_extra_mem_used += sizeof(dec_bit_stream_t);
 
-    ps_dec->ps_cur_slice =(dec_slice_params_t *) (pu1_extra_mem_base + ps_dec->u4_extra_mem_used);
-    ps_dec->u4_extra_mem_used += sizeof(dec_slice_params_t);
-
-    ps_dec->pv_scratch_sps_pps = (void *)(pu1_extra_mem_base + ps_dec->u4_extra_mem_used);
-
-
-    ps_dec->u4_extra_mem_used += MAX(sizeof(dec_seq_params_t),
-                                     sizeof(dec_pic_params_t));
-    ps_dec->ps_pred_pkd = memtab[MEM_REC_PRED_INFO_PKD].pv_base;
-
-
-    ps_dec->ps_dpb_mgr->pv_codec_handle = ps_dec;
-
-    ps_dec->pv_dec_out = (void *)ps_init_op;
-    ps_dec->pv_dec_in = (void *)ps_init_ip;
-
-    ps_dec->u1_chroma_format =
-                    (UWORD8)(ps_init_ip->s_ivd_init_ip_t.e_output_format);
-
-
-
-    ih264d_init_decoder(ps_dec);
-
-    return (IV_SUCCESS);
-
-}
-
-
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264d_fill_num_mem_rec                                  */
-/*                                                                           */
-/*  Description   :  fills memory records                                    */
-/*                                                                           */
-/*  Inputs        : pv_api_ip input api structure                            */
-/*                : pv_api_op output api structure                           */
-/*  Outputs       :                                                          */
-/*  Returns       : void                                                     */
-/*                                                                           */
-/*  Issues        : none                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         22 10 2008    100356         Draft                                */
-/*                                                                           */
-/*****************************************************************************/
-WORD32 ih264d_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
-{
-
-    ih264d_fill_mem_rec_ip_t *ps_mem_q_ip;
-    ih264d_fill_mem_rec_op_t *ps_mem_q_op;
-    WORD32 level;
-    UWORD32 num_reorder_frames;
-    UWORD32 num_ref_frames;
-    UWORD32 num_extra_disp_bufs;
-    UWORD32 u4_dpb_size_num_frames;
-    iv_mem_rec_t *memTab;
-
-    UWORD32 chroma_format, u4_share_disp_buf;
-    UWORD32 u4_total_num_mbs;
-    UWORD32 luma_width, luma_width_in_mbs;
-    UWORD32 luma_height, luma_height_in_mbs;
-    UWORD32 max_dpb_size;
-
-    ps_mem_q_ip = (ih264d_fill_mem_rec_ip_t *)pv_api_ip;
-    ps_mem_q_op = (ih264d_fill_mem_rec_op_t *)pv_api_op;
-
-    if(ps_mem_q_ip->s_ivd_fill_mem_rec_ip_t.u4_size
-                    > offsetof(ih264d_fill_mem_rec_ip_t, i4_level))
-    {
-        level = ps_mem_q_ip->i4_level;
-    }
-    else
-    {
-        level = H264_LEVEL_3_1;
-    }
-
-    if(ps_mem_q_ip->s_ivd_fill_mem_rec_ip_t.u4_size
-                    > offsetof(ih264d_fill_mem_rec_ip_t, u4_num_reorder_frames))
-    {
-        num_reorder_frames = ps_mem_q_ip->u4_num_reorder_frames;
-    }
-    else
-    {
-        num_reorder_frames = H264_MAX_REF_PICS;
-    }
-
-    if(ps_mem_q_ip->s_ivd_fill_mem_rec_ip_t.u4_size
-                    > offsetof(ih264d_fill_mem_rec_ip_t, u4_num_ref_frames))
-    {
-        num_ref_frames = ps_mem_q_ip->u4_num_ref_frames;
-    }
-    else
-    {
-        num_ref_frames = H264_MAX_REF_PICS;
-    }
-
-    if(ps_mem_q_ip->s_ivd_fill_mem_rec_ip_t.u4_size
-                    > offsetof(ih264d_fill_mem_rec_ip_t, u4_num_extra_disp_buf))
-    {
-        num_extra_disp_bufs = ps_mem_q_ip->u4_num_extra_disp_buf;
-    }
-    else
-    {
-        num_extra_disp_bufs = 0;
-    }
-
-    if(ps_mem_q_ip->s_ivd_fill_mem_rec_ip_t.u4_size
-                    > offsetof(ih264d_fill_mem_rec_ip_t, u4_share_disp_buf))
-    {
-#ifndef LOGO_EN
-        u4_share_disp_buf = ps_mem_q_ip->u4_share_disp_buf;
-#else
-        u4_share_disp_buf = 0;
-#endif
-    }
-    else
-    {
-        u4_share_disp_buf = 0;
-    }
-
-    if(ps_mem_q_ip->s_ivd_fill_mem_rec_ip_t.u4_size
-                    > offsetof(ih264d_fill_mem_rec_ip_t, e_output_format))
-    {
-        chroma_format = ps_mem_q_ip->e_output_format;
-    }
-    else
-    {
-        chroma_format = -1;
-    }
-
-    if((chroma_format != IV_YUV_420P) && (chroma_format != IV_YUV_420SP_UV)
-                    && (chroma_format != IV_YUV_420SP_VU))
-    {
-        u4_share_disp_buf = 0;
-    }
-    if(0 == u4_share_disp_buf)
-        num_extra_disp_bufs = 0;
-
-    {
-
-        luma_height = ps_mem_q_ip->s_ivd_fill_mem_rec_ip_t.u4_max_frm_ht;
-        luma_width = ps_mem_q_ip->s_ivd_fill_mem_rec_ip_t.u4_max_frm_wd;
-
-        luma_height = ALIGN32(luma_height);
-        luma_width = ALIGN16(luma_width);
-        luma_width_in_mbs = luma_width >> 4;
-        luma_height_in_mbs = luma_height >> 4;
-        u4_total_num_mbs = (luma_height * luma_width) >> 8;
-    }
-    /*
-     * If level is lesser than 31 and the resolution required is higher,
-     * then make the level at least 31.
-     */
-    if(u4_total_num_mbs > MAX_MBS_LEVEL_30 && level < H264_LEVEL_3_1)
-    {
-        level = H264_LEVEL_3_1;
-    }
-
-    if((level < MIN_LEVEL_SUPPORTED) || (level > MAX_LEVEL_SUPPORTED))
-    {
-        ps_mem_q_op->s_ivd_fill_mem_rec_op_t.u4_error_code |=
-                        ERROR_LEVEL_UNSUPPORTED;
-        return (IV_FAIL);
-    }
-
-    if(num_ref_frames > H264_MAX_REF_PICS)
-    {
-        ps_mem_q_op->s_ivd_fill_mem_rec_op_t.u4_error_code |= ERROR_NUM_REF;
-        num_ref_frames = H264_MAX_REF_PICS;
-    }
-
-    if(num_reorder_frames > H264_MAX_REF_PICS)
-    {
-        ps_mem_q_op->s_ivd_fill_mem_rec_op_t.u4_error_code |= ERROR_NUM_REF;
-        num_reorder_frames = H264_MAX_REF_PICS;
-    }
-    memTab = ps_mem_q_ip->s_ivd_fill_mem_rec_ip_t.pv_mem_rec_location;
-
-    memTab[MEM_REC_IV_OBJ].u4_mem_size = sizeof(iv_obj_t);
-    memTab[MEM_REC_IV_OBJ].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_IV_OBJ].e_mem_type = IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    H264_DEC_DEBUG_PRINT("MEM_REC_IV_OBJ MEM Size = %d\n",
-                         memTab[MEM_REC_IV_OBJ].u4_mem_size);
-
-    memTab[MEM_REC_CODEC].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_CODEC].e_mem_type = IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    memTab[MEM_REC_CODEC].u4_mem_size = sizeof(dec_struct_t);
-
-    {
-        UWORD32 mvinfo_size, mv_info_size_pad;
-        UWORD32 MVbank, MVbank_pad;
-        UWORD32 Ysize;
-        UWORD32 UVsize;
-        UWORD32 one_frm_size;
-
-        UWORD32 extra_mem = 0;
-
-        UWORD32 pad_len_h, pad_len_v;
-
-        /*
-         * For low_delay, use num_buf as 2 -
-         *      num_buf = (num_buf_ref) + 1;
-         * where num_buf_ref is 1.
-         */
-        UWORD32 num_buf;
-
-        {
-            UWORD32 num_bufs_app, num_bufs_level;
-
-            num_bufs_app = num_ref_frames + num_reorder_frames + 1;
-
-            if(num_bufs_app <= 1)
-                num_bufs_app = 2;
-
-            num_bufs_level = ih264d_get_dpb_size_new(level, (luma_width >> 4),
-                                                     (luma_height >> 4));
-
-            max_dpb_size = num_bufs_level;
-
-            num_bufs_level = num_bufs_level * 2 + 1;
-
-            num_buf = MIN(num_bufs_level, num_bufs_app);
-
-            num_buf += num_extra_disp_bufs;
-
-        }
-
-        mvinfo_size = ((luma_width * (luma_height)) >> 4);
-
-        mv_info_size_pad = ((luma_width * (PAD_MV_BANK_ROW)) >> 4);
-
-        Ysize = ALIGN32((luma_width + (PAD_LEN_Y_H << 1)))
-                        * (luma_height + (PAD_LEN_Y_V << 2));
-
-
-        UVsize = Ysize >> 2;
-        if(u4_share_disp_buf == 1)
-        {
-            /* In case of buffers getting shared between application and library
-             there is no need of reference memtabs. Instead of setting the i4_size
-             to zero, it is reduced to a small i4_size to ensure that changes
-             in the code are minimal */
-
-            if((chroma_format == IV_YUV_420P)
-                            || (chroma_format == IV_YUV_420SP_UV)
-                            || (chroma_format == IV_YUV_420SP_VU))
-            {
-                Ysize = 64;
-            }
-            if(chroma_format == IV_YUV_420SP_UV)
-            {
-                UVsize = 64;
-            }
-        }
-
-        one_frm_size = (((Ysize + 127) >> 7) << 7)
-                        + ((((UVsize << 1) + 127) >> 7) << 7);
-
-        //Note that for ARM RVDS WS the sizeof(mv_pred_t) is 16
-
-        /*Add memory for colocated MB*/
-        MVbank = sizeof(mv_pred_t) * mvinfo_size;
-        MVbank_pad = sizeof(mv_pred_t) * mv_info_size_pad;
-
-        MVbank = (((MVbank + 127) >> 7) << 7);
-
-        MVbank_pad = (((MVbank_pad + 127) >> 7) << 7);
-
-        memTab[MEM_REC_MVBANK].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-        memTab[MEM_REC_MVBANK].e_mem_type =
-                        IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-        memTab[MEM_REC_MVBANK].u4_mem_size = (MVbank + MVbank_pad)
-                        * (MIN(max_dpb_size, num_ref_frames) + 1);
-
-
-        memTab[MEM_REC_REF_PIC].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-        memTab[MEM_REC_REF_PIC].e_mem_type =
-                        IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-        memTab[MEM_REC_REF_PIC].u4_mem_size = one_frm_size * num_buf;
-
-    }
-
-    memTab[MEM_REC_DEBLK_MB_INFO].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_DEBLK_MB_INFO].e_mem_type =
-                    IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    memTab[MEM_REC_DEBLK_MB_INFO].u4_mem_size = (((((u4_total_num_mbs
-                    + (luma_width >> 4)) * sizeof(deblk_mb_t)) + 127) >> 7) << 7);
-
-    memTab[MEM_REC_NEIGHBOR_INFO].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_NEIGHBOR_INFO].e_mem_type =
-                    IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    memTab[MEM_REC_NEIGHBOR_INFO].u4_mem_size = sizeof(mb_neigbour_params_t)
-                    * ((luma_width + 16) >> 4) * 2 * 2;
-    {
-        WORD32 size;
-        WORD32 num_entries;
-
-        num_entries = MIN(MAX_FRAMES, num_ref_frames);
-        num_entries = 2 * ((2 * num_entries) + 1);
-
-        size = num_entries * sizeof(void *);
-        size += PAD_MAP_IDX_POC * sizeof(void *);
-        size *= u4_total_num_mbs;
-        size += sizeof(dec_slice_struct_t) * u4_total_num_mbs;
-        memTab[MEM_REC_SLICE_HDR].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-        memTab[MEM_REC_SLICE_HDR].e_mem_type = IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-        memTab[MEM_REC_SLICE_HDR].u4_mem_size = size;
-    }
-    {
-
-        UWORD32 u4_num_entries;
-
-        u4_num_entries = u4_total_num_mbs;
-
-        memTab[MEM_REC_MB_INFO].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-        memTab[MEM_REC_MB_INFO].e_mem_type =
-                        IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-        memTab[MEM_REC_MB_INFO].u4_mem_size = sizeof(dec_mb_info_t)
-                        * u4_num_entries;
-
-        memTab[MEM_REC_PRED_INFO].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-        memTab[MEM_REC_PRED_INFO].e_mem_type =
-                        IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-
-        memTab[MEM_REC_PRED_INFO].u4_mem_size = sizeof(pred_info_t) * 2*32;
-
-        memTab[MEM_REC_COEFF_DATA].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-        memTab[MEM_REC_COEFF_DATA].e_mem_type =
-                        IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-        memTab[MEM_REC_COEFF_DATA].u4_mem_size = MB_LUM_SIZE * sizeof(WORD16);
-        /*For I16x16 MBs, 16 4x4 AC coeffs and 1 4x4 DC coeff TU blocks will be sent
-        For all MBs along with 8 4x4 AC coeffs 2 2x2 DC coeff TU blocks will be sent
-        So use 17 4x4 TU blocks for luma and 9 4x4 TU blocks for chroma */
-        memTab[MEM_REC_COEFF_DATA].u4_mem_size += u4_num_entries
-                        * (MAX(17 * sizeof(tu_sblk4x4_coeff_data_t),4 * sizeof(tu_blk8x8_coeff_data_t))
-                                        + 9 * sizeof(tu_sblk4x4_coeff_data_t));
-        //32 bytes for each mb to store u1_prev_intra4x4_pred_mode and u1_rem_intra4x4_pred_mode data
-        memTab[MEM_REC_COEFF_DATA].u4_mem_size += u4_num_entries * 32;
-
-    }
-
-    memTab[MEM_REC_SPS].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_SPS].e_mem_type = IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    memTab[MEM_REC_SPS].u4_mem_size = ((sizeof(dec_seq_params_t))
-                    * MAX_NUM_SEQ_PARAMS);
-
-    memTab[MEM_REC_PPS].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_PPS].e_mem_type = IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    memTab[MEM_REC_PPS].u4_mem_size = (sizeof(dec_pic_params_t))
-                    * MAX_NUM_PIC_PARAMS;
-
-    {
-        UWORD32 u4_mem_size;
-
-        u4_mem_size = 0;
-        u4_mem_size += (((sizeof(dec_err_status_t) + 127) >> 7) << 7);
-        u4_mem_size += sizeof(sei);
-        u4_mem_size += sizeof(dpb_commands_t);
-        u4_mem_size += sizeof(dec_bit_stream_t);
-        u4_mem_size += sizeof(dec_slice_params_t);
-        u4_mem_size += MAX(sizeof(dec_seq_params_t), sizeof(dec_pic_params_t));
-
-        memTab[MEM_REC_EXTRA_MEM].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-        memTab[MEM_REC_EXTRA_MEM].e_mem_type =
-                        IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-        memTab[MEM_REC_EXTRA_MEM].u4_mem_size = u4_mem_size;
-    }
-
-    {
-
-        UWORD32 u4_mem_size;
-
-        u4_mem_size = 0;
-        u4_mem_size += ((TOTAL_LIST_ENTRIES + PAD_MAP_IDX_POC) * sizeof(void *));
-        u4_mem_size = ALIGN64(u4_mem_size);
-        u4_mem_size += (sizeof(bin_ctxt_model_t) * NUM_CABAC_CTXTS);
-        u4_mem_size = ALIGN64(u4_mem_size);
-        u4_mem_size += sizeof(ctxt_inc_mb_info_t);
-        u4_mem_size = ALIGN64(u4_mem_size);
-        u4_mem_size += sizeof(UWORD32) * (MAX_REF_BUFS * MAX_REF_BUFS);
-        u4_mem_size = ALIGN64(u4_mem_size);
-
-        u4_mem_size += MAX_REF_BUF_SIZE * 2;
-        u4_mem_size = ALIGN64(u4_mem_size);
-        u4_mem_size += ((sizeof(WORD16)) * PRED_BUFFER_WIDTH
+    size = (sizeof(bin_ctxt_model_t) * NUM_CABAC_CTXTS);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->p_cabac_ctxt_table_t = pv_buf;
+
+
+
+    size = sizeof(ctxt_inc_mb_info_t);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_left_mb_ctxt_info = pv_buf;
+
+
+
+    size = MAX_REF_BUF_SIZE * 2;
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pu1_ref_buff_base = pv_buf;
+    ps_dec->pu1_ref_buff = ps_dec->pu1_ref_buff_base + MAX_REF_BUF_SIZE;
+
+
+    size = ((sizeof(WORD16)) * PRED_BUFFER_WIDTH
                         * PRED_BUFFER_HEIGHT * 2);
-        u4_mem_size = ALIGN64(u4_mem_size);
-        u4_mem_size += sizeof(UWORD8) * (MB_LUM_SIZE);
-        u4_mem_size = ALIGN64(u4_mem_size);
-        u4_mem_size += sizeof(parse_pmbarams_t) * luma_width_in_mbs; //Max recon mb group*/
-        u4_mem_size = ALIGN64(u4_mem_size);
-        u4_mem_size += (sizeof(parse_part_params_t) * luma_width_in_mbs) << 4; //Max recon mb group*/
-        u4_mem_size = ALIGN64(u4_mem_size);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pi2_pred1 = pv_buf;
 
-        u4_mem_size += 2 * MAX_REF_BUFS * sizeof(struct pic_buffer_t);
-        u4_mem_size = ALIGN64(u4_mem_size);
-        u4_mem_size += 2 * MAX_REF_BUFS * sizeof(struct pic_buffer_t);
-        u4_mem_size = ALIGN64(u4_mem_size);
-        u4_mem_size += (sizeof(UWORD32) * 3 * (MAX_REF_BUFS * MAX_REF_BUFS)) << 3;
-        u4_mem_size = ALIGN64(u4_mem_size);
 
-        u4_mem_size += sizeof(UWORD32) * 2 * 3 * (MAX_REF_BUFS * MAX_REF_BUFS);
-        u4_mem_size = ALIGN64(u4_mem_size);
+    size = sizeof(UWORD8) * (MB_LUM_SIZE);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pu1_temp_mc_buffer = pv_buf;
 
-        memTab[MEM_REC_INTERNAL_SCRATCH].u4_mem_alignment =
-                        (128 * 8) / CHAR_BIT;
-        memTab[MEM_REC_INTERNAL_SCRATCH].e_mem_type =
-                        IV_EXTERNAL_CACHEABLE_SCRATCH_MEM;
-        memTab[MEM_REC_INTERNAL_SCRATCH].u4_mem_size = u4_mem_size;
-    }
 
-    {
 
-        UWORD32 u4_mem_used;
-        UWORD32 u4_numRows = MB_SIZE << 1;
-        UWORD32 u4_blk_wd = ((luma_width_in_mbs << 4) >> 1) + 8;
 
-        u4_mem_used = 0;
-        u4_mem_used += ((luma_width_in_mbs * sizeof(deblkmb_neighbour_t)) << 1);
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += (sizeof(neighbouradd_t) << 2);
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += ((sizeof(ctxt_inc_mb_info_t))
-                        * (((luma_width_in_mbs + 1) << 1) + 1));
-        u4_mem_used = ALIGN64(u4_mem_used);
+    size = 8 * MAX_REF_BUFS * sizeof(struct pic_buffer_t);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
 
-        u4_mem_used += (sizeof(mv_pred_t) * luma_width_in_mbs * 16);
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += (sizeof(mv_pred_t) * luma_width_in_mbs * 16);
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += (sizeof(mv_pred_t) * luma_width_in_mbs * 4
-                        * MV_SCRATCH_BUFS);
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_numRows = BLK8x8SIZE << 1;
+    ps_dec->pu1_init_dpb_base = pv_buf;
+    pu1_buf = pv_buf;
+    ps_dec->ps_dpb_mgr->ps_init_dpb[0][0] = (struct pic_buffer_t *)pu1_buf;
 
-        u4_blk_wd = ((luma_width_in_mbs << 3) >> 1) + 8;
+    pu1_buf += size / 2;
+    ps_dec->ps_dpb_mgr->ps_init_dpb[1][0] = (struct pic_buffer_t *)pu1_buf;
 
-        u4_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
-        u4_mem_used += 32;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += sizeof(UWORD8) * (luma_width + 16) * 2;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += sizeof(UWORD8) * (luma_width + 16) * 2;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += sizeof(UWORD8) * (luma_width + 16) * 2;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += sizeof(mb_neigbour_params_t) * (luma_width_in_mbs + 1)
-                        * luma_height_in_mbs;
-        u4_mem_used += luma_width;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += luma_width;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += luma_width;
-        u4_mem_used = ALIGN64(u4_mem_used);
+    size = (sizeof(UWORD32) * 3
+                        * (MAX_FRAMES * MAX_FRAMES))
+                        << 3;
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pu4_mbaff_wt_mat = pv_buf;
 
-        u4_mem_used += ((MB_SIZE + 4) << 1) * PAD_LEN_Y_H;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += ((BLK8x8SIZE + 2) << 1) * PAD_LEN_UV_H;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += ((BLK8x8SIZE + 2) << 1) * PAD_LEN_UV_H;
-        u4_mem_used = ALIGN64(u4_mem_used);
-        memTab[MEM_REC_INTERNAL_PERSIST].u4_mem_alignment =
-                        (128 * 8) / CHAR_BIT;
-        memTab[MEM_REC_INTERNAL_PERSIST].e_mem_type =
-                        IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-        memTab[MEM_REC_INTERNAL_PERSIST].u4_mem_size = u4_mem_used;
-    }
+    size = sizeof(UWORD32) * 2 * 3
+                        * (MAX_FRAMES * MAX_FRAMES);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pu4_wts_ofsts_mat = pv_buf;
 
-    memTab[MEM_REC_BITSBUF].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_BITSBUF].e_mem_type = IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    memTab[MEM_REC_BITSBUF].u4_mem_size = MAX(256000, (luma_width * luma_height * 3 / 2));
+
+    size = (sizeof(neighbouradd_t) << 2);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_left_mvpred_addr = pv_buf;
+
+
+    size = sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pv_mv_buf_mgr = pv_buf;
+
+
+    size =  sizeof(col_mv_buf_t) * (H264_MAX_REF_PICS * 2);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_col_mv_base = pv_buf;
+    memset(ps_dec->ps_col_mv_base, 0, size);
 
     {
+        UWORD8 i;
+        struct pic_buffer_t *ps_init_dpb;
+        ps_init_dpb = ps_dec->ps_dpb_mgr->ps_init_dpb[0][0];
+        for(i = 0; i < 2 * MAX_REF_BUFS; i++)
+        {
+            ps_init_dpb->pu1_buf1 = NULL;
+            ps_init_dpb->u1_long_term_frm_idx = MAX_REF_BUFS + 1;
+            ps_dec->ps_dpb_mgr->ps_init_dpb[0][i] = ps_init_dpb;
+            ps_dec->ps_dpb_mgr->ps_mod_dpb[0][i] = ps_init_dpb;
+            ps_init_dpb++;
+        }
 
-        UWORD32 u4_thread_struct_size = ithread_get_handle_size();
-
-        memTab[MEM_REC_THREAD_HANDLE].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-        memTab[MEM_REC_THREAD_HANDLE].e_mem_type =
-                        IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-        memTab[MEM_REC_THREAD_HANDLE].u4_mem_size = u4_thread_struct_size * 2;
-
+        ps_init_dpb = ps_dec->ps_dpb_mgr->ps_init_dpb[1][0];
+        for(i = 0; i < 2 * MAX_REF_BUFS; i++)
+        {
+            ps_init_dpb->pu1_buf1 = NULL;
+            ps_init_dpb->u1_long_term_frm_idx = MAX_REF_BUFS + 1;
+            ps_dec->ps_dpb_mgr->ps_init_dpb[1][i] = ps_init_dpb;
+            ps_dec->ps_dpb_mgr->ps_mod_dpb[1][i] = ps_init_dpb;
+            ps_init_dpb++;
+        }
     }
-
-    memTab[MEM_REC_PARSE_MAP].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_PARSE_MAP].e_mem_type = IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    memTab[MEM_REC_PARSE_MAP].u4_mem_size = u4_total_num_mbs;
-
-    memTab[MEM_REC_PROC_MAP].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_PROC_MAP].e_mem_type = IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    memTab[MEM_REC_PROC_MAP].u4_mem_size = u4_total_num_mbs;
-
-    memTab[MEM_REC_SLICE_NUM_MAP].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_SLICE_NUM_MAP].e_mem_type =
-                    IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    memTab[MEM_REC_SLICE_NUM_MAP].u4_mem_size = u4_total_num_mbs
-                    * sizeof(UWORD16);
-
-    memTab[MEM_REC_DPB_MGR].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_DPB_MGR].e_mem_type = IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    memTab[MEM_REC_DPB_MGR].u4_mem_size = sizeof(dpb_manager_t);
-
-    memTab[MEM_REC_BACKUP].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_BACKUP].e_mem_type = IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    memTab[MEM_REC_BACKUP].u4_mem_size = sizeof(iv_mem_rec_t) * MEM_REC_CNT;
-
-    {
-
-        UWORD32 u4_mem_size;
-
-        u4_mem_size = sizeof(disp_mgr_t);
-        u4_mem_size += sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
-        u4_mem_size += sizeof(struct pic_buffer_t) * (H264_MAX_REF_PICS * 2);
-
-        memTab[MEM_REC_PIC_BUF_MGR].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-        memTab[MEM_REC_PIC_BUF_MGR].e_mem_type =
-                        IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-        memTab[MEM_REC_PIC_BUF_MGR].u4_mem_size = u4_mem_size;
-    }
-
-    {
-        UWORD32 u4_mem_size;
-
-        u4_mem_size  = sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
-        u4_mem_size += sizeof(col_mv_buf_t) * (H264_MAX_REF_PICS * 2);
-        u4_mem_size = ALIGN128(u4_mem_size);
-        u4_mem_size += ((luma_width * luma_height) >> 4)
-                        * (MIN(max_dpb_size, num_ref_frames) + 1);
-        memTab[MEM_REC_MV_BUF_MGR].u4_mem_alignment = (128 * 8) / CHAR_BIT;
-        memTab[MEM_REC_MV_BUF_MGR].e_mem_type =
-                        IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-        memTab[MEM_REC_MV_BUF_MGR].u4_mem_size = u4_mem_size;
-    }
-
-    memTab[MEM_REC_PRED_INFO_PKD].u4_mem_alignment =  (128 * 8) / CHAR_BIT;
-    memTab[MEM_REC_PRED_INFO_PKD].e_mem_type =
-                    IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-
-    {
-        UWORD32 u4_num_entries;
-        u4_num_entries = u4_total_num_mbs;
-
-        if(1 == num_ref_frames)
-            u4_num_entries *= 16;
-        else
-            u4_num_entries *= 16 * 2;
-
-        memTab[MEM_REC_PRED_INFO_PKD].u4_mem_size = sizeof(pred_info_pkd_t)
-                        * u4_num_entries;
-    }
-
-    ps_mem_q_op->s_ivd_fill_mem_rec_op_t.u4_num_mem_rec_filled = MEM_REC_CNT;
-
+    ih264d_init_decoder(ps_dec);
 
     return IV_SUCCESS;
 }
+
+
 /*****************************************************************************/
 /*                                                                           */
-/*  Function Name :  ih264d_clr                                              */
+/*  Function Name : ih264d_create                                              */
 /*                                                                           */
-/*  Description   :  returns memory records to app                           */
+/*  Description   : creates decoder                                          */
 /*                                                                           */
 /*  Inputs        :iv_obj_t decoder handle                                   */
 /*                :pv_api_ip pointer to input structure                      */
@@ -2374,76 +1412,31 @@ WORD32 ih264d_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
 /*         22 10 2008    100356         Draft                                */
 /*                                                                           */
 /*****************************************************************************/
-WORD32 ih264d_clr(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
+WORD32 ih264d_create(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 {
+    ih264d_create_op_t *ps_create_op;
 
-    dec_struct_t * ps_dec;
-    iv_retrieve_mem_rec_ip_t *dec_clr_ip;
-    iv_retrieve_mem_rec_op_t *dec_clr_op;
+    WORD32 ret;
 
-    dec_clr_ip = (iv_retrieve_mem_rec_ip_t *)pv_api_ip;
-    dec_clr_op = (iv_retrieve_mem_rec_op_t *)pv_api_op;
-    ps_dec = (dec_struct_t *)(dec_hdl->pv_codec_handle);
+    ps_create_op = (ih264d_create_op_t *)pv_api_op;
 
-    if(ps_dec->init_done != 1)
+    ps_create_op->s_ivd_create_op_t.u4_error_code = 0;
+
+    ret = ih264d_allocate_static_bufs(&dec_hdl, pv_api_ip, pv_api_op);
+
+    /* If allocation of some buffer fails, then free buffers allocated till then */
+    if((IV_FAIL == ret) && (NULL != dec_hdl))
     {
-        //return a proper Error Code
+        ih264d_free_static_bufs(dec_hdl);
+        ps_create_op->s_ivd_create_op_t.u4_error_code = IVD_MEM_ALLOC_FAILED;
+        ps_create_op->s_ivd_create_op_t.u4_error_code = 1 << IVD_FATALERROR;
+
         return IV_FAIL;
     }
 
-    if(ps_dec->pv_pic_buf_mgr)
-        ih264_buf_mgr_free((buf_mgr_t *)ps_dec->pv_pic_buf_mgr);
-    if(ps_dec->pv_mv_buf_mgr)
-        ih264_buf_mgr_free((buf_mgr_t *)ps_dec->pv_mv_buf_mgr);
-
-    memcpy(dec_clr_ip->pv_mem_rec_location, ps_dec->ps_mem_tab,
-           MEM_REC_CNT * (sizeof(iv_mem_rec_t)));
-    dec_clr_op->u4_num_mem_rec_filled = MEM_REC_CNT;
-
-    H264_DEC_DEBUG_PRINT("The clear non-conceal num mem recs: %d\n",
-                         dec_clr_op->u4_num_mem_rec_filled);
-
     return IV_SUCCESS;
-
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264d_init                                              */
-/*                                                                           */
-/*  Description   : initializes decoder                                      */
-/*                                                                           */
-/*  Inputs        :iv_obj_t decoder handle                                   */
-/*                :pv_api_ip pointer to input structure                      */
-/*                :pv_api_op pointer to output structure                     */
-/*  Outputs       :                                                          */
-/*  Returns       : void                                                     */
-/*                                                                           */
-/*  Issues        : none                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         22 10 2008    100356         Draft                                */
-/*                                                                           */
-/*****************************************************************************/
-WORD32 ih264d_init(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
-{
-    ih264d_init_ip_t *ps_init_ip;
-    ih264d_init_op_t *ps_init_op;
-    WORD32 init_status = IV_SUCCESS;
-    ps_init_ip = (ih264d_init_ip_t *)pv_api_ip;
-    ps_init_op = (ih264d_init_op_t *)pv_api_op;
-
-    init_status = ih264d_init_video_decoder(dec_hdl, ps_init_ip, ps_init_op);
-
-    if(IV_SUCCESS != init_status)
-    {
-        return init_status;
-    }
-
-    return init_status;
-}
 /*****************************************************************************/
 /*                                                                           */
 /*  Function Name :  ih264d_map_error                                        */
@@ -2477,6 +1470,7 @@ UWORD32 ih264d_map_error(UWORD32 i4_err_status)
         case ERROR_ACTUAL_RESOLUTION_GREATER_THAN_INIT:
         case ERROR_PROFILE_NOT_SUPPORTED:
         case ERROR_INIT_NOT_DONE:
+        case IVD_MEM_ALLOC_FAILED:
             temp = 1 << IVD_FATALERROR;
             H264_DEC_DEBUG_PRINT("\nFatal Error\n");
             break;
@@ -2600,7 +1594,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ps_dec_ip = (ivd_video_decode_ip_t *)pv_api_ip;
     ps_dec_op = (ivd_video_decode_op_t *)pv_api_op;
     ps_dec->pv_dec_out = ps_dec_op;
-    ps_dec->process_called = 1;
     if(ps_dec->init_done != 1)
     {
         return IV_FAIL;
@@ -2640,7 +1633,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ps_dec->u4_output_present = 0;
     ps_dec->s_disp_op.u4_error_code = 1;
     ps_dec->u4_fmt_conv_num_rows = FMT_CONV_NUM_ROWS;
-    ps_dec->u4_stop_threads = 0;
     if(0 == ps_dec->u4_share_disp_buf
                     && ps_dec->i4_decode_header == 0)
     {
@@ -2859,17 +1851,46 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     DEBUG_THREADS_PRINTF(" Starting process call\n");
 
+
     ps_dec->u4_pic_buf_got = 0;
 
     do
     {
+        WORD32 buf_size;
 
         pu1_buf = (UWORD8*)ps_dec_ip->pv_stream_buffer
                         + ps_dec_op->u4_num_bytes_consumed;
 
         u4_max_ofst = ps_dec_ip->u4_num_Bytes
                         - ps_dec_op->u4_num_bytes_consumed;
-        pu1_bitstrm_buf = ps_dec->ps_mem_tab[MEM_REC_BITSBUF].pv_base;
+
+        /* If dynamic bitstream buffer is not allocated and
+         * header decode is done, then allocate dynamic bitstream buffer
+         */
+        if((NULL == ps_dec->pu1_bits_buf_dynamic) &&
+           (ps_dec->i4_header_decoded & 1))
+        {
+            WORD32 size;
+
+            void *pv_buf;
+            void *pv_mem_ctxt = ps_dec->pv_mem_ctxt;
+            size = MAX(256000, ps_dec->u2_pic_wd * ps_dec->u2_pic_ht * 3 / 2);
+            pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+            RETURN_IF((NULL == pv_buf), IV_FAIL);
+            ps_dec->pu1_bits_buf_dynamic = pv_buf;
+            ps_dec->u4_dynamic_bits_buf_size = size;
+        }
+
+        if(ps_dec->pu1_bits_buf_dynamic)
+        {
+            pu1_bitstrm_buf = ps_dec->pu1_bits_buf_dynamic;
+            buf_size = ps_dec->u4_dynamic_bits_buf_size;
+        }
+        else
+        {
+            pu1_bitstrm_buf = ps_dec->pu1_bits_buf_static;
+            buf_size = ps_dec->u4_static_bits_buf_size;
+        }
 
         u4_next_is_aud = 0;
 
@@ -2880,46 +1901,10 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         if(buflen == -1)
             buflen = 0;
         /* Ignore bytes beyond the allocated size of intermediate buffer */
-        buflen = MIN(buflen, (WORD32)ps_dec->ps_mem_tab[MEM_REC_BITSBUF].u4_mem_size);
+        buflen = MIN(buflen, buf_size);
 
         bytes_consumed = buflen + u4_length_of_start_code;
         ps_dec_op->u4_num_bytes_consumed += bytes_consumed;
-
-        if(buflen >= MAX_NAL_UNIT_SIZE)
-        {
-
-            ih264d_fill_output_struct_from_context(ps_dec, ps_dec_op);
-            H264_DEC_DEBUG_PRINT(
-                            "\nNal Size exceeded %d, Processing Stopped..\n",
-                            MAX_NAL_UNIT_SIZE);
-            ps_dec->i4_error_code = 1 << IVD_CORRUPTEDDATA;
-
-            ps_dec_op->e_pic_type = -1;
-            /*signal the decode thread*/
-            ih264d_signal_decode_thread(ps_dec);
-            /*signal end of frame decode for curren frame*/
-
-            if(ps_dec->u4_pic_buf_got == 0)
-            {
-                if(ps_dec->i4_header_decoded == 3)
-                {
-                    ps_dec->u2_total_mbs_coded =
-                                    ps_dec->ps_cur_sps->u2_max_mb_addr + 1;
-                }
-
-                /* close deblock thread if it is not closed yet*/
-                if(ps_dec->u4_num_cores == 3)
-                {
-                    ih264d_signal_bs_deblk_thread(ps_dec);
-                }
-                return IV_FAIL;
-            }
-            else
-            {
-                ps_dec->u1_pic_decode_done = 1;
-                continue;
-            }
-        }
 
         {
             UWORD8 u1_firstbyte, u1_nal_ref_idc;
@@ -3020,7 +2005,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             api_ret_value = IV_FAIL;
 
             if((ret == IVD_RES_CHANGED)
-                            || (ret == IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED)
                             || (ret == ERROR_UNAVAIL_PICBUF_T)
                             || (ret == ERROR_UNAVAIL_MVBUF_T))
             {
@@ -3102,7 +2086,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     }
 
     if((ret == IVD_RES_CHANGED)
-                    || (ret == IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED)
                     || (ret == ERROR_UNAVAIL_PICBUF_T)
                     || (ret == ERROR_UNAVAIL_MVBUF_T))
     {
@@ -3290,7 +2273,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
          * Note in this mode, format conversion does not run paralelly in a thread and adds to the codec cycles
          */
 
-        if((0 == ps_dec->u4_num_reorder_frames_at_init)
+        if((IVD_DECODE_FRAME_OUT == ps_dec->e_frm_out_mode)
                         && ps_dec->u1_init_dec_flag)
         {
 
@@ -3363,7 +2346,7 @@ WORD32 ih264d_get_version(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         return (IV_FAIL);
     }
 
-    version_string_len = strlen(version_string) + 1;
+    version_string_len = strnlen(version_string, MAXVERSION_STRLEN) + 1;
 
     if(ps_ip->u4_version_buffer_size >= version_string_len) //(WORD32)sizeof(sizeof(version_string)))
     {
@@ -3437,72 +2420,20 @@ WORD32 ih264d_set_display_frame(iv_obj_t *dec_hdl,
     ivd_set_display_frame_ip_t *dec_disp_ip;
     ivd_set_display_frame_op_t *dec_disp_op;
 
-    UWORD32 i, num_mvbank_req;
+    UWORD32 i;
     dec_struct_t * ps_dec = (dec_struct_t *)(dec_hdl->pv_codec_handle);
 
     dec_disp_ip = (ivd_set_display_frame_ip_t *)pv_api_ip;
     dec_disp_op = (ivd_set_display_frame_op_t *)pv_api_op;
     dec_disp_op->u4_error_code = 0;
-    if((NULL != ps_dec->ps_cur_sps) && (1 == (ps_dec->ps_cur_sps->u1_is_valid)))
-    {
-        UWORD32 level, width_mbs, height_mbs;
 
-        level = ps_dec->u4_level_at_init;
-        width_mbs = ps_dec->u2_frm_wd_in_mbs;
-        height_mbs = ps_dec->u2_frm_ht_in_mbs;
-
-        if((ps_dec->ps_cur_sps->u1_vui_parameters_present_flag == 1)
-                        && (ps_dec->ps_cur_sps->s_vui.u4_num_reorder_frames != 64))
-        {
-            num_mvbank_req = ps_dec->ps_cur_sps->s_vui.u4_num_reorder_frames + 2;
-        }
-        else
-        {
-            /*if VUI is not present assume maximum possible refrence frames for the level,
-             * as max reorder frames*/
-            num_mvbank_req = ih264d_get_dpb_size_new(level, width_mbs,
-                                                     height_mbs);
-        }
-
-        num_mvbank_req += ps_dec->ps_cur_sps->u1_num_ref_frames + 1;
-    }
-    else
-    {
-        UWORD32 num_bufs_app, num_bufs_level;
-        UWORD32 num_ref_frames, num_reorder_frames, luma_width;
-        UWORD32 luma_height, level;
-
-        num_ref_frames = ps_dec->u4_num_ref_frames_at_init;
-        num_reorder_frames = ps_dec->u4_num_reorder_frames_at_init;
-        level = ps_dec->u4_level_at_init;
-        luma_width = ps_dec->u4_width_at_init;
-        luma_height = ps_dec->u4_height_at_init;
-
-        num_bufs_app = num_ref_frames + num_reorder_frames + 1;
-
-        if(num_bufs_app <= 1)
-            num_bufs_app = 2;
-
-        num_bufs_level = ih264d_get_dpb_size_new(level, (luma_width >> 4),
-                                                 (luma_height >> 4));
-
-        num_bufs_level = num_bufs_level * 2 + 1;
-
-        num_mvbank_req = MIN(num_bufs_level, num_bufs_app);
-
-        num_mvbank_req += ps_dec->u4_num_extra_disp_bufs_at_init;
-
-    }
 
     ps_dec->u4_num_disp_bufs = 0;
     if(ps_dec->u4_share_disp_buf)
     {
         UWORD32 u4_num_bufs = dec_disp_ip->num_disp_bufs;
-        if(u4_num_bufs > MAX_DISP_BUFS_NEW)
-            u4_num_bufs = MAX_DISP_BUFS_NEW;
 
         u4_num_bufs = MIN(u4_num_bufs, MAX_DISP_BUFS_NEW);
-        u4_num_bufs = MIN(u4_num_bufs, num_mvbank_req);
 
         ps_dec->u4_num_disp_bufs = u4_num_bufs;
         for(i = 0; i < u4_num_bufs; i++)
@@ -3613,8 +2544,6 @@ WORD32 ih264d_get_status(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     ps_dec = (dec_struct_t *)(dec_hdl->pv_codec_handle);
 
-    pic_wd = ps_dec->u4_width_at_init;
-    pic_ht = ps_dec->u4_height_at_init;
 
     if((NULL != ps_dec->ps_cur_sps) && (1 == (ps_dec->ps_cur_sps->u1_is_valid)))
     {
@@ -3635,6 +2564,9 @@ WORD32 ih264d_get_status(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     }
     else
     {
+        pic_wd = 0;
+        pic_ht = 0;
+
         ps_ctl_op->u4_pic_ht = pic_wd;
         ps_ctl_op->u4_pic_wd = pic_ht;
 
@@ -3655,25 +2587,17 @@ WORD32 ih264d_get_status(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     {
         if((NULL != ps_dec->ps_cur_sps) && (1 == (ps_dec->ps_cur_sps->u1_is_valid)))
         {
-            UWORD32 level, width_mbs, height_mbs;
-
-            level = ps_dec->u4_level_at_init;
-            width_mbs = ps_dec->u2_frm_wd_in_mbs;
-            height_mbs = ps_dec->u2_frm_ht_in_mbs;
-
-            if((ps_dec->ps_cur_sps->u1_vui_parameters_present_flag == 1)
-                            && (ps_dec->ps_cur_sps->s_vui.u4_num_reorder_frames
-                                            != 64))
+            if((ps_dec->ps_cur_sps->u1_vui_parameters_present_flag == 1) &&
+               (1 == ps_dec->ps_cur_sps->s_vui.u1_bitstream_restriction_flag))
             {
                 ps_ctl_op->u4_num_disp_bufs =
-                                ps_dec->ps_cur_sps->s_vui.u4_num_reorder_frames + 2;
+                                ps_dec->ps_cur_sps->s_vui.u4_num_reorder_frames + 1;
             }
             else
             {
                 /*if VUI is not present assume maximum possible refrence frames for the level,
                  * as max reorder frames*/
-                ps_ctl_op->u4_num_disp_bufs = ih264d_get_dpb_size_new(
-                                level, width_mbs, height_mbs);
+                ps_ctl_op->u4_num_disp_bufs = ih264d_get_dpb_size(ps_dec->ps_cur_sps);
             }
 
             ps_ctl_op->u4_num_disp_bufs +=
@@ -3681,21 +2605,8 @@ WORD32 ih264d_get_status(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         }
         else
         {
-            ps_ctl_op->u4_num_disp_bufs = ih264d_get_dpb_size_new(
-                            ps_dec->u4_level_at_init,
-                            (ps_dec->u4_width_at_init >> 4),
-                            (ps_dec->u4_height_at_init >> 4));
-
-            ps_ctl_op->u4_num_disp_bufs +=
-                            ps_ctl_op->u4_num_disp_bufs;
-
-            ps_ctl_op->u4_num_disp_bufs =
-                            MIN(ps_ctl_op->u4_num_disp_bufs,
-                                (ps_dec->u4_num_ref_frames_at_init
-                                                + ps_dec->u4_num_reorder_frames_at_init));
-
+            ps_ctl_op->u4_num_disp_bufs = 32;
         }
-
         ps_ctl_op->u4_num_disp_bufs = MAX(
                         ps_ctl_op->u4_num_disp_bufs, 6);
         ps_ctl_op->u4_num_disp_bufs = MIN(
@@ -3737,7 +2648,7 @@ WORD32 ih264d_get_status(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     for(i = 0; i < ps_ctl_op->u4_min_num_in_bufs; i++)
     {
-        ps_ctl_op->u4_min_in_buf_size[i] = MIN_IN_BUF_SIZE;
+        ps_ctl_op->u4_min_in_buf_size[i] = MAX(256000, pic_wd * pic_ht * 3 / 2);
     }
 
     /*!*/
@@ -3829,15 +2740,11 @@ WORD32 ih264d_get_buf_info(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     ps_ctl_op->u4_num_disp_bufs = 1;
 
-    for(i = 0; i < ps_ctl_op->u4_min_num_in_bufs; i++)
-    {
-        ps_ctl_op->u4_min_in_buf_size[i] = MIN_IN_BUF_SIZE;
-    }
 
-    pic_wd = ps_dec->u4_width_at_init;
-    pic_ht = ps_dec->u4_height_at_init;
+    pic_wd = 0;
+    pic_ht = 0;
 
-    if((NULL != ps_dec->ps_cur_sps) && (1 == (ps_dec->ps_cur_sps->u1_is_valid)))
+    if(ps_dec->i4_header_decoded == 3)
     {
 
         if(0 == ps_dec->u4_share_disp_buf)
@@ -3853,16 +2760,11 @@ WORD32 ih264d_get_buf_info(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         }
 
     }
-    else
+
+    for(i = 0; i < ps_ctl_op->u4_min_num_in_bufs; i++)
     {
-        if(1 == ps_dec->u4_share_disp_buf)
-        {
-            pic_wd += (PAD_LEN_Y_H << 1);
-            pic_ht += (PAD_LEN_Y_V << 2);
-
-        }
+        ps_ctl_op->u4_min_in_buf_size[i] = MAX(256000, pic_wd * pic_ht * 3 / 2);
     }
-
     if((WORD32)ps_dec->u4_app_disp_width > pic_wd)
         pic_wd = ps_dec->u4_app_disp_width;
 
@@ -3872,25 +2774,17 @@ WORD32 ih264d_get_buf_info(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     {
         if((NULL != ps_dec->ps_cur_sps) && (1 == (ps_dec->ps_cur_sps->u1_is_valid)))
         {
-            UWORD32 level, width_mbs, height_mbs;
-
-            level = ps_dec->u4_level_at_init;
-            width_mbs = ps_dec->u2_frm_wd_in_mbs;
-            height_mbs = ps_dec->u2_frm_ht_in_mbs;
-
-            if((ps_dec->ps_cur_sps->u1_vui_parameters_present_flag == 1)
-                            && (ps_dec->ps_cur_sps->s_vui.u4_num_reorder_frames
-                                            != 64))
+            if((ps_dec->ps_cur_sps->u1_vui_parameters_present_flag == 1) &&
+               (1 == ps_dec->ps_cur_sps->s_vui.u1_bitstream_restriction_flag))
             {
                 ps_ctl_op->u4_num_disp_bufs =
-                                ps_dec->ps_cur_sps->s_vui.u4_num_reorder_frames + 2;
+                                ps_dec->ps_cur_sps->s_vui.u4_num_reorder_frames + 1;
             }
             else
             {
                 /*if VUI is not present assume maximum possible refrence frames for the level,
                  * as max reorder frames*/
-                ps_ctl_op->u4_num_disp_bufs = ih264d_get_dpb_size_new(
-                                level, width_mbs, height_mbs);
+                ps_ctl_op->u4_num_disp_bufs = ih264d_get_dpb_size(ps_dec->ps_cur_sps);
             }
 
             ps_ctl_op->u4_num_disp_bufs +=
@@ -3899,18 +2793,7 @@ WORD32 ih264d_get_buf_info(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         }
         else
         {
-            ps_ctl_op->u4_num_disp_bufs = ih264d_get_dpb_size_new(
-                            ps_dec->u4_level_at_init,
-                            (ps_dec->u4_width_at_init >> 4),
-                            (ps_dec->u4_height_at_init >> 4));
-
-            ps_ctl_op->u4_num_disp_bufs +=
-                            ps_ctl_op->u4_num_disp_bufs;
-
-            ps_ctl_op->u4_num_disp_bufs =
-                            MIN(ps_ctl_op->u4_num_disp_bufs,
-                                (ps_dec->u4_num_ref_frames_at_init
-                                                + ps_dec->u4_num_reorder_frames_at_init));
+            ps_ctl_op->u4_num_disp_bufs = 32;
 
         }
 
@@ -4031,11 +2914,11 @@ WORD32 ih264d_set_params(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     }
     else
     {
-        if((ps_ctl_ip->u4_disp_wd >= ps_dec->u2_pic_wd)/* && (ps_ctl_ip->u4_disp_wd <= ps_dec->u4_width_at_init) */)
+        if(ps_ctl_ip->u4_disp_wd >= ps_dec->u2_pic_wd)
         {
             ps_dec->u4_app_disp_width = ps_ctl_ip->u4_disp_wd;
         }
-        else if((0 == ps_dec->i4_header_decoded) /*&& (ps_ctl_ip->u4_disp_wd <= ps_dec->u4_width_at_init)*/)
+        else if(0 == ps_dec->i4_header_decoded)
         {
             ps_dec->u4_app_disp_width = ps_ctl_ip->u4_disp_wd;
         }
@@ -4065,7 +2948,15 @@ WORD32 ih264d_set_params(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         ps_dec->i4_decode_header = 1;
         ret = IV_FAIL;
     }
+    ps_dec->e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
 
+    if((ps_ctl_ip->e_frm_out_mode != IVD_DECODE_FRAME_OUT) &&
+       (ps_ctl_ip->e_frm_out_mode != IVD_DISPLAY_FRAME_OUT))
+    {
+        ps_ctl_op->u4_error_code = (1 << IVD_UNSUPPORTEDPARAM);
+        ret = IV_FAIL;
+    }
+    ps_dec->e_frm_out_mode = ps_ctl_ip->e_frm_out_mode;
     return ret;
 
 }
@@ -4115,7 +3006,40 @@ WORD32 ih264d_set_default_params(iv_obj_t *dec_hdl,
 
     return ret;
 }
+/*****************************************************************************/
+/*                                                                           */
+/*  Function Name :  ih264d_reset                                            */
+/*                                                                           */
+/*  Description   :                                                          */
+/*                                                                           */
+/*  Inputs        :iv_obj_t decoder handle                                   */
+/*                :pv_api_ip pointer to input structure                      */
+/*                :pv_api_op pointer to output structure                     */
+/*  Globals       : <Does it use any global variables?>                      */
+/*  Outputs       :                                                          */
+/*  Returns       : void                                                     */
+/*                                                                           */
+/*  Issues        : none                                                     */
+/*                                                                           */
+/*  Revision History:                                                        */
+/*                                                                           */
+/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
+/*         22 10 2008    100356         Draft                                */
+/*                                                                           */
+/*****************************************************************************/
+WORD32 ih264d_delete(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
+{
+    dec_struct_t *ps_dec;
+    ih264d_delete_ip_t *ps_ip = (ih264d_delete_ip_t *)pv_api_ip;
+    ih264d_delete_op_t *ps_op = (ih264d_delete_op_t *)pv_api_op;
 
+    ps_dec = (dec_struct_t *)(dec_hdl->pv_codec_handle);
+    UNUSED(ps_ip);
+    ps_op->s_ivd_delete_op_t.u4_error_code = 0;
+    ih264d_free_dynamic_bufs(ps_dec);
+    ih264d_free_static_bufs(dec_hdl);
+    return IV_SUCCESS;
+}
 /*****************************************************************************/
 /*                                                                           */
 /*  Function Name :  ih264d_reset                                            */
@@ -4145,17 +3069,10 @@ WORD32 ih264d_reset(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ps_ctl_op->u4_error_code = 0;
 
     ps_dec = (dec_struct_t *)(dec_hdl->pv_codec_handle);
-//CHECK
+
     if(ps_dec != NULL)
     {
-
         ih264d_init_decoder(ps_dec);
-
-        /*
-         memset(ps_dec->disp_bufs, 0, (MAX_DISP_BUFS_NEW) * sizeof(disp_buf_t));
-         memset(ps_dec->u4_disp_buf_mapping, 0, (MAX_DISP_BUFS_NEW) * sizeof(UWORD32));
-         memset(ps_dec->u4_disp_buf_to_be_freed, 0, (MAX_DISP_BUFS_NEW) * sizeof(UWORD32));
-         */
     }
     else
     {
@@ -4400,8 +3317,8 @@ WORD32 ih264d_get_frame_dimensions(iv_obj_t *dec_hdl,
     }
     else
     {
-        disp_wd = ps_dec->u4_width_at_init;
-        disp_ht = ps_dec->u4_height_at_init;
+        disp_wd = 0;
+        disp_ht = 0;
 
         if(0 == ps_dec->u4_share_disp_buf)
         {
@@ -4487,7 +3404,6 @@ WORD32 ih264d_set_num_cores(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     if(ps_dec->u4_num_cores == 1)
     {
         ps_dec->u1_separate_parse = 0;
-        ps_dec->pi4_ctxt_save_register_dec = ps_dec->pi4_ctxt_save_register;
     }
     else
     {
@@ -4579,18 +3495,12 @@ IV_API_CALL_STATUS_T ih264d_api_function(iv_obj_t *dec_hdl,
     switch(command)
     {
 
-        case IV_CMD_GET_NUM_MEM_REC:
-            u4_api_ret = ih264d_get_num_rec((void *)pv_api_ip,
-                                            (void *)pv_api_op);
-
+        case IVD_CMD_CREATE:
+            u4_api_ret = ih264d_create(dec_hdl, (void *)pv_api_ip,
+                                     (void *)pv_api_op);
             break;
-        case IV_CMD_FILL_NUM_MEM_REC:
-
-            u4_api_ret = ih264d_fill_num_mem_rec((void *)pv_api_ip,
-                                                 (void *)pv_api_op);
-            break;
-        case IV_CMD_INIT:
-            u4_api_ret = ih264d_init(dec_hdl, (void *)pv_api_ip,
+        case IVD_CMD_DELETE:
+            u4_api_ret = ih264d_delete(dec_hdl, (void *)pv_api_ip,
                                      (void *)pv_api_op);
             break;
 
@@ -4614,11 +3524,6 @@ IV_API_CALL_STATUS_T ih264d_api_function(iv_obj_t *dec_hdl,
         case IVD_CMD_REL_DISPLAY_FRAME:
             u4_api_ret = ih264d_rel_display_frame(dec_hdl, (void *)pv_api_ip,
                                                   (void *)pv_api_op);
-            break;
-
-        case IV_CMD_RETRIEVE_MEMREC:
-            u4_api_ret = ih264d_clr(dec_hdl, (void *)pv_api_ip,
-                                    (void *)pv_api_op);
             break;
 
         case IVD_CMD_VIDEO_CTL:

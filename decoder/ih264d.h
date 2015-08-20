@@ -78,8 +78,6 @@ IV_API_CALL_STATUS_T ih264d_api_function(iv_obj_t *ps_handle, void *pv_api_ip,vo
 typedef enum {
 
     IH264D_VID_HDR_DEC_NUM_FRM_BUF_NOT_SUFFICIENT   = IVD_DUMMY_ELEMENT_FOR_CODEC_EXTENSIONS + 1,
-    IH264D_UNSUPPORTED_LEVEL   = IVD_DUMMY_ELEMENT_FOR_CODEC_EXTENSIONS + 2,
-    IH264D_UNSUPPORTED_NUM_REF_FRAMES   = IVD_DUMMY_ELEMENT_FOR_CODEC_EXTENSIONS + 3
 
 }IH264D_ERROR_CODES_T;
 
@@ -87,60 +85,20 @@ typedef enum {
 /* Extended Structures                                                       */
 /*****************************************************************************/
 
-/*****************************************************************************/
-/*  Get Number of Memory Records                                             */
-/*****************************************************************************/
-
-
-typedef struct {
-    iv_num_mem_rec_ip_t                    s_ivd_num_mem_rec_ip_t;
-}ih264d_num_mem_rec_ip_t;
-
-
-typedef struct{
-    iv_num_mem_rec_op_t                    s_ivd_num_mem_rec_op_t;
-}ih264d_num_mem_rec_op_t;
-
 
 /*****************************************************************************/
-/*  Fill Memory Records                                                      */
+/*  Delete Codec                                                             */
 /*****************************************************************************/
 
 
 typedef struct {
-    iv_fill_mem_rec_ip_t                    s_ivd_fill_mem_rec_ip_t;
-    WORD32                                  i4_level;
-    UWORD32                                 u4_num_reorder_frames;
-    UWORD32                                 u4_num_ref_frames;
-    UWORD32                                 u4_share_disp_buf;
-
-    /* format in which codec has to give out frame data for display */
-    IV_COLOR_FORMAT_T                       e_output_format;
-
-    /* Number of extra display buffers that will be allocated to handle display pipeline depth */
-    UWORD32                                 u4_num_extra_disp_buf;
-
-}ih264d_fill_mem_rec_ip_t;
+    ivd_delete_ip_t               s_ivd_delete_ip_t;
+}ih264d_delete_ip_t;
 
 
 typedef struct{
-    iv_fill_mem_rec_op_t                   s_ivd_fill_mem_rec_op_t;
-
-}ih264d_fill_mem_rec_op_t;
-
-/*****************************************************************************/
-/*  Retrieve Memory Records                                                  */
-/*****************************************************************************/
-
-
-typedef struct {
-    iv_retrieve_mem_rec_ip_t               s_ivd_retrieve_mem_rec_ip_t;
-}ih264d_retrieve_mem_rec_ip_t;
-
-
-typedef struct{
-    iv_retrieve_mem_rec_op_t               s_ivd_retrieve_mem_rec_op_t;
-}ih264d_retrieve_mem_rec_op_t;
+    ivd_delete_op_t               s_ivd_delete_op_t;
+}ih264d_delete_op_t;
 
 
 /*****************************************************************************/
@@ -149,20 +107,13 @@ typedef struct{
 
 
 typedef struct {
-    ivd_init_ip_t                           s_ivd_init_ip_t;
-    WORD32                                  i4_level;
-    UWORD32                                 u4_num_reorder_frames;
-    UWORD32                                 u4_num_ref_frames;
-    UWORD32                                 u4_share_disp_buf;
-    /* Number of extra display buffers that will be allocated to handle display pipeline depth */
-    UWORD32                                 u4_num_extra_disp_buf;
-
-}ih264d_init_ip_t;
+    ivd_create_ip_t                         s_ivd_create_ip_t;
+}ih264d_create_ip_t;
 
 
 typedef struct{
-    ivd_init_op_t                           s_ivd_init_op_t;
-}ih264d_init_op_t;
+    ivd_create_op_t                         s_ivd_create_op_t;
+}ih264d_create_op_t;
 
 
 /*****************************************************************************/
