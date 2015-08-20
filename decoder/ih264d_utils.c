@@ -550,16 +550,6 @@ WORD32 ih264d_end_of_pic_processing(dec_struct_t *ps_dec)
         u1_pic_type = TOP_REF | BOT_REF;
     ps_dec->ps_cur_pic->u1_pic_type |= u1_pic_type;
 
-#if ROW_ACCESSES_STAT
-    {
-        H264_DEC_DEBUG_PRINT("Row_Accesses_BeforeBB = %6d, Row_Accesses_AfterBB = %6d \n\n",
-                        gui_Row_Accesses_BeforeBB, gui_Row_Accesses_AfterBB);
-        gui_Row_Accesses_BeforeBBTotal += gui_Row_Accesses_BeforeBB;
-        gui_Row_Accesses_AfterBBTotal += gui_Row_Accesses_AfterBB;
-        gui_Row_Accesses_AfterBB = 0;
-        gui_Row_Accesses_BeforeBB = 0;
-    }
-#endif
 
     if(ps_cur_slice->u1_field_pic_flag)
     {
@@ -591,13 +581,12 @@ WORD32 ih264d_end_of_pic_processing(dec_struct_t *ps_dec)
 /*         28 04 2005   NS              Draft                                */
 /*                                                                           */
 /*****************************************************************************/
-WORD32 ih264d_get_dpb_size(dec_seq_params_t *ps_seq, dec_struct_t *ps_dec)
+WORD32 ih264d_get_dpb_size(dec_seq_params_t *ps_seq)
 {
     WORD32 i4_size;
     UWORD8 u1_level_idc;
 
-    u1_level_idc = ps_seq->u1_level_idc; //harcode for the time being
-    u1_level_idc = MIN(u1_level_idc, ps_dec->u4_level_at_init);
+    u1_level_idc = ps_seq->u1_level_idc;
 
     switch(u1_level_idc)
     {
@@ -661,121 +650,6 @@ WORD32 ih264d_get_dpb_size(dec_seq_params_t *ps_seq, dec_struct_t *ps_dec)
     return (i4_size);
 }
 
-WORD32 ih264d_get_dpb_size_new(UWORD32 u4_level_idc,
-                               UWORD32 u2_frm_wd_in_mbs,
-                               UWORD32 u2_frm_ht_in_mbs)
-{
-
-    UWORD32 i4_size = 0;
-
-    switch(u4_level_idc)
-    {
-        case 10:
-            i4_size = 152064;
-            break;
-        case 11:
-            i4_size = 345600;
-            break;
-        case 12:
-            i4_size = 912384;
-            break;
-        case 13:
-            i4_size = 912384;
-            break;
-        case 20:
-            i4_size = 912384;
-            break;
-        case 21:
-            i4_size = 1824768;
-            break;
-        case 22:
-            i4_size = 3110400;
-            break;
-        case 30:
-            i4_size = 3110400;
-            break;
-        case 31:
-            i4_size = 6912000;
-            break;
-        case 32:
-            i4_size = 7864320;
-            break;
-        case 40:
-            i4_size = 12582912;
-            break;
-        case 41:
-            i4_size = 12582912;
-            break;
-        case 42:
-            i4_size = 12582912;
-            break;
-        case 50:
-            i4_size = 42393600;
-            break;
-        case 51:
-            i4_size = 70778880;
-            break;
-        case 52:
-            i4_size = 70778880;
-            break;
-        default:
-        {
-            i4_size = 70778880;
-        }
-            break;
-    }
-
-    i4_size = i4_size / (u2_frm_wd_in_mbs * (u2_frm_ht_in_mbs));
-    i4_size = (i4_size + 383) / 384;
-    i4_size = MIN(i4_size, 16);
-    i4_size = MAX(i4_size, 1);
-    return (i4_size);
-}
-
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264d_max_possible_ref_pics                                    */
-/*                                                                           */
-/*  Description   : This function returns the maximum number of              */
-/*                  reference buffers corresponding to the current Level     */
-/*                  in accordance to "Table A-1  Level limits" in standard.  */
-/*                  Please refer to Annex A - Profiles and Levels            */
-/*                  Maximum Number of reference buffers are derived from     */
-/*                  the dbpsize and max_mbs_in frame given in the table      */
-/*  Inputs        : level number                                             */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         19 05 2005   SWRN            Draft                                */
-/*                                                                           */
-/*****************************************************************************/
-
-UWORD8 ih264d_max_possible_ref_pics(UWORD8 u1_level)
-{
-    switch(u1_level)
-    {
-        case H264_LEVEL_1_0:
-            return (MAX_REF_LEVEL_1_0);
-        case H264_LEVEL_1_1:
-            return (MAX_REF_LEVEL_1_1);
-        case H264_LEVEL_1_2:
-            return (MAX_REF_LEVEL_1_2);
-        case H264_LEVEL_1_3:
-            return (MAX_REF_LEVEL_1_3);
-        case H264_LEVEL_2_0:
-            return (MAX_REF_LEVEL_2_0);
-        case H264_LEVEL_2_1:
-            return (MAX_REF_LEVEL_2_1);
-        case H264_LEVEL_2_2:
-            return (MAX_REF_LEVEL_2_2);
-        case H264_LEVEL_3_0:
-            return (MAX_REF_LEVEL_3_0);
-    }
-
-    return (H264_MAX_REF_PICS);
-}
-
 /***************************************************************************/
 /* If change in Level or the required PicBuffers i4_size is more than the  */
 /* current one FREE the current PicBuffers and allocate affresh            */
@@ -829,90 +703,7 @@ WORD32 ih264d_init_dec_mb_grp(dec_struct_t *ps_dec)
     return OK;
 }
 
-/*!
- **************************************************************************
- * \if Function name : ih264d_get_numbuf_dpb_bank \endif
- *
- * \brief
- *    Initializes the picture.
- *
- * \return
- *    0 on Success and Error code otherwise
- *
- * \note
- *    This function is called when first slice of the
- *    NON -IDR picture is encountered.
- **************************************************************************
- */
-WORD32 ih264d_get_numbuf_dpb_bank(dec_struct_t *ps_dec, UWORD32 u4_frame_wd, UWORD32 u4_frame_ht)
-{
-    WORD32 i4_DPB_size;
-    WORD32 i4_pic_size;
-    WORD32 i4_num_buf_alloc;
-    UWORD32 Ysize;
-    UWORD32 UVsize;
-    UWORD32 one_frm_size;
 
-
-    i4_DPB_size = ps_dec->ps_mem_tab[MEM_REC_REF_PIC].u4_mem_size;
-
-    Ysize = u4_frame_wd * u4_frame_ht;
-
-    UVsize = Ysize >> 2;
-
-    {
-        if(ps_dec->u4_share_disp_buf == 1)
-        {
-            /* In case of buffers getting shared between application and library
-             there is no need of reference memtabs. Instead of setting the i4_size
-             to zero, it is reduced to a small i4_size to ensure that changes
-             in the code are minimal */
-            if((ps_dec->u1_chroma_format == IV_YUV_420SP_UV)
-                            || (ps_dec->u1_chroma_format == IV_YUV_420SP_VU)
-                            || (ps_dec->u1_chroma_format == IV_YUV_420P))
-            {
-                Ysize = 64;
-            }
-            if(ps_dec->u1_chroma_format == IV_YUV_420SP_UV)
-            {
-                UVsize = 64;
-            }
-
-        }
-    }
-
-    one_frm_size = (((Ysize + 127) >> 7) << 7)
-                    + ((((UVsize << 1) + 127) >> 7) << 7);
-    i4_num_buf_alloc = i4_DPB_size / (one_frm_size);
-
-    return i4_num_buf_alloc;
-}
-
-/*!
- **************************************************************************
- * \if Function name : ih264d_get_numbuf_mv_bank \endif
- *
- * \brief
- *    Computes number of MVbank buffers that can be allocated.
- *
- * \return
- *    Number of MV bank buffers that can be allocated.
- *
- * \note
- **************************************************************************
- */
-UWORD32 ih264d_get_numbuf_mv_bank(dec_struct_t *ps_dec, UWORD32 width,
-                                  UWORD32 height)
-{
-    UWORD32 u4_mv_bank_size,one_frame_size;
-    UWORD32 u4_num_buf_alloc;
-
-    u4_mv_bank_size = ps_dec->ps_mem_tab[MEM_REC_MVBANK].u4_mem_size;
-    one_frame_size = sizeof(mv_pred_t)
-                    * ((width * (height + PAD_MV_BANK_ROW)) >> 4);
-    u4_num_buf_alloc = u4_mv_bank_size / one_frame_size;
-    return u4_num_buf_alloc;
-}
 /*!
  **************************************************************************
  * \if Function name : ih264d_init_pic \endif
@@ -972,58 +763,43 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
     if(!ps_dec->u1_init_dec_flag
                     || ih264d_is_sps_changed(ps_prev_seq_params, ps_seq))
     {
+        ps_dec->u1_max_dec_frame_buffering = ih264d_get_dpb_size(ps_seq);
 
+        ps_dec->i4_display_delay = ps_dec->u1_max_dec_frame_buffering;
+        if((1 == ps_seq->u1_vui_parameters_present_flag) &&
+           (1 == ps_seq->s_vui.u1_bitstream_restriction_flag))
+        {
+            if(ps_seq->u1_frame_mbs_only_flag == 1)
+                ps_dec->i4_display_delay = ps_seq->s_vui.u4_num_reorder_frames + 1;
+            else
+                ps_dec->i4_display_delay = ps_seq->s_vui.u4_num_reorder_frames * 2 + 2;
+        }
 
-        ivd_video_decode_ip_t *ps_dec_in = ps_dec->pv_dec_in;
-        ivd_video_decode_op_t *ps_dec_out = ps_dec->pv_dec_out;
+        if(IVD_DECODE_FRAME_OUT == ps_dec->e_frm_out_mode)
+            ps_dec->i4_display_delay = 0;
 
         if(ps_dec->u4_share_disp_buf == 0)
         {
-            i4_pic_bufs = ih264d_get_numbuf_dpb_bank(ps_dec, ps_dec->u2_frm_wd_y,
-                                              ps_dec->u2_frm_ht_y);
+            if(ps_seq->u1_frame_mbs_only_flag == 1)
+                ps_dec->u1_pic_bufs = ps_dec->i4_display_delay + ps_seq->u1_num_ref_frames + 1;
+            else
+                ps_dec->u1_pic_bufs = ps_dec->i4_display_delay + ps_seq->u1_num_ref_frames * 2 + 2;
         }
         else
         {
-            i4_pic_bufs = (WORD32)ps_dec->u4_num_disp_bufs;
+            ps_dec->u1_pic_bufs = (WORD32)ps_dec->u4_num_disp_bufs;
         }
 
-        ps_dec->u1_pic_bufs = CLIP_U8(i4_pic_bufs);
+        /* Ensure at least two buffers are allocated */
+        ps_dec->u1_pic_bufs = MAX(ps_dec->u1_pic_bufs, 2);
 
         if(ps_dec->u4_share_disp_buf == 0)
             ps_dec->u1_pic_bufs = MIN(ps_dec->u1_pic_bufs,
                                       (H264_MAX_REF_PICS * 2));
 
-        ps_dec->u1_max_dec_frame_buffering = ih264d_get_dpb_size(ps_seq,
-                                                                 ps_dec);
-
-        ps_dec->u1_max_dec_frame_buffering = MIN(
-                        ps_dec->u1_max_dec_frame_buffering,
-                        ps_dec->u4_num_ref_frames_at_init);
         ps_dec->u1_max_dec_frame_buffering = MIN(
                         ps_dec->u1_max_dec_frame_buffering,
                         ps_dec->u1_pic_bufs);
-
-//   ps_dec->u1_pic_bufs = ps_dec->i1_max_dec_frame_buffering;
-
-        /* Fix is for handling one pic in and one pic out incase of */
-        /* MMCO 5 or IDR                                            */
-
-        ps_dec->i4_display_delay = MIN(ps_dec->u4_num_reorder_frames_at_init,
-                                       ps_dec->u1_max_dec_frame_buffering);
-
-        if(1 == ps_seq->u1_vui_parameters_present_flag)
-        {
-            if(ps_seq->u1_frame_mbs_only_flag == 1)
-                ps_dec->i4_display_delay = MIN(
-                                (UWORD32 )ps_dec->i4_display_delay,
-                                ((UWORD32 )ps_seq->s_vui.u4_num_reorder_frames
-                                                + 1));
-            else
-                ps_dec->i4_display_delay = MIN(
-                                (UWORD32 )ps_dec->i4_display_delay,
-                                ((UWORD32 )ps_seq->s_vui.u4_num_reorder_frames
-                                                + 1) * 2);
-        }
 
         /* Temporary hack to run Tractor Cav/Cab/MbAff Profiler streams  also for CAFI1_SVA_C.264 in conformance*/
         if(ps_dec->u1_init_dec_flag)
@@ -1046,12 +822,21 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
                 return ret;
         }
 
+        ret = ih264d_allocate_dynamic_bufs(ps_dec);
+        if(ret != OK)
+        {
+            /* Free any dynamic buffers that are allocated */
+            ih264d_free_dynamic_bufs(ps_dec);
+            ps_dec->i4_error_code = IVD_MEM_ALLOC_FAILED;
+            return IVD_MEM_ALLOC_FAILED;
+        }
+
         ret = ih264d_create_pic_buffers(ps_dec->u1_pic_bufs,
                                         ps_dec);
         if(ret != OK)
             return ret;
 
-        ih264d_get_memory_dec_params(ps_dec);
+
 
         ret = ih264d_create_mv_bank(ps_dec, ps_dec->u2_pic_wd,
                                     ps_dec->u2_pic_ht);
@@ -1897,26 +1682,11 @@ WORD32 ih264d_create_pic_buffers(UWORD8 u1_num_of_buf,
     UWORD32 u4_luma_size, u4_chroma_size;
     UWORD8 u1_frm = ps_dec->ps_cur_sps->u1_frame_mbs_only_flag;
     WORD32 j;
-    UWORD32 u4_pic_buf_mem_used, u4_ref_buf_mem_used;
-    UWORD8 *pu1_pic_buf_mem_base, *pu1_ref_buf_mem_base;
+    UWORD8 *pu1_buf;
 
-    u4_pic_buf_mem_used = 0;
-    pu1_pic_buf_mem_base = ps_dec->ps_mem_tab[MEM_REC_PIC_BUF_MGR].pv_base;
-
-    ps_dec->pv_disp_buf_mgr = (void *)(pu1_pic_buf_mem_base
-                    + u4_pic_buf_mem_used);
-    u4_pic_buf_mem_used += sizeof(disp_mgr_t);
+    ps_pic_buf = ps_dec->ps_pic_buf_base;
     ih264_disp_mgr_init((disp_mgr_t *)ps_dec->pv_disp_buf_mgr);
-
-    ps_dec->pv_pic_buf_mgr =
-                    (void *)(pu1_pic_buf_mem_base + u4_pic_buf_mem_used);
-    u4_pic_buf_mem_used += sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
     ih264_buf_mgr_init((buf_mgr_t *)ps_dec->pv_pic_buf_mgr);
-
-    ps_pic_buf = (pic_buffer_t *)(pu1_pic_buf_mem_base + u4_pic_buf_mem_used);
-    u4_pic_buf_mem_used += sizeof(struct pic_buffer_t)
-                    * (H264_MAX_REF_PICS * 2);
-
     u4_luma_size = ps_dec->u2_frm_wd_y * ps_dec->u2_frm_ht_y;
     u4_chroma_size = ps_dec->u2_frm_wd_uv * ps_dec->u2_frm_ht_uv;
 
@@ -1935,7 +1705,6 @@ WORD32 ih264d_create_pic_buffers(UWORD8 u1_num_of_buf,
             }
 
             if(ps_dec->u1_chroma_format == IV_YUV_420SP_UV)
-
             {
                 u4_chroma_size = 64;
             }
@@ -1943,8 +1712,7 @@ WORD32 ih264d_create_pic_buffers(UWORD8 u1_num_of_buf,
         }
     }
 
-    pu1_ref_buf_mem_base = ps_dec->ps_mem_tab[MEM_REC_REF_PIC].pv_base;
-    u4_ref_buf_mem_used = 0;
+    pu1_buf = ps_dec->pu1_pic_buf_base;
 
     /* Allocate memory for refernce buffers */
     for(i = 0; i < u1_num_of_buf; i++)
@@ -1952,11 +1720,12 @@ WORD32 ih264d_create_pic_buffers(UWORD8 u1_num_of_buf,
         UWORD32 u4_offset;
         WORD32 buf_ret;
         UWORD8 *pu1_luma, *pu1_chroma;
+        void *pv_mem_ctxt = ps_dec->pv_mem_ctxt;
 
-        pu1_luma = pu1_ref_buf_mem_base + u4_ref_buf_mem_used;
-        u4_ref_buf_mem_used += u4_luma_size;
-        pu1_chroma = pu1_ref_buf_mem_base + u4_ref_buf_mem_used;
-        u4_ref_buf_mem_used += u4_chroma_size;
+        pu1_luma = pu1_buf;
+        pu1_buf += ALIGN64(u4_luma_size);
+        pu1_chroma = pu1_buf;
+        pu1_buf += ALIGN64(u4_chroma_size);
 
         /* Offset to the start of the pic from the top left corner of the frame
          buffer */
@@ -2015,9 +1784,7 @@ WORD32 ih264d_create_pic_buffers(UWORD8 u1_num_of_buf,
 
                 ps_dec->disp_bufs[i].u4_ofst[1] = u4_offset;
                 ps_dec->disp_bufs[i].u4_ofst[2] = u4_offset;
-
             }
-
         }
 
         ps_pic_buf->u2_frm_ht_y = ps_dec->u2_frm_ht_y;
@@ -2039,13 +1806,6 @@ WORD32 ih264d_create_pic_buffers(UWORD8 u1_num_of_buf,
         ps_pic_buf++;
     }
 
-    if((u4_ref_buf_mem_used > ps_dec->ps_mem_tab[MEM_REC_REF_PIC].u4_mem_size) ||
-                    (u4_pic_buf_mem_used > ps_dec->ps_mem_tab[MEM_REC_PIC_BUF_MGR].u4_mem_size))
-    {
-        ps_dec->i4_error_code = ERROR_BUF_MGR;
-        return ERROR_BUF_MGR;
-    }
-
     if(1 == ps_dec->u4_share_disp_buf)
     {
         for(i = 0; i < u1_num_of_buf; i++)
@@ -2056,7 +1816,7 @@ WORD32 ih264d_create_pic_buffers(UWORD8 u1_num_of_buf,
 
 /*!
  **************************************************************************
- * \if Function name : ih264d_get_memory_dec_params \endif
+ * \if Function name : ih264d_allocate_dynamic_bufs \endif
  *
  * \brief
  *    This function allocates memory required by Decoder.
@@ -2068,7 +1828,7 @@ WORD32 ih264d_create_pic_buffers(UWORD8 u1_num_of_buf,
  *
  **************************************************************************
  */
-WORD16 ih264d_get_memory_dec_params(dec_struct_t * ps_dec)
+WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
 {
     struct MemReq s_MemReq;
     struct MemBlock *p_MemBlock;
@@ -2093,330 +1853,237 @@ WORD16 ih264d_get_memory_dec_params(dec_struct_t * ps_dec)
     UWORD32 ui_size = 0;
     UWORD32 u4_int_scratch_size = 0, u4_ref_pred_size = 0;
     UWORD8 *pu1_buf;
+    WORD32 num_entries;
+    WORD32 size;
+    void *pv_buf;
+    UWORD32 u4_num_bufs;
+    UWORD32 u4_luma_size, u4_chroma_size;
+    void *pv_mem_ctxt = ps_dec->pv_mem_ctxt;
 
-    ps_dec->ps_deblk_pic = ps_dec->ps_mem_tab[MEM_REC_DEBLK_MB_INFO].pv_base;
-    memset(ps_dec->ps_deblk_pic, 0, ps_dec->ps_mem_tab[MEM_REC_DEBLK_MB_INFO].u4_mem_size);
+    size = u4_total_mbs;
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pu1_dec_mb_map = pv_buf;
 
-    ps_dec->pu1_dec_mb_map = ps_dec->ps_mem_tab[MEM_REC_PARSE_MAP].pv_base;
+    size = u4_total_mbs;
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pu1_recon_mb_map = pv_buf;
 
-    ps_dec->pu1_recon_mb_map = ps_dec->ps_mem_tab[MEM_REC_PROC_MAP].pv_base;
+    size = u4_total_mbs * sizeof(UWORD16);
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pu2_slice_num_map = pv_buf;
 
-    ps_dec->pu2_slice_num_map =
-                    ps_dec->ps_mem_tab[MEM_REC_SLICE_NUM_MAP].pv_base;
+    /************************************************************/
+    /* Post allocation Initialisations                          */
+    /************************************************************/
+    ps_dec->ps_parse_cur_slice = &(ps_dec->ps_dec_slice_buf[0]);
+    ps_dec->ps_decode_cur_slice = &(ps_dec->ps_dec_slice_buf[0]);
+    ps_dec->ps_computebs_cur_slice = &(ps_dec->ps_dec_slice_buf[0]);
 
-    ps_dec->ps_dec_slice_buf = ps_dec->ps_mem_tab[MEM_REC_SLICE_HDR].pv_base;
-    memset(ps_dec->ps_mem_tab[MEM_REC_SLICE_HDR].pv_base, 0,
-           ps_dec->ps_mem_tab[MEM_REC_SLICE_HDR].u4_mem_size);
+    ps_dec->ps_pred_start = ps_dec->ps_pred;
+
+    size = sizeof(parse_pmbarams_t) * (ps_dec->u1_recon_mb_grp);
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_parse_mb_data = pv_buf;
+
+    size = sizeof(parse_part_params_t)
+                        * ((ps_dec->u1_recon_mb_grp) << 4);
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_parse_part_params = pv_buf;
+
+    size = ((u4_wd_mbs * sizeof(deblkmb_neighbour_t)) << uc_frmOrFld);
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_deblk_top_mb = pv_buf;
+
+    size = ((sizeof(ctxt_inc_mb_info_t))
+                        * (((u4_wd_mbs + 1) << uc_frmOrFld) + 1));
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->p_ctxt_inc_mb_map = pv_buf;
+
+    size = (sizeof(mv_pred_t) * ps_dec->u1_recon_mb_grp
+                        * 16);
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_mv_p[0] = pv_buf;
+
+    size = (sizeof(mv_pred_t) * ps_dec->u1_recon_mb_grp
+                        * 16);
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_mv_p[1] = pv_buf;
+
+    {
+        UWORD8 i;
+        for(i = 0; i < MV_SCRATCH_BUFS; i++)
+        {
+            size = (sizeof(mv_pred_t)
+                            * ps_dec->u1_recon_mb_grp * 4);
+            pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+            RETURN_IF((NULL == pv_buf), IV_FAIL);
+            ps_dec->ps_mv_top_p[i] = pv_buf;
+        }
+    }
+
+    size = sizeof(UWORD8) * ((u4_wd_mbs + 1) * MB_SIZE) * 2;
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pu1_y_intra_pred_line = pv_buf;
+    memset(ps_dec->pu1_y_intra_pred_line, 0, size);
+
+    size = sizeof(UWORD8) * ((u4_wd_mbs + 1) * MB_SIZE) * 2;
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pu1_u_intra_pred_line = pv_buf;
+    memset(ps_dec->pu1_u_intra_pred_line, 0, size);
+
+    size = sizeof(UWORD8) * ((u4_wd_mbs + 1) * MB_SIZE) * 2;
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pu1_v_intra_pred_line = pv_buf;
+    memset(ps_dec->pu1_v_intra_pred_line, 0, size);
+
+    if(ps_dec->u1_separate_parse)
+    {
+        size = sizeof(mb_neigbour_params_t)
+                        * 2 * ((u4_wd_mbs + 2) * u4_ht_mbs);
+    }
+    else
+    {
+        size = sizeof(mb_neigbour_params_t)
+                        * 2 * ((u4_wd_mbs + 2) << uc_frmOrFld);
+    }
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+
+    ps_dec->ps_nbr_mb_row = pv_buf;
+    memset(ps_dec->ps_nbr_mb_row, 0, size);
+
+    /* Allocate deblock MB info */
+    size = (u4_total_mbs + u4_wd_mbs) * sizeof(deblk_mb_t);
+
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_deblk_pic = pv_buf;
+
+    memset(ps_dec->ps_deblk_pic, 0, size);
+
+    /* Allocate frame level mb info */
+    size = sizeof(dec_mb_info_t) * u4_total_mbs;
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_frm_mb_info = pv_buf;
+    memset(ps_dec->ps_frm_mb_info, 0, size);
+
+    /* Allocate memory for slice headers dec_slice_struct_t */
+    num_entries = MAX_FRAMES;
+    if((1 >= ps_dec->ps_cur_sps->u1_num_ref_frames) &&
+        (0 == ps_dec->i4_display_delay))
+    {
+        num_entries = 1;
+    }
+    num_entries = ((2 * num_entries) + 1);
+    if(BASE_PROFILE_IDC != ps_dec->ps_cur_sps->u1_profile_idc)
+    {
+        num_entries *= 2;
+    }
+
+    size = num_entries * sizeof(void *);
+    size += PAD_MAP_IDX_POC * sizeof(void *);
+    size *= u4_total_mbs;
+    size += sizeof(dec_slice_struct_t) * u4_total_mbs;
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+
+    ps_dec->ps_dec_slice_buf = pv_buf;
+    memset(ps_dec->ps_dec_slice_buf, 0, size);
     pu1_buf = (UWORD8 *)ps_dec->ps_dec_slice_buf;
     pu1_buf += sizeof(dec_slice_struct_t) * u4_total_mbs;
     ps_dec->pv_map_ref_idx_to_poc_buf = (void *)pu1_buf;
 
-    ps_dec->ps_frm_mb_info = ps_dec->ps_mem_tab[MEM_REC_MB_INFO].pv_base;
-    memset(ps_dec->ps_frm_mb_info, 0, ps_dec->ps_mem_tab[MEM_REC_MB_INFO].u4_mem_size);
+    /* Allocate memory for packed pred info */
+    num_entries = u4_total_mbs;
+    if(1 == ps_dec->ps_cur_sps->u1_num_ref_frames)
+        num_entries *= 16;
+    else
+        num_entries *= 16 * 2;
 
-    ps_dec->ps_pred = ps_dec->ps_mem_tab[MEM_REC_PRED_INFO].pv_base;
+    size = sizeof(pred_info_pkd_t) * num_entries;
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->ps_pred_pkd = pv_buf;
 
-    ps_dec->pi2_coeff_data = ps_dec->ps_mem_tab[MEM_REC_COEFF_DATA].pv_base;
+    /* Allocate memory for coeff data */
+    size = MB_LUM_SIZE * sizeof(WORD16);
+    /*For I16x16 MBs, 16 4x4 AC coeffs and 1 4x4 DC coeff TU blocks will be sent
+    For all MBs along with 8 4x4 AC coeffs 2 2x2 DC coeff TU blocks will be sent
+    So use 17 4x4 TU blocks for luma and 9 4x4 TU blocks for chroma */
+    size += u4_total_mbs * (MAX(17 * sizeof(tu_sblk4x4_coeff_data_t),4 * sizeof(tu_blk8x8_coeff_data_t))
+                                            + 9 * sizeof(tu_sblk4x4_coeff_data_t));
+    //32 bytes for each mb to store u1_prev_intra4x4_pred_mode and u1_rem_intra4x4_pred_mode data
+    size += u4_total_mbs * 32;
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+
+    ps_dec->pi2_coeff_data = pv_buf;
 
     ps_dec->pv_pic_tu_coeff_data = (void *)(ps_dec->pi2_coeff_data + MB_LUM_SIZE);
 
-    /*scratch memory allocations*/
+    /* Allocate MV bank buffer */
     {
-        UWORD8 *pu1_scratch_mem_base;
-        UWORD32 u4_scratch_mem_used;
+        UWORD32 col_flag_buffer_size, mvpred_buffer_size;
 
-        pu1_scratch_mem_base =
-                        ps_dec->ps_mem_tab[MEM_REC_INTERNAL_SCRATCH].pv_base;
-        u4_scratch_mem_used = 0;
+        col_flag_buffer_size = ((ps_dec->u2_pic_wd * ps_dec->u2_pic_ht) >> 4);
+        mvpred_buffer_size = sizeof(mv_pred_t)
+                        * ((ps_dec->u2_pic_wd * (ps_dec->u2_pic_ht + PAD_MV_BANK_ROW)) >> 4);
 
-        ps_dec->ppv_map_ref_idx_to_poc = (void *)(pu1_scratch_mem_base
-                        + u4_scratch_mem_used);
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
-        u4_scratch_mem_used += ((TOTAL_LIST_ENTRIES + PAD_MAP_IDX_POC)
-                        * sizeof(void *));
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
-        memset(ps_dec->ppv_map_ref_idx_to_poc, 0, (TOTAL_LIST_ENTRIES + PAD_MAP_IDX_POC)
-                                * sizeof(void *));
+        u4_num_bufs = ps_dec->ps_cur_sps->u1_num_ref_frames + 1;
 
-        ps_dec->p_cabac_ctxt_table_t = (void *)(pu1_scratch_mem_base
-                        + u4_scratch_mem_used);
-        u4_scratch_mem_used += (sizeof(bin_ctxt_model_t) * NUM_CABAC_CTXTS);
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
-
-        ps_dec->ps_left_mb_ctxt_info = (void *)(pu1_scratch_mem_base
-                        + u4_scratch_mem_used);
-        u4_scratch_mem_used += sizeof(ctxt_inc_mb_info_t);
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
-
-        ps_dec->pu4_defI_wts_ofsts = (void *)(pu1_scratch_mem_base
-                        + u4_scratch_mem_used);
-        u4_scratch_mem_used +=
-                        sizeof(UWORD32)
-                                        * (ps_sps->u1_num_ref_frames
-                                                        * ps_sps->u1_num_ref_frames);
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
-
-        ps_dec->pu1_ref_buff = pu1_scratch_mem_base + u4_scratch_mem_used + MAX_REF_BUF_SIZE;
-        u4_scratch_mem_used += MAX_REF_BUF_SIZE * 2;
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
-        ps_dec->pi2_pred1 =
-                        (void *)(pu1_scratch_mem_base + u4_scratch_mem_used);
-        u4_scratch_mem_used += ((sizeof(WORD16)) * PRED_BUFFER_WIDTH
-                        * PRED_BUFFER_HEIGHT * 2);
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
-
-        ps_dec->pu1_temp_mc_buffer = (void *)(pu1_scratch_mem_base
-                        + u4_scratch_mem_used);
-        u4_scratch_mem_used += sizeof(UWORD8) * (MB_LUM_SIZE);
-
-        ps_dec->ps_parse_mb_data = (void *)(pu1_scratch_mem_base
-                        + u4_scratch_mem_used);
-        u4_scratch_mem_used += sizeof(parse_pmbarams_t)
-                        * (ps_dec->u1_recon_mb_grp);
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
-
-        ps_dec->ps_parse_part_params = (void *)(pu1_scratch_mem_base
-                        + u4_scratch_mem_used);
-        u4_scratch_mem_used += sizeof(parse_part_params_t)
-                        * ((ps_dec->u1_recon_mb_grp) << 4);
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
-
-        ps_dec->ps_dpb_mgr->ps_init_dpb[0][0] =
-                        (struct pic_buffer_t*)(pu1_scratch_mem_base
-                                        + u4_scratch_mem_used);
-        u4_scratch_mem_used += 2 * MAX_REF_BUFS * sizeof(struct pic_buffer_t);
-
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
-        ps_dec->ps_dpb_mgr->ps_init_dpb[1][0] =
-                        (struct pic_buffer_t*)(pu1_scratch_mem_base + u4_scratch_mem_used);
-        u4_scratch_mem_used += 2 * MAX_REF_BUFS * sizeof(struct pic_buffer_t);
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
-        ps_dec->pu4_mbaff_wt_mat = (UWORD32 *)(pu1_scratch_mem_base + u4_scratch_mem_used);
-
-        u4_scratch_mem_used += (sizeof(UWORD32) * 3
-                        * (MAX_FRAMES * MAX_FRAMES))
-                        << 3;
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
-
-        ps_dec->pu4_wts_ofsts_mat = (UWORD32 *)(pu1_scratch_mem_base + u4_scratch_mem_used);
-        u4_scratch_mem_used += sizeof(UWORD32) * 2 * 3
-                        * (MAX_FRAMES * MAX_FRAMES);
-        u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
+        u4_num_bufs = MIN(u4_num_bufs, ps_dec->u1_pic_bufs);
+        u4_num_bufs = MAX(u4_num_bufs, 2);
+        size = ALIGN64(mvpred_buffer_size) + ALIGN64(col_flag_buffer_size);
+        size *= u4_num_bufs;
+        pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+        RETURN_IF((NULL == pv_buf), IV_FAIL);
+        ps_dec->pu1_mv_bank_buf_base = pv_buf;
     }
-    /********************************************************************/
-    /* check whether deblk memory used is less than the scratch buffer  */
-    /* and assign deblocking pointers in the the reference buffers      */
-    /********************************************************************/
+
+    /* Allocate Pic buffer */
+    u4_luma_size = ps_dec->u2_frm_wd_y * ps_dec->u2_frm_ht_y;
+    u4_chroma_size = ps_dec->u2_frm_wd_uv * ps_dec->u2_frm_ht_uv;
+
     {
-        /************************************************************/
-        /* Post allocation Initialisations                          */
-        /************************************************************/
-        memset(ps_dec->ppv_map_ref_idx_to_poc, 0,
-               (TOTAL_LIST_ENTRIES + PAD_MAP_IDX_POC) * sizeof(void *));
-        ps_dec->ppv_map_ref_idx_to_poc += OFFSET_MAP_IDX_POC;
-
+        if(ps_dec->u4_share_disp_buf == 1)
         {
-            ps_dec->ps_parse_cur_slice = &(ps_dec->ps_dec_slice_buf[0]);
-            ps_dec->ps_decode_cur_slice = &(ps_dec->ps_dec_slice_buf[0]);
-            ps_dec->ps_computebs_cur_slice = &(ps_dec->ps_dec_slice_buf[0]);
-
-            ps_dec->ps_pred_start = ps_dec->ps_pred;
-            ps_dec->u4_ref_buf_size = MAX_REF_BUF_SIZE;
-        }
-
-        {
-            UWORD8 i;
-            struct pic_buffer_t *ps_init_dpb;
-            ps_init_dpb = ps_dec->ps_dpb_mgr->ps_init_dpb[0][0];
-            for(i = 0; i < 2 * MAX_REF_BUFS; i++)
+            /* In case of buffers getting shared between application and library
+             there is no need of reference memtabs. Instead of setting the i4_size
+             to zero, it is reduced to a small i4_size to ensure that changes
+             in the code are minimal */
+            if((ps_dec->u1_chroma_format == IV_YUV_420SP_UV)
+                            || (ps_dec->u1_chroma_format == IV_YUV_420SP_VU)
+                            || (ps_dec->u1_chroma_format == IV_YUV_420P))
             {
-                ps_init_dpb->pu1_buf1 = NULL;
-                ps_init_dpb->u1_long_term_frm_idx = MAX_REF_BUFS + 1;
-                ps_dec->ps_dpb_mgr->ps_init_dpb[0][i] = ps_init_dpb;
-                ps_dec->ps_dpb_mgr->ps_mod_dpb[0][i] = ps_init_dpb;
-                ps_init_dpb++;
+                u4_luma_size = 64;
             }
 
-            ps_init_dpb = ps_dec->ps_dpb_mgr->ps_init_dpb[1][0];
-            for(i = 0; i < 2 * MAX_REF_BUFS; i++)
+            if(ps_dec->u1_chroma_format == IV_YUV_420SP_UV)
             {
-                ps_init_dpb->pu1_buf1 = NULL;
-                ps_init_dpb->u1_long_term_frm_idx = MAX_REF_BUFS + 1;
-                ps_dec->ps_dpb_mgr->ps_init_dpb[1][i] = ps_init_dpb;
-                ps_dec->ps_dpb_mgr->ps_mod_dpb[1][i] = ps_init_dpb;
-                ps_init_dpb++;
+                u4_chroma_size = 64;
             }
+
         }
     }
 
-    /*persistent memory allocations*/
-
-    {
-        UWORD8 *pu1_persitent_mem_base;
-        UWORD32 u4_persistent_mem_used;
-
-        pu1_persitent_mem_base =
-                        ps_dec->ps_mem_tab[MEM_REC_INTERNAL_PERSIST].pv_base;
-        u4_persistent_mem_used = 0;
-
-        ps_dec->ps_deblk_top_mb = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += ((u4_wd_mbs
-                        * sizeof(deblkmb_neighbour_t)) << uc_frmOrFld);
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        ps_dec->ps_left_mvpred_addr = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += (sizeof(neighbouradd_t) << 2);
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        ps_dec->p_ctxt_inc_mb_map = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += ((sizeof(ctxt_inc_mb_info_t))
-                        * (((u4_wd_mbs + 1) << uc_frmOrFld) + 1));
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        ps_dec->ps_mv_p[0] = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += (sizeof(mv_pred_t) * ps_dec->u1_recon_mb_grp
-                        * 16);
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        ps_dec->ps_mv_p[1] = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += (sizeof(mv_pred_t) * ps_dec->u1_recon_mb_grp
-                        * 16);
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        {
-            UWORD8 i;
-            for(i = 0; i < MV_SCRATCH_BUFS; i++)
-            {
-
-                ps_dec->ps_mv_top_p[i] = (void *)(pu1_persitent_mem_base
-                                + u4_persistent_mem_used);
-                u4_persistent_mem_used += (sizeof(mv_pred_t)
-                                * ps_dec->u1_recon_mb_grp * 4);
-                u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-            }
-        }
-
-        {
-            UWORD32 u4_numRows = MB_SIZE << 1;
-
-            /* Allocate memory for ping, pong and left reconstruction buffers */
-            u4_blk_wd = ((ps_dec->u1_recon_mb_grp << 4) >> 1) + 8;
-
-            ps_dec->pu1_y_scratch[0] = (void *)(pu1_persitent_mem_base
-                            + u4_persistent_mem_used);
-            u4_persistent_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
-            u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-            ps_dec->pu1_y_scratch[1] = (void *)(pu1_persitent_mem_base
-                            + u4_persistent_mem_used);
-            u4_persistent_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
-            u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-            u4_numRows = BLK8x8SIZE << 1;
-            u4_blk_wd = ((ps_dec->u1_recon_mb_grp << 3) >> 1) + 8;
-
-            ps_dec->pu1_u_scratch[0] = (void *)(pu1_persitent_mem_base
-                            + u4_persistent_mem_used);
-            u4_persistent_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
-            u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-            ps_dec->pu1_v_scratch[0] = (void *)(pu1_persitent_mem_base
-                            + u4_persistent_mem_used);
-            u4_persistent_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
-            u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-            ps_dec->pu1_u_scratch[1] = (void *)(pu1_persitent_mem_base
-                            + u4_persistent_mem_used);
-            u4_persistent_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
-            u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-            ps_dec->pu1_v_scratch[1] = (void *)(pu1_persitent_mem_base
-                            + u4_persistent_mem_used);
-            u4_persistent_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
-            u4_persistent_mem_used += 32;
-            u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        }
-
-        ps_dec->pu1_y_intra_pred_line = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += sizeof(UWORD8) * ((u4_wd_mbs + 1) * MB_SIZE) * 2;
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        ps_dec->pu1_u_intra_pred_line = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += sizeof(UWORD8) * ((u4_wd_mbs + 1) * MB_SIZE) * 2;
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        ps_dec->pu1_v_intra_pred_line = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += sizeof(UWORD8) * ((u4_wd_mbs + 1) * MB_SIZE) * 2;
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        ps_dec->ps_nbr_mb_row = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        if(ps_dec->u1_separate_parse)
-        {
-            u4_persistent_mem_used += sizeof(mb_neigbour_params_t)
-                            * ((u4_wd_mbs + 1) * u4_ht_mbs);
-            memset(ps_dec->ps_nbr_mb_row, 0, sizeof(mb_neigbour_params_t)
-                            * ((u4_wd_mbs + 1) * u4_ht_mbs));
-        }
-        else
-        {
-            u4_persistent_mem_used += sizeof(mb_neigbour_params_t)
-                            * ((u4_wd_mbs + 1) << uc_frmOrFld);
-            memset(ps_dec->ps_nbr_mb_row, 0, sizeof(mb_neigbour_params_t)
-                            * ((u4_wd_mbs + 1) << uc_frmOrFld));
-
-        }
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-        ps_dec->s_pad_mgr.pu1_row_y = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += ps_dec->u2_frm_wd_y;
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        ps_dec->s_pad_mgr.pu1_row_u = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += ps_dec->u2_frm_wd_uv;
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        ps_dec->s_pad_mgr.pu1_row_v = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += ps_dec->u2_frm_wd_uv;
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        ps_dec->s_pad_mgr.pu1_mb_y = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += ((MB_SIZE + 4) << uc_frmOrFld) * PAD_LEN_Y_H;
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        ps_dec->s_pad_mgr.pu1_mb_u = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += ((BLK8x8SIZE + 2) << uc_frmOrFld)
-                        * PAD_LEN_UV_H;
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-
-        ps_dec->s_pad_mgr.pu1_mb_v = (void *)(pu1_persitent_mem_base
-                        + u4_persistent_mem_used);
-        u4_persistent_mem_used += ((BLK8x8SIZE + 2) << uc_frmOrFld)
-                        * PAD_LEN_UV_H;
-        u4_persistent_mem_used = ALIGN64(u4_persistent_mem_used);
-    }
-
-    /*Post allocation initializations*/
-    memset(ps_dec->pu1_y_intra_pred_line, 0,
-           sizeof(UWORD8) * u4_luma_wd + PAD_LEN_Y_H);
-    memset(ps_dec->pu1_u_intra_pred_line, 0,
-           sizeof(UWORD8) * u4_chroma_wd + PAD_LEN_UV_H);
-    memset(ps_dec->pu1_v_intra_pred_line, 0,
-           sizeof(UWORD8) * u4_chroma_wd + PAD_LEN_UV_H);
+    size = ALIGN64(u4_luma_size) + ALIGN64(u4_chroma_size);
+    size *= ps_dec->u1_pic_bufs;
+    pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    ps_dec->pu1_pic_buf_base = pv_buf;
 
     /* 0th entry of CtxtIncMbMap will be always be containing default values
      for CABAC context representing MB not available */
@@ -2497,11 +2164,64 @@ WORD16 ih264d_get_memory_dec_params(dec_struct_t * ps_dec)
             ps_dec->s_high_profile.ps_last_sigcoeff_8x8_field =
                             p_cabac_ctxt_table_t
                                             + LAST_SIGNIFICANT_COEFF_FLAG_8X8_FIELD;
-
         }
-
     }
     return (i16_status);
+}
+
+/*!
+ **************************************************************************
+ * \if Function name : ih264d_free_dynamic_bufs \endif
+ *
+ * \brief
+ *    This function frees dynamic memory allocated by Decoder.
+ *
+ * \param ps_dec: Pointer to dec_struct_t.
+ *
+ * \return
+ *    Returns i4_status as returned by MemManager.
+ *
+ **************************************************************************
+ */
+WORD16 ih264d_free_dynamic_bufs(dec_struct_t * ps_dec)
+{
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_bits_buf_dynamic);
+
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_deblk_pic);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_dec_mb_map);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_recon_mb_map);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu2_slice_num_map);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_dec_slice_buf);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_frm_mb_info);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pi2_coeff_data);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_parse_mb_data);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_parse_part_params);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_deblk_top_mb);
+
+    if(ps_dec->p_ctxt_inc_mb_map)
+    {
+        ps_dec->p_ctxt_inc_mb_map -= 1;
+        PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->p_ctxt_inc_mb_map);
+    }
+
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_mv_p[0]);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_mv_p[1]);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_pred_pkd);
+    {
+        UWORD8 i;
+        for(i = 0; i < MV_SCRATCH_BUFS; i++)
+        {
+            PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_mv_top_p[i]);
+        }
+    }
+
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_y_intra_pred_line);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_u_intra_pred_line);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_v_intra_pred_line);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_nbr_mb_row);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_mv_bank_buf_base);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_pic_buf_base);
+    return 0;
 }
 
 /*!
@@ -2533,44 +2253,38 @@ WORD32 ih264d_create_mv_bank(void *pv_dec,
     UWORD8  i;
     UWORD32 col_flag_buffer_size, mvpred_buffer_size;
     UWORD8 *pu1_mv_buf_mgr_base, *pu1_mv_bank_base;
-    UWORD32 u4_mv_buf_mgr_mem_used, u4_mv_bank_mem_used;
     col_mv_buf_t *ps_col_mv;
     mv_pred_t *ps_mv;
     UWORD8 *pu1_col_zero_flag_buf;
     dec_struct_t *ps_dec = (dec_struct_t *)pv_dec;
     WORD32 buf_ret;
     UWORD32 u4_num_bufs;
+    UWORD8 *pu1_buf;
+    WORD32 size;
+    void *pv_mem_ctxt = ps_dec->pv_mem_ctxt;
 
-    pu1_mv_buf_mgr_base = ps_dec->ps_mem_tab[MEM_REC_MV_BUF_MGR].pv_base;
-    u4_mv_buf_mgr_mem_used = 0;
     col_flag_buffer_size = ((ui_width * ui_height) >> 4);
-
-    pu1_mv_bank_base = ps_dec->ps_mem_tab[MEM_REC_MVBANK].pv_base;
-    u4_mv_bank_mem_used = 0;
     mvpred_buffer_size = sizeof(mv_pred_t)
                     * ((ui_width * (ui_height + PAD_MV_BANK_ROW)) >> 4);
 
-    ps_dec->pv_mv_buf_mgr = (void *)(pu1_mv_buf_mgr_base + u4_mv_buf_mgr_mem_used);
-    u4_mv_buf_mgr_mem_used += sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
     ih264_buf_mgr_init((buf_mgr_t *)ps_dec->pv_mv_buf_mgr);
 
-    ps_col_mv = (col_mv_buf_t *)(pu1_mv_buf_mgr_base + u4_mv_buf_mgr_mem_used);
-    u4_mv_buf_mgr_mem_used += sizeof(col_mv_buf_t) * (H264_MAX_REF_PICS * 2);
-    u4_mv_buf_mgr_mem_used = ALIGN128(u4_mv_buf_mgr_mem_used);
+    ps_col_mv = ps_dec->ps_col_mv_base;
 
-    u4_num_bufs = ih264d_get_numbuf_mv_bank(ps_dec, ui_width, ui_height);
+    u4_num_bufs = ps_dec->ps_cur_sps->u1_num_ref_frames + 1;
 
     u4_num_bufs = MIN(u4_num_bufs, ps_dec->u1_pic_bufs);
-
+    u4_num_bufs = MAX(u4_num_bufs, 2);
+    pu1_buf = ps_dec->pu1_mv_bank_buf_base;
     for(i = 0 ; i < u4_num_bufs ; i++)
     {
-        pu1_col_zero_flag_buf = pu1_mv_buf_mgr_base + u4_mv_buf_mgr_mem_used;
-        u4_mv_buf_mgr_mem_used +=  col_flag_buffer_size;
+        pu1_col_zero_flag_buf = pu1_buf;
+        pu1_buf += ALIGN64(col_flag_buffer_size);
 
-        ps_mv = (mv_pred_t *)(pu1_mv_bank_base + u4_mv_bank_mem_used);
-        u4_mv_bank_mem_used +=  mvpred_buffer_size;
+        ps_mv = (mv_pred_t *)pu1_buf;
+        pu1_buf += ALIGN64(mvpred_buffer_size);
 
-        memset(ps_mv, 0, ((ui_width*OFFSET_MV_BANK_ROW) >> 4) * sizeof(mv_pred_t));
+        memset(ps_mv, 0, ((ui_width * OFFSET_MV_BANK_ROW) >> 4) * sizeof(mv_pred_t));
         ps_mv += (ui_width*OFFSET_MV_BANK_ROW) >> 4;
 
         ps_col_mv->pv_col_zero_flag = (void *)pu1_col_zero_flag_buf;
@@ -2583,18 +2297,8 @@ WORD32 ih264d_create_mv_bank(void *pv_dec,
         }
         ps_col_mv++;
     }
-
-    if((u4_mv_buf_mgr_mem_used > ps_dec->ps_mem_tab[MEM_REC_MV_BUF_MGR].u4_mem_size) ||
-                    (u4_mv_bank_mem_used > ps_dec->ps_mem_tab[MEM_REC_MVBANK].u4_mem_size))
-    {
-        ps_dec->i4_error_code = ERROR_BUF_MGR;
-        return ERROR_BUF_MGR;
-    }
-
     return OK;
-
 }
-
 
 void ih264d_unpack_coeff4x4_dc_4x4blk(tu_sblk4x4_coeff_data_t *ps_tu_4x4,
                                       WORD16 *pi2_out_coeff_data,
