@@ -302,42 +302,6 @@ enum
 #define MAX_MBS_LEVEL_11 396
 #define MAX_MBS_LEVEL_10 99
 
-
-/*
- |  Legend:
- |  LVL Level*10
- |  MPR Macroblk processing rate
- |  MMF Max Mbs/Frm
- |  MDK Max DbpSize (in kB)
- |  MDB max DbpSize (in bytes)
- |  MFS FrmSizeYUV (in bytes)
- |  MDP Max DBPics
- |  MDC Ceiling DBPics
- |  FPS Frame/Second
- |
- |  LVL MPR   MMF   MDK     MDB     MFS     MDP   MDC   FPS
- |  10  1485  99    148.5   152064  38016   4.00  4.00  15.00
- |  11  3000  396   337.5   345600  152064  2.27  3.00  7.58
- |  12  6000  396   891     912384  152064  6.00  6.00  15.15
- |  13  11880 396   891     912384  152064  6.00  6.00  30.00
- |  20  11880 396   891     912384  152064  6.00  6.00  30.00
- |  21  19800 792   1782    1824768 304128  6.00  6.00  25.00
- |  22  20250 1620  3037.5  3110400 622080  5.00  5.00  12.50
- |  30  40500 1620  3037.5  3110400 622080  5.00  5.00  25.00
- */
-#define MAX_REF_LEVEL_1_0     4
-#define MAX_REF_LEVEL_1_1     3
-#define MAX_REF_LEVEL_1_2     6
-#define MAX_REF_LEVEL_1_3     6
-#define MAX_REF_LEVEL_2_0     6
-#define MAX_REF_LEVEL_2_1     6
-#define MAX_REF_LEVEL_2_2     5
-#define MAX_REF_LEVEL_3_0     5
-#define H264_MAX_REF_PICS     16
-
-#define MIN_LEVEL_SUPPORTED 10
-#define MAX_LEVEL_SUPPORTED 64
-
 /** NAL Types */
 #define SLICE_NAL                       1
 #define SLICE_DATA_PARTITION_A_NAL      2

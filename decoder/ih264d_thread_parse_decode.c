@@ -534,13 +534,7 @@ WORD32 ih264d_decode_slice_thread(dec_struct_t *ps_dec)
     ps_trns_addr->pu1_mb_v = ps_trns_addr->pu1_dest_v;
 
 
-    /**********Number of Mbs in Slice**********/
-
-    ps_dec->ps_deblk_mbn_dec_thrd = ps_dec->ps_deblk_pic
-                    + (u2_first_mb_in_slice << u1_mbaff);
-
     /* Initialise MC and formMbPartInfo fn ptrs one time based on profile_idc */
-
     {
         ps_dec->p_mc_dec_thread = ih264d_motion_compensate_bp;
         ps_dec->p_form_mb_part_info_thread = ih264d_form_mb_part_info_bp;

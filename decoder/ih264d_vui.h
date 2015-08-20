@@ -81,6 +81,7 @@ typedef struct
     hrd_t s_vcl_hrd;
     UWORD8 u1_low_delay_hrd_flag;
     UWORD8 u1_pic_struct_present_flag;
+    UWORD8 u1_bitstream_restriction_flag;
     UWORD8 u1_mv_over_pic_boundaries_flag;
     UWORD32 u4_max_bytes_per_pic_denom;
     UWORD32 u4_max_bits_per_mb_denom;
