@@ -101,7 +101,8 @@
 WORD32      ih264e_generate_sps
     (
         bitstrm_t   *ps_bitstrm,
-        sps_t       *ps_sps
+        sps_t       *ps_sps,
+        vui_t       *ps_vui
     );
 
 /**
