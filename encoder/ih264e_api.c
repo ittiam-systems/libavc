@@ -3473,7 +3473,7 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
     ps_mem_rec = &ps_mem_rec_base[MEM_REC_MB_INFO_NMB];
     {
         ps_mem_rec->u4_mem_size = MAX_PROCESS_CTXT * max_mb_cols *
-                                 (sizeof(mb_info_nmb_t) + MB_SIZE * MB_SIZE 
+                                 (sizeof(mb_info_nmb_t) + MB_SIZE * MB_SIZE
                                   * sizeof(UWORD8));
     }
     DEBUG("\nMemory record Id %d = %d \n", MEM_REC_MB_INFO_NMB, ps_mem_rec->u4_mem_size);
