@@ -581,12 +581,6 @@ typedef struct
 
 typedef struct
 {
-    UWORD8 *pu1_mb_y; /* pointer to N-Mb pad buffer Y (Horz)        */
-    UWORD8 *pu1_mb_u; /* pointer to N-Mb pad buffer U (Horz)        */
-    UWORD8 *pu1_mb_v; /* pointer to N-Mb pad buffer V (Horz)        */
-    UWORD8 *pu1_row_y; /* pointer to row pad buffer Y (Vert)         */
-    UWORD8 *pu1_row_u; /* pointer to row pad buffer U (Vert)         */
-    UWORD8 *pu1_row_v; /* pointer to row pad buffer V (Vert)         */
     UWORD8 u1_vert_pad_top; /* flip-flop u4_flag remembering pad area (Vert) */
     UWORD8 u1_vert_pad_bot; /* flip-flop u4_flag remembering pad area (Vert) */
     UWORD8 u1_horz_pad; /* flip-flop u4_flag remembering pad area (Vert) */
@@ -594,13 +588,6 @@ typedef struct
     UWORD8 u1_pad_len_cr_v; /* vertical pad amount for chroma             */
 } pad_mgr_t;
 
-typedef struct code_overlay_ctxt
-{
-    UWORD8 u1_pb_slice_type;
-    UWORD8 u1_entropy_coding_type;
-    UWORD8 u1_mbaff_frame_flag;
-    UWORD8 u1_b_direct_flag;
-} code_overlay_ctxt_t;
 
 #define ACCEPT_ALL_PICS   (0x00)
 #define REJECT_CUR_PIC    (0x01)
@@ -875,16 +862,10 @@ typedef struct _DecStruct
 
     UWORD8 *pu1_left_yuv_dc_csbp;
 
-    /* c64x_map.inc takes care of only this part
-     If you change/add any members above this,
-     modify c64x_map.inc accordingly */
-
-    void **pp_ext_g_table_ptr;
 
     deblkmb_neighbour_t deblk_left_mb[2];
     deblkmb_neighbour_t *ps_deblk_top_mb;
     neighbouradd_t (*ps_left_mvpred_addr)[2]; /* Left MvPred Address Ping Pong*/
-//  neighbouradd_t  *ps_topMvPredAdd;
 
     /***************************************************************************/
     /*       Ref_idx contexts  are stored in the following way                 */
@@ -964,7 +945,7 @@ typedef struct _DecStruct
     pic_buffer_t **ps_ref_pic_buf_lx[2];
     /* refIdx to POC mapping */
     void **ppv_map_ref_idx_to_poc;
-    UWORD32 *pu4_defI_wts_ofsts;
+    void **ppv_map_ref_idx_to_poc_base;
     UWORD32 *pu4_wts_ofsts_mat;
     UWORD32 *pu4_wt_ofsts;
     UWORD32 *pu4_mbaff_wt_mat;
@@ -1011,20 +992,7 @@ typedef struct _DecStruct
 
     UWORD32 u4_intra_pred_line_ofst;
 
-    /* Scratch ping reconstruction pointers for Y U V */
-    UWORD8 *pu1_y_scratch[2];
-    UWORD8 *pu1_u_scratch[2];
-    UWORD8 *pu1_v_scratch[2];
-    UWORD8 u1_yuv_scratch_idx;
-    UWORD8 u1_not_wait_rec;
     UWORD8 u1_res_changed;
-
-    UWORD8 *pu1_yleft; /** Left Y pointer, used for intra-pred */
-    UWORD8 *pu1_uleft; /** Left U pointer, used for intra-pred */
-    UWORD8 *pu1_vleft; /** Left V pointer, used for intra-pred */
-    UWORD8 u1_y_topleft[2]; /** Left Y pointer, used for intra-pred */
-    UWORD8 u1_u_topleft[2]; /** Left U pointer, used for intra-pred */
-    UWORD8 u1_v_topleft[2]; /** Left V pointer, used for intra-pred */
 
     mv_pred_t *ps_mv_cur; /** pointer to current motion vector bank */
     mv_pred_t *ps_mv_top; /** pointer to top motion vector bank */
@@ -1034,9 +1002,6 @@ typedef struct _DecStruct
     UWORD8 u1_mv_top_p;
 
     deblk_mb_t *ps_deblk_mbn;
-    deblk_mb_t *ps_deblk_mbn_dec_thrd;/*pointer used by parsing when spearaet_parse is 1*/
-    deblk_mb_t *ps_deblk_mbn_curr;
-    deblk_mb_t *ps_deblk_mbn_prev;
 
     UWORD8 *pu1_temp_mc_buffer;
 
@@ -1053,13 +1018,6 @@ typedef struct _DecStruct
 
     /* Variables used for gaps in frame number */
     UWORD16 u2_prev_ref_frame_num;
-    UWORD8 u1_vert_up_scale_flag;
-    iv_mem_rec_t *ps_mem_tab;
-
-    UWORD16 u2_wait_id;
-
-    void *pi4_ctxt_save_register;
-    void *pi4_ctxt_save_register_dec;
 
     UWORD8 u1_mb_idx;
     struct pic_buffer_t *ps_col_pic;
@@ -1099,39 +1057,20 @@ typedef struct _DecStruct
     prev_seq_params_t s_prev_seq_params;
     UWORD8 u1_cur_mb_fld_dec_flag; /* current Mb fld or Frm */
 
-    code_overlay_ctxt_t s_code_overlay_ctxt;
-    UWORD8 u1_code_overlay;
-
-//  WORD8 *pi1_cur_predmodes;
     WORD8 pi1_left_pred_mode[8];
     UWORD8 u1_topleft_mb_fld;
     UWORD8 u1_topleft_mbtype;
     UWORD8 u1_topleft_mb_fld_bot;
     UWORD8 u1_topleft_mbtype_bot;
-    UWORD8 u1_deblk_mb_grp;
     WORD16 i2_prev_slice_mbx;
     WORD16 i2_prev_slice_mby;
     UWORD16 u2_top_left_mask;
     UWORD16 u2_top_right_mask;
     dec_err_status_t * ps_dec_err_status;
 
-    UWORD32 *pu4_sos_signal;
     UWORD8 u1_mb_idx_mv;
     UWORD16 u2_mv_2mb[2];
-    UWORD32 u4_ref_buf_size;
-    UWORD32 u4_packet_cnt;
-    /* to remember the i4_status & input parameters from the sample app */
-    void *pv_dec_status; // itt_dec_status_t void pointer */
-    void *pv_dec_params; // itt_dec_prms_t void pointer
-    void *pv_app_ctxt;
     UWORD32 u4_skip_frm_mask;
-    void *pv_fmt_con_ctxt;
-    /* for the parallel format conversion */
-    UWORD8 *pu1_frmt_conv_y[3];
-    UWORD8 *pu1_frmt_conv_u[3];
-    UWORD8 *pu1_frmt_conv_v[3];
-    UWORD8 *pu1_deblk_scr;
-    UWORD32 u4_deblk_scr_sz;
 
     /* variable for finding the no.of mbs decoded in the current picture */
     UWORD16 u2_total_mbs_coded;
@@ -1149,11 +1088,6 @@ typedef struct _DecStruct
     /* To keep track of whether the last picture was decoded or not */
     /* in case of skip mode set by the application                  */
     UWORD8 u1_last_pic_not_decoded;
-    UWORD32 *pu4_return_remaining_bufs;
-
-    /* Used for disabling deblocking of non-reference pictures */
-    WORD32 i4_set_low_complexity_mode;
-    WORD32 i4_disable_deblock;
 
     WORD32 e_dec_status;
     UWORD32 u4_num_fld_in_frm;
@@ -1261,11 +1195,7 @@ typedef struct _DecStruct
     UWORD8 u1_chroma_format;
     UWORD8 u1_pic_decode_done;
     UWORD8 u1_slice_header_done;
-    UWORD32 u4_level_at_init;
-    UWORD32 u4_width_at_init;
-    UWORD32 u4_height_at_init;
     WORD32 init_done;
-    WORD32 process_called;
 
     /******************************************/
     /* For the high profile related variables */
@@ -1282,12 +1212,14 @@ typedef struct _DecStruct
     UWORD8 u1_top_bottom_decoded;
     UWORD8 u1_dangling_field;
 
-    /*
-     * For Low Memory case
-     */
-    UWORD32 u4_num_ref_frames_at_init;
-    UWORD32 u4_num_reorder_frames_at_init;
-    UWORD32 u4_num_extra_disp_bufs_at_init;
+    IVD_DISPLAY_FRAME_OUT_MODE_T                e_frm_out_mode;
+
+    UWORD8 *pu1_bits_buf_static;
+    UWORD8 *pu1_bits_buf_dynamic;
+
+    UWORD32 u4_static_bits_buf_size;
+    UWORD32 u4_dynamic_bits_buf_size;
+
     UWORD32 u4_num_disp_bufs_requested;
     WORD32 i4_display_delay;
     UWORD32 u4_slice_start_code_found;
@@ -1329,7 +1261,6 @@ typedef struct _DecStruct
     UWORD32 u4_fmt_conv_cur_row;
     ivd_out_bufdesc_t *ps_out_buffer;
     ivd_get_display_frame_op_t s_disp_op;
-    UWORD32 u4_stop_threads;
     UWORD32 u4_output_present;
 
     volatile UWORD16 cur_dec_mb_num;
@@ -1409,6 +1340,18 @@ typedef struct _DecStruct
     UWORD8 au1_pic_buf_id_mv_buf_id_map[MAX_DISP_BUFS_NEW];
 
     UWORD8 au1_pic_buf_ref_flag[MAX_DISP_BUFS_NEW];
+
+    struct pic_buffer_t *ps_pic_buf_base;
+
+    UWORD8 *pu1_ref_buff_base;
+    col_mv_buf_t *ps_col_mv_base;
+    void *(*pf_aligned_alloc)(void *pv_mem_ctxt, WORD32 alignment, WORD32 size);
+    void (*pf_aligned_free)(void *pv_mem_ctxt, void *pv_buf);
+    void *pv_mem_ctxt;
+
+    UWORD8 *pu1_pic_buf_base;
+    UWORD8 *pu1_mv_bank_buf_base;
+    UWORD8 *pu1_init_dpb_base;
 
     ih264_default_weighted_pred_ft *pf_default_weighted_pred_luma;
 

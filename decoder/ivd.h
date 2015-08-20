@@ -17,24 +17,24 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-/*****************************************************************************/
-/*                                                                           */
-/*  File Name         : ivd.h                                                */
-/*                                                                           */
-/*  Description       : This file contains all the necessary structure and   */
-/*                      enumeration definitions needed for the Application   */
-/*                      Program Interface(API) of the Ittiam Video Decoders  */
-/*                                                                           */
-/*  List of Functions : None                                                 */
-/*                                                                           */
-/*  Issues / Problems : None                                                 */
-/*                                                                           */
-/*  Revision History  :                                                      */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         26 08 2010   100239(RCY)     Draft                                */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+* @file
+*  ivd.h
+*
+* @brief
+*  This file contains all the necessary structure and  enumeration
+* definitions needed for the Application  Program Interface(API) of the
+* Ittiam Video Decoders
+*
+* @author
+*  100239(RCY)
+*
+* @remarks
+*  None
+*
+*******************************************************************************
+*/
 
 #ifndef _IVD_H
 #define _IVD_H
@@ -128,7 +128,9 @@ typedef enum {
 /* IVD_API_COMMAND_TYPE_T:API command type                                   */
 typedef enum {
     IVD_CMD_VIDEO_NA                          = 0x7FFFFFFF,
-    IVD_CMD_VIDEO_CTL                         = IV_CMD_DUMMY_ELEMENT + 1,
+    IVD_CMD_CREATE                            = IV_CMD_DUMMY_ELEMENT + 1,
+    IVD_CMD_DELETE,
+    IVD_CMD_VIDEO_CTL,
     IVD_CMD_VIDEO_DECODE,
     IVD_CMD_GET_DISPLAY_FRAME,
     IVD_CMD_REL_DISPLAY_FRAME,
@@ -228,6 +230,7 @@ typedef enum {
     IVD_DEC_REF_BUF_NULL                        = 0x28,
     IVD_DEC_FRM_SKIPPED                         = 0x29,
     IVD_RES_CHANGED                             = 0x2a,
+    IVD_MEM_ALLOC_FAILED                        = 0x2b,
     IVD_DUMMY_ELEMENT_FOR_CODEC_EXTENSIONS      = 0xD0,
 }IVD_ERROR_CODES_T;
 
@@ -239,48 +242,127 @@ typedef enum {
 /* call                                                                      */
 typedef struct {
 
-    /* number of output buffers */
+    /**
+     * number of output buffers
+     */
     UWORD32             u4_num_bufs;
 
-    /* list of pointers to output buffers */
+    /**
+     *list of pointers to output buffers
+     */
     UWORD8              *pu1_bufs[IVD_VIDDEC_MAX_IO_BUFFERS];
 
-    /* sizes of each output buffer */
+    /**
+     * sizes of each output buffer
+     */
     UWORD32             u4_min_out_buf_size[IVD_VIDDEC_MAX_IO_BUFFERS];
 
 }ivd_out_bufdesc_t;
 
 /*****************************************************************************/
-/*   Initialize decoder                                                      */
+/*   Create decoder                                                          */
 /*****************************************************************************/
 
-/* IVD_API_COMMAND_TYPE_T::e_cmd = IVD_CMD_INIT                              */
+/* IVD_API_COMMAND_TYPE_T::e_cmd = IVD_CMD_CREATE                            */
 
 
 typedef struct {
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
+
+    /**
+     *  e_cmd
+     */
     IVD_API_COMMAND_TYPE_T                  e_cmd;
-    /* no memrecords which are allocated on request of codec through
-    fill mem records */
-    UWORD32                                 u4_num_mem_rec;
-    /* maximum height for which codec should be initialized */
-    UWORD32                                 u4_frm_max_wd;
-    /* maximum width for which codec should be initialized  */
-    UWORD32                                 u4_frm_max_ht;
-    /* format in which codec has to give out frame data for display */
+
+    /**
+     * format in which codec has to give out frame data for display
+     */
     IV_COLOR_FORMAT_T                       e_output_format;
-    /* pointer to memrecord array, which contains allocated resources */
-    iv_mem_rec_t                            *pv_mem_rec_location;
-}ivd_init_ip_t;
+
+    /**
+     * Flag to indicate shared display buffer mode
+     */
+    UWORD32                                 u4_share_disp_buf;
+
+    /**
+     * Pointer to a function for aligned allocation.
+     */
+    void    *(*pf_aligned_alloc)(void *pv_mem_ctxt, WORD32 alignment, WORD32 size);
+
+    /**
+     * Pointer to a function for aligned free.
+     */
+    void   (*pf_aligned_free)(void *pv_mem_ctxt, void *pv_buf);
+
+    /**
+     * Pointer to memory context that is needed during alloc/free for custom
+     * memory managers. This will be passed as first argument to pf_aligned_alloc and
+     * pf_aligned_free.
+     * If application is using standard memory functions like
+     * malloc/aligned_malloc/memalign/free/aligned_free,
+     * then this is not needed and can be set to NULL
+     */
+    void    *pv_mem_ctxt;
+
+}ivd_create_ip_t;
 
 
 typedef struct{
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
-    UWORD32                                 u4_error_code;
-}ivd_init_op_t;
 
+    /**
+     * u4_error_code
+     */
+    UWORD32                                 u4_error_code;
+
+    /**
+     * Codec Handle
+     */
+    void                                    *pv_handle;
+
+}ivd_create_op_t;
+
+
+/*****************************************************************************/
+/*  Delete decoder                                                           */
+/*****************************************************************************/
+
+/* IVD_API_COMMAND_TYPE_T::e_cmd = IVD_CMD_DELETE                              */
+
+
+
+typedef struct {
+    /**
+     * u4_size of the structure
+     */
+    UWORD32                                     u4_size;
+
+    /**
+     * cmd
+     */
+    IVD_API_COMMAND_TYPE_T                       e_cmd;
+
+}ivd_delete_ip_t;
+
+
+typedef struct{
+    /**
+     * u4_size of the structure
+     */
+    UWORD32                                     u4_size;
+
+    /**
+     * error_code
+     */
+    UWORD32                                     u4_error_code;
+
+}ivd_delete_op_t;
 
 /*****************************************************************************/
 /*   Video Decode                                                            */
@@ -291,37 +373,118 @@ typedef struct{
 
 
 typedef struct {
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
+
+    /**
+     * e_cmd
+     */
     IVD_API_COMMAND_TYPE_T                  e_cmd;
+
+    /**
+     * u4_ts
+     */
     UWORD32                                 u4_ts;
+
+    /**
+     * u4_num_Bytes
+     */
     UWORD32                                 u4_num_Bytes;
+
+    /**
+     * pv_stream_buffer
+     */
     void                                    *pv_stream_buffer;
 
-    /* output buffer desc */
+    /**
+     * output buffer desc
+     */
     ivd_out_bufdesc_t                       s_out_buffer;
 
 }ivd_video_decode_ip_t;
 
 
 typedef struct{
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
+
+    /**
+     * u4_error_code
+     */
     UWORD32                                 u4_error_code;
+
+    /**
+     * num_bytes_consumed
+     */
     UWORD32                                 u4_num_bytes_consumed;
+
+    /**
+     * pic_wd
+     */
     UWORD32                                 u4_pic_wd;
+
+    /**
+     * pic_ht
+     */
     UWORD32                                 u4_pic_ht;
+
+    /**
+     * pic_type
+     */
     IV_PICTURE_CODING_TYPE_T                e_pic_type;
+
+    /**
+     * frame_decoded_flag
+     */
     UWORD32                                 u4_frame_decoded_flag;
+
+    /**
+     * new_seq
+     */
     UWORD32                                 u4_new_seq;
 
+    /**
+     * output_present
+     */
     UWORD32                                 u4_output_present;
+
+    /**
+     * progressive_frame_flag
+     */
     UWORD32                                 u4_progressive_frame_flag;
+
+    /**
+     * is_ref_flag
+     */
     UWORD32                                 u4_is_ref_flag;
+
+    /**
+     * output_format
+     */
     IV_COLOR_FORMAT_T                       e_output_format;
+
+    /**
+     * disp_frm_buf
+     */
     iv_yuv_buf_t                            s_disp_frm_buf;
+
+    /**
+     * fld_type
+     */
     IV_FLD_TYPE_T                           e4_fld_type;
+
+    /**
+     * ts
+     */
     UWORD32                                 u4_ts;
+
+    /**
+     * disp_buf_id
+     */
     UWORD32                                 u4_disp_buf_id;
 }ivd_video_decode_op_t;
 
@@ -335,12 +498,19 @@ typedef struct{
 
 typedef struct
 {
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
 
+    /**
+     * e_cmd
+     */
     IVD_API_COMMAND_TYPE_T                  e_cmd;
 
-    /* output buffer desc */
+    /**
+     * output buffer desc
+     */
     ivd_out_bufdesc_t                       s_out_buffer;
 
 }ivd_get_display_frame_ip_t;
@@ -348,16 +518,54 @@ typedef struct
 
 typedef struct
 {
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
+
+    /**
+     * error_code
+     */
     UWORD32                                 u4_error_code;
+
+    /**
+     * progressive_frame_flag
+     */
     UWORD32                                 u4_progressive_frame_flag;
+
+    /**
+     * pic_type
+     */
     IV_PICTURE_CODING_TYPE_T                e_pic_type;
+
+    /**
+     * is_ref_flag
+     */
     UWORD32                                 u4_is_ref_flag;
+
+    /**
+     * output_format
+     */
     IV_COLOR_FORMAT_T                       e_output_format;
+
+    /**
+     * disp_frm_buf
+     */
     iv_yuv_buf_t                            s_disp_frm_buf;
+
+    /**
+     * fld_type
+     */
     IV_FLD_TYPE_T                           e4_fld_type;
+
+    /**
+     * ts
+     */
     UWORD32                                 u4_ts;
+
+    /**
+     * disp_buf_id
+     */
     UWORD32                                 u4_disp_buf_id;
 }ivd_get_display_frame_op_t;
 
@@ -370,14 +578,24 @@ typedef struct
 
 typedef struct
 {
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
 
+    /**
+     * cmd
+     */
     IVD_API_COMMAND_TYPE_T                  e_cmd;
 
+    /**
+     * num_disp_bufs
+     */
     UWORD32                                 num_disp_bufs;
 
-    /* output buffer desc */
+    /**
+     * output buffer desc
+     */
     ivd_out_bufdesc_t                       s_disp_buffer[IVD_VIDDEC_MAX_IO_BUFFERS];
 
 }ivd_set_display_frame_ip_t;
@@ -385,8 +603,14 @@ typedef struct
 
 typedef struct
 {
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
+
+    /**
+     * error code
+     */
     UWORD32                                 u4_error_code;
 }ivd_set_display_frame_op_t;
 
@@ -400,17 +624,33 @@ typedef struct
 
 typedef struct
 {
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
+
+    /**
+     * e_cmd
+     */
     IVD_API_COMMAND_TYPE_T                  e_cmd;
+
+    /**
+     * disp_buf_id
+     */
     UWORD32                                 u4_disp_buf_id;
 }ivd_rel_display_frame_ip_t;
 
 
 typedef struct
 {
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
+
+    /**
+     * error code
+     */
     UWORD32                                 u4_error_code;
 }ivd_rel_display_frame_op_t;
 
@@ -423,16 +663,32 @@ typedef struct
 
 
 typedef struct{
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
+
+    /**
+     * cmd
+     */
     IVD_API_COMMAND_TYPE_T                  e_cmd;
+
+    /**
+     * sub_cmd
+     */
     IVD_CONTROL_API_COMMAND_TYPE_T          e_sub_cmd;
 }ivd_ctl_flush_ip_t;
 
 
 typedef struct{
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
+
+    /**
+     * error code
+     */
     UWORD32                                 u4_error_code;
 }ivd_ctl_flush_op_t;
 
@@ -444,16 +700,33 @@ typedef struct{
 
 
 typedef struct{
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
+
+    /**
+     * cmd
+     */
     IVD_API_COMMAND_TYPE_T                  e_cmd;
+
+    /**
+     * sub_cmd
+     */
+
     IVD_CONTROL_API_COMMAND_TYPE_T          e_sub_cmd;
 }ivd_ctl_reset_ip_t;
 
 
 typedef struct{
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                 u4_size;
+
+    /**
+     * error code
+     */
     UWORD32                                 u4_error_code;
 }ivd_ctl_reset_op_t;
 
@@ -468,20 +741,52 @@ typedef struct{
 
 
 typedef struct {
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                     u4_size;
+
+    /**
+     * cmd
+     */
     IVD_API_COMMAND_TYPE_T                      e_cmd;
+
+    /**
+     * sub_cmd
+     */
     IVD_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+
+    /**
+     * vid_dec_mode
+     */
     IVD_VIDEO_DECODE_MODE_T                     e_vid_dec_mode;
+
+    /**
+     * disp_wd
+     */
     UWORD32                                     u4_disp_wd;
+
+    /**
+     * frm_skip_mode
+     */
     IVD_FRAME_SKIP_MODE_T                       e_frm_skip_mode;
+
+    /**
+     * frm_out_mode
+     */
     IVD_DISPLAY_FRAME_OUT_MODE_T                e_frm_out_mode;
 }ivd_ctl_set_config_ip_t;
 
 
 typedef struct{
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                     u4_size;
+
+    /**
+     * u4_error_code
+     */
     UWORD32                                     u4_error_code;
 }ivd_ctl_set_config_op_t;
 
@@ -494,26 +799,57 @@ typedef struct{
 
 
 typedef struct{
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                     u4_size;
+
+    /**
+     *  e_cmd
+     */
     IVD_API_COMMAND_TYPE_T                      e_cmd;
+
+    /**
+     * sub_cmd
+     */
     IVD_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
 }ivd_ctl_getbufinfo_ip_t;
 
 
 typedef struct{
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                     u4_size;
+
+    /**
+     * error code
+     */
     UWORD32                                     u4_error_code;
-    /* no of display buffer sets required by codec */
+
+    /**
+     * no of display buffer sets required by codec
+     */
     UWORD32                                     u4_num_disp_bufs;
-    /* no of input buffers required for codec */
+
+    /**
+     * no of input buffers required for codec
+     */
     UWORD32                                     u4_min_num_in_bufs;
-    /* no of output buffers required for codec */
+
+    /**
+     * no of output buffers required for codec
+     */
     UWORD32                                     u4_min_num_out_bufs;
-    /* sizes of each input buffer required */
+
+    /**
+     * sizes of each input buffer required
+     */
     UWORD32                                     u4_min_in_buf_size[IVD_VIDDEC_MAX_IO_BUFFERS];
-    /* sizes of each output buffer required */
+
+    /**
+     * sizes of each output buffer required
+     */
     UWORD32                                     u4_min_out_buf_size[IVD_VIDDEC_MAX_IO_BUFFERS];
 }ivd_ctl_getbufinfo_op_t;
 
@@ -528,31 +864,88 @@ typedef struct{
 
 
 typedef struct{
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                     u4_size;
+
+    /**
+     * cmd
+     */
     IVD_API_COMMAND_TYPE_T                      e_cmd;
+
+    /**
+     * sub_cmd
+     */
     IVD_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
 }ivd_ctl_getstatus_ip_t;
 
 
 typedef struct{
+
+     /**
+      * u4_size of the structure
+      */
     UWORD32                  u4_size;
+
+    /**
+      * error code
+      */
     UWORD32                  u4_error_code;
-    /* no of display buffer sets required by codec */
+
+    /**
+     * no of display buffer sets required by codec
+     */
     UWORD32                  u4_num_disp_bufs;
+
+    /**
+     * u4_pic_ht
+     */
     UWORD32                  u4_pic_ht;
+
+    /**
+     * u4_pic_wd
+     */
     UWORD32                  u4_pic_wd;
+
+    /**
+     * frame_rate
+     */
     UWORD32                  u4_frame_rate;
+
+    /**
+     * u4_bit_rate
+     */
     UWORD32                  u4_bit_rate;
+
+    /**
+     * content_type
+     */
     IV_CONTENT_TYPE_T        e_content_type;
+
+    /**
+     * output_chroma_format
+     */
     IV_COLOR_FORMAT_T        e_output_chroma_format;
-    /* no of input buffers required for codec */
+
+    /**
+     * no of input buffers required for codec
+     */
     UWORD32                  u4_min_num_in_bufs;
-    /* no of output buffers required for codec */
+
+    /**
+     * no of output buffers required for codec
+     */
     UWORD32                  u4_min_num_out_bufs;
-    /* sizes of each input buffer required */
+
+    /**
+     * sizes of each input buffer required
+     */
     UWORD32                  u4_min_in_buf_size[IVD_VIDDEC_MAX_IO_BUFFERS];
-    /* sizes of each output buffer required */
+
+    /**
+     * sizes of each output buffer required
+     */
     UWORD32                  u4_min_out_buf_size[IVD_VIDDEC_MAX_IO_BUFFERS];
 }ivd_ctl_getstatus_op_t;
 
@@ -566,18 +959,42 @@ typedef struct{
 
 
 typedef struct{
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                     u4_size;
+
+    /**
+     * cmd
+     */
     IVD_API_COMMAND_TYPE_T                      e_cmd;
+
+    /**
+     * sub_cmd
+     */
     IVD_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+
+    /**
+     * pv_version_buffer
+     */
     void                                        *pv_version_buffer;
+
+    /**
+     * version_buffer_size
+     */
     UWORD32                                     u4_version_buffer_size;
 }ivd_ctl_getversioninfo_ip_t;
 
 
 typedef struct{
-    /* u4_size of the structure                                         */
+    /**
+     * u4_size of the structure
+     */
     UWORD32                                     u4_size;
+
+    /**
+     * error code
+     */
     UWORD32                                     u4_error_code;
 }ivd_ctl_getversioninfo_op_t;
 

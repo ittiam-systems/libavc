@@ -205,8 +205,9 @@ WORD32 ih264d_parse_vui_parametres(vui_t *ps_vu4,
     }
     ps_vu4->u1_pic_struct_present_flag = ih264d_get_bits_h264(ps_bitstrm, 1);
 
-    u4_bits = ih264d_get_bits_h264(ps_bitstrm, 1);
-    if(u4_bits)
+    ps_vu4->u1_bitstream_restriction_flag = ih264d_get_bits_h264(ps_bitstrm, 1);
+
+    if(ps_vu4->u1_bitstream_restriction_flag)
     {
         ps_vu4->u1_mv_over_pic_boundaries_flag = ih264d_get_bits_h264(
                         ps_bitstrm, 1);
@@ -227,6 +228,7 @@ WORD32 ih264d_parse_vui_parametres(vui_t *ps_vu4,
     {
         /* Setting this to a large value if not present */
         ps_vu4->u4_num_reorder_frames = 64;
+        ps_vu4->u4_max_dec_frame_buffering = 64;
     }
 
     return OK;

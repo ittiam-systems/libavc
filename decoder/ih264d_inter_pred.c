@@ -869,7 +869,7 @@ WORD32 ih264d_form_mb_part_info_mp(pred_info_pkd_t *ps_pred_pkd,
     /* Increment the reference buffer Index */
     ps_dec->u4_dma_buf_idx += u2_tot_ref_scratch_size;
 
-    if(ps_dec->u4_dma_buf_idx > ps_dec->u4_ref_buf_size)
+    if(ps_dec->u4_dma_buf_idx > MAX_REF_BUF_SIZE)
         return ERROR_NUM_MV;
 
     return OK;
