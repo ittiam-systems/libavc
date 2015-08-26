@@ -788,7 +788,6 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
 
         if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u2_max_mb_addr)
         {
-            ret = ERROR_MB_ADDRESS_T;
             break;
         }
 
@@ -1017,7 +1016,6 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
 
         if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u2_max_mb_addr)
         {
-            ret = ERROR_MB_ADDRESS_T;
             break;
         }
 
