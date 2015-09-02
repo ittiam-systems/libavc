@@ -65,8 +65,8 @@
 #endif
 
 //#define ADAPTIVE_TEST
-#define ADAPTIVE_MAX_WD 1920
-#define ADAPTIVE_MAX_HT 1088
+#define ADAPTIVE_MAX_WD 4096
+#define ADAPTIVE_MAX_HT 2160
 
 #define ALIGN8(x) ((((x) + 7) >> 3) << 3)
 #define NUM_DISPLAY_BUFFERS 4
@@ -1789,7 +1789,7 @@ int main(WORD32 argc, CHAR *argv[])
     WORD32 ret;
     CHAR ac_error_str[STRLENGTH];
     vid_dec_ctx_t s_app_ctx;
-    UWORD8 *pu1_bs_buf;
+    UWORD8 *pu1_bs_buf = NULL;
 
     ivd_out_bufdesc_t *ps_out_buf;
     UWORD32 u4_num_bytes_dec = 0;
@@ -2228,6 +2228,10 @@ int main(WORD32 argc, CHAR *argv[])
 
     }
 
+    flush_output(codec_obj, &s_app_ctx, ps_out_buf,
+                 pu1_bs_buf, &u4_op_frm_ts,
+                 ps_op_file, ps_op_chksum_file,
+                 u4_ip_frm_ts, u4_bytes_remaining);
 
     /*****************************************************************************/
     /*   Decode header to get width and height and buffer sizes                  */
@@ -2334,8 +2338,6 @@ int main(WORD32 argc, CHAR *argv[])
         s_app_ctx.u4_pic_wd = s_video_decode_op.u4_pic_wd;
         s_app_ctx.u4_pic_ht = s_video_decode_op.u4_pic_ht;
 
-        /* Allocate input buffer */
-        u4_ip_buf_len = 2048 * 2048;
         free(pu1_bs_buf);
 
 #if IOS_DISPLAY
@@ -3138,6 +3140,9 @@ int main(WORD32 argc, CHAR *argv[])
 
     free(ps_out_buf);
     free(pu1_bs_buf);
+
+    if(s_app_ctx.display_thread_handle)
+        free(s_app_ctx.display_thread_handle);
 
     return (0);
 }
