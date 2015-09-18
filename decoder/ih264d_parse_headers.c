@@ -368,6 +368,12 @@ WORD32 ih264d_parse_pps(dec_struct_t * ps_dec, dec_bit_stream_t * ps_bitstrm)
             return ERROR_INV_RANGE_QP_T;
     }
 
+    /* In case bitstream read has exceeded the filled size, then
+       return an error */
+    if(ps_bitstrm->u4_ofst > ps_bitstrm->u4_max_ofst + 8)
+    {
+        return ERROR_INV_SPS_PPS_T;
+    }
     ps_pps->u1_is_valid = TRUE;
     ps_dec->ps_pps[ps_pps->u1_pic_parameter_set_id] = *ps_pps;
     return OK;
@@ -937,8 +943,6 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
 
     }
 
-    ps_seq->u1_is_valid = TRUE;
-
     if(1 == ps_seq->u1_vui_parameters_present_flag)
     {
         ret = ih264d_parse_vui_parametres(&ps_seq->s_vui, ps_bitstrm);
@@ -1002,6 +1006,13 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     ps_dec->u2_crop_offset_y = u2_crop_offset_y;
     ps_dec->u2_crop_offset_uv = u2_crop_offset_uv;
 
+    /* In case bitstream read has exceeded the filled size, then
+       return an error */
+    if(ps_bitstrm->u4_ofst > ps_bitstrm->u4_max_ofst)
+    {
+        return ERROR_INV_SPS_PPS_T;
+    }
+    ps_seq->u1_is_valid = TRUE;
     ps_dec->ps_sps[u1_seq_parameter_set_id] = *ps_seq;
 
     return OK;
