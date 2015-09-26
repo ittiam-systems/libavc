@@ -1930,23 +1930,26 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
         }
     }
 
-    size = sizeof(UWORD8) * ((u4_wd_mbs + 1) * MB_SIZE) * 2;
+    size = sizeof(UWORD8) * ((u4_wd_mbs + 2) * MB_SIZE) * 2;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     ps_dec->pu1_y_intra_pred_line = pv_buf;
     memset(ps_dec->pu1_y_intra_pred_line, 0, size);
+    ps_dec->pu1_y_intra_pred_line += MB_SIZE;
 
-    size = sizeof(UWORD8) * ((u4_wd_mbs + 1) * MB_SIZE) * 2;
+    size = sizeof(UWORD8) * ((u4_wd_mbs + 2) * MB_SIZE) * 2;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     ps_dec->pu1_u_intra_pred_line = pv_buf;
     memset(ps_dec->pu1_u_intra_pred_line, 0, size);
+    ps_dec->pu1_u_intra_pred_line += MB_SIZE;
 
-    size = sizeof(UWORD8) * ((u4_wd_mbs + 1) * MB_SIZE) * 2;
+    size = sizeof(UWORD8) * ((u4_wd_mbs + 2) * MB_SIZE) * 2;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     ps_dec->pu1_v_intra_pred_line = pv_buf;
     memset(ps_dec->pu1_v_intra_pred_line, 0, size);
+    ps_dec->pu1_v_intra_pred_line += MB_SIZE;
 
     if(ps_dec->u1_separate_parse)
     {
@@ -2215,8 +2218,22 @@ WORD16 ih264d_free_dynamic_bufs(dec_struct_t * ps_dec)
         }
     }
 
+    if(ps_dec->pu1_y_intra_pred_line)
+    {
+        ps_dec->pu1_y_intra_pred_line -= MB_SIZE;
+    }
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_y_intra_pred_line);
+
+    if(ps_dec->pu1_u_intra_pred_line)
+    {
+        ps_dec->pu1_u_intra_pred_line -= MB_SIZE;
+    }
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_u_intra_pred_line);
+
+    if(ps_dec->pu1_v_intra_pred_line)
+    {
+        ps_dec->pu1_v_intra_pred_line -= MB_SIZE;
+    }
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_v_intra_pred_line);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_nbr_mb_row);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_mv_bank_buf_base);
