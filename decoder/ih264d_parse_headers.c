@@ -892,6 +892,12 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
             return IVD_RES_CHANGED;
         }
 
+        /* Check for unsupported resolutions */
+        if((u2_pic_wd > H264_MAX_FRAME_WIDTH) || (u2_pic_ht > H264_MAX_FRAME_HEIGHT))
+        {
+            return IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED;
+        }
+
         ps_dec->u2_disp_height = i4_cropped_ht;
 
         ps_dec->u2_disp_width = i4_cropped_wd;
