@@ -2005,6 +2005,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             api_ret_value = IV_FAIL;
 
             if((ret == IVD_RES_CHANGED)
+                            || (ret == IVD_MEM_ALLOC_FAILED)
                             || (ret == ERROR_UNAVAIL_PICBUF_T)
                             || (ret == ERROR_UNAVAIL_MVBUF_T))
             {
@@ -2060,6 +2061,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     while(( header_data_left == 1)||(frame_data_left == 1));
 
     if((ps_dec->u4_slice_start_code_found == 1)
+            && (ret != IVD_MEM_ALLOC_FAILED)
             && ps_dec->u2_total_mbs_coded < ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
     {
         // last slice - missing/corruption
@@ -2086,6 +2088,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     }
 
     if((ret == IVD_RES_CHANGED)
+                    || (ret == IVD_MEM_ALLOC_FAILED)
                     || (ret == ERROR_UNAVAIL_PICBUF_T)
                     || (ret == ERROR_UNAVAIL_MVBUF_T))
     {
