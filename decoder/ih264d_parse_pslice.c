@@ -1020,7 +1020,6 @@ WORD32 ih264d_parse_inter_slice_data_cabac(dec_struct_t * ps_dec,
         }
 
         u1_num_mbs++;
-        ps_dec->u2_total_mbs_coded++;
         u1_num_mbsNby2++;
         ps_parse_mb_data++;
 
@@ -1071,7 +1070,7 @@ WORD32 ih264d_parse_inter_slice_data_cabac(dec_struct_t * ps_dec,
                                             u1_num_mbs_next, u1_tfr_n_mb,
                                             u1_end_of_row);
             }
-
+            ps_dec->u2_total_mbs_coded += u1_num_mbs;
             if(u1_tfr_n_mb)
                 u1_num_mbs = 0;
             u1_mb_idx = u1_num_mbs;
@@ -1356,7 +1355,6 @@ WORD32 ih264d_parse_inter_slice_data_cavlc(dec_struct_t * ps_dec,
         i2_cur_mb_addr++;
 
         u1_num_mbs++;
-        ps_dec->u2_total_mbs_coded++;
         u1_num_mbsNby2++;
         ps_parse_mb_data++;
 
@@ -1409,7 +1407,7 @@ WORD32 ih264d_parse_inter_slice_data_cavlc(dec_struct_t * ps_dec,
                                             u1_num_mbs_next, u1_tfr_n_mb,
                                             u1_end_of_row);
             }
-
+            ps_dec->u2_total_mbs_coded += u1_num_mbs;
             if(u1_tfr_n_mb)
                 u1_num_mbs = 0;
             u1_mb_idx = u1_num_mbs;
@@ -1618,7 +1616,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                     ih264d_decode_recon_tfr_nmb(ps_dec, u1_mb_idx, u1_num_mbs,
                             u1_num_mbs_next, u1_tfr_n_mb, u1_end_of_row);
                 }
-
+                ps_dec->u2_total_mbs_coded += u1_num_mbs;
                 ps_dec->u1_mb_idx = 0;
                 ps_dec->u4_num_mbs_cur_nmb = 0;
             }
@@ -1788,7 +1786,6 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
         i2_cur_mb_addr++;
 
         u1_num_mbs++;
-        ps_dec->u2_total_mbs_coded++;
         u1_num_mbsNby2++;
         ps_parse_mb_data++;
 
@@ -1824,7 +1821,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                 ih264d_decode_recon_tfr_nmb(ps_dec, u1_mb_idx, u1_num_mbs, u1_num_mbs_next,
                                             u1_tfr_n_mb, u1_end_of_row);
             }
-
+            ps_dec->u2_total_mbs_coded += u1_num_mbs;
             if(u1_tfr_n_mb)
                 u1_num_mbs = 0;
             u1_mb_idx = u1_num_mbs;
