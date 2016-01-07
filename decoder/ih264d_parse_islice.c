@@ -899,7 +899,6 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
                                      (UWORD16)(u1_num_mbs >> u1_mbaff));
         }
         u1_num_mbs++;
-        ps_dec->u2_total_mbs_coded++;
 
         /****************************************************************/
         /* Check for End Of Row                                         */
@@ -929,7 +928,7 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
                                             u1_num_mbs_next, u1_tfr_n_mb,
                                             u1_end_of_row);
             }
-
+            ps_dec->u2_total_mbs_coded += u1_num_mbs;
             if(u1_tfr_n_mb)
                 u1_num_mbs = 0;
             u1_mb_idx = u1_num_mbs;
@@ -1119,7 +1118,6 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
                                          (UWORD16)(u1_num_mbs >> u1_mbaff));
             }
             u1_num_mbs++;
-            ps_dec->u2_total_mbs_coded++;
 
         }
 
@@ -1148,7 +1146,7 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
                                             u1_num_mbs_next, u1_tfr_n_mb,
                                             u1_end_of_row);
             }
-
+            ps_dec->u2_total_mbs_coded += u1_num_mbs;
             if(u1_tfr_n_mb)
                 u1_num_mbs = 0;
             u1_mb_idx = u1_num_mbs;
