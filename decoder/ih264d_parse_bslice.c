@@ -1590,7 +1590,14 @@ WORD32 ih264d_parse_bslice(dec_struct_t * ps_dec, UWORD16 u2_first_mb_in_slice)
     if(ps_slice->u1_nal_ref_idc != 0)
     {
         if(!ps_dec->ps_dpb_cmds->u1_dpb_commands_read)
-            ps_dec->u4_bitoffset = ih264d_read_mmco_commands(ps_dec);
+        {
+            i_temp = ih264d_read_mmco_commands(ps_dec);
+            if (i_temp < 0)
+            {
+                return ERROR_DBP_MANAGER_T;
+            }
+            ps_dec->u4_bitoffset = i_temp;
+        }
         else
             ps_bitstrm->u4_ofst += ps_dec->u4_bitoffset;
     }
