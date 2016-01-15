@@ -17,6 +17,9 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+#include "log/log.h"
+#include <cutils/log.h>
+
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
 #include "ih264_platform_macros.h"
@@ -872,6 +875,13 @@ WORD32 ih264d_read_mmco_commands(struct _DecStruct * ps_dec)
                                      pu4_bitstrm_buf);
                 while(u4_mmco != END_OF_MMCO)
                 {
+                    if (j >= MAX_REF_BUFS)
+                    {
+                        ALOGE("b/25818142");
+                        android_errorWriteLog(0x534e4554, "25818142");
+                        ps_dpb_cmds->u1_num_of_commands = 0;
+                        return -1;
+                    }
                     ps_mmc_params = &ps_dpb_cmds->as_mmc_params[j];
                     ps_mmc_params->u4_mmco = u4_mmco;
                     switch(u4_mmco)
