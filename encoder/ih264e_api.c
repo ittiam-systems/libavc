@@ -3915,7 +3915,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
             }
         }
 
-        ps_codec->pu2_intr_rfrsh_map = (UWORD16 *) (pu1_buf + max_mb_cnt * 2);
+        ps_codec->pu2_intr_rfrsh_map = (UWORD16 *) (pu1_buf + max_mb_cnt * MAX_CTXT_SETS);
     }
 
     ps_mem_rec = &ps_mem_rec_base[MEM_REC_SLICE_MAP];
