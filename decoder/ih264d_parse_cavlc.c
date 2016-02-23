@@ -443,7 +443,11 @@ WORD32 ih264d_cavlc_4x4res_block_totalcoeff_2to10(UWORD32 u4_isdc,
     UWORD32 u4_bitstream_offset = ps_bitstrm->u4_ofst;
     UWORD32 u4_trailing_ones = u4_total_coeff_trail_one & 0xFFFF;
     UWORD32 u4_total_coeff = u4_total_coeff_trail_one >> 16;
-    WORD16 i2_level_arr[16];
+    // To avoid error check at 4x4 level, allocating for 3 extra levels(16+3)
+    // since u4_trailing_ones can at the max be 3. This will be required when
+    // u4_total_coeff is less than u4_trailing_ones
+    WORD16 ai2_level_arr[19];
+    WORD16 *i2_level_arr = &ai2_level_arr[3];
 
     tu_sblk4x4_coeff_data_t *ps_tu_4x4;
     WORD16 *pi2_coeff_data;
@@ -721,7 +725,11 @@ WORD32 ih264d_cavlc_4x4res_block_totalcoeff_11to16(UWORD32 u4_isdc,
     UWORD32 u4_bitstream_offset = ps_bitstrm->u4_ofst;
     UWORD32 u4_trailing_ones = u4_total_coeff_trail_one & 0xFFFF;
     UWORD32 u4_total_coeff = u4_total_coeff_trail_one >> 16;
-    WORD16 i2_level_arr[16];
+    // To avoid error check at 4x4 level, allocating for 3 extra levels(16+3)
+    // since u4_trailing_ones can at the max be 3. This will be required when
+    // u4_total_coeff is less than u4_trailing_ones
+    WORD16 ai2_level_arr[19];//
+    WORD16 *i2_level_arr = &ai2_level_arr[3];
 
     tu_sblk4x4_coeff_data_t *ps_tu_4x4;
     WORD16 *pi2_coeff_data;
@@ -993,7 +1001,11 @@ void ih264d_rest_of_residual_cav_chroma_dc_block(UWORD32 u4_total_coeff_trail_on
     UWORD32 u4_bitstream_offset = ps_bitstrm->u4_ofst;
     UWORD32 u4_trailing_ones = u4_total_coeff_trail_one & 0xFFFF;
     UWORD32 u4_total_coeff = u4_total_coeff_trail_one >> 16;
-    WORD16 i2_level_arr[4];
+    // To avoid error check at 4x4 level, allocating for 3 extra levels(4+3)
+    // since u4_trailing_ones can at the max be 3. This will be required when
+    // u4_total_coeff is less than u4_trailing_ones
+    WORD16 ai2_level_arr[7];//
+    WORD16 *i2_level_arr = &ai2_level_arr[3];
 
     tu_sblk4x4_coeff_data_t *ps_tu_4x4;
     WORD16 *pi2_coeff_data;
