@@ -2085,7 +2085,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         num_mb_skipped = (ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
                             - ps_dec->u2_total_mbs_coded;
 
-        if(ps_dec->u4_first_slice_in_pic)
+        if(ps_dec->u4_first_slice_in_pic && (ps_dec->u4_pic_buf_got == 0))
             prev_slice_err = 1;
         else
             prev_slice_err = 2;
@@ -2112,8 +2112,11 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         {
             ih264d_signal_bs_deblk_thread(ps_dec);
         }
-        /* dont consume bitstream */
-        ps_dec_op->u4_num_bytes_consumed -= bytes_consumed;
+        /* dont consume bitstream for change in resolution case */
+        if(ret == IVD_RES_CHANGED)
+        {
+            ps_dec_op->u4_num_bytes_consumed -= bytes_consumed;
+        }
         return IV_FAIL;
     }
 
