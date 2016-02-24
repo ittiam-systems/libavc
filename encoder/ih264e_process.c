@@ -2008,7 +2008,6 @@ WORD32 ih264e_process(process_ctxt_t *ps_proc)
 
             /* force intra refresh ? */
             WORD32 i4_air_enable_inter = (ps_codec->s_cfg.e_air_mode == IVE_AIR_MODE_NONE) ||
-                            (ps_proc->pu1_is_intra_coded[i4_mb_id] != 0) ||
                             (ps_codec->pu2_intr_rfrsh_map[i4_mb_id] != ps_codec->i4_air_pic_cnt);
 
             /* evaluate inter 16x16 modes */
