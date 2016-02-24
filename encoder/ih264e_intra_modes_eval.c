@@ -363,15 +363,17 @@ void ih264e_evaluate_intra16x16_modes_for_least_cost_rdoptoff(process_ctxt_t *ps
     UWORD8 *pu1_mb_a = pu1_ref_mb - 1;
     UWORD8 *pu1_mb_b = pu1_ref_mb - i4_rec_strd;
     UWORD8 *pu1_mb_d = pu1_mb_b - 1;
-
+    UWORD8 u1_mb_a, u1_mb_b, u1_mb_d;
     /* valid intra modes map */
     UWORD32 u4_valid_intra_modes;
 
     /* lut for valid intra modes */
-    const UWORD8 u1_valid_intra_modes[8] = {4, 6, 12, 14, 5, 7, 13, 15};
+    const UWORD8 u1_valid_intra_modes[8] = {4, 6, 4, 6, 5, 7, 5, 15};
 
     /* temp var */
     UWORD32 i, u4_enable_fast_sad = 0, offset = 0;
+    mb_info_t *ps_top_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + ps_proc->i4_mb_x;
+    UWORD32 u4_constrained_intra_pred = ps_proc->ps_codec->s_cfg.u4_constrained_intra_pred;
 
     /* init temp var */
     if (ps_proc->i4_slice_type != ISLICE)
@@ -382,17 +384,13 @@ void ih264e_evaluate_intra16x16_modes_for_least_cost_rdoptoff(process_ctxt_t *ps
     }
 
     /* locating neighbors that are available for prediction */
-    /* TODO : update the neighbor availability information basing on constrained intra pred information */
-    /* TODO : i4_ngbr_avbl is only being used in DC mode. Can the DC mode be split in to distinct routines
-     * basing on neighbors available and hence evade the computation of neighbor availability totally. */
-    /* i4_ngbr_avbl = blk_a * LEFT_MB_AVAILABLE_MASK + blk_b * TOP_MB_AVAILABLE_MASK + blk_d * TOP_LEFT_MB_AVAILABLE_MASK */
-    i4_ngbr_avbl = (ps_proc->ps_ngbr_avbl->u1_mb_a) + (ps_proc->ps_ngbr_avbl->u1_mb_b << 2) + (ps_proc->ps_ngbr_avbl->u1_mb_d << 1);
-    ps_proc->i4_ngbr_avbl_16x16_mb = i4_ngbr_avbl;
 
     /* gather prediction pels from the neighbors, if particular set is not available
      * it is set to zero*/
     /* left pels */
-    if (ps_proc->ps_ngbr_avbl->u1_mb_a)
+    u1_mb_a = ((ps_proc->ps_ngbr_avbl->u1_mb_a)
+                    && (u4_constrained_intra_pred ? ps_proc->s_left_mb_syntax_ele.u2_is_intra : 1));
+    if (u1_mb_a)
     {
         for(i = 0; i < 16; i++)
             pu1_ngbr_pels_i16[16-1-i] = pu1_mb_a[i * i4_rec_strd];
@@ -402,33 +400,32 @@ void ih264e_evaluate_intra16x16_modes_for_least_cost_rdoptoff(process_ctxt_t *ps
         ps_codec->pf_mem_set_mul8(pu1_ngbr_pels_i16,0,MB_SIZE);
     }
     /* top pels */
-    if (ps_proc->ps_ngbr_avbl->u1_mb_b)
+    u1_mb_b = ((ps_proc->ps_ngbr_avbl->u1_mb_b)
+                    && (u4_constrained_intra_pred ? ps_top_mb_syn_ele->u2_is_intra : 1));
+    if (u1_mb_b)
     {
         ps_codec->pf_mem_cpy_mul8(pu1_ngbr_pels_i16+16+1,pu1_mb_b,16);
-        /*for(i = 0; i < 16; i++)
-            pu1_ngbr_pels_i16[16+1+i] = pu1_mb_b[i];*/
     }
     else
     {
         ps_codec->pf_mem_set_mul8(pu1_ngbr_pels_i16+16+1,0,MB_SIZE);
     }
     /* topleft pels */
-    if (ps_proc->ps_ngbr_avbl->u1_mb_d)
+    u1_mb_d = ((ps_proc->ps_ngbr_avbl->u1_mb_d)
+                    && (u4_constrained_intra_pred ? ps_proc->s_top_left_mb_syntax_ele.u2_is_intra : 1));
+    if (u1_mb_d)
+    {
         pu1_ngbr_pels_i16[16] = *pu1_mb_d;
+    }
     else
+    {
         pu1_ngbr_pels_i16[16] = 0;
+    }
+
+    i4_ngbr_avbl = (u1_mb_a) + (u1_mb_b << 2) + (u1_mb_d << 1);
+    ps_proc->i4_ngbr_avbl_16x16_mb = i4_ngbr_avbl;
 
     /* set valid intra modes for evaluation */
-//    u4_valid_intra_modes = 15;
-////    ih264e_filter_intra16x16modes(pu1_mb_curr, i4_src_strd, &u4_valid_intra_modes);
-//    if (!ps_proc->ps_ngbr_avbl->u1_mb_a)
-//        u4_valid_intra_modes &= ~(1 << HORZ_I16x16);
-//    if (!ps_proc->ps_ngbr_avbl->u1_mb_b)
-//        u4_valid_intra_modes &= ~(1 << VERT_I16x16);
-////    if (!ps_proc->ps_ngbr_avbl->u1_mb_a || !ps_proc->ps_ngbr_avbl->u1_mb_b || !ps_proc->ps_ngbr_avbl->u1_mb_d)
-//    if (i4_ngbr_avbl != 7)
-//        u4_valid_intra_modes &= ~(1 << PLANE_I16x16);
-
     u4_valid_intra_modes = u1_valid_intra_modes[i4_ngbr_avbl];
 
     if (ps_codec->s_cfg.u4_enc_speed_preset == IVE_FAST)
@@ -443,7 +440,7 @@ void ih264e_evaluate_intra16x16_modes_for_least_cost_rdoptoff(process_ctxt_t *ps
     /* cost = distortion + lambda*rate */
     i4_mb_cost_least = i4_mb_distortion_least;
 
-    if (( (u4_valid_intra_modes >> 3) & 1) != 0 && (ps_codec->s_cfg.u4_enc_speed_preset != IVE_FASTEST ||
+    if ((( (u4_valid_intra_modes >> 3) & 1) != 0) && (ps_codec->s_cfg.u4_enc_speed_preset != IVE_FASTEST ||
                     ps_proc->i4_slice_type == ISLICE))
     {
         /* intra prediction for PLANE mode*/
@@ -562,13 +559,36 @@ void ih264e_evaluate_intra8x8_modes_for_least_cost_rdoptoff(process_ctxt_t *ps_p
 
     /* temp vars */
     UWORD32  b8, u4_pix_x, u4_pix_y;
+    UWORD32 u4_constrained_intra_pred = ps_proc->ps_codec->s_cfg.u4_constrained_intra_pred;
+    block_neighbors_t s_ngbr_avbl_MB;
 
     /* ngbr mb syntax information */
     UWORD8 *pu1_top_mb_intra_modes = ps_proc->pu1_top_mb_intra_modes + (ps_proc->i4_mb_x << 4);
     mb_info_t *ps_top_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + ps_proc->i4_mb_x;
-
+    mb_info_t *ps_top_right_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + ps_proc->i4_mb_x;
     /* valid intra modes map */
     UWORD32 u4_valid_intra_modes;
+
+    if (ps_proc->ps_ngbr_avbl->u1_mb_c)
+    {
+        ps_top_right_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + (ps_proc->i4_mb_x + 1);
+    }
+    /* left pels */
+    s_ngbr_avbl_MB.u1_mb_a = ((ps_proc->ps_ngbr_avbl->u1_mb_a)
+                                  && (u4_constrained_intra_pred ? ps_proc->s_left_mb_syntax_ele.u2_is_intra : 1));
+
+    /* top pels */
+    s_ngbr_avbl_MB.u1_mb_b = ((ps_proc->ps_ngbr_avbl->u1_mb_b)
+                                  && (u4_constrained_intra_pred ? ps_top_mb_syn_ele->u2_is_intra : 1));
+
+    /* topleft pels */
+    s_ngbr_avbl_MB.u1_mb_d = ((ps_proc->ps_ngbr_avbl->u1_mb_d)
+                                  && (u4_constrained_intra_pred ? ps_proc->s_top_left_mb_syntax_ele.u2_is_intra : 1));
+
+    /* top right */
+    s_ngbr_avbl_MB.u1_mb_c = ((ps_proc->ps_ngbr_avbl->u1_mb_c)
+                                  && (u4_constrained_intra_pred ? ps_top_right_mb_syn_ele->u2_is_intra : 1));
+
 
     for(b8 = 0; b8 < 4; b8++)
     {
@@ -586,10 +606,10 @@ void ih264e_evaluate_intra8x8_modes_for_least_cost_rdoptoff(process_ctxt_t *ps_p
         /* TODO : update the neighbor availability information basing on constrained intra pred information */
         /* TODO : i4_ngbr_avbl is only being used in DC mode. Can the DC mode be split in to distinct routines */
         /* basing on neighbors available and hence evade the computation of neighbor availability totally. */
-        s_ngbr_avbl.u1_mb_a = ih264e_derive_ngbr_avbl_of_mb_partitions(ps_proc->ps_ngbr_avbl, u4_pix_x - 1, u4_pix_y); /* xD = -1, yD = 0 */
-        s_ngbr_avbl.u1_mb_b = ih264e_derive_ngbr_avbl_of_mb_partitions(ps_proc->ps_ngbr_avbl, u4_pix_x, u4_pix_y - 1); /* xD = 0, yD = -1 */
-        s_ngbr_avbl.u1_mb_c = ih264e_derive_ngbr_avbl_of_mb_partitions(ps_proc->ps_ngbr_avbl, u4_pix_x + 8, u4_pix_y - 1); /* xD = BLK_8x8_SIZE, yD = -1 */
-        s_ngbr_avbl.u1_mb_d = ih264e_derive_ngbr_avbl_of_mb_partitions(ps_proc->ps_ngbr_avbl, u4_pix_x - 1, u4_pix_y - 1); /* xD = -1, yD = -1 */
+        s_ngbr_avbl.u1_mb_a = ih264e_derive_ngbr_avbl_of_mb_partitions(&s_ngbr_avbl_MB, u4_pix_x - 1, u4_pix_y); /* xD = -1, yD = 0 */
+        s_ngbr_avbl.u1_mb_b = ih264e_derive_ngbr_avbl_of_mb_partitions(&s_ngbr_avbl_MB, u4_pix_x, u4_pix_y - 1); /* xD = 0, yD = -1 */
+        s_ngbr_avbl.u1_mb_c = ih264e_derive_ngbr_avbl_of_mb_partitions(&s_ngbr_avbl_MB, u4_pix_x + 8, u4_pix_y - 1); /* xD = BLK_8x8_SIZE, yD = -1 */
+        s_ngbr_avbl.u1_mb_d = ih264e_derive_ngbr_avbl_of_mb_partitions(&s_ngbr_avbl_MB, u4_pix_x - 1, u4_pix_y - 1); /* xD = -1, yD = -1 */
 
         /* i4_ngbr_avbl = blk_a * LEFT_MB_AVAILABLE_MASK + blk_b * TOP_MB_AVAILABLE_MASK + blk_c * TOP_RIGHT_MB_AVAILABLE_MASK + blk_d * TOP_LEFT_MB_AVAILABLE_MASK */
         i4_ngbr_avbl = (s_ngbr_avbl.u1_mb_a) + (s_ngbr_avbl.u1_mb_d << 1) + (s_ngbr_avbl.u1_mb_b << 2) +  (s_ngbr_avbl.u1_mb_c << 3) +
@@ -799,12 +819,35 @@ void ih264e_evaluate_intra4x4_modes_for_least_cost_rdoptoff(process_ctxt_t *ps_p
     /* ngbr sub mb modes */
     UWORD8 *pu1_top_mb_intra_modes = ps_proc->pu1_top_mb_intra_modes + (ps_proc->i4_mb_x << 4);
     mb_info_t *ps_top_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + ps_proc->i4_mb_x;
+    mb_info_t *ps_top_right_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + ps_proc->i4_mb_x;
 
     /* valid intra modes map */
     UWORD32 u4_valid_intra_modes;
     UWORD16 u2_valid_modes[8] = {4, 262, 4, 262, 141, 399, 141, 511};
 
-    i4_ngbr_avbl = (ps_proc->ps_ngbr_avbl->u1_mb_a) + (ps_proc->ps_ngbr_avbl->u1_mb_d << 1) + (ps_proc->ps_ngbr_avbl->u1_mb_b << 2) + (ps_proc->ps_ngbr_avbl->u1_mb_c << 3);
+    UWORD32 u4_constrained_intra_pred = ps_proc->ps_codec->s_cfg.u4_constrained_intra_pred;
+    UWORD8 u1_mb_a, u1_mb_b, u1_mb_c, u1_mb_d;
+    if (ps_proc->ps_ngbr_avbl->u1_mb_c)
+    {
+        ps_top_right_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + ps_proc->i4_mb_x + 1;
+    }
+    /* left pels */
+    u1_mb_a = ((ps_proc->ps_ngbr_avbl->u1_mb_a)
+                    && (u4_constrained_intra_pred ? ps_proc->s_left_mb_syntax_ele.u2_is_intra : 1));
+
+    /* top pels */
+    u1_mb_b = ((ps_proc->ps_ngbr_avbl->u1_mb_b)
+                    && (u4_constrained_intra_pred ? ps_top_mb_syn_ele->u2_is_intra : 1));
+
+    /* topleft pels */
+    u1_mb_d = ((ps_proc->ps_ngbr_avbl->u1_mb_d)
+                    && (u4_constrained_intra_pred ? ps_proc->s_top_left_mb_syntax_ele.u2_is_intra : 1));
+
+    /* top right */
+    u1_mb_c = ((ps_proc->ps_ngbr_avbl->u1_mb_c)
+                    && (u4_constrained_intra_pred ? ps_top_right_mb_syn_ele->u2_is_intra : 1));
+
+    i4_ngbr_avbl = (u1_mb_a) + (u1_mb_d << 1) + (u1_mb_b << 2) + (u1_mb_c << 3);
     memcpy(ps_proc->au1_ngbr_avbl_4x4_subblks, gau1_ih264_4x4_ngbr_avbl[i4_ngbr_avbl], 16);
 
     for (b8 = 0; b8 < 4; b8++)
@@ -1057,6 +1100,7 @@ void ih264e_evaluate_intra4x4_modes_for_least_cost_rdopton(process_ctxt_t *ps_pr
     /* ngbr sub mb modes */
     UWORD8 *pu1_top_mb_intra_modes = ps_proc->pu1_top_mb_intra_modes + (ps_proc->i4_mb_x << 4);
     mb_info_t *ps_top_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + ps_proc->i4_mb_x;
+    mb_info_t *ps_top_right_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + ps_proc->i4_mb_x;
 
     /* valid intra modes map */
     UWORD32 u4_valid_intra_modes;
@@ -1064,9 +1108,32 @@ void ih264e_evaluate_intra4x4_modes_for_least_cost_rdopton(process_ctxt_t *ps_pr
 
     /* Dummy variable for 4x4 trans function */
     WORD16 i2_dc_dummy;
+    UWORD8 u1_mb_a, u1_mb_b, u1_mb_c, u1_mb_d;
+    UWORD32 u4_constrained_intra_pred = ps_proc->ps_codec->s_cfg.u4_constrained_intra_pred;
 
     /* compute ngbr availability for sub blks */
-    i4_ngbr_avbl = (ps_proc->ps_ngbr_avbl->u1_mb_a) + (ps_proc->ps_ngbr_avbl->u1_mb_d << 1) + (ps_proc->ps_ngbr_avbl->u1_mb_b << 2) + (ps_proc->ps_ngbr_avbl->u1_mb_c << 3);
+    if (ps_proc->ps_ngbr_avbl->u1_mb_c)
+    {
+        ps_top_right_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + (ps_proc->i4_mb_x + 1);
+    }
+
+    /* left pels */
+    u1_mb_a = ((ps_proc->ps_ngbr_avbl->u1_mb_a)
+                    && (u4_constrained_intra_pred ? ps_proc->s_left_mb_syntax_ele.u2_is_intra : 1));
+
+       /* top pels */
+    u1_mb_b = ((ps_proc->ps_ngbr_avbl->u1_mb_b)
+                    && (u4_constrained_intra_pred ? ps_top_mb_syn_ele->u2_is_intra : 1));
+
+       /* topleft pels */
+    u1_mb_d = ((ps_proc->ps_ngbr_avbl->u1_mb_d)
+                    && (u4_constrained_intra_pred ? ps_proc->s_top_left_mb_syntax_ele.u2_is_intra : 1));
+
+       /* top right pels */
+    u1_mb_c = ((ps_proc->ps_ngbr_avbl->u1_mb_c)
+                    && (u4_constrained_intra_pred ? ps_top_right_mb_syn_ele->u2_is_intra : 1));
+
+    i4_ngbr_avbl = (u1_mb_a) + (u1_mb_d << 1) + (u1_mb_b << 2) + (u1_mb_c << 3);
     memcpy(ps_proc->au1_ngbr_avbl_4x4_subblks, gau1_ih264_4x4_ngbr_avbl[i4_ngbr_avbl], 16);
 
     for(b8 = 0; b8 < 4; b8++)
@@ -1328,26 +1395,24 @@ void ih264e_evaluate_chroma_intra8x8_modes_for_least_cost_rdoptoff(process_ctxt_
     UWORD8 *pu1_mb_d = pu1_mb_b - 2;
 
     /* neighbor availability */
-    const UWORD8  u1_valid_intra_modes[8] = {1, 3, 9, 11, 5, 7, 13, 15,};
+    const UWORD8  u1_valid_intra_modes[8] = {1, 3, 1, 3, 5, 7, 5, 15};
     WORD32 i4_ngbr_avbl;
 
     /* valid intra modes map */
     UWORD32 u4_valid_intra_modes;
+    mb_info_t *ps_top_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + ps_proc->i4_mb_x;
 
     /* temp var */
     UWORD8 i;
-
+    UWORD32 u4_constrained_intra_pred = ps_proc->ps_codec->s_cfg.u4_constrained_intra_pred;
+    UWORD8 u1_mb_a, u1_mb_b, u1_mb_d;
     /* locating neighbors that are available for prediction */
-    /* TODO : update the neighbor availability information basing on constrained intra pred information */
-    /* TODO : i4_ngbr_avbl is only being used in DC mode. Can the DC mode be split in to distinct routines
-     * basing on neighbors available and hence evade the computation of neighbor availability totally. */
-    /* i4_ngbr_avbl = blk_a * LEFT_MB_AVAILABLE_MASK + blk_b * TOP_MB_AVAILABLE_MASK + blk_d * TOP_LEFT_MB_AVAILABLE_MASK */
-    i4_ngbr_avbl = (ps_proc->ps_ngbr_avbl->u1_mb_a) + (ps_proc->ps_ngbr_avbl->u1_mb_b << 2) + (ps_proc->ps_ngbr_avbl->u1_mb_d << 1);
-    ps_proc->i4_chroma_neighbor_avail_8x8_mb = i4_ngbr_avbl;
 
     /* gather prediction pels from the neighbors */
     /* left pels */
-    if (ps_proc->ps_ngbr_avbl->u1_mb_a)
+    u1_mb_a = ((ps_proc->ps_ngbr_avbl->u1_mb_a)
+                    && (u4_constrained_intra_pred ?  ps_proc->s_left_mb_syntax_ele.u2_is_intra : 1));
+    if (u1_mb_a)
     {
         for (i = 0; i < 16; i += 2)
         {
@@ -1361,7 +1426,9 @@ void ih264e_evaluate_chroma_intra8x8_modes_for_least_cost_rdoptoff(process_ctxt_
     }
 
     /* top pels */
-    if (ps_proc->ps_ngbr_avbl->u1_mb_b)
+    u1_mb_b = ((ps_proc->ps_ngbr_avbl->u1_mb_b)
+                    && (u4_constrained_intra_pred ? ps_top_mb_syn_ele->u2_is_intra : 1));
+    if (u1_mb_b)
     {
         ps_codec->pf_mem_cpy_mul8(&pu1_ngbr_pels_c_i8x8[18], pu1_mb_b, 16);
     }
@@ -1371,11 +1438,15 @@ void ih264e_evaluate_chroma_intra8x8_modes_for_least_cost_rdoptoff(process_ctxt_
     }
 
     /* top left pels */
-    if (ps_proc->ps_ngbr_avbl->u1_mb_d)
+    u1_mb_d = ((ps_proc->ps_ngbr_avbl->u1_mb_d)
+                    && (u4_constrained_intra_pred ? ps_proc->s_top_left_mb_syntax_ele.u2_is_intra : 1));
+    if (u1_mb_d)
     {
         pu1_ngbr_pels_c_i8x8[16] = *pu1_mb_d;
         pu1_ngbr_pels_c_i8x8[17] = *(pu1_mb_d + 1);
     }
+    i4_ngbr_avbl = (u1_mb_a) + (u1_mb_b << 2) + (u1_mb_d << 1);
+    ps_proc->i4_chroma_neighbor_avail_8x8_mb = i4_ngbr_avbl;
 
     u4_valid_intra_modes = u1_valid_intra_modes[i4_ngbr_avbl];
 
