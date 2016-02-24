@@ -1420,6 +1420,16 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                         return IV_FAIL;
                     }
 
+                    if ((ps_ip->s_ive_ip.u4_constrained_intra_pred != 0)
+                                    && (ps_ip->s_ive_ip.u4_constrained_intra_pred != 1))
+                    {
+                        ps_op->s_ive_op.u4_error_code |= 1
+                                        << IVE_UNSUPPORTEDPARAM;
+                        ps_op->s_ive_op.u4_error_code |=
+                                        IH264E_INVALID_CONSTRAINED_INTRA_PREDICTION_MODE;
+                        return IV_FAIL;
+                    }
+
                     if ((ps_ip->s_ive_ip.u4_enc_speed_preset != IVE_CONFIG)
                                     && (ps_ip->s_ive_ip.u4_enc_speed_preset != IVE_SLOWEST)
                                     && (ps_ip->s_ive_ip.u4_enc_speed_preset != IVE_NORMAL)
@@ -1979,7 +1989,7 @@ IH264E_ERROR_T ih264e_codec_update_config(codec_t *ps_codec,
     else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_IPE_PARAMS)
     {
         ps_curr_cfg->u4_enc_speed_preset = ps_cfg->u4_enc_speed_preset;
-
+        ps_curr_cfg->u4_constrained_intra_pred = ps_cfg->u4_constrained_intra_pred;
         if (ps_curr_cfg->u4_enc_speed_preset == IVE_SLOWEST)
         {/* high quality */
             /* enable diamond search */
@@ -5068,6 +5078,8 @@ static IV_STATUS_T ih264_set_ipe_params(void *pv_api_ip,
 
     ps_cfg->u4_enable_intra_4x4 = ps_ip->s_ive_ip.u4_enable_intra_4x4;
     ps_cfg->u4_enc_speed_preset = ps_ip->s_ive_ip.u4_enc_speed_preset;
+
+    ps_cfg->u4_constrained_intra_pred = ps_ip->s_ive_ip.u4_constrained_intra_pred;
 
     ps_cfg->u4_timestamp_high = ps_ip->s_ive_ip.u4_timestamp_high;
     ps_cfg->u4_timestamp_low = ps_ip->s_ive_ip.u4_timestamp_low;
