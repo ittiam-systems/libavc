@@ -122,6 +122,7 @@
 #define DEFAULT_SRCH_RNG_Y          48
 #define DEFAULT_I_INTERVAL          30
 #define DEFAULT_IDR_INTERVAL        1000
+#define DEFAULT_CONSTRAINED_INTRAPRED  0
 #define DEFAULT_B_FRAMES            0
 #define DEFAULT_DISABLE_DEBLK_LEVEL 0
 #define DEFAULT_HPEL                1
@@ -285,6 +286,7 @@ typedef struct
     UWORD32 u4_srch_rng_y;
     UWORD32 u4_i_interval;
     UWORD32 u4_idr_interval;
+    UWORD32 u4_constrained_intra_pred;
     UWORD32 u4_b_frames;
     UWORD32 u4_num_bframes;
     UWORD32 u4_disable_deblk_level;

@@ -106,6 +106,7 @@ typedef enum
     SRCH_RNG_Y,
     I_INTERVAL,
     IDR_INTERVAL,
+    CONSTRAINED_INTRA_PRED,
     B_FRMS,
     NUM_B_FRMS,
     DISABLE_DBLK,
@@ -156,6 +157,7 @@ static const argument_t argument_mapping[] =
                 { "--", "--src_framerate", SRC_FRAMERATE, "Source frame rate \n" },
                 { "--", "--i_interval", I_INTERVAL,  "Intra frame interval \n" },
                 { "--", "--idr_interval", IDR_INTERVAL,  "IDR frame interval \n" },
+                { "--", "--constrained_intrapred", CONSTRAINED_INTRA_PRED,  "Constrained IntraPrediction Flag \n" },
                 { "--", "--bframes", NUM_B_FRMS, "Maximum number of consecutive B frames \n" },
                 { "--", "--speed", ENC_SPEED, "Encoder speed preset 0 (slowest) and 100 (fastest)\n" },
                 { "--", "--me_speed", ME_SPEED, "Encoder speed preset 0 (slowest) and 100 (fastest)\n" },
@@ -750,6 +752,10 @@ void parse_argument(app_ctxt_t *ps_app_ctxt, CHAR *argument, CHAR *value)
         sscanf(value, "%d", &ps_app_ctxt->u4_idr_interval);
         break;
 
+      case CONSTRAINED_INTRA_PRED:
+        sscanf(value, "%d", &ps_app_ctxt->u4_constrained_intra_pred);
+        break;
+
       case NUM_B_FRMS:
         sscanf(value, "%d", &ps_app_ctxt->u4_num_bframes);
         break;
@@ -976,6 +982,7 @@ void init_default_params(app_ctxt_t *ps_app_ctxt)
     ps_app_ctxt->u4_srch_rng_y           = DEFAULT_SRCH_RNG_Y;
     ps_app_ctxt->u4_i_interval           = DEFAULT_I_INTERVAL;
     ps_app_ctxt->u4_idr_interval         = DEFAULT_IDR_INTERVAL;
+    ps_app_ctxt->u4_constrained_intra_pred  = DEFAULT_CONSTRAINED_INTRAPRED;
     ps_app_ctxt->u4_disable_deblk_level  = DEFAULT_DISABLE_DEBLK_LEVEL;
     ps_app_ctxt->u4_hpel                 = DEFAULT_HPEL;
     ps_app_ctxt->u4_qpel                 = DEFAULT_QPEL;
@@ -1087,6 +1094,9 @@ void set_ipe_params(app_ctxt_t *ps_app_ctxt,
 
     s_ipe_params_ip.s_ive_ip.u4_size    =   sizeof(ih264e_ctl_set_ipe_params_ip_t);
     s_ipe_params_op.s_ive_op.u4_size    =   sizeof(ih264e_ctl_set_ipe_params_op_t);
+
+    s_ipe_params_ip.s_ive_ip.u4_constrained_intra_pred =
+                                            ps_app_ctxt->u4_constrained_intra_pred;
 
     status = ih264e_api_function(ps_app_ctxt->ps_enc,&s_ipe_params_ip,&s_ipe_params_op);
     if(status != IV_SUCCESS)

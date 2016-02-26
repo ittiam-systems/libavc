@@ -1251,6 +1251,9 @@ typedef struct
      * from which this command takes effect                             */
     UWORD32                                     u4_timestamp_high;
 
+    /** Constrained intra pred flag                                     */
+    UWORD32                                     u4_constrained_intra_pred;
+
 }ive_ctl_set_ipe_params_ip_t;
 
 /** Output structure : Set IPE Params                                   */
