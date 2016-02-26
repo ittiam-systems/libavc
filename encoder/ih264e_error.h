@@ -226,6 +226,9 @@ typedef enum
     /**Invalid entropy coding mode */
     IH264E_INVALID_ENTROPY_CODING_MODE                              = IH264E_CODEC_ERROR_START + 0x31,
 
+    /**Invalid Constrained Intra prediction mode */
+    IH264E_INVALID_CONSTRAINED_INTRA_PREDICTION_MODE                = IH264E_CODEC_ERROR_START + 0x32,
+
     /**max failure error code to ensure enum is 32 bits wide */
     IH264E_FAIL                                                     = -1,
 
