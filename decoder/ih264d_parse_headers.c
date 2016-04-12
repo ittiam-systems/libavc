@@ -494,7 +494,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     UWORD32 u2_crop_offset_y = 0;
     UWORD32 u2_crop_offset_uv = 0;
     WORD32 ret;
-
+    UWORD32 u4_num_reorder_frames;
     /* High profile related syntax element */
     WORD32 i4_i;
     /* G050 */
@@ -566,6 +566,18 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
 
     if(NULL == ps_dec->ps_cur_sps)
         ps_dec->ps_cur_sps = ps_seq;
+
+    if((3 == ps_dec->i4_header_decoded) && (ps_seq->u1_profile_idc != u1_profile_idc))
+    {
+        ps_dec->u1_res_changed = 1;
+        return IVD_RES_CHANGED;
+    }
+
+    if((3 == ps_dec->i4_header_decoded) && (ps_seq->u1_level_idc != u1_level_idc))
+    {
+        ps_dec->u1_res_changed = 1;
+        return IVD_RES_CHANGED;
+    }
 
     ps_seq->u1_profile_idc = u1_profile_idc;
     ps_seq->u1_level_idc = u1_level_idc;
@@ -733,6 +745,14 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     {
         return ERROR_NUM_REF;
     }
+
+    /* Compare with older num_ref_frames is header is already once */
+    if((3 == ps_dec->i4_header_decoded) && (ps_seq->u1_num_ref_frames != u4_temp))
+    {
+        ps_dec->u1_res_changed = 1;
+        return IVD_RES_CHANGED;
+    }
+
     ps_seq->u1_num_ref_frames = u4_temp;
     COPYTHECONTEXT("SPS: num_ref_frames",ps_seq->u1_num_ref_frames);
 
@@ -909,11 +929,33 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
 
     }
 
+    /* Backup u4_num_reorder_frames if header is already decoded */
+    if((3 == ps_dec->i4_header_decoded) &&
+                    (1 == ps_seq->u1_vui_parameters_present_flag) &&
+                    (1 == ps_seq->s_vui.u1_bitstream_restriction_flag))
+    {
+        u4_num_reorder_frames =  ps_seq->s_vui.u4_num_reorder_frames;
+    }
+    else
+    {
+        u4_num_reorder_frames = -1;
+    }
     if(1 == ps_seq->u1_vui_parameters_present_flag)
     {
         ret = ih264d_parse_vui_parametres(&ps_seq->s_vui, ps_bitstrm);
         if(ret != OK)
             return ret;
+    }
+
+    /* Compare older u4_num_reorder_frames with the new one if header is already decoded */
+    if((3 == ps_dec->i4_header_decoded) &&
+                    (-1 != (WORD32)u4_num_reorder_frames) &&
+                    (1 == ps_seq->u1_vui_parameters_present_flag) &&
+                    (1 == ps_seq->s_vui.u1_bitstream_restriction_flag) &&
+                    (ps_seq->s_vui.u4_num_reorder_frames != u4_num_reorder_frames))
+    {
+        ps_dec->u1_res_changed = 1;
+        return IVD_RES_CHANGED;
     }
 
     ps_dec->u2_pic_wd = u2_pic_wd;
