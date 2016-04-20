@@ -2618,6 +2618,14 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     ps_dec_ip = (ivd_video_decode_ip_t *)pv_api_ip;
     ps_dec_op = (ivd_video_decode_op_t *)pv_api_op;
+
+    {
+        UWORD32 u4_size;
+        u4_size = ps_dec_op->u4_size;
+        memset(ps_dec_op, 0, sizeof(ivd_video_decode_op_t));
+        ps_dec_op->u4_size = u4_size;
+    }
+
     ps_dec->pv_dec_out = ps_dec_op;
     ps_dec->process_called = 1;
     if(ps_dec->init_done != 1)
