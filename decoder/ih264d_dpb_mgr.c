@@ -17,9 +17,10 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+#ifdef __ANDROID__
 #include "log/log.h"
 #include <cutils/log.h>
-
+#endif
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
 #include "ih264_platform_macros.h"
@@ -877,8 +878,10 @@ WORD32 ih264d_read_mmco_commands(struct _DecStruct * ps_dec)
                 {
                     if (j >= MAX_REF_BUFS)
                     {
+#ifdef __ANDROID__
                         ALOGE("b/25818142");
                         android_errorWriteLog(0x534e4554, "25818142");
+#endif
                         ps_dpb_cmds->u1_num_of_commands = 0;
                         return -1;
                     }
