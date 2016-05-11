@@ -1426,6 +1426,25 @@ void ih264d_init_decoder(void * ps_dec_params)
     dec_struct_t * ps_dec = (dec_struct_t *)ps_dec_params;
     dec_slice_params_t *ps_cur_slice;
     pocstruct_t *ps_prev_poc, *ps_cur_poc;
+    WORD32 size;
+
+    size = sizeof(dec_err_status_t);
+    memset(ps_dec->ps_dec_err_status, 0, size);
+
+    size = sizeof(sei);
+    memset(ps_dec->ps_sei, 0, size);
+
+    size = sizeof(dpb_commands_t);
+    memset(ps_dec->ps_dpb_cmds, 0, size);
+
+    size = sizeof(dec_bit_stream_t);
+    memset(ps_dec->ps_bitstrm, 0, size);
+
+    size = sizeof(dec_slice_params_t);
+    memset(ps_dec->ps_cur_slice, 0, size);
+
+    size = MAX(sizeof(dec_seq_params_t), sizeof(dec_pic_params_t));
+    memset(ps_dec->pv_scratch_sps_pps, 0, size);
 
 
 
