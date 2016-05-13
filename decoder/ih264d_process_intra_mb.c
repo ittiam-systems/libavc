@@ -1242,6 +1242,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                                                     + (pu1_rem_intra4x4_pred_mode[u1_cur_sub_block]
                                                                     >= i1_intra_pred);
                 }
+                i1_intra_pred = CLIP3(0, 8, i1_intra_pred);
                 {
                     UWORD8 u1_err_code = pu1_intra_err_codes[i1_intra_pred];
 
@@ -1650,6 +1651,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                                     + (pu1_rem_intra4x4_pred_mode[u1_sub_mb_num]
                                                     >= i1_intra_pred);
                 }
+                i1_intra_pred = CLIP3(0, 8, i1_intra_pred);
                 {
                     UWORD8 u1_err_code = pu1_intra_err_codes[i1_intra_pred];
 
