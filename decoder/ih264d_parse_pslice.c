@@ -1494,6 +1494,12 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                    if(ps_dec->ps_pps[i].u1_is_valid == TRUE)
                        j = i;
             {
+                //initialize slice params required by ih264d_start_of_pic to valid values
+                ps_dec->ps_cur_slice->u1_bottom_field_flag = 0;
+                ps_dec->ps_cur_slice->u1_field_pic_flag = 0;
+                ps_dec->ps_cur_slice->u1_slice_type = P_SLICE;
+                ps_dec->ps_cur_slice->u1_nal_ref_idc = 1;
+                ps_dec->ps_cur_slice->u1_nal_unit_type = 1;
                 ret = ih264d_start_of_pic(ps_dec, poc, ps_cur_poc,
                         ps_dec->ps_cur_slice->u2_frame_num,
                         &ps_dec->ps_pps[j]);
@@ -1671,6 +1677,9 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
     }
 
     ps_dec->ps_cur_slice->u2_first_mb_in_slice = ps_dec->u2_total_mbs_coded << u1_mbaff;
+    ps_dec->ps_cur_slice->i1_slice_alpha_c0_offset = 0;
+    ps_dec->ps_cur_slice->i1_slice_beta_offset = 0;
+
     if(ps_dec->ps_cur_slice->u1_field_pic_flag)
         ps_dec->u2_prv_frame_num = ps_dec->ps_cur_slice->u2_frame_num;
 
