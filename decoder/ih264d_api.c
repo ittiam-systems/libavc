@@ -1631,6 +1631,7 @@ void ih264d_init_decoder(void * ps_dec_params)
            (MAX_DISP_BUFS_NEW) * sizeof(UWORD32));
     memset(ps_dec->u4_disp_buf_to_be_freed, 0,
            (MAX_DISP_BUFS_NEW) * sizeof(UWORD32));
+    memset(ps_dec->ps_cur_slice, 0, sizeof(dec_slice_params_t));
 
     ih264d_init_arch(ps_dec);
     ih264d_init_function_ptr(ps_dec);
