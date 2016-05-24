@@ -1462,7 +1462,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
         ih264d_err_pic_dispbuf_mgr(ps_dec);
         return 0;
     }
-
+    ps_dec->ps_dpb_cmds->u1_long_term_reference_flag = 0;
     if(prev_slice_err == 1)
     {
         /* first slice - missing/header corruption */
