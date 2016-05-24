@@ -1495,8 +1495,6 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                        j = i;
             {
                 //initialize slice params required by ih264d_start_of_pic to valid values
-                ps_dec->ps_cur_slice->u1_bottom_field_flag = 0;
-                ps_dec->ps_cur_slice->u1_field_pic_flag = 0;
                 ps_dec->ps_cur_slice->u1_slice_type = P_SLICE;
                 ps_dec->ps_cur_slice->u1_nal_ref_idc = 1;
                 ps_dec->ps_cur_slice->u1_nal_unit_type = 1;
