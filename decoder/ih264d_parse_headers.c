@@ -1038,6 +1038,12 @@ WORD32 ih264d_parse_nal_unit(iv_obj_t *dec_hdl,
                 H264_DEC_DEBUG_PRINT("\nForbidden bit set in Nal Unit, Let's try\n");
             }
             u1_nal_unit_type = NAL_UNIT_TYPE(u1_first_byte);
+            // if any other nal unit other than slice nal is encountered in between a
+            // frame break out of loop without consuming header
+            if((ps_dec->u2_total_mbs_coded != 0) && (u1_nal_unit_type > IDR_SLICE_NAL))
+            {
+                return ERROR_INCOMPLETE_FRAME;
+            }
             ps_dec->u1_nal_unit_type = u1_nal_unit_type;
             u1_nal_ref_idc = (UWORD8)(NAL_REF_IDC(u1_first_byte));
             //Skip all NALUs if SPS and PPS are not decoded
