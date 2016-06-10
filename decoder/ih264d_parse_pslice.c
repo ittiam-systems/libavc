@@ -1552,6 +1552,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                 }
             }
         }
+        ps_dec->u4_first_slice_in_pic = 0;
     }
     else
     {
@@ -1836,11 +1837,13 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
 
     H264_DEC_DEBUG_PRINT("Mbs in slice: %d\n", ps_dec->ps_cur_slice->u4_mbs_in_slice);
 
-    ps_dec->u2_cur_slice_num++;
 
     /* incremented here only if first slice is inserted */
     if(ps_dec->u4_first_slice_in_pic != 0)
+    {
         ps_dec->ps_parse_cur_slice++;
+        ps_dec->u2_cur_slice_num++;
+    }
 
     ps_dec->i2_prev_slice_mbx = ps_dec->u2_mbx;
     ps_dec->i2_prev_slice_mby = ps_dec->u2_mby;
