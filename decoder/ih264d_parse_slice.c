@@ -954,7 +954,6 @@ WORD32 ih264d_end_of_pic(dec_struct_t *ps_dec,
     dec_slice_params_t *ps_cur_slice = ps_dec->ps_cur_slice;
     WORD32 ret;
 
-    ps_dec->u1_first_pb_nal_in_pic = 1;
     ps_dec->u2_mbx = 0xffff;
     ps_dec->u2_mby = 0;
     {
