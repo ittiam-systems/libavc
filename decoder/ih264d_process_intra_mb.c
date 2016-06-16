@@ -930,7 +930,9 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             }
         }
         {
-            UWORD8 au1_ngbr_pels[33];
+            /* Align the size to multiple of 8, so that SIMD functions
+               can read 64 bits at a time. Only 33 bytes are actaully used */
+            UWORD8 au1_ngbr_pels[40];
             /* Get neighbour pixels */
             /* left pels */
             if(u2_use_left_mb)
@@ -1175,7 +1177,9 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
         /* Scan the sub-blocks in Raster Scan Order */
         for(u1_sub_mb_num = 0; u1_sub_mb_num < 16; u1_sub_mb_num++)
         {
-            UWORD8 au1_ngbr_pels[13];
+            /* Align the size to multiple of 8, so that SIMD functions
+               can read 64 bits at a time. Only 13 bytes are actaully used */
+            UWORD8 au1_ngbr_pels[16];
 
             u1_sub_blk_x = u1_sub_mb_num & 0x3;
             u1_sub_blk_y = u1_sub_mb_num >> 2;
@@ -1664,7 +1668,9 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             }
 
             {
-                UWORD8 au1_ngbr_pels[25];
+                /* Align the size to multiple of 8, so that SIMD functions
+                can read 64 bits at a time. Only 25 bytes are actaully used */
+                UWORD8 au1_ngbr_pels[32];
                 WORD32 ngbr_avail;
                 ngbr_avail = u1_is_left_sub_block << 0;
                 ngbr_avail |= u1_is_top_sub_block << 2;
