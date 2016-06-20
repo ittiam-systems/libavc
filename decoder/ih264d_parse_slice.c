@@ -1259,8 +1259,11 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
     /*--------------------------------------------------------------------*/
     /* Check if the slice is part of new picture                          */
     /*--------------------------------------------------------------------*/
-    i1_is_end_of_poc = 0;
-    if(!ps_dec->u1_first_slice_in_stream)
+    /* First slice of a picture is always considered as part of new picture */
+    i1_is_end_of_poc = 1;
+    ps_dec->ps_dec_err_status->u1_err_flag &= MASK_REJECT_CUR_PIC;
+
+    if(ps_dec->u4_first_slice_in_pic != 2)
     {
         i1_is_end_of_poc = ih264d_is_end_of_pic(u2_frame_num, u1_nal_ref_idc,
                                             &s_tmp_poc, &ps_dec->s_cur_pic_poc,
@@ -1268,23 +1271,6 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
                                             u1_nal_unit_type, u4_idr_pic_id,
                                             u1_field_pic_flag,
                                             u1_bottom_field_flag);
-
-        /* since we support only Full frame decode, every new process should
-         * process a new pic
-         */
-        if((ps_dec->u4_first_slice_in_pic == 2) && (i1_is_end_of_poc == 0))
-        {
-            /* if it is the first slice is process call ,it should be a new frame. If it is not
-             * reject current pic and dont add it to dpb
-             */
-            ps_dec->ps_dec_err_status->u1_err_flag |= REJECT_CUR_PIC;
-            i1_is_end_of_poc = 1;
-        }
-        else
-        {
-            /* reset REJECT_CUR_PIC */
-            ps_dec->ps_dec_err_status->u1_err_flag &= MASK_REJECT_CUR_PIC;
-        }
     }
 
     /*--------------------------------------------------------------------*/
