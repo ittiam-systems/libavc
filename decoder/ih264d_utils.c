@@ -1906,6 +1906,10 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     ps_dec->p_ctxt_inc_mb_map = pv_buf;
 
+    /* 0th entry of CtxtIncMbMap will be always be containing default values
+     for CABAC context representing MB not available */
+    ps_dec->p_ctxt_inc_mb_map += 1;
+
     size = (sizeof(mv_pred_t) * ps_dec->u1_recon_mb_grp
                         * 16);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
@@ -2088,9 +2092,6 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     ps_dec->pu1_pic_buf_base = pv_buf;
 
-    /* 0th entry of CtxtIncMbMap will be always be containing default values
-     for CABAC context representing MB not available */
-    ps_dec->p_ctxt_inc_mb_map += 1;
     /* Post allocation Increment Actions */
 
     /***************************************************************************/
