@@ -2964,40 +2964,30 @@ WORD32 ih264d_set_params(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         }
     }
 
-    if((0 != ps_dec->u4_app_disp_width)
-                    && (ps_ctl_ip->u4_disp_wd
-                                    != ps_dec->u4_app_disp_width))
+    if(ps_ctl_ip->u4_disp_wd >= ps_dec->u2_pic_wd)
     {
+        ps_dec->u4_app_disp_width = ps_ctl_ip->u4_disp_wd;
+    }
+    else if(0 == ps_dec->i4_header_decoded)
+    {
+        ps_dec->u4_app_disp_width = ps_ctl_ip->u4_disp_wd;
+    }
+    else if(ps_ctl_ip->u4_disp_wd == 0)
+    {
+        ps_dec->u4_app_disp_width = 0;
+    }
+    else
+    {
+        /*
+         * Set the display width to zero. This will ensure that the wrong value we had stored (0xFFFFFFFF)
+         * does not propogate.
+         */
+        ps_dec->u4_app_disp_width = 0;
         ps_ctl_op->u4_error_code |= (1 << IVD_UNSUPPORTEDPARAM);
         ps_ctl_op->u4_error_code |= ERROR_DISP_WIDTH_INVALID;
         ret = IV_FAIL;
     }
-    else
-    {
-        if(ps_ctl_ip->u4_disp_wd >= ps_dec->u2_pic_wd)
-        {
-            ps_dec->u4_app_disp_width = ps_ctl_ip->u4_disp_wd;
-        }
-        else if(0 == ps_dec->i4_header_decoded)
-        {
-            ps_dec->u4_app_disp_width = ps_ctl_ip->u4_disp_wd;
-        }
-        else if(ps_ctl_ip->u4_disp_wd == 0)
-        {
-            ps_dec->u4_app_disp_width = 0;
-        }
-        else
-        {
-            /*
-             * Set the display width to zero. This will ensure that the wrong value we had stored (0xFFFFFFFF)
-             * does not propogate.
-             */
-            ps_dec->u4_app_disp_width = 0;
-            ps_ctl_op->u4_error_code |= (1 << IVD_UNSUPPORTEDPARAM);
-            ps_ctl_op->u4_error_code |= ERROR_DISP_WIDTH_INVALID;
-            ret = IV_FAIL;
-        }
-    }
+
     if(ps_ctl_ip->e_vid_dec_mode == IVD_DECODE_FRAME)
         ps_dec->i4_decode_header = 0;
     else if(ps_ctl_ip->e_vid_dec_mode == IVD_DECODE_HEADER)
