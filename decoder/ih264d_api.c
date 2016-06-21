@@ -2066,8 +2066,10 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             if((ret == IVD_RES_CHANGED)
                             || (ret == IVD_MEM_ALLOC_FAILED)
                             || (ret == ERROR_UNAVAIL_PICBUF_T)
-                            || (ret == ERROR_UNAVAIL_MVBUF_T))
+                            || (ret == ERROR_UNAVAIL_MVBUF_T)
+                            || (ret == ERROR_INV_SPS_PPS_T))
             {
+                ps_dec->u4_slice_start_code_found = 0;
                 break;
             }
 
@@ -2149,7 +2151,8 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     if((ret == IVD_RES_CHANGED)
                     || (ret == IVD_MEM_ALLOC_FAILED)
                     || (ret == ERROR_UNAVAIL_PICBUF_T)
-                    || (ret == ERROR_UNAVAIL_MVBUF_T))
+                    || (ret == ERROR_UNAVAIL_MVBUF_T)
+                    || (ret == ERROR_INV_SPS_PPS_T))
     {
 
         /* signal the decode thread */
