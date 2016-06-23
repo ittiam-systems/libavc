@@ -429,6 +429,45 @@ typedef struct{
     UWORD32                                     u4_buffer_ht[3];
 }ih264d_ctl_get_frame_dimensions_op_t;
 
+typedef struct
+{
+    UWORD32                                     u4_size;
+    IVD_API_COMMAND_TYPE_T                      e_cmd;
+    IVD_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+}ih264d_ctl_get_vui_params_ip_t;
+
+typedef struct
+{
+    UWORD32                                     u4_size;
+    UWORD32                                     u4_error_code;
+    UWORD8                                      u1_aspect_ratio_idc;
+    UWORD16                                     u2_sar_width;
+    UWORD16                                     u2_sar_height;
+    UWORD8                                      u1_overscan_appropriate_flag;
+    UWORD8                                      u1_video_format;
+    UWORD8                                      u1_video_full_range_flag;
+    UWORD8                                      u1_colour_primaries;
+    UWORD8                                      u1_tfr_chars;
+    UWORD8                                      u1_matrix_coeffs;
+    UWORD8                                      u1_cr_top_field;
+    UWORD8                                      u1_cr_bottom_field;
+    UWORD32                                     u4_num_units_in_tick;
+    UWORD32                                     u4_time_scale;
+    UWORD8                                      u1_fixed_frame_rate_flag;
+    UWORD8                                      u1_nal_hrd_params_present;
+    UWORD8                                      u1_vcl_hrd_params_present;
+    UWORD8                                      u1_low_delay_hrd_flag;
+    UWORD8                                      u1_pic_struct_present_flag;
+    UWORD8                                      u1_bitstream_restriction_flag;
+    UWORD8                                      u1_mv_over_pic_boundaries_flag;
+    UWORD32                                     u4_max_bytes_per_pic_denom;
+    UWORD32                                     u4_max_bits_per_mb_denom;
+    UWORD32                                     u4_log2_max_mv_length_horz;
+    UWORD32                                     u4_log2_max_mv_length_vert;
+    UWORD32                                     u4_num_reorder_frames;
+    UWORD32                                     u4_max_dec_frame_buffering;
+}ih264d_ctl_get_vui_params_op_t;
+
 #ifdef __cplusplus
 } /* closing brace for extern "C" */
 #endif
