@@ -2607,7 +2607,30 @@ int main(WORD32 argc, CHAR *argv[])
 */
     }
 
+    /*************************************************************************/
+    /* Get VUI parameters                                                    */
+    /*************************************************************************/
+    {
 
+        ih264d_ctl_get_vui_params_ip_t s_ctl_get_vui_params_ip;
+        ih264d_ctl_get_vui_params_op_t s_ctl_get_vui_params_op;
+
+        s_ctl_get_vui_params_ip.e_cmd = IVD_CMD_VIDEO_CTL;
+        s_ctl_get_vui_params_ip.e_sub_cmd =
+                        (IVD_CONTROL_API_COMMAND_TYPE_T)IH264D_CMD_CTL_GET_VUI_PARAMS;
+        s_ctl_get_vui_params_ip.u4_size =
+                        sizeof(ih264d_ctl_get_vui_params_ip_t);
+        s_ctl_get_vui_params_op.u4_size =
+                        sizeof(ih264d_ctl_get_vui_params_op_t);
+
+        ret = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_ctl_get_vui_params_ip,
+                             (void *)&s_ctl_get_vui_params_op);
+        if(IV_SUCCESS != ret)
+        {
+            sprintf(ac_error_str, "Error in Get VUI params");
+            //codec_exit(ac_error_str);
+        }
+    }
 
     /*************************************************************************/
     /* Set the decoder in frame decode mode. It was set in header decode     */
