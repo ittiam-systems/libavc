@@ -1062,20 +1062,11 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
             size = sizeof(pred_info_t) * 2 * 32;
             memset(ps_dec->ps_pred, 0 , size);
 
-            size = sizeof(disp_mgr_t);
-            memset(ps_dec->pv_disp_buf_mgr, 0 , size);
-
-            size = sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
-            memset(ps_dec->pv_pic_buf_mgr, 0, size);
-
             size = sizeof(ctxt_inc_mb_info_t);
             memset(ps_dec->ps_left_mb_ctxt_info, 0, size);
 
             size = (sizeof(neighbouradd_t) << 2);
             memset(ps_dec->ps_left_mvpred_addr, 0 ,size);
-
-            size = sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
-            memset(ps_dec->pv_mv_buf_mgr, 0, size);
         }
         /* In shared mode, set all of them as used by display */
         if(ps_dec->u4_share_disp_buf == 1)
