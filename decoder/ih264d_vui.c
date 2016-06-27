@@ -149,6 +149,14 @@ WORD32 ih264d_parse_vui_parametres(vui_t *ps_vu4,
                         ps_bitstrm, 1);
     }
     u4_bits = ih264d_get_bits_h264(ps_bitstrm, 1);
+    /* Initialize to unspecified (5 for video_format and
+       2 for colour_primaries, tfr_chars, matrix_coeffs  */
+    ps_vu4->u1_video_format = 5;
+    ps_vu4->u1_video_full_range_flag = 0;
+    ps_vu4->u1_colour_primaries = 2;
+    ps_vu4->u1_tfr_chars = 2;
+    ps_vu4->u1_matrix_coeffs = 2;
+
     if(u4_bits)
     {
         ps_vu4->u1_video_format = ih264d_get_bits_h264(ps_bitstrm, 3);
