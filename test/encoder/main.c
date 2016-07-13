@@ -1445,6 +1445,65 @@ void set_deblock_params(app_ctxt_t *ps_app_ctxt,
     return;
 }
 
+
+void set_vui_params(app_ctxt_t *ps_app_ctxt)
+{
+    IV_STATUS_T status;
+
+    ih264e_vui_ip_t s_vui_params_ip;
+    ih264e_vui_op_t s_vui_params_op;
+
+    s_vui_params_ip.e_cmd = IVE_CMD_VIDEO_CTL;
+    s_vui_params_ip.e_sub_cmd = IVE_CMD_CTL_SET_VUI_PARAMS;
+
+    s_vui_params_ip.u1_aspect_ratio_info_present_flag = 0;
+    s_vui_params_ip.u1_aspect_ratio_idc = 0;
+    s_vui_params_ip.u2_sar_width = 0;
+    s_vui_params_ip.u2_sar_height = 0;
+    s_vui_params_ip.u1_overscan_info_present_flag = 0;
+    s_vui_params_ip.u1_overscan_appropriate_flag = 0;
+    s_vui_params_ip.u1_video_signal_type_present_flag = 0;
+    s_vui_params_ip.u1_video_format = 0;
+    s_vui_params_ip.u1_video_full_range_flag = 0;
+    s_vui_params_ip.u1_colour_description_present_flag = 0;
+    s_vui_params_ip.u1_colour_primaries = 0;
+    s_vui_params_ip.u1_transfer_characteristics = 0;
+    s_vui_params_ip.u1_matrix_coefficients = 0;
+    s_vui_params_ip.u1_chroma_loc_info_present_flag = 0;
+    s_vui_params_ip.u1_chroma_sample_loc_type_top_field = 0;
+    s_vui_params_ip.u1_chroma_sample_loc_type_bottom_field = 0;
+    s_vui_params_ip.u1_vui_timing_info_present_flag = 0;
+    s_vui_params_ip.u4_vui_num_units_in_tick = 0;
+    s_vui_params_ip.u4_vui_time_scale = 0;
+    s_vui_params_ip.u1_fixed_frame_rate_flag = 0;
+    s_vui_params_ip.u1_nal_hrd_parameters_present_flag = 0;
+    s_vui_params_ip.u1_vcl_hrd_parameters_present_flag = 0;
+    s_vui_params_ip.u1_low_delay_hrd_flag = 0;
+    s_vui_params_ip.u1_pic_struct_present_flag = 0;
+    s_vui_params_ip.u1_bitstream_restriction_flag = 0;
+    s_vui_params_ip.u1_motion_vectors_over_pic_boundaries_flag = 0;
+    s_vui_params_ip.u1_max_bytes_per_pic_denom = 0;
+    s_vui_params_ip.u1_max_bits_per_mb_denom = 0;
+    s_vui_params_ip.u1_log2_max_mv_length_horizontal = 0;
+    s_vui_params_ip.u1_log2_max_mv_length_vertical = 0;
+    s_vui_params_ip.u1_num_reorder_frames = 0;
+    s_vui_params_ip.u1_max_dec_frame_buffering = 0;
+
+
+    s_vui_params_ip.u4_size = sizeof(ih264e_vui_ip_t);
+    s_vui_params_op.u4_size = sizeof(ih264e_vui_op_t);
+
+    status = ih264e_api_function(ps_app_ctxt->ps_enc, &s_vui_params_ip,
+                                      &s_vui_params_op);
+    if(status != IV_SUCCESS)
+    {
+        CHAR ac_error[STRLENGTH];
+        sprintf(ac_error, "Unable to set vui params = 0x%x\n",
+                s_vui_params_op.u4_error_code);
+        codec_exit(ac_error);
+    }
+    return;
+}
 #define PEAK_WINDOW_SIZE    8
 
 void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
@@ -2476,6 +2535,11 @@ int main(int argc, char *argv[])
     /*   Video control Set in Encode header mode                                 */
     /*****************************************************************************/
     set_enc_mode(&s_app_ctxt, 0, 0, IVE_ENC_MODE_PICTURE);
+
+    /*****************************************************************************/
+    /*   Video usability information                                             */
+    /*****************************************************************************/
+    set_vui_params(&s_app_ctxt);
 
 #ifdef IOS
     /* Correct file paths */

@@ -139,6 +139,7 @@ typedef enum
     IVE_CMD_CTL_SET_PROFILE_PARAMS          = 0XB,
     IVE_CMD_CTL_SET_DEBLOCK_PARAMS          = 0XC,
     IVE_CMD_CTL_SET_IPE_PARAMS              = 0XD,
+    IVE_CMD_CTL_SET_VUI_PARAMS              = 0XE,
     IVE_CMD_CTL_SET_NUM_CORES               = 0x30,
     IVE_CMD_CTL_RESET                       = 0xA0,
     IVE_CMD_CTL_FLUSH                       = 0xB0,
@@ -235,7 +236,8 @@ typedef enum
     IVE_ERR_OP_CTL_SETVBVPARAMS_API_STRUCT_SIZE_INCORRECT       = 0x3D,
     IVE_ERR_IP_CTL_SETPROFILE_API_STRUCT_SIZE_INCORRECT         = 0x3E,
     IVE_ERR_OP_CTL_SETPROFILE_API_STRUCT_SIZE_INCORRECT         = 0x3F,
-
+    IVE_ERR_IP_CTL_SET_VUI_STRUCT_SIZE_INCORRECT                = 0x40,
+    IVE_ERR_OP_CTL_SET_VUI_STRUCT_SIZE_INCORRECT                = 0x41,
 }IVE_ERROR_CODES_T;
 
 
