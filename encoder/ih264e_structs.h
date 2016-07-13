@@ -563,6 +563,9 @@ typedef struct
      */
     UWORD32                                     u4_mb_info_type;
 
+    /** VUI structure                                                         */
+    vui_t                                       s_vui;
+
 }cfg_params_t;
 
 
@@ -2616,11 +2619,6 @@ struct _codec_t
      * rate control context
      */
     rate_control_ctxt_t s_rate_control;
-
-    /**
-     * VUI structure
-     */
-    vui_t s_vui;
 
     /**
      * input buffer queue

@@ -160,54 +160,255 @@ WORD32 ih264e_generate_vui(bitstrm_t *ps_bitstrm, vui_t *ps_vui)
     WORD32 return_status = IH264E_SUCCESS;
 
     /* aspect_ratio_info_present_flag */
-    PUT_BITS(ps_bitstrm, ps_vui->u1_aspect_ratio_info_present_flag, 1, return_status, "aspect_ratio_info_present_flag");
+    PUT_BITS(ps_bitstrm, ps_vui->u1_aspect_ratio_info_present_flag, 1,
+             return_status, "aspect_ratio_info_present_flag");
 
+    if(ps_vui->u1_aspect_ratio_info_present_flag)
+    { /* aspect_ratio_idc */
+        PUT_BITS(ps_bitstrm, ps_vui->u1_aspect_ratio_idc, 8, return_status,
+                 "aspect_ratio_idc");
+        if(255 == ps_vui->u1_aspect_ratio_idc) /* Extended_SAR */
+        { /* sar_width */
+            PUT_BITS(ps_bitstrm, ps_vui->u2_sar_width, 16, return_status,
+                     "sar_width");
+            /* sar_height */
+            PUT_BITS(ps_bitstrm, ps_vui->u2_sar_height, 16, return_status,
+                     "sar_height");
+        }
+
+    }
     /* overscan_info_present_flag */
-    PUT_BITS(ps_bitstrm, ps_vui->u1_overscan_info_present_flag, 1, return_status, "overscan_info_present_flag");
+    PUT_BITS(ps_bitstrm, ps_vui->u1_overscan_info_present_flag, 1,
+             return_status, "overscan_info_present_flag");
 
+    if(ps_vui->u1_overscan_info_present_flag)
+    {
+        /* overscan_appropriate_flag */
+        PUT_BITS(ps_bitstrm, ps_vui->u1_overscan_appropriate_flag, 1,
+                 return_status, "overscan_appropriate_flag");
+
+    }
     /* video_signal_type_present_flag */
-    PUT_BITS(ps_bitstrm, ps_vui->u1_video_signal_type_present_flag, 1, return_status, "video_signal_type_present_flag");
+    PUT_BITS(ps_bitstrm, ps_vui->u1_video_signal_type_present_flag, 1,
+             return_status, "video_signal_type_present_flag");
+
+    if(ps_vui->u1_video_signal_type_present_flag)
+    { /* video_format */
+        PUT_BITS(ps_bitstrm, ps_vui->u1_video_format, 3, return_status,
+                 "video_format");
+
+        /* video_full_range_flag */
+        PUT_BITS(ps_bitstrm, ps_vui->u1_video_full_range_flag, 1, return_status,
+                 "video_full_range_flag");
+
+        /* colour_description_present_flag */
+        PUT_BITS(ps_bitstrm, ps_vui->u1_colour_description_present_flag, 1,
+                 return_status, "colour_description_present_flag");
+
+        if(ps_vui->u1_colour_description_present_flag)
+        {
+            /* colour_primaries */
+            PUT_BITS(ps_bitstrm, ps_vui->u1_colour_primaries, 8, return_status,
+                     "colour_primaries");
+
+            /* transfer_characteristics */
+            PUT_BITS(ps_bitstrm, ps_vui->u1_transfer_characteristics, 8,
+                     return_status, "transfer_characteristics");
+
+            /* matrix_coefficients */
+            PUT_BITS(ps_bitstrm, ps_vui->u1_matrix_coefficients, 8,
+                     return_status, "matrix_coefficients");
+        }
+
+    }
 
     /* chroma_loc_info_present_flag */
-    PUT_BITS(ps_bitstrm, ps_vui->u1_chroma_loc_info_present_flag, 1, return_status, "chroma_loc_info_present_flag");
+    PUT_BITS(ps_bitstrm, ps_vui->u1_chroma_loc_info_present_flag, 1,
+             return_status, "chroma_loc_info_present_flag");
+
+    if(ps_vui->u1_chroma_loc_info_present_flag)
+    {
+        /* chroma_sample_loc_type_top_field */
+        PUT_BITS_UEV(ps_bitstrm, ps_vui->u1_chroma_sample_loc_type_top_field,
+                     return_status, "chroma_sample_loc_type_top_field");
+
+        /* chroma_sample_loc_type_bottom_field */
+        PUT_BITS_UEV(ps_bitstrm, ps_vui->u1_chroma_sample_loc_type_bottom_field,
+                     return_status, "chroma_sample_loc_type_bottom_field");
+    }
 
     /* timing_info_present_flag */
-    PUT_BITS(ps_bitstrm, ps_vui->u1_vui_timing_info_present_flag, 1, return_status, "timing_info_present_flag");
+    PUT_BITS(ps_bitstrm, ps_vui->u1_vui_timing_info_present_flag, 1,
+             return_status, "timing_info_present_flag");
+
+    if(ps_vui->u1_vui_timing_info_present_flag)
+    {
+        /* num_units_in_tick */
+        PUT_BITS(ps_bitstrm, ps_vui->u4_vui_num_units_in_tick, 32,
+                 return_status, "num_units_in_tick");
+
+        /* time_scale */
+        PUT_BITS(ps_bitstrm, ps_vui->u4_vui_time_scale, 32, return_status,
+                 "time_scale");
+
+        /* fixed_frame_rate_flag */
+        PUT_BITS(ps_bitstrm, ps_vui->u1_fixed_frame_rate_flag, 1, return_status,
+                 "fixed_frame_rate_flag");
+
+    }
 
     /* nal_hrd_parameters_present_flag */
-    PUT_BITS(ps_bitstrm, ps_vui->u1_nal_hrd_parameters_present_flag, 1, return_status, "nal_hrd_parameters_present_flag");
+    PUT_BITS(ps_bitstrm, ps_vui->u1_nal_hrd_parameters_present_flag, 1,
+             return_status, "nal_hrd_parameters_present_flag");
+
+    if(ps_vui->u1_nal_hrd_parameters_present_flag)
+    {
+        hrd_params_t * ps_hrd_params = &ps_vui->s_nal_hrd_parameters;
+        WORD32 i;
+        /* cpb_cnt_minus1 */
+        PUT_BITS_UEV(ps_bitstrm, ps_hrd_params->u1_cpb_cnt_minus1,
+                     return_status, "cpb_cnt_minus1");
+
+        /* bit_rate_scale */
+        PUT_BITS(ps_bitstrm, ps_hrd_params->u4_bit_rate_scale, 4, return_status,
+                 "bit_rate_scale");
+
+        /* cpb_size_scale */
+        PUT_BITS(ps_bitstrm, ps_hrd_params->u4_cpb_size_scale, 4, return_status,
+                 "cpb_size_scale");
+        for(i = 0; i < ps_hrd_params->u1_cpb_cnt_minus1; i++)
+        {
+            /* bit_rate_value_minus1[SchedSelIdx] */
+            PUT_BITS_UEV(ps_bitstrm,
+                         ps_hrd_params->au4_bit_rate_value_minus1[i],
+                         return_status, "bit_rate_value_minus1[SchedSelIdx]");
+
+            /* cpb_size_value_minus1[SchedSelIdx] */
+            PUT_BITS_UEV(ps_bitstrm,
+                         ps_hrd_params->au4_cpb_size_value_minus1[i],
+                         return_status, "cpb_size_value_minus1[SchedSelIdx]");
+
+            /* cbr_flag[SchedSelIdx] */
+            PUT_BITS(ps_bitstrm, ps_hrd_params->au1_cbr_flag[i], 1,
+                     return_status, "cbr_flag[SchedSelIdx]");
+        }
+
+        /* initial_cpb_removal_delay_length_minus1 */
+        PUT_BITS(ps_bitstrm,
+                 ps_hrd_params->u1_initial_cpb_removal_delay_length_minus1, 5,
+                 return_status, "initial_cpb_removal_delay_length_minus1");
+
+        /* cpb_removal_delay_length_minus1 */
+        PUT_BITS(ps_bitstrm, ps_hrd_params->u1_cpb_removal_delay_length_minus1,
+                 5, return_status, "cpb_removal_delay_length_minus1");
+
+        /* dpb_output_delay_length_minus1 */
+        PUT_BITS(ps_bitstrm, ps_hrd_params->u1_dpb_output_delay_length_minus1,
+                 5, return_status, "dpb_output_delay_length_minus1");
+
+        /* time_offset_length */
+        PUT_BITS(ps_bitstrm, ps_hrd_params->u1_time_offset_length, 5,
+                 return_status, "time_offset_length");
+    }
 
     /* vcl_hrd_parameters_present_flag */
-    PUT_BITS(ps_bitstrm, ps_vui->u1_vcl_hrd_parameters_present_flag, 1, return_status, "vcl_hrd_parameters_present_flag");
+    PUT_BITS(ps_bitstrm, ps_vui->u1_vcl_hrd_parameters_present_flag, 1,
+             return_status, "vcl_hrd_parameters_present_flag");
 
+    if(ps_vui->u1_vcl_hrd_parameters_present_flag)
+    {
+        hrd_params_t * ps_hrd_params = &ps_vui->s_vcl_hrd_parameters;
+        WORD32 i;
+        /* cpb_cnt_minus1 */
+        PUT_BITS_UEV(ps_bitstrm, ps_hrd_params->u1_cpb_cnt_minus1,
+                     return_status, "cpb_cnt_minus1");
+
+        /* bit_rate_scale */
+        PUT_BITS(ps_bitstrm, ps_hrd_params->u4_bit_rate_scale, 4, return_status,
+                 "bit_rate_scale");
+
+        /* cpb_size_scale */
+        PUT_BITS(ps_bitstrm, ps_hrd_params->u4_cpb_size_scale, 4, return_status,
+                 "cpb_size_scale");
+        for(i = 0; i < ps_hrd_params->u1_cpb_cnt_minus1; i++)
+        {
+            /* bit_rate_value_minus1[SchedSelIdx] */
+            PUT_BITS_UEV(ps_bitstrm,
+                         ps_hrd_params->au4_bit_rate_value_minus1[i],
+                         return_status, "bit_rate_value_minus1[SchedSelIdx]");
+
+            /* cpb_size_value_minus1[SchedSelIdx] */
+            PUT_BITS_UEV(ps_bitstrm,
+                         ps_hrd_params->au4_cpb_size_value_minus1[i],
+                         return_status, "cpb_size_value_minus1[SchedSelIdx]");
+
+            /* cbr_flag[SchedSelIdx] */
+            PUT_BITS(ps_bitstrm, ps_hrd_params->au1_cbr_flag[i], 1,
+                     return_status, "cbr_flag[SchedSelIdx]");
+        }
+
+        /* initial_cpb_removal_delay_length_minus1 */
+        PUT_BITS(ps_bitstrm,
+                 ps_hrd_params->u1_initial_cpb_removal_delay_length_minus1, 5,
+                 return_status, "initial_cpb_removal_delay_length_minus1");
+
+        /* cpb_removal_delay_length_minus1 */
+        PUT_BITS(ps_bitstrm, ps_hrd_params->u1_cpb_removal_delay_length_minus1,
+                 5, return_status, "cpb_removal_delay_length_minus1");
+
+        /* dpb_output_delay_length_minus1 */
+        PUT_BITS(ps_bitstrm, ps_hrd_params->u1_dpb_output_delay_length_minus1,
+                 5, return_status, "dpb_output_delay_length_minus1");
+
+        /* time_offset_length */
+        PUT_BITS(ps_bitstrm, ps_hrd_params->u1_time_offset_length, 5,
+                 return_status, "time_offset_length");
+    }
+
+    if(ps_vui->u1_nal_hrd_parameters_present_flag
+                    || ps_vui->u1_vcl_hrd_parameters_present_flag)
+    {
+        /* low_delay_hrd_flag */
+        PUT_BITS(ps_bitstrm, ps_vui->u1_low_delay_hrd_flag, 1, return_status,
+                 "low_delay_hrd_flag");
+    }
     /* pic_struct_present_flag */
-    PUT_BITS(ps_bitstrm, ps_vui->u1_pic_struct_present_flag, 1, return_status, "pic_struct_present_flag");
+    PUT_BITS(ps_bitstrm, ps_vui->u1_pic_struct_present_flag, 1, return_status,
+             "pic_struct_present_flag");
 
     /* bitstream_restriction_flag */
-    PUT_BITS(ps_bitstrm, ps_vui->u1_bitstream_restriction_flag, 1, return_status, "bitstream_restriction_flag");
+    PUT_BITS(ps_bitstrm, ps_vui->u1_bitstream_restriction_flag, 1,
+             return_status, "bitstream_restriction_flag");
 
     if(ps_vui->u1_bitstream_restriction_flag == 1)
     {
         /* motion_vectors_over_pic_boundaries_flag */
-        PUT_BITS(ps_bitstrm, ps_vui->u1_motion_vectors_over_pic_boundaries_flag, 1, return_status, "motion_vectors_over_pic_boundaries_flag");
+        PUT_BITS(ps_bitstrm, ps_vui->u1_motion_vectors_over_pic_boundaries_flag,
+                 1, return_status, "motion_vectors_over_pic_boundaries_flag");
 
         /* max_bytes_per_pic_denom */
-        PUT_BITS_UEV(ps_bitstrm,ps_vui->u1_max_bytes_per_pic_denom,return_status,"max_bytes_per_pic_denom");
+        PUT_BITS_UEV(ps_bitstrm, ps_vui->u1_max_bytes_per_pic_denom,
+                     return_status, "max_bytes_per_pic_denom");
 
         /* max_bits_per_mb_denom */
-        PUT_BITS_UEV(ps_bitstrm,ps_vui->u1_max_bits_per_mb_denom,return_status,"max_bits_per_mb_denom");
+        PUT_BITS_UEV(ps_bitstrm, ps_vui->u1_max_bits_per_mb_denom,
+                     return_status, "max_bits_per_mb_denom");
 
         /* log2_max_mv_length_horizontal */
-        PUT_BITS_UEV(ps_bitstrm,ps_vui->u1_log2_max_mv_length_horizontal,return_status,"log2_max_mv_length_horizontal");
+        PUT_BITS_UEV(ps_bitstrm, ps_vui->u1_log2_max_mv_length_horizontal,
+                     return_status, "log2_max_mv_length_horizontal");
 
         /* log2_max_mv_length_vertical */
-        PUT_BITS_UEV(ps_bitstrm,ps_vui->u1_log2_max_mv_length_vertical,return_status,"log2_max_mv_length_vertical");
+        PUT_BITS_UEV(ps_bitstrm, ps_vui->u1_log2_max_mv_length_vertical,
+                     return_status, "log2_max_mv_length_vertical");
 
         /* max_num_reorder_frames */
-        PUT_BITS_UEV(ps_bitstrm,ps_vui->u1_num_reorder_frames,return_status,"max_num_reorder_frames");
+        PUT_BITS_UEV(ps_bitstrm, ps_vui->u1_num_reorder_frames, return_status,
+                     "max_num_reorder_frames");
 
         /* max_dec_frame_buffering */
-        PUT_BITS_UEV(ps_bitstrm,ps_vui->u1_max_dec_frame_buffering,return_status,"max_dec_frame_buffering");
+        PUT_BITS_UEV(ps_bitstrm, ps_vui->u1_max_dec_frame_buffering,
+                     return_status, "max_dec_frame_buffering");
     }
 
     return return_status;
@@ -728,26 +929,20 @@ WORD32 ih264e_generate_slice_header(bitstrm_t *ps_bitstrm,
 * @param[in]   ps_codec
 *  pointer to encoder context
 *
-* @param[out]  ps_vui
-*  pointer to vui params that needs to be populated
-*
 * @return      success or failure error code
 *
 ******************************************************************************
 */
-IH264E_ERROR_T ih264e_populate_vui(codec_t *ps_codec, vui_t *ps_vui)
+IH264E_ERROR_T ih264e_populate_vui(codec_t *ps_codec)
 {
-    sps_t *ps_sps;
 
-    ps_sps = ps_codec->ps_sps_base + ps_codec->i4_sps_id;
-    ps_vui->u1_aspect_ratio_info_present_flag = 0;
-    ps_vui->u1_overscan_info_present_flag = 0;
-    ps_vui->u1_video_signal_type_present_flag = 0;
-    ps_vui->u1_chroma_loc_info_present_flag = 0;
-    ps_vui->u1_vui_timing_info_present_flag = 0;
+    vui_t *ps_vui = &ps_codec->s_cfg.s_vui;
+    sps_t *ps_sps = ps_codec->ps_sps_base + ps_codec->i4_sps_id;
+
+
     ps_vui->u1_nal_hrd_parameters_present_flag = 0;
     ps_vui->u1_vcl_hrd_parameters_present_flag = 0;
-    ps_vui->u1_pic_struct_present_flag = 0;
+
     ps_vui->u1_bitstream_restriction_flag = 1;
     ps_vui->u1_motion_vectors_over_pic_boundaries_flag = 1;
     ps_vui->u1_max_bytes_per_pic_denom = 0;
@@ -765,6 +960,7 @@ IH264E_ERROR_T ih264e_populate_vui(codec_t *ps_codec, vui_t *ps_vui)
     }
 
     ps_vui->u1_max_dec_frame_buffering = ps_sps->u1_max_num_ref_frames;
+
 
     return 0;
 }
@@ -961,7 +1157,7 @@ IH264E_ERROR_T ih264e_populate_sps(codec_t *ps_codec, sps_t *ps_sps)
     if (ps_sps->i1_vui_parameters_present_flag)
     {
         /* populate vui params */
-        ih264e_populate_vui(ps_codec,&(ps_codec->s_vui));
+        ih264e_populate_vui(ps_codec);
     }
 
     return i4_err_code;
