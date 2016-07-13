@@ -181,7 +181,8 @@ IH264E_ERROR_T ih264e_generate_sps_pps(codec_t *ps_codec)
     ps_entropy->i4_error_code = IH264E_SUCCESS;
 
     /* generate sps */
-    ps_entropy->i4_error_code |= ih264e_generate_sps(ps_bitstrm, ps_sps, &ps_codec->s_vui);
+    ps_entropy->i4_error_code |= ih264e_generate_sps(ps_bitstrm, ps_sps,
+                                                     &ps_codec->s_cfg.s_vui);
 
     /* generate pps */
     ps_entropy->i4_error_code |= ih264e_generate_pps(ps_bitstrm, ps_pps, ps_sps);
@@ -371,8 +372,8 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
         if (1 == ps_entropy->i4_gen_header)
         {
             /* generate sps */
-            ps_entropy->i4_error_code |= ih264e_generate_sps(ps_bitstrm, ps_sps, &ps_codec->s_vui);
-
+            ps_entropy->i4_error_code |= ih264e_generate_sps(ps_bitstrm, ps_sps,
+                                                             &ps_codec->s_cfg.s_vui);
             /* generate pps */
             ps_entropy->i4_error_code |= ih264e_generate_pps(ps_bitstrm, ps_pps, ps_sps);
 

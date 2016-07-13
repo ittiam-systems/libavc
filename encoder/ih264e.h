@@ -484,6 +484,137 @@ typedef struct
 }ih264e_video_encode_op_t;
 
 
+/*****************************************************************************/
+/*   Video usability information                                             */
+/*****************************************************************************/
+typedef struct
+{
+    /** size of the structure  */
+    UWORD32                                     u4_size;
+
+    /** Command type : IVE_CMD_VIDEO_CTL  */
+    IVE_API_COMMAND_TYPE_T                      e_cmd;
+
+    /** Sub command type : IVE_CMD_CTL_SET_GOP_PARAMS */
+    IVE_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+
+    /** indicates the presence of aspect_ratio */
+    UWORD8                                      u1_aspect_ratio_info_present_flag;
+
+    /** specifies the aspect ratio of the luma samples */
+    UWORD8                                      u1_aspect_ratio_idc;
+
+    /** width of the luma samples. user dependent */
+    UWORD16                                     u2_sar_width;
+
+    /** Height of the luma samples. user dependent */
+    UWORD16                                     u2_sar_height;
+
+    /** if 1, specifies that the overscan_appropriate_flag is present
+     * if 0, the preferred display method for the video signal is unspecified */
+    UWORD8                                      u1_overscan_info_present_flag;
+
+    /** if 1,indicates that the cropped decoded pictures output
+     * are suitable for display using overscan */
+    UWORD8                                      u1_overscan_appropriate_flag;
+
+    /** if 1 specifies that video_format, video_full_range_flag and
+     * colour_description_present_flag are present */
+    UWORD8                                      u1_video_signal_type_present_flag;
+
+    /** pal, secam, ntsc, ...  */
+    UWORD8                                      u1_video_format;
+
+    /** indicates the black level and range of the luma and chroma signals */
+    UWORD8                                      u1_video_full_range_flag;
+
+    /** if 1,specifies that colour_primaries, transfer_characteristics
+     * and matrix_coefficients are present */
+    UWORD8                                      u1_colour_description_present_flag;
+
+    /** indicates the chromaticity coordinates of the source primaries  */
+    UWORD8                                      u1_colour_primaries;
+
+    /** indicates the opto-electronic transfer characteristic of the source picture */
+    UWORD8                                      u1_transfer_characteristics;
+
+    /** the matrix coefficients used in deriving luma and chroma signals
+     * from the green, blue, and red primaries */
+    UWORD8                                      u1_matrix_coefficients;
+
+    /** if 1, specifies that chroma_sample_loc_type_top_field and
+     * chroma_sample_loc_type_bottom_field are present */
+    UWORD8                                      u1_chroma_loc_info_present_flag;
+
+    /** location of chroma samples */
+    UWORD8                                      u1_chroma_sample_loc_type_top_field;
+    UWORD8                                      u1_chroma_sample_loc_type_bottom_field;
+
+    /**  Indicates the presence of the num_units_in_ticks, time_scale flag */
+    UWORD8                                      u1_vui_timing_info_present_flag;
+
+    /**  Number of units that correspond to one increment of the
+    *   clock. Indicates the  resolution */
+    UWORD32                                     u4_vui_num_units_in_tick;
+
+    /**  The number of time units that pass in one second */
+    UWORD32                                     u4_vui_time_scale;
+
+    /** Flag indicating that time difference between two frames is a constant */
+    UWORD8                                      u1_fixed_frame_rate_flag;
+
+    /** Indicates the presence of NAL HRD parameters */
+    UWORD8                                      u1_nal_hrd_parameters_present_flag;
+
+    /** Indicates the presence of VCL HRD parameters */
+    UWORD8                                      u1_vcl_hrd_parameters_present_flag;
+
+    /** Specifies the HRD operational mode */
+    UWORD8                                      u1_low_delay_hrd_flag;
+
+    /** Indicates presence of SEI messages which include pic_struct syntax element */
+    UWORD8                                      u1_pic_struct_present_flag;
+
+    /** 1, specifies that the following cvs bitstream restriction parameters are present */
+    UWORD8                                      u1_bitstream_restriction_flag;
+
+    /** if 0, indicates that no pel outside the pic boundaries and
+     * no sub-pels derived using pels outside the pic boundaries is used for inter prediction */
+    UWORD8                                      u1_motion_vectors_over_pic_boundaries_flag;
+
+    /** Indicates a number of bytes not exceeded by the sum of the sizes of the VCL NAL units
+     * associated with any coded picture */
+    UWORD8                                      u1_max_bytes_per_pic_denom;
+
+    /** Indicates an upper bound for the number of bits of coding_unit() data */
+    UWORD8                                      u1_max_bits_per_mb_denom;
+
+    /** Indicate the maximum absolute value of a decoded horizontal MV component
+     * in quarter-pel luma units */
+    UWORD8                                      u1_log2_max_mv_length_horizontal;
+
+    /** Indicate the maximum absolute value of a decoded vertical MV component
+     * in quarter-pel luma units */
+    UWORD8                                      u1_log2_max_mv_length_vertical;
+
+    /** Max number of frames that are not synchronized in display and decode order */
+    UWORD8                                      u1_num_reorder_frames;
+
+    /** specifies required size of the HRD DPB in units of frame buffers */
+    UWORD8                                      u1_max_dec_frame_buffering;
+
+}ih264e_vui_ip_t;
+
+typedef struct
+{
+    /** size of the structure                                           */
+    UWORD32                                     u4_size;
+
+    /** Return error code                                               */
+    UWORD32                                     u4_error_code;
+}ih264e_vui_op_t;
+
+
 /* The enum values should not have greater than 8 bits as this is assigned to WORD8 */
 typedef enum
 {

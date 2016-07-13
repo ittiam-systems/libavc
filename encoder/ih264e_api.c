@@ -1609,6 +1609,30 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                     break;
                 }
 
+                case IVE_CMD_CTL_SET_VUI_PARAMS:
+                {
+                    ih264e_vui_ip_t *ps_ip = pv_api_ip;
+                    ih264e_vui_op_t *ps_op = pv_api_op;
+
+                    if(ps_ip->u4_size != sizeof(ih264e_vui_ip_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                        IVE_ERR_IP_CTL_SET_VUI_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if(ps_op->u4_size != sizeof(ih264e_vui_op_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                        IVE_ERR_OP_CTL_SET_VUI_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    break;
+                }
+
                 case IVE_CMD_CTL_SET_ENC_MODE:
                 {
                     ih264e_ctl_set_enc_mode_ip_t *ps_ip = pv_api_ip;
@@ -2210,7 +2234,10 @@ IH264E_ERROR_T ih264e_codec_update_config(codec_t *ps_codec,
     {
         ps_codec->s_cfg.u4_num_cores = ps_cfg->u4_num_cores;
     }
-
+    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_VUI_PARAMS)
+    {
+        ps_codec->s_cfg.s_vui = ps_cfg->s_vui;
+    }
     /* reset RC model */
     if (u4_init_rc)
     {
@@ -5217,7 +5244,90 @@ static WORD32 ih264_set_deblock_params(void *pv_api_ip,
 
     return IV_SUCCESS;
 }
+/**
+ *******************************************************************************
+ *
+ * @brief
+ *  Sets vui params
+ *
+ * @par Description:
+ *  Video usability information
+ *
+ * @param[in] pv_api_ip
+ *  Pointer to input argument structure
+ *
+ * @param[out] pv_api_op
+ *  Pointer to output argument structure
+ *
+ * @param[out] ps_cfg
+ *  Pointer to config structure to be updated
+ *
+ * @returns error status
+ *
+ * @remarks none
+ *
+ *******************************************************************************
+ */
+static WORD32 ih264e_set_vui_params(void *pv_api_ip,
+                                    void *pv_api_op,
+                                    cfg_params_t *ps_cfg)
+{
+    /* ctrl call I/O structures */
+    ih264e_vui_ip_t *ps_ip = pv_api_ip;
+    ih264e_vui_op_t *ps_op = pv_api_op;
+    vui_t *ps_vui = &ps_cfg->s_vui;
 
+    ps_op->u4_error_code = 0;
+
+    ps_vui->u1_aspect_ratio_info_present_flag =
+                    ps_ip->u1_aspect_ratio_info_present_flag;
+    ps_vui->u1_aspect_ratio_idc = ps_ip->u1_aspect_ratio_idc;
+    ps_vui->u2_sar_width = ps_ip->u2_sar_width;
+    ps_vui->u2_sar_height = ps_ip->u2_sar_height;
+    ps_vui->u1_overscan_info_present_flag =
+                    ps_ip->u1_overscan_info_present_flag;
+    ps_vui->u1_overscan_appropriate_flag = ps_ip->u1_overscan_appropriate_flag;
+    ps_vui->u1_video_signal_type_present_flag =
+                    ps_ip->u1_video_signal_type_present_flag;
+    ps_vui->u1_video_format = ps_ip->u1_video_format;
+    ps_vui->u1_video_full_range_flag = ps_ip->u1_video_full_range_flag;
+    ps_vui->u1_colour_description_present_flag =
+                    ps_ip->u1_colour_description_present_flag;
+    ps_vui->u1_colour_primaries = ps_ip->u1_colour_primaries;
+    ps_vui->u1_transfer_characteristics = ps_ip->u1_transfer_characteristics;
+    ps_vui->u1_matrix_coefficients = ps_ip->u1_matrix_coefficients;
+    ps_vui->u1_chroma_loc_info_present_flag =
+                    ps_ip->u1_chroma_loc_info_present_flag;
+    ps_vui->u1_chroma_sample_loc_type_top_field =
+                    ps_ip->u1_chroma_sample_loc_type_top_field;
+    ps_vui->u1_chroma_sample_loc_type_bottom_field =
+                    ps_ip->u1_chroma_sample_loc_type_bottom_field;
+    ps_vui->u1_vui_timing_info_present_flag =
+                    ps_ip->u1_vui_timing_info_present_flag;
+    ps_vui->u4_vui_num_units_in_tick = ps_ip->u4_vui_num_units_in_tick;
+    ps_vui->u4_vui_time_scale = ps_ip->u4_vui_time_scale;
+    ps_vui->u1_fixed_frame_rate_flag = ps_ip->u1_fixed_frame_rate_flag;
+    ps_vui->u1_nal_hrd_parameters_present_flag =
+                    ps_ip->u1_nal_hrd_parameters_present_flag;
+    ps_vui->u1_vcl_hrd_parameters_present_flag =
+                    ps_ip->u1_vcl_hrd_parameters_present_flag;
+    ps_vui->u1_low_delay_hrd_flag = ps_ip->u1_low_delay_hrd_flag;
+    ps_vui->u1_pic_struct_present_flag = ps_ip->u1_pic_struct_present_flag;
+    ps_vui->u1_bitstream_restriction_flag =
+                    ps_ip->u1_bitstream_restriction_flag;
+    ps_vui->u1_motion_vectors_over_pic_boundaries_flag =
+                    ps_ip->u1_motion_vectors_over_pic_boundaries_flag;
+    ps_vui->u1_max_bytes_per_pic_denom = ps_ip->u1_max_bytes_per_pic_denom;
+    ps_vui->u1_max_bits_per_mb_denom = ps_ip->u1_max_bits_per_mb_denom;
+    ps_vui->u1_log2_max_mv_length_horizontal =
+                    ps_ip->u1_log2_max_mv_length_horizontal;
+    ps_vui->u1_log2_max_mv_length_vertical =
+                    ps_ip->u1_log2_max_mv_length_vertical;
+    ps_vui->u1_num_reorder_frames = ps_ip->u1_num_reorder_frames;
+    ps_vui->u1_max_dec_frame_buffering = ps_ip->u1_max_dec_frame_buffering;
+
+    return IV_SUCCESS;
+}
 /**
 *******************************************************************************
 *
@@ -5439,6 +5549,10 @@ static WORD32 ih264e_ctl(iv_obj_t *ps_codec_obj,
 
         case IVE_CMD_CTL_SET_DEBLOCK_PARAMS:
             ret = ih264_set_deblock_params(pv_api_ip, pv_api_op, ps_cfg);
+            break;
+
+        case IVE_CMD_CTL_SET_VUI_PARAMS:
+            ret = ih264e_set_vui_params(pv_api_ip, pv_api_op, ps_cfg);
             break;
 
         case IVE_CMD_CTL_RESET:
