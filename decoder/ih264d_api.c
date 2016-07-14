@@ -2140,6 +2140,9 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         else
             prev_slice_err = 2;
 
+        if(ps_dec->u4_first_slice_in_pic && (ps_dec->u2_total_mbs_coded == 0))
+            prev_slice_err = 1;
+
         ret1 = ih264d_mark_err_slice_skip(ps_dec, num_mb_skipped, ps_dec->u1_nal_unit_type == IDR_SLICE_NAL, ps_dec->ps_cur_slice->u2_frame_num,
                                    &temp_poc, prev_slice_err);
 
