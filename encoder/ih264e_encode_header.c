@@ -933,7 +933,14 @@ IH264E_ERROR_T ih264e_populate_sps(codec_t *ps_codec, sps_t *ps_sps)
     }
 
     /* direct_8x8_inference_flag */
-    ps_sps->i1_direct_8x8_inference_flag = 0;
+    if (ps_sps->u1_level_idc < IH264_LEVEL_30)
+    {
+        ps_sps->i1_direct_8x8_inference_flag = 0;
+    }
+    else
+    {
+        ps_sps->i1_direct_8x8_inference_flag = 1;
+    }
 
     /* cropping params */
     /*NOTE : Cropping values depend on the chroma format
