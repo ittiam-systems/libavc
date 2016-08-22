@@ -66,7 +66,8 @@
  * Maximum width supported by codec
  */
 
-#define MAX_WD   1920
+/* changed by haining@ to support Nexus 6P screen size, was previously 1920 */
+#define MAX_WD   2560
 
 /**
  * Minimum height supported by codec
@@ -77,7 +78,8 @@
  * Maximum height supported by codec
  */
 
-#define MAX_HT   1920
+/* changed by haining@ to support Nexus 6P screen size, was previously 1920 */
+#define MAX_HT   2560
 
 /*****************************************************************************/
 /* Padding sizes                                                             */
