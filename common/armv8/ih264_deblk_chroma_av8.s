@@ -56,19 +56,19 @@
 //* @param[in] x0 - pu1_src
 //*  Pointer to the src sample q0
 //*
-//* @param[in] x1 - src_strd
+//* @param[in] w1 - src_strd
 //*  Source stride
 //*
-//* @param[in] x2 - alpha_cb
+//* @param[in] w2 - alpha_cb
 //*  Alpha Value for the boundary in U
 //*
-//* @param[in] x3 - beta_cb
+//* @param[in] w3 - beta_cb
 //*  Beta Value for the boundary in U
 //*
-//* @param[in] sp(0) - alpha_cr
+//* @param[in] w4 - alpha_cr
 //*    Alpha Value for the boundary in V
 //*
-//* @param[in] sp(4) - beta_cr
+//* @param[in] w5 - beta_cr
 //*    Beta Value for the boundary in V
 //*
 //* @returns
@@ -87,6 +87,7 @@ ih264_deblk_chroma_horz_bs4_av8:
     // STMFD sp!,{x4-x6,x14}            //
     push_v_regs
     stp       x19, x20, [sp, #-16]!
+    sxtw      x1, w1
     mov       x6, x5
     mov       x5, x4
     sub       x0, x0, x1, lsl #1        //x0 = uc_edgePixel pointing to p1 of chroma
@@ -155,19 +156,19 @@ ih264_deblk_chroma_horz_bs4_av8:
 //* @param[in] x0 - pu1_src
 //*  Pointer to the src sample q0
 //*
-//* @param[in] x1 - src_strd
+//* @param[in] w1 - src_strd
 //*  Source stride
 //*
-//* @param[in] x2 - alpha_cb
+//* @param[in] w2 - alpha_cb
 //*  Alpha Value for the boundary in U
 //*
-//* @param[in] x3 - beta_cb
+//* @param[in] w3 - beta_cb
 //*  Beta Value for the boundary in U
 //*
-//* @param[in] sp(0) - alpha_cr
+//* @param[in] w4 - alpha_cr
 //*    Alpha Value for the boundary in V
 //*
-//* @param[in] sp(4) - beta_cr
+//* @param[in] w5 - beta_cr
 //*    Beta Value for the boundary in V
 //*
 //* @returns
@@ -186,12 +187,13 @@ ih264_deblk_chroma_vert_bs4_av8:
     // STMFD sp!,{x4,x5,x12,x14}
     push_v_regs
     stp       x19, x20, [sp, #-16]!
+    sxtw      x1, w1
 
     sub       x0, x0, #4                //point x0 to p1u of row0.
     mov       x12, x0                   //keep a back up of x0 for buffer write
 
-    add       x2, x2, x4, lsl #8        //x2 = (alpha_cr,alpha_cb)
-    add       x3, x3, x5, lsl #8        //x3 = (beta_cr,beta_cb)
+    add       w2, w2, w4, lsl #8        //w2 = (alpha_cr,alpha_cb)
+    add       w3, w3, w5, lsl #8        //w3 = (beta_cr,beta_cb)
 
     ld4       {v0.h, v1.h, v2.h, v3.h}[0], [x0], x1
     ld4       {v0.h, v1.h, v2.h, v3.h}[1], [x0], x1
@@ -292,28 +294,28 @@ ih264_deblk_chroma_vert_bs4_av8:
 //* @param[in] x0 - pu1_src
 //*  Pointer to the src sample q0
 //*
-//* @param[in] x1 - src_strd
+//* @param[in] w1 - src_strd
 //*  Source stride
 //*
-//* @param[in] x2 - alpha_cb
+//* @param[in] w2 - alpha_cb
 //*  Alpha Value for the boundary in U
 //*
-//* @param[in] x3 - beta_cb
+//* @param[in] w3 - beta_cb
 //*  Beta Value for the boundary in U
 //*
-//* @param[in] sp(0) - alpha_cr
+//* @param[in] w4 - alpha_cr
 //*    Alpha Value for the boundary in V
 //*
-//* @param[in] sp(4) - beta_cr
+//* @param[in] w5 - beta_cr
 //*    Beta Value for the boundary in V
 //*
-//* @param[in] sp(8) - u4_bs
+//* @param[in] w6 - u4_bs
 //*    Packed Boundary strength array
 //*
-//* @param[in] sp(12) - pu1_cliptab_cb
+//* @param[in] x7 - pu1_cliptab_cb
 //*    tc0_table for U
 //*
-//* @param[in] sp(16) - pu1_cliptab_cr
+//* @param[in] sp(0) - pu1_cliptab_cr
 //*    tc0_table for V
 //*
 //* @returns
@@ -332,8 +334,9 @@ ih264_deblk_chroma_horz_bslt4_av8:
     // STMFD sp!,{x4-x9,x14}        //
     push_v_regs
     stp       x19, x20, [sp, #-16]!
+    sxtw      x1, w1
     mov       x8, x7
-    mov       x7, x6
+    mov       w7, w6
     ldr       x9, [sp, #80]
     sub       x0, x0, x1, lsl #1        //x0 = uc_edgePixelU pointing to p1 of chroma U
     rev       w7, w7                    //
@@ -428,28 +431,28 @@ ih264_deblk_chroma_horz_bslt4_av8:
 //* @param[in] x0 - pu1_src
 //*  Pointer to the src sample q0
 //*
-//* @param[in] x1 - src_strd
+//* @param[in] w1 - src_strd
 //*  Source stride
 //*
-//* @param[in] x2 - alpha_cb
+//* @param[in] w2 - alpha_cb
 //*  Alpha Value for the boundary in U
 //*
-//* @param[in] x3 - beta_cb
+//* @param[in] w3 - beta_cb
 //*  Beta Value for the boundary in U
 //*
-//* @param[in] sp(0) - alpha_cr
+//* @param[in] w4 - alpha_cr
 //*    Alpha Value for the boundary in V
 //*
-//* @param[in] sp(4) - beta_cr
+//* @param[in] w5 - beta_cr
 //*    Beta Value for the boundary in V
 //*
-//* @param[in] sp(8) - u4_bs
+//* @param[in] w6 - u4_bs
 //*    Packed Boundary strength array
 //*
-//* @param[in] sp(12) - pu1_cliptab_cb
+//* @param[in] x7 - pu1_cliptab_cb
 //*    tc0_table for U
 //*
-//* @param[in] sp(16) - pu1_cliptab_cr
+//* @param[in] sp(0) - pu1_cliptab_cr
 //*    tc0_table for V
 //*
 //* @returns
@@ -468,11 +471,12 @@ ih264_deblk_chroma_vert_bslt4_av8:
     // STMFD sp!,{x4-x7,x10-x12,x14}
     push_v_regs
     stp       x19, x20, [sp, #-16]!
+    sxtw      x1, w1
     mov       x10, x7
     ldr       x11, [sp, #80]            //x11 = u4_bs
     sub       x0, x0, #4                //point x0 to p1u of row0.
-    add       x2, x2, x4, lsl #8
-    add       x3, x3, x5, lsl #8
+    add       w2, w2, w4, lsl #8
+    add       w3, w3, w5, lsl #8
     mov       x12, x0                   //keep a back up of x0 for buffer write
     ld4       {v0.h, v1.h, v2.h, v3.h}[0], [x0], x1
     ld4       {v0.h, v1.h, v2.h, v3.h}[1], [x0], x1

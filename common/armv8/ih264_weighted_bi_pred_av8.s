@@ -115,16 +115,16 @@
 //    x0      => puc_src1
 //    x1      => puc_src2
 //    x2      => puc_dst
-//    x3      => src_strd1
-//    [sp]    => src_strd2 (x4)
-//    [sp+4]  => dst_strd  (x5)
-//    [sp+8]  => log_WD    (x6)
-//    [sp+12] => wt1       (x7)
-//   [sp+16] => wt2       (x8)
-//   [sp+20] => ofst1     (x9)
-//   [sp+24] => ofst2     (x10)
-//    [sp+28] => ht        (x11)
-//    [sp+32] => wd        (x12)
+//    w3      => src_strd1
+//    w4      => src_strd2
+//    w5      => dst_strd
+//    w6      => log_WD
+//    w7      => wt1
+//    [sp]    => wt2       (w8)
+//    [sp+8]  => ofst1     (w9)
+//    [sp+16] => ofst2     (w10)
+//    [sp+24] => ht        (w11)
+//    [sp+32] => wd        (w12)
 //
 .text
 .p2align 2
@@ -138,21 +138,24 @@ ih264_weighted_bi_pred_luma_av8:
 
     // STMFD sp!, {x4-x12,x14}                //stack stores the values of the arguments
     push_v_regs
+    sxtw      x3, w3
+    sxtw      x4, w4
+    sxtw      x5, w5
     stp       x19, x20, [sp, #-16]!
-    ldr       x8, [sp, #80]             //Load wt2 in x8
-    ldr       x9, [sp, #88]             //Load ofst1 in x9
-    add       x6, x6, #1                //x6  = log_WD + 1
-    sub       x20, x6, #0               //x13 = -(log_WD + 1)
-    neg       x10, x20
+    ldr       w8, [sp, #80]             //Load wt2 in w8
+    ldr       w9, [sp, #88]             //Load ofst1 in w9
+    add       w6, w6, #1                //w6  = log_WD + 1
+    sub       w20, w6, #0               //w10 = -(log_WD + 1)
+    neg       w10, w20
     dup       v0.8h, w10                //Q0  = -(log_WD + 1) (32-bit)
-    ldr       x10, [sp, #96]            //Load ofst2 in x10
-    ldr       x11, [sp, #104]           //Load ht in x11
-    ldr       x12, [sp, #112]           //Load wd in x12
-    add       x9, x9, #1                //x9 = ofst1 + 1
-    add       x9, x9, x10               //x9 = ofst1 + ofst2 + 1
+    ldr       w10, [sp, #96]            //Load ofst2 in w10
+    ldr       w11, [sp, #104]           //Load ht in w11
+    ldr       w12, [sp, #112]           //Load wd in w12
+    add       w9, w9, #1                //w9 = ofst1 + 1
+    add       w9, w9, w10               //w9 = ofst1 + ofst2 + 1
     mov       v2.s[0], w7
     mov       v2.s[1], w8               //D2 = {wt1(32-bit), wt2(32-bit)}
-    asr       x9, x9, #1                //x9 = ofst = (ofst1 + ofst2 + 1) >> 1
+    asr       w9, w9, #1                //w9 = ofst = (ofst1 + ofst2 + 1) >> 1
     dup       v3.8b, w9                 //D3 = ofst (8-bit)
     cmp       w12, #16
     beq       loop_16                   //branch if wd is 16
@@ -395,16 +398,16 @@ end_loops:
 //    x0      => puc_src1
 //    x1      => puc_src2
 //    x2      => puc_dst
-//    x3      => src_strd1
-//    [sp]    => src_strd2 (x4)
-//    [sp+4]  => dst_strd  (x5)
-//    [sp+8]  => log_WD    (x6)
-//    [sp+12] => wt1       (x7)
-//   [sp+16] => wt2       (x8)
-//   [sp+20] => ofst1     (x9)
-//   [sp+24] => ofst2     (x10)
-//    [sp+28] => ht        (x11)
-//    [sp+32] => wd        (x12)
+//    w3      => src_strd1
+//    w4      => src_strd2
+//    w5      => dst_strd
+//    w6      => log_WD
+//    w7      => wt1
+//    [sp]    => wt2       (w8)
+//    [sp+8]  => ofst1     (w9)
+//    [sp+16] => ofst2     (w10)
+//    [sp+24] => ht        (w11)
+//    [sp+32] => wd        (w12)
 //
 
 
@@ -417,24 +420,23 @@ ih264_weighted_bi_pred_chroma_av8:
 
     // STMFD sp!, {x4-x12,x14}                //stack stores the values of the arguments
     push_v_regs
+    sxtw      x3, w3
+    sxtw      x4, w4
+    sxtw      x5, w5
     stp       x19, x20, [sp, #-16]!
 
 
-    ldr       x8, [sp, #80]             //Load wt2 in x8
+    ldr       w8, [sp, #80]             //Load wt2 in w8
     dup       v4.4s, w8                 //Q2 = (wt2_u, wt2_v) (32-bit)
     dup       v2.4s, w7                 //Q1 = (wt1_u, wt1_v) (32-bit)
-    add       x6, x6, #1                //x6  = log_WD + 1
-    ldr       w9, [sp, #88]             //Load ofst1 in x9
-    sxtw      x9, w9
-    ldr       w10, [sp, #96]            //Load ofst2 in x10
-    sxtw      x10, w10
-    sub       x20, x6, #0               //x12 = -(log_WD + 1)
-    neg       x20, x20
+    add       w6, w6, #1                //w6  = log_WD + 1
+    ldr       w9, [sp, #88]             //Load ofst1 in w9
+    ldr       w10, [sp, #96]            //Load ofst2 in w10
+    sub       w20, w6, #0               //w20 = -(log_WD + 1)
+    neg       w20, w20
     dup       v0.8h, w20                //Q0  = -(log_WD + 1) (16-bit)
     ldr       w11, [sp, #104]           //Load ht in x11
     ldr       w12, [sp, #112]           //Load wd in x12
-    sxtw      x11, w11
-    sxtw      x12, w12
     dup       v20.8h, w9                //0ffset1
     dup       v21.8h, w10               //0ffset2
     srhadd    v6.8b, v20.8b, v21.8b
