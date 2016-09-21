@@ -2146,9 +2146,10 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         ret1 = ih264d_mark_err_slice_skip(ps_dec, num_mb_skipped, ps_dec->u1_nal_unit_type == IDR_SLICE_NAL, ps_dec->ps_cur_slice->u2_frame_num,
                                    &temp_poc, prev_slice_err);
 
-        if((ret1 == ERROR_UNAVAIL_PICBUF_T) || (ret1 == ERROR_UNAVAIL_MVBUF_T))
+        if((ret1 == ERROR_UNAVAIL_PICBUF_T) || (ret1 == ERROR_UNAVAIL_MVBUF_T) ||
+                       (ret1 == ERROR_INV_SPS_PPS_T))
         {
-            return IV_FAIL;
+            ret = ret1;
         }
     }
 
