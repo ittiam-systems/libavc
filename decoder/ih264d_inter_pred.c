@@ -474,7 +474,7 @@ WORD32 ih264d_form_mb_part_info_mp(pred_info_pkd_t *ps_pred_pkd,
     UWORD8 i1_mc_wd, u1_dma_ht, u1_dma_wd, u1_dx, u1_dy;
     pred_info_t * ps_pred ;
     dec_slice_params_t * const ps_cur_slice = ps_dec->ps_cur_slice;
-    const UWORD8 u1_slice_type = ps_cur_slice->u1_slice_type;
+    const UWORD8 u1_slice_type = ps_dec->ps_decode_cur_slice->slice_type;
     UWORD8 u1_pod_bot, u1_pod_top;
 
     /* load the pictype for pod u4_flag & chroma motion vector derivation */
@@ -1013,7 +1013,7 @@ void ih264d_motion_compensate_mp(dec_struct_t * ps_dec, dec_mb_info_t *ps_cur_mb
     UWORD32 u2_dest_wd_y, u2_dest_wd_uv;
     UWORD32 u2_row_buf_wd_y = 0;
     UWORD32 u2_row_buf_wd_uv = 0;
-    UWORD32 u2_log2Y_crwd = ps_dec->ps_cur_slice->u2_log2Y_crwd;
+    UWORD32 u2_log2Y_crwd;
     UWORD32 u4_wd_y, u4_ht_y, u1_dir, u4_wd_uv;
     UWORD32 u4_ht_uv;
     UWORD8 *pu1_temp_mc_buffer = ps_dec->pu1_temp_mc_buffer;
@@ -1039,8 +1039,7 @@ void ih264d_motion_compensate_mp(dec_struct_t * ps_dec, dec_mb_info_t *ps_cur_mb
     ps_pred_y_back = ps_pred;
     ps_pred_cr_forw = ps_pred;
 
-    if(ps_dec->u1_separate_parse)
-        u2_log2Y_crwd = ps_dec->ps_decode_cur_slice->u2_log2Y_crwd;
+    u2_log2Y_crwd = ps_dec->ps_decode_cur_slice->u2_log2Y_crwd;
 
     if(!u1_pic_fld)
     {
