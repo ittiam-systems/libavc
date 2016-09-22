@@ -1508,6 +1508,8 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                 return ERROR_INV_SPS_PPS_T;
             }
 
+            /* call ih264d_start_of_pic only if it was not called earlier*/
+            if(ps_dec->u4_pic_buf_got == 0)
             {
                 //initialize slice params required by ih264d_start_of_pic to valid values
                 ps_dec->ps_cur_slice->u1_slice_type = P_SLICE;
@@ -1578,7 +1580,8 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
             && ps_parse_cur_slice == ps_dec->ps_parse_cur_slice)
         {
             // Slice data corrupted
-            u1_num_mbs = ps_dec->u4_num_mbs_cur_nmb;
+            // in the case of mbaff, conceal from the even mb.
+            u1_num_mbs = (ps_dec->u4_num_mbs_cur_nmb >> u1_mbaff ) << u1_mbaff;
 
             if(u1_num_mbs)
             {
