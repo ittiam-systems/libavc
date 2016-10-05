@@ -444,8 +444,7 @@ ih264_intra_pred_luma_16x16_mode_plane_av8:
     uxtl      v18.8h, v7.8b
     add       x7, x0, x4, lsl #3
     sub       x0, x7, x4, lsl #1
-    sub       x20, x4, #0x0
-    neg       x14, x20
+    neg       x14, x4
     addp      v0.8h, v0.8h, v1.8h
     ldrb      w8, [x7], #-1
     ldrb      w9, [x0], #1
