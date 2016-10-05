@@ -89,11 +89,11 @@
 //                                  UWORD8 *puc_dst,
 //                                  WORD32 src_strd,
 //                                  WORD32 dst_strd,
-//                                  UWORD8 log_WD,
-//                                  UWORD32 wt,
-//                                  UWORD16 ofst,
-//                                  UWORD8 ht,
-//                                  UWORD8 wd)
+//                                  WORD32 log_WD,
+//                                  WORD32 wt,
+//                                  WORD32 ofst,
+//                                  WORD32 ht,
+//                                  WORD32 wd)
 //
 //**************Variables Vs Registers*****************************************
 //    x0      => puc_src
@@ -318,11 +318,11 @@ end_loops:
 //                                    UWORD8 *puc_dst,
 //                                    WORD32 src_strd,
 //                                    WORD32 dst_strd,
-//                                    UWORD8 log_WD,
-//                                    UWORD32 wt,
-//                                    UWORD16 ofst,
-//                                    UWORD8 ht,
-//                                    UWORD8 wd)
+//                                    WORD32 log_WD,
+//                                    WORD32 wt,
+//                                    WORD32 ofst,
+//                                    WORD32 ht,
+//                                    WORD32 wd)
 //
 //**************Variables Vs Registers*****************************************
 //    x0      => puc_src
