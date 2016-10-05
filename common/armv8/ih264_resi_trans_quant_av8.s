@@ -45,18 +45,6 @@
 //* function name     : ih264_resi_trans_quant_4x4
 //* description       : this function does cf4 of h264
 //*
-//* arguments         :   x0 :pointer to src buffer
-//                        x1 :pointer to pred buffer
-//                        x2 :pointer to dst buffer
-//                        x3 :source stride
-//                        x4 :pred stride,
-//                        x5 :dst stride,
-//                        x6 :pointer to scaling matrix,
-//                        x7 :pointer to threshold matrix,
-//                        stack   qbits,
-//                                rounding factor,
-//                                pointer to store nnz
-//                                pointer to store non quantized dc value
 // values returned   : none
 //
 // register usage    :
@@ -77,18 +65,6 @@
     .global ih264_resi_trans_quant_4x4_av8
 ih264_resi_trans_quant_4x4_av8:
 
-    //x0     :pointer to src buffer
-    //x1     :pointer to pred buffer
-    //x2     :pointer to dst buffer
-    //x3     :source stride
-    //x4     :pred stride
-    //x5     :dst stride,
-    //x6     :scale matirx,
-    //x7     :threshold matrix
-    //       :qbits
-    //       :round factor
-    //       :nnz
-    //       :pointer to store non quantized dc value
     push_v_regs
     //x0     :pointer to src buffer
     //x1     :pointer to pred buffer
@@ -259,18 +235,6 @@ ih264_resi_trans_quant_4x4_av8:
 //* description       : this function does residue calculation, forward transform
 //*                        and quantization for 4x4 chroma block.
 //*
-//* arguments         :   x0 :pointer to src buffer
-//                        x1 :pointer to pred buffer
-//                        x2 :pointer to dst buffer
-//                        x3 :source stride
-//                        x4 :pred stride,
-//                        x5 :dst stride,
-//                        x6 :pointer to scaling matrix,
-//                        x7 :pointer to threshold matrix,
-//                        stack     qbits,
-//                                  rounding factor,
-//                                  pointer to store nnz
-//                                  pointer to store unquantized dc values
 // values returned   : none
 //
 // register usage    :
@@ -290,17 +254,6 @@ ih264_resi_trans_quant_4x4_av8:
     .global ih264_resi_trans_quant_chroma_4x4_av8
 ih264_resi_trans_quant_chroma_4x4_av8:
 
-    //x0     :pointer to src buffer
-    //x1     :pointer to pred buffer
-    //x2     :pointer to dst buffer
-    //x3     :source stride
-    //stack     :pred stride
-    //          :scale matirx,
-    //          :threshold matrix
-    //          :qbits
-    //          :round factor
-    //          :nnz
-    //          :pu1_dc_alt_addr
     push_v_regs
     //x0     :pointer to src buffer
     //x1     :pointer to pred buffer
