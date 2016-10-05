@@ -461,18 +461,14 @@ ih264_intra_pred_chroma_8x8_mode_plane_av8:
     rshrn     v13.4h, v26.4s, #6
     rshrn     v14.4h, v28.4s, #6
     ldrb      w6, [x0], #1
-    sxtw      x6, w6
     add       x10, x0, #31
     ldrb      w8, [x0], #1
-    sxtw      x8, w8
     ldrb      w7, [x10], #1
-    sxtw      x7, w7
     ldrb      w9, [x10], #1
-    sxtw      x9, w9
-    add       x6, x6, x7
-    add       x8, x8, x9
-    lsl       x6, x6, #4
-    lsl       x8, x8, #4
+    add       w6, w6, w7
+    add       w8, w8, w9
+    lsl       w6, w6, #4
+    lsl       w8, w8, #4
     dup       v0.8h, w6
     dup       v2.8h, w8
     dup       v4.8h, v12.h[0]

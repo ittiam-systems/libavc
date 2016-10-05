@@ -185,39 +185,31 @@ ih264_pad_left_luma_av8:
 loop_16:                                //  /*hard coded for width=16  ,height =8,16*/
     ldrb      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     ldrb      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     dup       v0.16b, w8
     ldrb      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], x1        // 16 bytes store
     dup       v2.16b, w9
     st1       {v2.16b}, [x4], x1        // 16 bytes store
     ldrb      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     dup       v4.16b, w10
     dup       v6.16b, w11
     st1       {v4.16b}, [x4], x1        // 16 bytes store
     ldrb      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     st1       {v6.16b}, [x4], x1        // 16 bytes store
     ldrb      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     dup       v0.16b, w8
     ldrb      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], x1        // 16 bytes store
     dup       v2.16b, w9
     ldrb      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     st1       {v2.16b}, [x4], x1        // 16 bytes store
     dup       v4.16b, w10
     dup       v6.16b, w11
@@ -230,14 +222,11 @@ loop_16:                                //  /*hard coded for width=16  ,height =
 loop_32:                                //  /*hard coded for width=32 ,height =8,16*/
     ldrb      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     ldrb      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     dup       v0.16b, w8
     ldrb      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], #16       // 16 bytes store
     dup       v2.16b, w9
     st1       {v0.16b}, [x4], x6
@@ -246,28 +235,23 @@ loop_32:                                //  /*hard coded for width=32 ,height =8
     st1       {v2.16b}, [x4], x6        // 16 bytes store
     ldrb      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     st1       {v4.16b}, [x4], #16       // 16 bytes store
     dup       v6.16b, w11
     st1       {v4.16b}, [x4], x6        // 16 bytes store
     ldrb      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     st1       {v6.16b}, [x4], #16       // 16 bytes store
     dup       v0.16b, w8
     ldrb      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     st1       {v6.16b}, [x4], x6        // 16 bytes store
     ldrb      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], #16       // 16 bytes store
     dup       v2.16b, w9
     st1       {v0.16b}, [x4], x6        // 16 bytes store
     ldrb      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     st1       {v2.16b}, [x4], #16       // 16 bytes store
     dup       v4.16b, w10
     st1       {v2.16b}, [x4], x6        // 16 bytes store
@@ -359,20 +343,16 @@ ih264_pad_left_chroma_av8:
 loop_32_l_c:                            //  /*hard coded for width=32  ,height =4,8,12*/
     ldrh      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     ldrh      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     dup       v0.8h, w8
     ldrh      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], #16       // 16 bytes store
     dup       v2.8h, w9
     st1       {v0.16b}, [x4], x6        // 16 bytes store
     ldrh      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     st1       {v2.16b}, [x4], #16       // 16 bytes store
     dup       v4.8h, w10
     st1       {v2.16b}, [x4], x6        // 16 bytes store
@@ -388,20 +368,16 @@ loop_32_l_c:                            //  /*hard coded for width=32  ,height =
 
     ldrh      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     ldrh      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     dup       v0.8h, w8
     ldrh      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], #16       // 16 bytes store
     dup       v2.8h, w9
     st1       {v0.16b}, [x4], x6
     ldrh      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     st1       {v2.16b}, [x4], #16       // 16 bytes store
     dup       v4.8h, w10
     st1       {v2.16b}, [x4], x6        // 16 bytes store
@@ -417,20 +393,16 @@ loop_32_l_c:                            //  /*hard coded for width=32  ,height =
 
     ldrh      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     ldrh      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     dup       v0.8h, w8
     ldrh      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], #16       // 16 bytes store
     dup       v2.8h, w9
     st1       {v0.16b}, [x4], x6
     ldrh      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     st1       {v2.16b}, [x4], #16       // 16 bytes store
     dup       v4.8h, w10
     st1       {v2.16b}, [x4], x6        // 16 bytes store
@@ -529,39 +501,31 @@ ih264_pad_right_luma_av8:
 loop_16_r: //  /*hard coded for width=16  ,height =8,16*/
     ldrb      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     ldrb      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     dup       v0.16b, w8
     ldrb      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], x1        // 16 bytes store
     dup       v2.16b, w9
     st1       {v2.16b}, [x4], x1        // 16 bytes store
     ldrb      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     dup       v4.16b, w10
     dup       v6.16b, w11
     st1       {v4.16b}, [x4], x1        // 16 bytes store
     ldrb      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     st1       {v6.16b}, [x4], x1        // 16 bytes store
     ldrb      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     dup       v0.16b, w8
     ldrb      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], x1        // 16 bytes store
     dup       v2.16b, w9
     ldrb      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     st1       {v2.16b}, [x4], x1        // 16 bytes store
     dup       v4.16b, w10
     dup       v6.16b, w11
@@ -574,14 +538,11 @@ loop_16_r: //  /*hard coded for width=16  ,height =8,16*/
 loop_32_r:                              //  /*hard coded for width=32  ,height =8,16*/
     ldrb      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     ldrb      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     dup       v0.16b, w8
     ldrb      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], #16       // 16 bytes store
     dup       v2.16b, w9
     st1       {v0.16b}, [x4], x6
@@ -590,28 +551,23 @@ loop_32_r:                              //  /*hard coded for width=32  ,height =
     st1       {v2.16b}, [x4], x6        // 16 bytes store
     ldrb      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     st1       {v4.16b}, [x4], #16       // 16 bytes store
     dup       v6.16b, w11
     st1       {v4.16b}, [x4], x6        // 16 bytes store
     ldrb      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     st1       {v6.16b}, [x4], #16       // 16 bytes store
     ldrb      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     dup       v0.16b, w8
     st1       {v6.16b}, [x4], x6        // 16 bytes store
     ldrb      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], #16       // 16 bytes store
     dup       v2.16b, w9
     st1       {v0.16b}, [x4], x6        // 16 bytes store
     ldrb      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     st1       {v2.16b}, [x4], #16       // 16 bytes store
     dup       v4.16b, w10
     st1       {v2.16b}, [x4], x6        // 16 bytes store
@@ -701,14 +657,11 @@ ih264_pad_right_chroma_av8:
 loop_32_r_c: //  /*hard coded for width=32 ,height =8,4*/
     ldrh      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     ldrh      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     dup       v0.8h, w8
     ldrh      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], #16       // 16 bytes store
     dup       v2.8h, w9
     st1       {v0.16b}, [x4], x6
@@ -718,7 +671,6 @@ loop_32_r_c: //  /*hard coded for width=32 ,height =8,4*/
     subs      w2, w2, #4
     ldrh      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     st1       {v4.16b}, [x4], #16       // 16 bytes store
     dup       v6.8h, w11
     st1       {v4.16b}, [x4], x6        // 16 bytes store
@@ -729,20 +681,16 @@ loop_32_r_c: //  /*hard coded for width=32 ,height =8,4*/
 
     ldrh      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     dup       v0.8h, w8
     ldrh      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     ldrh      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], #16       // 16 bytes store
     dup       v2.8h, w9
     st1       {v0.16b}, [x4], x6        // 16 bytes store
     ldrh      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     st1       {v2.16b}, [x4], #16       // 16 bytes store
     dup       v4.8h, w10
     st1       {v2.16b}, [x4], x6        // 16 bytes store
@@ -757,20 +705,16 @@ loop_32_r_c: //  /*hard coded for width=32 ,height =8,4*/
     bne       loop_32_r_c
     ldrh      w8, [x0]
     add       x0, x0, x1
-    sxtw      x8, w8
     dup       v0.8h, w8
     ldrh      w9, [x0]
     add       x0, x0, x1
-    sxtw      x9, w9
     ldrh      w10, [x0]
     add       x0, x0, x1
-    sxtw      x10, w10
     st1       {v0.16b}, [x4], #16       // 16 bytes store
     dup       v2.8h, w9
     st1       {v0.16b}, [x4], x6        // 16 bytes store
     ldrh      w11, [x0]
     add       x0, x0, x1
-    sxtw      x11, w11
     st1       {v2.16b}, [x4], #16       // 16 bytes store
     dup       v4.8h, w10
     st1       {v2.16b}, [x4], x6        // 16 bytes store

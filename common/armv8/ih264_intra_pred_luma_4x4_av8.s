@@ -271,34 +271,26 @@ ih264_intra_pred_luma_4x4_mode_dc_av8:
     add       x10, x0, #3
     mov       x2, #-1
     ldrb      w5, [x10], #-1
-    sxtw      x5, w5
     ldrb      w6, [x10], #-1
-    sxtw      x6, w6
     ldrb      w7, [x10], #-1
-    sxtw      x7, w7
-    add       x5, x5, x6
+    add       w5, w5, w6
     ldrb      w8, [x10], #-1
-    sxtw      x8, w8
-    add       x5, x5, x7
+    add       w5, w5, w7
     ands      w11, w4, #0x04            // CHECKING IF TOP_AVAILABLE  ELSE BRANCHING TO ONLY LEFT AVAILABLE
-    add       x5, x5, x8
+    add       w5, w5, w8
     beq       left_available
     add       x10, x0, #5
     //    BOTH LEFT AND TOP AVAILABLE
     ldrb      w6, [x10], #1
-    sxtw      x6, w6
     ldrb      w7, [x10], #1
-    sxtw      x7, w7
-    add       x5, x5, x6
+    add       w5, w5, w6
     ldrb      w8, [x10], #1
-    sxtw      x8, w8
-    add       x5, x5, x7
+    add       w5, w5, w7
     ldrb      w9, [x10], #1
-    sxtw      x9, w9
-    add       x5, x5, x8
-    add       x5, x5, x9
-    add       x5, x5, #4
-    lsr       x5, x5, #3
+    add       w5, w5, w8
+    add       w5, w5, w9
+    add       w5, w5, #4
+    lsr       w5, w5, #3
     dup       v0.8b, w5
     st1       {v0.s}[0], [x1], x3
     st1       {v0.s}[0], [x1], x3
@@ -312,18 +304,14 @@ top_available: // ONLT TOP AVAILABLE
 
     add       x10, x0, #5
     ldrb      w6, [x10], #1
-    sxtw      x6, w6
     ldrb      w7, [x10], #1
-    sxtw      x7, w7
     ldrb      w8, [x10], #1
-    sxtw      x8, w8
-    add       x5, x6, x7
+    add       w5, w6, w7
     ldrb      w9, [x10], #1
-    sxtw      x9, w9
-    add       x5, x5, x8
-    add       x5, x5, x9
-    add       x5, x5, #2
-    lsr       x5, x5, #2
+    add       w5, w5, w8
+    add       w5, w5, w9
+    add       w5, w5, #2
+    lsr       w5, w5, #2
     dup       v0.8b, w5
     st1       {v0.s}[0], [x1], x3
     st1       {v0.s}[0], [x1], x3
@@ -848,7 +836,6 @@ ih264_intra_pred_luma_4x4_mode_horz_u_av8:
     mov       x10, x0
     ld1       {v0.8b}, [x0]
     ldrb      w9, [x0], #1
-    sxtw      x9, w9
     ext       v1.8b, v0.8b , v0.8b , #1
     ld1       {v0.b}[7], [x10]
     ext       v2.8b, v1.8b , v1.8b , #1
