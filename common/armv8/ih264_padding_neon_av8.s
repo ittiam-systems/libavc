@@ -90,8 +90,7 @@ ih264_pad_top_av8:
     stp       x19, x20, [sp, #-16]!
 
     sub       x5, x0, x1
-    sub       x20, x1, #0
-    neg       x6, x20
+    neg       x6, x1
 
 loop_neon_memcpy_mul_16:
     // Load 16 bytes
