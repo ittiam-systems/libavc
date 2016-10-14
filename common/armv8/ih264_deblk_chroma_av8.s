@@ -469,7 +469,7 @@ ih264_deblk_chroma_vert_bslt4_av8:
     push_v_regs
     stp       x19, x20, [sp, #-16]!
     mov       x10, x7
-    ldr       x11, [sp, #80]            //x6 = u4_bs
+    ldr       x11, [sp, #80]            //x11 = u4_bs
     sub       x0, x0, #4                //point x0 to p1u of row0.
     add       x2, x2, x4, lsl #8
     add       x3, x3, x5, lsl #8
