@@ -335,14 +335,12 @@ ih264_deblk_chroma_horz_bslt4_av8:
     push_v_regs
     stp       x19, x20, [sp, #-16]!
     sxtw      x1, w1
-    mov       x8, x7
-    mov       w7, w6
-    ldr       x9, [sp, #80]
+    ldr       x8, [sp, #80]
     sub       x0, x0, x1, lsl #1        //x0 = uc_edgePixelU pointing to p1 of chroma U
-    rev       w7, w7                    //
-    mov       v12.s[0], w7              //D12[0] = ui_Bs
-    ld1       {v16.s}[0], [x8]          //D16[0] contains cliptab_cb
-    ld1       {v17.s}[0], [x9]          //D17[0] contains cliptab_cr
+    rev       w6, w6                    //
+    mov       v12.s[0], w6              //D12[0] = ui_Bs
+    ld1       {v16.s}[0], [x7]          //D16[0] contains cliptab_cb
+    ld1       {v17.s}[0], [x8]          //D17[0] contains cliptab_cr
     ld2       {v6.8b, v7.8b}, [x0], x1  //Q3=p1
     tbl       v14.8b, {v16.16b}, v12.8b //Retreiving cliptab values for U
     tbl       v28.8b, {v17.16b}, v12.8b //Retrieving cliptab values for V
