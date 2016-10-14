@@ -70,7 +70,7 @@
 //*/
 //void ih264_memcpy_mul_8(UWORD8 *pu1_dst,
 //                      UWORD8 *pu1_src,
-//                      UWORD8 num_bytes)
+//                      UWORD32 num_bytes)
 //**************Variables Vs Registers*************************
 //    x0 => *pu1_dst
 //    x1 => *pu1_src
@@ -99,7 +99,7 @@ loop_neon_memcpy_mul_8:
 //*/
 //void ih264_memcpy(UWORD8 *pu1_dst,
 //                  UWORD8 *pu1_src,
-//                  UWORD8 num_bytes)
+//                  UWORD32 num_bytes)
 //**************Variables Vs Registers*************************
 //    x0 => *pu1_dst
 //    x1 => *pu1_src
@@ -139,7 +139,7 @@ end_func1:
 
 //void ih264_memset_mul_8(UWORD8 *pu1_dst,
 //                       UWORD8 value,
-//                       UWORD8 num_bytes)
+//                       UWORD32 num_bytes)
 //**************Variables Vs Registers*************************
 //    x0 => *pu1_dst
 //    x1 => value
@@ -164,7 +164,7 @@ loop_memset_mul_8:
 
 //void ih264_memset(UWORD8 *pu1_dst,
 //                       UWORD8 value,
-//                       UWORD8 num_bytes)
+//                       UWORD32 num_bytes)
 //**************Variables Vs Registers*************************
 //    x0 => *pu1_dst
 //    x1 => value
@@ -205,7 +205,7 @@ end_func2:
 
 //void ih264_memset_16bit_mul_8(UWORD16 *pu2_dst,
 //                                      UWORD16 value,
-//                                      UWORD8 num_words)
+//                                      UWORD32 num_words)
 //**************Variables Vs Registers*************************
 //    x0 => *pu2_dst
 //    x1 => value
@@ -233,7 +233,7 @@ loop_memset_16bit_mul_8:
 
 //void ih264_memset_16bit(UWORD16 *pu2_dst,
 //                       UWORD16 value,
-//                       UWORD8 num_words)
+//                       UWORD32 num_words)
 //**************Variables Vs Registers*************************
 //    x0 => *pu2_dst
 //    x1 => value

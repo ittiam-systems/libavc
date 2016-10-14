@@ -91,8 +91,8 @@
 @                             UWORD8 *pu1_dst,
 @                             WORD32 src_strd,
 @                             WORD32 dst_strd,
-@                             UWORD8 u1_dx,
-@                             UWORD8 u1_dy,
+@                             WORD32 u1_dx,
+@                             WORD32 u1_dy,
 @                             WORD32 ht,
 @                             WORD32 wd)
 @**************Variables Vs Registers*****************************************

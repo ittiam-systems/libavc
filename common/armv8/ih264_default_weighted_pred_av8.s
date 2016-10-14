@@ -88,8 +88,8 @@
 //                                          WORD32 src_strd1,
 //                                          WORD32 src_strd2,
 //                                          WORD32 dst_strd,
-//                                          UWORD8 ht,
-//                                          UWORD8 wd)
+//                                          WORD32 ht,
+//                                          WORD32 wd)
 //
 //**************Variables Vs Registers*****************************************
 //    x0      => puc_src1
@@ -263,8 +263,8 @@ end_loops:
 //                                            WORD32 src_strd1,
 //                                            WORD32 src_strd2,
 //                                            WORD32 dst_strd,
-//                                            UWORD8 ht,
-//                                            UWORD8 wd)
+//                                            WORD32 ht,
+//                                            WORD32 wd)
 //
 //**************Variables Vs Registers*****************************************
 //    x0      => puc_src1
