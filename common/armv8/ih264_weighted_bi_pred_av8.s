@@ -145,8 +145,7 @@ ih264_weighted_bi_pred_luma_av8:
     ldr       w8, [sp, #80]             //Load wt2 in w8
     ldr       w9, [sp, #88]             //Load ofst1 in w9
     add       w6, w6, #1                //w6  = log_WD + 1
-    sub       w20, w6, #0               //w10 = -(log_WD + 1)
-    neg       w10, w20
+    neg       w10, w6                   //w10 = -(log_WD + 1)
     dup       v0.8h, w10                //Q0  = -(log_WD + 1) (32-bit)
     ldr       w10, [sp, #96]            //Load ofst2 in w10
     ldr       w11, [sp, #104]           //Load ht in w11
@@ -432,8 +431,7 @@ ih264_weighted_bi_pred_chroma_av8:
     add       w6, w6, #1                //w6  = log_WD + 1
     ldr       w9, [sp, #88]             //Load ofst1 in w9
     ldr       w10, [sp, #96]            //Load ofst2 in w10
-    sub       w20, w6, #0               //w20 = -(log_WD + 1)
-    neg       w20, w20
+    neg       w20, w6                   //w20 = -(log_WD + 1)
     dup       v0.8h, w20                //Q0  = -(log_WD + 1) (16-bit)
     ldr       w11, [sp, #104]           //Load ht in x11
     ldr       w12, [sp, #112]           //Load wd in x12

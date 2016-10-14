@@ -125,8 +125,7 @@ ih264_weighted_pred_luma_av8:
     sxtw      x8, w8
 
     dup       v2.4h, w5                 //D2 = wt (16-bit)
-    sub       w20, w4, #0               //w9 = -log_WD
-    neg       w9, w20
+    neg       w9, w4                    //w9 = -log_WD
     dup       v3.8b, w6                 //D3 = ofst (8-bit)
     cmp       w8, #16                   //check if wd is 16
     dup       v0.8h, w9                 //Q0 = -log_WD (16-bit)
@@ -354,8 +353,7 @@ ih264_weighted_pred_chroma_av8:
     ldr       w8, [sp, #80]             //Load wd
     sxtw      x8, w8
 
-    sub       w20, w4, #0               //w9 = -log_WD
-    neg       w9, w20
+    neg       w9, w4                    //w9 = -log_WD
     dup       v2.4s, w5                 //Q1 = {wt_u (16-bit), wt_v (16-bit)}
 
 
