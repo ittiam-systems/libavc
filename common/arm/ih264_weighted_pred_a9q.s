@@ -122,7 +122,7 @@ ih264_weighted_pred_luma_a9q:
     vpush         {d8-d15}
 
     vdup.16       d2, r5                @D2 = wt (16-bit)
-    rsb           r9, r4, #0            @r9 = -log_wd
+    neg           r9, r4                @r9 = -log_wd
     vdup.8        d3, r6                @D3 = ofst (8-bit)
     cmp           r8, #16               @check if wd is 16
     vdup.16       q0, r9                @Q0 = -log_wd (16-bit)
@@ -349,7 +349,7 @@ ih264_weighted_pred_chroma_a9q:
     ldr           r6, [sp, #36]         @Load ofst = {ofst_u (8-bit), ofst_v (8-bit)}
     ldr           r8, [sp, #44]         @Load wd
 
-    rsb           r9, r4, #0            @r9 = -log_wd
+    neg           r9, r4                @r9 = -log_wd
     vdup.32       q1, r5                @Q1 = {wt_u (16-bit), wt_v (16-bit)}
     ldr           r7, [sp, #40]         @Load ht
     vpush         {d8-d15}
