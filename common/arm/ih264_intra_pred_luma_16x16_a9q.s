@@ -413,7 +413,7 @@ scrlbl1:
 
     add           r7, r0, r4, lsl #3
     sub           r0, r7, r4, lsl #1
-    rsb           lr, r4, #0x0
+    neg           lr, r4
 
     vpadd.s16     d0, d0, d1
 

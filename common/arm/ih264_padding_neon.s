@@ -88,7 +88,7 @@ ih264_pad_top_a9q:
     stmfd         sp!, {r4-r11, lr}     @stack stores the values of the arguments
 
     sub           r5, r0, r1
-    rsb           r6, r1, #0
+    neg           r6, r1
 
 loop_neon_memcpy_mul_16:
     @ Load 16 bytes
