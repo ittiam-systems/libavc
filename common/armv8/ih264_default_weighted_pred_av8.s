@@ -95,11 +95,11 @@
 //    x0      => puc_src1
 //    x1      => puc_src2
 //    x2      => puc_dst
-//    x3      => src_strd1
-//    [sp]    => src_strd2 (x4)
-//    [sp+4]  => dst_strd  (x5)
-//    [sp+8]  => ht        (x6)
-//    [sp+12] => wd        (x7)
+//    w3      => src_strd1
+//    w4      => src_strd2
+//    w5      => dst_strd
+//    w6      => ht
+//    w7      => wd
 //
 .text
 .p2align 2
@@ -113,6 +113,9 @@ ih264_default_weighted_pred_luma_av8:
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
+    sxtw      x3, w3
+    sxtw      x4, w4
+    sxtw      x5, w5
     cmp       w7, #16
     beq       loop_16                   //branch if wd is 16
     cmp       w7, #8
@@ -270,11 +273,11 @@ end_loops:
 //    x0      => puc_src1
 //    x1      => puc_src2
 //    x2      => puc_dst
-//    x3      => src_strd1
-//    [sp]    => src_strd2 (x4)
-//    [sp+4]  => dst_strd  (x5)
-//    [sp+8]  => ht        (x6)
-//    [sp+12] => wd        (x7)
+//    w3      => src_strd1
+//    w4      => src_strd2
+//    w5      => dst_strd
+//    w6      => ht
+//    w7      => wd
 //
 
 
@@ -286,6 +289,9 @@ ih264_default_weighted_pred_chroma_av8:
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
+    sxtw      x3, w3
+    sxtw      x4, w4
+    sxtw      x5, w5
     cmp       w7, #8
     beq       loop_8_uv                 //branch if wd is 8
     cmp       w7, #4

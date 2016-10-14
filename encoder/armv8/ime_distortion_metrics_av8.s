@@ -95,6 +95,8 @@
     .global ime_compute_sad_16x16_fast_av8
 ime_compute_sad_16x16_fast_av8:
     push_v_regs
+    sxtw      x2, w2
+    sxtw      x3, w3
     lsl       x2, x2, #1
     lsl       x3, x3, #1
 
@@ -179,6 +181,8 @@ ime_compute_sad_16x8_av8:
     //chheck what stride incremtn to use
     //earlier code did not have this lsl
     push_v_regs
+    sxtw      x2, w2
+    sxtw      x3, w3
     mov       x6, #2
     movi      v30.8h, #0
 
@@ -255,6 +259,8 @@ core_loop_ime_compute_sad_16x8_av8:
 ime_compute_sad_16x16_ea8_av8:
 
     push_v_regs
+    sxtw      x2, w2
+    sxtw      x3, w3
     movi      v30.8h, #0
 
     add       x7, x0, x2
@@ -381,9 +387,12 @@ ime_calculate_sad2_prog_av8:
     // x0    = ref1     <UWORD8 *>
     // x1    = ref2     <UWORD8 *>
     // x2    = src     <UWORD8 *>
-    // x3    = RefBufferWidth <UWORD32>
-    // stack = CurBufferWidth <UWORD32>, psad <UWORD32 *>
+    // w3    = RefBufferWidth <UWORD32>
+    // w4    = CurBufferWidth <UWORD32>
+    // x5    = psad <UWORD32 *>
     push_v_regs
+    sxtw      x3, w3
+    sxtw      x4, w4
     mov       x6, #8
     movi      v30.8h, #0
     movi      v31.8h, #0
@@ -459,10 +468,14 @@ ime_calculate_sad3_prog_av8:
     // x1    = ref2     <UWORD8 *>
     // x2    = ref3     <UWORD8 *>
     // x3    = src     <UWORD8 *>
-    // stack = RefBufferWidth <UWORD32>, CurBufferWidth <UWORD32>, psad <UWORD32 *>
+    // w4    = RefBufferWidth <UWORD32>
+    // w5    = CurBufferWidth <UWORD32>
+    // x6    = psad <UWORD32 *>
 
 
     push_v_regs
+    sxtw      x4, w4
+    sxtw      x5, w5
     mov       x6, #16
     movi      v29.8h, #0
     movi      v30.8h, #0
@@ -539,6 +552,8 @@ core_loop_ime_calculate_sad3_prog_av8:
     .global ime_sub_pel_compute_sad_16x16_av8
 ime_sub_pel_compute_sad_16x16_av8:
     push_v_regs
+    sxtw      x4, w4
+    sxtw      x5, w5
     sub       x7, x1, #1                //x left
     sub       x8, x2, x5                //y top
     sub       x9, x3, #1                //xy  left
@@ -642,6 +657,8 @@ core_loop_ime_sub_pel_compute_sad_16x16_av8:
     .global ime_compute_sad_16x16_av8
 ime_compute_sad_16x16_av8:
     push_v_regs
+    sxtw      x2, w2
+    sxtw      x3, w3
     mov       x6, #4
     movi      v30.8h, #0
 
@@ -697,6 +714,8 @@ core_loop_ime_compute_sad_16x16_av8:
     .global ime_calculate_sad4_prog_av8
 ime_calculate_sad4_prog_av8:
     push_v_regs
+    sxtw      x2, w2
+    sxtw      x3, w3
     sub       x5, x0, #1                //left
     add       x6, x0, #1                //right
     sub       x7, x0, x2                //top
@@ -772,13 +791,15 @@ core_loop_ime_calculate_sad4_prog_av8:
 ime_compute_satqd_16x16_lumainter_av8:
     //x0 :pointer to src buffer
     //x1 :pointer to est buffer
-    //x2 :Source stride
-    //x3 :Pred stride
+    //w2 :Source stride
+    //w3 :Pred stride
     //x4 :Threshold pointer
     //x5 :Distortion,ie SAD
     //x6 :is nonzero
     //x7 :loop counter
     push_v_regs
+    sxtw      x2, w2
+    sxtw      x3, w3
     stp       d8, d9, [sp, #-16]!
     stp       d10, d11, [sp, #-16]!
     stp       d12, d13, [sp, #-16]!

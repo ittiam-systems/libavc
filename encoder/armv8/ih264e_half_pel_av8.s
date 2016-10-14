@@ -86,6 +86,8 @@
 ih264e_sixtapfilter_horz_av8:
     // STMFD sp!,{x14}
     push_v_regs
+    sxtw      x2, w2
+    sxtw      x3, w3
     stp       x19, x20, [sp, #-16]!
 
     movi      v0.8b, #5
@@ -263,6 +265,8 @@ filter_horz_loop:
 ih264e_sixtap_filter_2dvh_vert_av8:
     // STMFD sp!,{x10,x11,x12,x14}
     push_v_regs
+    sxtw      x3, w3
+    sxtw      x4, w4
     stp       x19, x20, [sp, #-16]!
 
 ////x0 - pu1_ref

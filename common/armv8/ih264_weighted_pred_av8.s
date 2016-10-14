@@ -98,13 +98,13 @@
 //**************Variables Vs Registers*****************************************
 //    x0      => puc_src
 //    x1      => puc_dst
-//    x2      => src_strd
-//    x3      => dst_strd
-//    [sp]    => log_WD (x4)
-//    [sp+4]  => wt     (x5)
-//   [sp+8]  => ofst   (x6)
-//    [sp+12] => ht     (x7)
-//    [sp+16] => wd     (x8)
+//    w2      => src_strd
+//    w3      => dst_strd
+//    w4      => log_WD
+//    w5      => wt
+//    w6      => ofst
+//    w7      => ht
+//    [sp]    => wd     (w8)
 //
 .text
 .p2align 2
@@ -118,13 +118,15 @@ ih264_weighted_pred_luma_av8:
 
     // STMFD sp!, {x4-x9,x14}                //stack stores the values of the arguments
     push_v_regs
+    sxtw      x2, w2
+    sxtw      x3, w3
     stp       x19, x20, [sp, #-16]!
     ldr       w8, [sp, #80]             //Load wd
     sxtw      x8, w8
 
     dup       v2.4h, w5                 //D2 = wt (16-bit)
-    sub       x20, x4, #0               //x9 = -log_WD
-    neg       x9, x20
+    sub       w20, w4, #0               //w9 = -log_WD
+    neg       w9, w20
     dup       v3.8b, w6                 //D3 = ofst (8-bit)
     cmp       w8, #16                   //check if wd is 16
     dup       v0.8h, w9                 //Q0 = -log_WD (16-bit)
@@ -327,13 +329,13 @@ end_loops:
 //**************Variables Vs Registers*****************************************
 //    x0      => puc_src
 //    x1      => puc_dst
-//    x2      => src_strd
-//    x3      => dst_strd
-//    [sp]    => log_WD (x4)
-//    [sp+4]  => wt     (x5)
-//   [sp+8]  => ofst   (x6)
-//    [sp+12] => ht     (x7)
-//    [sp+16] => wd     (x8)
+//    w2      => src_strd
+//    w3      => dst_strd
+//    w4      => log_WD
+//    w5      => wt
+//    w6      => ofst
+//    w7      => ht
+//    [sp]    => wd     (w8)
 //
 
 
@@ -345,13 +347,15 @@ ih264_weighted_pred_chroma_av8:
 
     // STMFD sp!, {x4-x9,x14}                //stack stores the values of the arguments
     push_v_regs
+    sxtw      x2, w2
+    sxtw      x3, w3
     stp       x19, x20, [sp, #-16]!
 
     ldr       w8, [sp, #80]             //Load wd
     sxtw      x8, w8
 
-    sub       x20, x4, #0               //x9 = -log_WD
-    neg       x9, x20
+    sub       w20, w4, #0               //w9 = -log_WD
+    neg       w9, w20
     dup       v2.4s, w5                 //Q1 = {wt_u (16-bit), wt_v (16-bit)}
 
 

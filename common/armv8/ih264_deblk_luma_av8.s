@@ -60,19 +60,19 @@
 //* @param[in] x0 - pu1_src
 //*  Pointer to the src sample q0
 //*
-//* @param[in] x1 - src_strd
+//* @param[in] w1 - src_strd
 //*  Source stride
 //*
-//* @param[in] x2 - alpha
+//* @param[in] w2 - alpha
 //*  Alpha Value for the boundary
 //*
-//* @param[in] x3 - beta
+//* @param[in] w3 - beta
 //*  Beta Value for the boundary
 //*
-//* @param[in] sp(0) - u4_bs
+//* @param[in] w4 - u4_bs
 //*    Packed Boundary strength array
 //*
-//* @param[in] sp(4) - pu1_cliptab
+//* @param[in] x5 - pu1_cliptab
 //*    tc0_table
 //*
 //* @returns
@@ -90,6 +90,7 @@ ih264_deblk_luma_horz_bslt4_av8:
 
     // STMFD sp!,{x4-x7,x14}
     push_v_regs
+    sxtw      x1, w1
     stp       x19, x20, [sp, #-16]!
 
     //LDRD            x4,x5,[SP,#0x14]        //x4 = ui_Bs , x5 = *puc_ClpTab
@@ -214,13 +215,13 @@ ih264_deblk_luma_horz_bslt4_av8:
 //* @param[in] x0 - pu1_src
 //*  Pointer to the src sample q0
 //*
-//* @param[in] x1 - src_strd
+//* @param[in] w1 - src_strd
 //*  Source stride
 //*
-//* @param[in] x2 - alpha
+//* @param[in] w2 - alpha
 //*  Alpha Value for the boundary
 //*
-//* @param[in] x3 - beta
+//* @param[in] w3 - beta
 //*  Beta Value for the boundary
 //*
 //* @returns
@@ -240,6 +241,7 @@ ih264_deblk_luma_horz_bs4_av8:
     // STMFD sp!,{x12,x14}
     push_v_regs
     stp       x19, x20, [sp, #-16]!
+    sxtw      x1, w1
 
     // Init
     dup       v0.16b, w2                //duplicate alpha
@@ -401,19 +403,19 @@ ih264_deblk_luma_horz_bs4_av8:
 //* @param[in] x0 - pu1_src
 //*  Pointer to the src sample q0
 //*
-//* @param[in] x1 - src_strd
+//* @param[in] w1 - src_strd
 //*  Source stride
 //*
-//* @param[in] x2 - alpha
+//* @param[in] w2 - alpha
 //*  Alpha Value for the boundary
 //*
-//* @param[in] x3 - beta
+//* @param[in] w3 - beta
 //*  Beta Value for the boundary
 //*
-//* @param[in] sp(0) - u4_bs
+//* @param[in] w4 - u4_bs
 //*    Packed Boundary strength array
 //*
-//* @param[in] sp(4) - pu1_cliptab
+//* @param[in] x5 - pu1_cliptab
 //*    tc0_table
 //*
 //* @returns
@@ -432,6 +434,7 @@ ih264_deblk_luma_vert_bslt4_av8:
     // STMFD sp!,{x12,x14}
     push_v_regs
     stp       x19, x20, [sp, #-16]!
+    sxtw      x1, w1
 
     sub       x0, x0, #4                //pointer uc_edgePixel-4
     mov       x12, x4
@@ -743,13 +746,13 @@ ih264_deblk_luma_vert_bslt4_av8:
 //* @param[in] x0 - pu1_src
 //*  Pointer to the src sample q0
 //*
-//* @param[in] x1 - src_strd
+//* @param[in] w1 - src_strd
 //*  Source stride
 //*
-//* @param[in] x2 - alpha
+//* @param[in] w2 - alpha
 //*  Alpha Value for the boundary
 //*
-//* @param[in] x3 - beta
+//* @param[in] w3 - beta
 //*  Beta Value for the boundary
 //*
 //* @returns
