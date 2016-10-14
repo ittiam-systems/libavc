@@ -65,10 +65,10 @@
 //**************Variables Vs Registers*****************************************
 //    x0 => *pu1_src
 //    x1 => *pu1_dst
-//    x2 =>  src_strd
-//    x3 =>  dst_strd
-//    x7 =>  ht
-//    x12 => wd
+//    w2 =>  src_strd
+//    w3 =>  dst_strd
+//    w4 =>  ht
+//    w5 =>  wd
 
 .text
 .p2align 2
@@ -82,6 +82,10 @@ ih264_inter_pred_luma_copy_av8:
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
+    sxtw      x2, w2
+    sxtw      x3, w3
+    sxtw      x4, w4
+    sxtw      x5, w5
 
     mov       x12, x5
     mov       x7, x4
@@ -228,14 +232,16 @@ end_inner_loop_wd_16:
 // Register Usage
 // x0 : pi2_src
 // x1 : pu1_out
-// x2 : src_strd
-// x3 : out_strd
+// w2 : src_strd
+// w3 : out_strd
 // Neon registers d0-d7, d16-d30 are used
 // No need for pushing  arm and neon registers
 
     .global ih264_interleave_copy_av8
 ih264_interleave_copy_av8:
     push_v_regs
+    sxtw      x2, w2
+    sxtw      x3, w3
     ld1       {v2.8b}, [x0], x2         //load src plane 1 => d2 &pred palne 2 => d3
     ld1       {v3.8b}, [x0], x2
     mov       v2.d[1], v3.d[0]

@@ -100,9 +100,9 @@
 //**************Variables Vs Registers*****************************************
 //    x0 => *pu1_src
 //    x1 => *pu1_dst
-//    x2 =>  src_strd
-//    x3 =>  dst_strd
-//   x4 =>  ui_neighboravailability
+//    w2 =>  src_strd
+//    w3 =>  dst_strd
+//    w4 =>  ui_neighboravailability
 
 
 
@@ -113,13 +113,14 @@ ih264_intra_pred_chroma_8x8_mode_dc_av8:
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
+    sxtw      x3, w3
 
-    mov       x19, #5
-    ands      x6, x4, x19
+    mov       w19, #5
+    ands      w6, w4, w19
     beq       none_available
-    cmp       x6, #1
+    cmp       w6, #1
     beq       left_only_available
-    cmp       x6, #4
+    cmp       w6, #4
     beq       top_only_available
 
 all_available:
@@ -251,9 +252,9 @@ end_func:
 //**************Variables Vs Registers*****************************************
 //    x0 => *pu1_src
 //    x1 => *pu1_dst
-//    x2 =>  src_strd
-//    x3 =>  dst_strd
-//   x4 =>  ui_neighboravailability
+//    w2 =>  src_strd
+//    w3 =>  dst_strd
+//    w4 =>  ui_neighboravailability
 
 
     .global ih264_intra_pred_chroma_8x8_mode_horz_av8
@@ -263,6 +264,7 @@ ih264_intra_pred_chroma_8x8_mode_horz_av8:
 
 
     push_v_regs
+    sxtw      x3, w3
     ld1       {v0.8h}, [x0]
 
     dup       v10.8h, v0.h[7]
@@ -332,9 +334,9 @@ ih264_intra_pred_chroma_8x8_mode_horz_av8:
 //**************Variables Vs Registers*****************************************
 //    x0 => *pu1_src
 //    x1 => *pu1_dst
-//    x2 =>  src_strd
-//    x3 =>  dst_strd
-//   x4 =>  ui_neighboravailability
+//    w2 =>  src_strd
+//    w3 =>  dst_strd
+//    w4 =>  ui_neighboravailability
 
 
     .global ih264_intra_pred_chroma_8x8_mode_vert_av8
@@ -342,6 +344,7 @@ ih264_intra_pred_chroma_8x8_mode_horz_av8:
 ih264_intra_pred_chroma_8x8_mode_vert_av8:
 
     push_v_regs
+    sxtw      x3, w3
 
     add       x0, x0, #18
     ld1       {v0.8b, v1.8b}, [x0]
@@ -405,15 +408,16 @@ ih264_intra_pred_chroma_8x8_mode_vert_av8:
 //**************Variables Vs Registers*****************************************
 //    x0 => *pu1_src
 //    x1 => *pu1_dst
-//    x2 =>  src_strd
-//    x3 =>  dst_strd
-//   x4 =>  ui_neighboravailability
+//    w2 =>  src_strd
+//    w3 =>  dst_strd
+//    w4 =>  ui_neighboravailability
 
     .global ih264_intra_pred_chroma_8x8_mode_plane_av8
 ih264_intra_pred_chroma_8x8_mode_plane_av8:
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
+    sxtw      x3, w3
 
     ld1       {v0.2s}, [x0]
     add       x10, x0, #10

@@ -104,11 +104,11 @@
 //x0 => *pi2_src
 //x1 => *pu1_pred
 //x2 => *pu1_out
-//x3 =>  pred_strd
-//x4 =>  out_strd
+//w3 =>  pred_strd
+//w4 =>  out_strd
 //x5 => *pu2_iscal_mat
 //x6 => *pu2_weigh_mat
-//x7 =>  u4_qp_div_6
+//w7 =>  u4_qp_div_6
 //   =>  pi4_tmp
 //   =>  iq_start_idx
 //   =>  pi2_dc_ld_addr
@@ -119,6 +119,8 @@
     .global ih264_iquant_itrans_recon_4x4_dc_av8
 ih264_iquant_itrans_recon_4x4_dc_av8:
 
+    sxtw      x3, w3
+    sxtw      x4, w4
     ldr       w8, [sp, #8]              //Loads iq_start_idx
     subs      w8, w8, #1                // if x8 == 1 => intra case , so result of subtraction is zero and z flag is set
 
@@ -209,11 +211,11 @@ donot_use_pi2_src_luma_dc:
 // x0 : pi2_src
 // x1 : pu1_pred
 // x2 : pu1_out
-// x3 : pred_strd
-// x4 : out_strd
+// w3 : pred_strd
+// w4 : out_strd
 // x5 : pu2_iscal_mat
 // x6 : pu2_weigh_mat
-// x7 : u4_qp_div_6
+// w7 : u4_qp_div_6
 //    : pi2_tmp
 //    : pi2_dc_src
 // Neon registers d0-d7, d16-d30 are used
@@ -223,6 +225,8 @@ donot_use_pi2_src_luma_dc:
     .global ih264_iquant_itrans_recon_chroma_4x4_dc_av8
 ih264_iquant_itrans_recon_chroma_4x4_dc_av8:
 
+    sxtw      x3, w3
+    sxtw      x4, w4
     ldr       x0, [sp, #8]
     push_v_regs
     ld1       {v0.h}[0], [x0]
@@ -327,11 +331,11 @@ ih264_iquant_itrans_recon_chroma_4x4_dc_av8:
 //x0       => *pi2_src
 //x1       => *pu1_pred
 //x2       => *pu1_out
-//x3       =>  pred_strd
-//x4       =>  out_strd
+//w3       =>  pred_strd
+//w4       =>  out_strd
 //x5       =>  *pu2_iscal_mat
 //x6       =>  *pu2_weigh_mat
-//x7       =>  u4_qp_div_6
+//w7       =>  u4_qp_div_6
 //NOT USED =>  pi4_tmp
 //NOT USED =>  iq_start_idx
 //NOT USED =>  pi2_dc_ld_addr
@@ -340,6 +344,8 @@ ih264_iquant_itrans_recon_chroma_4x4_dc_av8:
 ih264_iquant_itrans_recon_8x8_dc_av8:
 
     push_v_regs
+    sxtw      x3, w3
+    sxtw      x4, w4
 
     ld1       {v1.h}[0], [x5]
     ld1       {v2.h}[0], [x6]

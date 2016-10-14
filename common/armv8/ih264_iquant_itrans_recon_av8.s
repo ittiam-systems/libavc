@@ -103,11 +103,11 @@
 //x0 => *pi2_src
 //x1 => *pu1_pred
 //x2 => *pu1_out
-//x3 =>  pred_strd
-//x4 =>  out_strd
+//w3 =>  pred_strd
+//w4 =>  out_strd
 //x5 => *pu2_iscal_mat
 //x6 => *pu2_weigh_mat
-//x7 =>  u4_qp_div_6
+//w7 =>  u4_qp_div_6
 //   =>  pi4_tmp
 //   =>  iq_start_idx
 //   =>  pi2_dc_ld_addr
@@ -119,6 +119,8 @@
 ih264_iquant_itrans_recon_4x4_av8:
 
     push_v_regs
+    sxtw      x3, w3
+    sxtw      x4, w4
 
     dup       v30.4s, w7                //Populate the u4_qp_div_6 in Q15
 
@@ -292,11 +294,11 @@ skip_loading_luma_dc_src:
 //x0 => *pi2_src
 //x1 => *pu1_pred
 //x2 => *pu1_out
-//x3 =>  pred_strd
-//x4 =>  out_strd
+//w3 =>  pred_strd
+//w4 =>  out_strd
 //x5 => *pu2_iscal_mat
 //x6 => *pu2_weigh_mat
-//x7 =>  u4_qp_div_6
+//w7 =>  u4_qp_div_6
 //sp =>  pi4_tmp
 //sp#8 => *pi2_dc_src
 
@@ -315,6 +317,8 @@ ih264_iquant_itrans_recon_chroma_4x4_av8:
 
     //reduce sp by 64
     push_v_regs
+    sxtw      x3, w3
+    sxtw      x4, w4
 
     dup       v30.4s, w7                //Populate the u4_qp_div_6 in Q15
 
@@ -512,11 +516,11 @@ ih264_iquant_itrans_recon_chroma_4x4_av8:
 //x0       => *pi2_src
 //x1       => *pu1_pred
 //x2       => *pu1_out
-//x3       =>  pred_strd
-//x4       =>  out_strd
+//w3       =>  pred_strd
+//w4       =>  out_strd
 //x5       =>  *pu2_iscal_mat
 //x6       =>  *pu2_weigh_mat
-//x7       =>  u4_qp_div_6
+//w7       =>  u4_qp_div_6
 //NOT USED =>  pi4_tmp
 //NOT USED =>  iq_start_idx
 //NOT USED =>  pi2_dc_ld_addr
@@ -525,6 +529,8 @@ ih264_iquant_itrans_recon_chroma_4x4_av8:
 ih264_iquant_itrans_recon_8x8_av8:
 
     push_v_regs
+    sxtw      x3, w3
+    sxtw      x4, w4
 
     ld1       {v8.8h -v11.8h}, [x5], #64
     ld1       {v12.8h-v15.8h}, [x5]
