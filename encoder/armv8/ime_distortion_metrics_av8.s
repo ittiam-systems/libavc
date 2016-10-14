@@ -476,7 +476,7 @@ ime_calculate_sad3_prog_av8:
     push_v_regs
     sxtw      x4, w4
     sxtw      x5, w5
-    mov       x6, #16
+    mov       x7, #16
     movi      v29.8h, #0
     movi      v30.8h, #0
     movi      v31.8h, #0
@@ -507,15 +507,15 @@ core_loop_ime_calculate_sad3_prog_av8:
     uabal     v31.8h, v6.8b, v7.8b
     uabal2    v31.8h, v6.16b, v7.16b
 
-    subs      x6, x6, #1
-    bne       core_loop_ime_calculate_sad2_prog_av8
+    subs      x7, x7, #1
+    bne       core_loop_ime_calculate_sad3_prog_av8
 
     addp      v30.8h, v30.8h, v31.8h
     uaddlp    v30.4s, v30.8h
     addp      v30.2s, v30.2s, v30.2s
     shl       v30.2s, v30.2s, #1
 
-    st1       {v30.2s}, [x5]
+    st1       {v30.2s}, [x6]
     pop_v_regs
     ret
 
