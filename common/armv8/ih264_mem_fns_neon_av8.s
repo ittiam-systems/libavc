@@ -127,9 +127,7 @@ arm_memcpy:
 
 loop_arm_memcpy:
     ldrb      w3, [x1], #1
-    sxtw      x3, w3
     strb      w3, [x0], #1
-    sxtw      x3, w3
     subs      w2, w2, #1
     bne       loop_arm_memcpy
     ret
@@ -192,7 +190,6 @@ arm_memset:
 
 loop_arm_memset:
     strb      w1, [x0], #1
-    sxtw      x1, w1
     subs      w2, w2, #1
     bne       loop_arm_memset
     ret
@@ -262,7 +259,6 @@ arm_memset_16bit:
 
 loop_arm_memset_16bit:
     strh      w1, [x0], #2
-    sxtw      x1, w1
     subs      w2, w2, #1
     bne       loop_arm_memset_16bit
     ret
