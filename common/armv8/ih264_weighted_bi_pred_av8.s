@@ -103,13 +103,13 @@
 //                                     WORD32 src_strd1,
 //                                     WORD32 src_strd2,
 //                                     WORD32 dst_strd,
-//                                     UWORD16 log_WD,
-//                                     UWORD32 wt1,
-//                                     UWORD32 wt2,
-//                                     UWORD16 ofst1,
-//                                     UWORD16 ofst2,
-//                                     UWORD8 ht,
-//                                     UWORD8 wd)
+//                                     WORD32 log_WD,
+//                                     WORD32 wt1,
+//                                     WORD32 wt2,
+//                                     WORD16 ofst1,
+//                                     WORD16 ofst2,
+//                                     WORD32 ht,
+//                                     WORD32 wd)
 //
 //**************Variables Vs Registers*****************************************
 //    x0      => puc_src1
@@ -383,13 +383,13 @@ end_loops:
 //                                       WORD32 src_strd1,
 //                                       WORD32 src_strd2,
 //                                       WORD32 dst_strd,
-//                                       UWORD16 log_WD,
-//                                       UWORD32 wt1,
-//                                       UWORD32 wt2,
-//                                       UWORD16 ofst1,
-//                                       UWORD16 ofst2,
-//                                       UWORD8 ht,
-//                                       UWORD8 wd)
+//                                       WORD32 log_WD,
+//                                       WORD32 wt1,
+//                                       WORD32 wt2,
+//                                       WORD32 ofst1,
+//                                       WORD32 ofst2,
+//                                       WORD32 ht,
+//                                       WORD32 wd)
 //
 //**************Variables Vs Registers*****************************************
 //    x0      => puc_src1
