@@ -195,7 +195,6 @@ ih264_intra_pred_luma_8x8_mode_horz_av8:
     push_v_regs
     stp       x19, x20, [sp, #-16]!
     add       x0, x0, #7
-    mov       x2 , #-1
 
     ldrb      w5, [x0], #-1
     sxtw      x5, w5
