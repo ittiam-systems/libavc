@@ -462,11 +462,6 @@ ime_calculate_sad3_prog_av8:
     // stack = RefBufferWidth <UWORD32>, CurBufferWidth <UWORD32>, psad <UWORD32 *>
 
 
-    // x0    = ref1     <UWORD8 *>
-    // x1    = ref2     <UWORD8 *>
-    // x2    = src     <UWORD8 *>
-    // x3    = RefBufferWidth <UWORD32>
-    // stack = CurBufferWidth <UWORD32>, psad <UWORD32 *>
     push_v_regs
     mov       x6, #16
     movi      v29.8h, #0
