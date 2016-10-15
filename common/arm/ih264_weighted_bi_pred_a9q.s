@@ -144,7 +144,7 @@ ih264_weighted_bi_pred_luma_a9q:
     ldr           r4, [sp, #40]         @Load src_strd2 in r4
     ldr           r5, [sp, #44]         @Load dst_strd in r5
     sxtb          r9, r9                @sign-extend 8-bit ofst1 to 32-bit
-    rsb           r10, r6, #0           @r10 = -(log_wd + 1)
+    neg           r10, r6               @r10 = -(log_wd + 1)
     ldr           r11, [sp, #68]        @Load ht in r11
     ldr           r12, [sp, #72]        @Load wd in r12
     vdup.16       q0, r10               @Q0  = -(log_wd + 1) (32-bit)
@@ -456,7 +456,7 @@ ih264_weighted_bi_pred_chroma_a9q:
     ldr           r9, [sp, #60]         @Load ofst1 in r9
     ldr           r10, [sp, #64]        @Load ofst2 in r10
 
-    rsb           r12, r6, #0           @r12 = -(log_wd + 1)
+    neg           r12, r6               @r12 = -(log_wd + 1)
     ldr           r4, [sp, #40]         @Load src_strd2 in r4
     ldr           r5, [sp, #44]         @Load dst_strd in r5
     vdup.16       q0, r12               @Q0  = -(log_wd + 1) (16-bit)
