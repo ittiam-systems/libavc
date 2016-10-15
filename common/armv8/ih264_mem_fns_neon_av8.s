@@ -74,7 +74,7 @@
 //**************Variables Vs Registers*************************
 //    x0 => *pu1_dst
 //    x1 => *pu1_src
-//    x2 => num_bytes
+//    w2 => num_bytes
 
 
 
@@ -89,7 +89,7 @@ loop_neon_memcpy_mul_8:
     ld1       {v0.8b}, [x1], #8
     st1       {v0.8b}, [x0], #8
 
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     bne       loop_neon_memcpy_mul_8
     ret
 
@@ -103,34 +103,34 @@ loop_neon_memcpy_mul_8:
 //**************Variables Vs Registers*************************
 //    x0 => *pu1_dst
 //    x1 => *pu1_src
-//    x2 => num_bytes
+//    w2 => num_bytes
 
 
 
     .global ih264_memcpy_av8
 
 ih264_memcpy_av8:
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     blt       arm_memcpy
 loop_neon_memcpy:
     // Memcpy 8 bytes
     ld1       {v0.8b}, [x1], #8
     st1       {v0.8b}, [x0], #8
 
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     bge       loop_neon_memcpy
-    cmn       x2, #8
+    cmn       w2, #8
     beq       end_func1
 
 arm_memcpy:
-    add       x2, x2, #8
+    add       w2, w2, #8
 
 loop_arm_memcpy:
     ldrb      w3, [x1], #1
     sxtw      x3, w3
     strb      w3, [x0], #1
     sxtw      x3, w3
-    subs      x2, x2, #1
+    subs      w2, w2, #1
     bne       loop_arm_memcpy
     ret
 end_func1:
@@ -156,7 +156,7 @@ loop_memset_mul_8:
     // Memset 8 bytes
     st1       {v0.8b}, [x0], #8
 
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     bne       loop_memset_mul_8
 
     ret
@@ -167,33 +167,33 @@ loop_memset_mul_8:
 //                       UWORD32 num_bytes)
 //**************Variables Vs Registers*************************
 //    x0 => *pu1_dst
-//    x1 => value
-//    x2 => num_bytes
+//    w1 => value
+//    w2 => num_bytes
 
 
 
     .global ih264_memset_av8
 
 ih264_memset_av8:
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     blt       arm_memset
     dup       v0.8b, w1
 loop_neon_memset:
     // Memcpy 8 bytes
     st1       {v0.8b}, [x0], #8
 
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     bge       loop_neon_memset
-    cmn       x2, #8
+    cmn       w2, #8
     beq       end_func2
 
 arm_memset:
-    add       x2, x2, #8
+    add       w2, w2, #8
 
 loop_arm_memset:
     strb      w1, [x0], #1
     sxtw      x1, w1
-    subs      x2, x2, #1
+    subs      w2, w2, #1
     bne       loop_arm_memset
     ret
 end_func2:
@@ -208,8 +208,8 @@ end_func2:
 //                                      UWORD32 num_words)
 //**************Variables Vs Registers*************************
 //    x0 => *pu2_dst
-//    x1 => value
-//    x2 => num_words
+//    w1 => value
+//    w2 => num_words
 
 
     .global ih264_memset_16bit_mul_8_av8
@@ -224,7 +224,7 @@ loop_memset_16bit_mul_8:
     st1       {v0.4h}, [x0], #8
     st1       {v0.4h}, [x0], #8
 
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     bne       loop_memset_16bit_mul_8
 
     ret
@@ -236,15 +236,15 @@ loop_memset_16bit_mul_8:
 //                       UWORD32 num_words)
 //**************Variables Vs Registers*************************
 //    x0 => *pu2_dst
-//    x1 => value
-//    x2 => num_words
+//    w1 => value
+//    w2 => num_words
 
 
 
     .global ih264_memset_16bit_av8
 
 ih264_memset_16bit_av8:
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     blt       arm_memset_16bit
     dup       v0.4h, w1
 loop_neon_memset_16bit:
@@ -252,18 +252,18 @@ loop_neon_memset_16bit:
     st1       {v0.4h}, [x0], #8
     st1       {v0.4h}, [x0], #8
 
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     bge       loop_neon_memset_16bit
-    cmn       x2, #8
+    cmn       w2, #8
     beq       end_func3
 
 arm_memset_16bit:
-    add       x2, x2, #8
+    add       w2, w2, #8
 
 loop_arm_memset_16bit:
     strh      w1, [x0], #2
     sxtw      x1, w1
-    subs      x2, x2, #1
+    subs      w2, w2, #1
     bne       loop_arm_memset_16bit
     ret
 

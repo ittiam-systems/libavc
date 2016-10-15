@@ -69,18 +69,20 @@ ih264_resi_trans_quant_4x4_av8:
     //x0     :pointer to src buffer
     //x1     :pointer to pred buffer
     //x2     :pointer to dst buffer
-    //x3     :source stride
-    //x4     :pred stride
-    //x5     :scale matirx,
+    //w3     :source stride
+    //w4     :pred stride
+    //w5     :scale matirx,
     //x6     :threshold matrix
-    //x7     :qbits
-    //x8        :round factor
+    //w7     :qbits
+    //w8        :round factor
     //x9        :nnz
     //x10       :pointer to store non quantized dc value
 
+    sxtw      x3, w3
+    sxtw      x4, w4
     ldr       w8, [sp, #64]             //load round factor
     ldr       x10, [sp, #80]            //load addres for non quant val
-    neg       x7, x7                    //negate the qbit value for usiing lsl
+    neg       w7, w7                    //negate the qbit value for usiing lsl
     ldr       x9, [sp, #72]
 
     //------------fucntion loading done----------------;
@@ -258,18 +260,20 @@ ih264_resi_trans_quant_chroma_4x4_av8:
     //x0     :pointer to src buffer
     //x1     :pointer to pred buffer
     //x2     :pointer to dst buffer
-    //x3     :source stride
-    //x4     :pred stride
+    //w3     :source stride
+    //w4     :pred stride
     //x5     :scale matirx,
     //x6     :threshold matrix
-    //x7     :qbits
-    //x8        :round factor
+    //w7     :qbits
+    //w8        :round factor
     //x9        :nnz
     //x10       :pointer to store non quantized dc value
 
+    sxtw      x3, w3
+    sxtw      x4, w4
     ldr       w8, [sp, #64]             //load round factor
     ldr       x10, [sp, #80]            //load addres for non quant val
-    neg       x7, x7                    //negate the qbit value for usiing lsl
+    neg       w7, w7                    //negate the qbit value for usiing lsl
     ldr       x9, [sp, #72]
     //------------fucntion loading done----------------;
 
@@ -438,10 +442,10 @@ ih264_resi_trans_quant_chroma_4x4_av8:
 //* arguments         :  x0 :pointer to src buffer
 //                       x1 :pointer to dst buffer
 //                       x2 :pu2_scale_matrix
-//                       x2 :pu2_threshold_matrix
-//                       x3 :u4_qbits
-//                       x4 :u4_round_factor
-//                       x5 :pu1_nnz
+//                       x3 :pu2_threshold_matrix
+//                       w4 :u4_qbits
+//                       w5 :u4_round_factor
+//                       x6 :pu1_nnz
 // values returned   : none
 //
 // register usage    :
@@ -469,8 +473,8 @@ ih264_hadamard_quant_4x4_av8:
 //x1 :pointer to dst buffer
 //x2 :pu2_scale_matrix
 //x3 :pu2_threshold_matrix
-//x4 :u4_qbits
-//x5 :u4_round_factor
+//w4 :u4_qbits
+//w5 :u4_round_factor
 //x6 :pu1_nnz
 
     push_v_regs
@@ -585,10 +589,10 @@ ih264_hadamard_quant_4x4_av8:
 //* arguments         :  x0 :pointer to src buffer
 //                       x1 :pointer to dst buffer
 //                       x2 :pu2_scale_matrix
-//                       x2 :pu2_threshold_matrix
-//                       x3 :u4_qbits
-//                       x4 :u4_round_factor
-//                       x5 :pu1_nnz
+//                       x3 :pu2_threshold_matrix
+//                       w4 :u4_qbits
+//                       w5 :u4_round_factor
+//                       x6 :pu1_nnz
 // values returned   : none
 //
 // register usage    :

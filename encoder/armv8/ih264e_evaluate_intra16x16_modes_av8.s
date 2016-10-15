@@ -82,9 +82,9 @@ ih264e_evaluate_intra16x16_modes_av8:
 //x0 = pu1_src,
 //x1 = pu1_ngbr_pels_i16,
 //x2 = pu1_dst,
-//x3 = src_strd,
-//x4 = dst_strd,
-//x5 = u4_n_avblty,
+//w3 = src_strd,
+//w4 = dst_strd,
+//w5 = u4_n_avblty,
 //x6 = u4_intra_mode,
 //x7 = pu4_sadmin
 
@@ -92,9 +92,11 @@ ih264e_evaluate_intra16x16_modes_av8:
 
     // STMFD sp!, {x4-x12, x14}          //store register values to stack
     push_v_regs
+    sxtw      x3, w3
+    sxtw      x4, w4
     stp       x19, x20, [sp, #-16]!
 
-    ldr       x16, [sp, #80]
+    ldr       w16, [sp, #80]
     mov       x17, x4
     mov       x14, x6
     mov       x15, x7
@@ -105,13 +107,13 @@ ih264e_evaluate_intra16x16_modes_av8:
     mov       w10, #0
     mov       w11 , #3
 
-    ands      x6, x5, #0x01
+    ands      w6, w5, #0x01
     beq       top_available             //LEFT NOT AVAILABLE
     ld1       {v0.16b}, [x1]
     add       w10, w10, #8
     add       w11, w11, #1
 top_available:
-    ands      x6, x5, #0x04
+    ands      w6, w5, #0x04
     beq       none_available
     add       x6, x1, #17
     ld1       {v1.16b}, [x6]
@@ -119,7 +121,7 @@ top_available:
     add       w11, w11, #1
     b         summation
 none_available:
-    cmp       x5, #0
+    cmp       w5, #0
     bne       summation
     mov       w6, #128
     dup       v30.16b, w6
@@ -469,16 +471,16 @@ sad_comp:
     mov       x11, #1
     lsl       x11, x11, #30
 
-    mov       x0, x16
+    mov       w0, w16
     //--------------------------------------------
-    ands      x7, x0, #01               // vert mode valid????????????
+    ands      w7, w0, #01               // vert mode valid????????????
     csel      x8, x11, x8, eq
 
 
-    ands      x6, x0, #02               // horz mode valid????????????
+    ands      w6, w0, #02               // horz mode valid????????????
     csel      x9, x11, x9, eq
 
-    ands      x6, x0, #04               // dc mode valid????????????
+    ands      w6, w0, #04               // dc mode valid????????????
     csel      x10, x11, x10, eq
 
 

@@ -105,12 +105,12 @@
 //**************Variables Vs Registers*****************************************
 //    x0 => *pu1_src
 //    x1 => *pu1_dst
-//    x2 =>  src_strd
-//    x3 =>  dst_strd
-//    x4 =>  ht
-//    x5 =>  wd
-//    x6 =>  dydx
-//    x9 => *pu1_tmp
+//    w2 =>  src_strd
+//    w3 =>  dst_strd
+//    w4 =>  ht
+//    w5 =>  wd
+//    x6 => *pu1_tmp
+//    w7 =>  dydx
 
 .text
 .p2align 2
@@ -125,11 +125,15 @@ ih264_inter_pred_luma_horz_qpel_vert_hpel_av8:
     // STMFD sp!, {x4-x12, x14}          //store register values to stack
     push_v_regs
     stp       x19, x20, [sp, #-16]!
+    sxtw      x2, w2
+    sxtw      x3, w3
+    sxtw      x4, w4
+    sxtw      x5, w5
 
     sub       x0, x0, x2, lsl #1        //pu1_src-2*src_strd
     sub       x0, x0, #2                //pu1_src-2
     mov       x9, x6
-    mov       x6, x7
+    mov       w6, w7
 
     and       x6, x6, #2                // dydx & 0x3 followed by dydx>>1 and dydx<<1
 

@@ -76,9 +76,9 @@
 //                   WORD32 pad_size)
 //**************Variables Vs Registers*************************
 //    x0 => *pu1_src
-//    x1 => src_strd
-//    x2 => wd
-//    x3 => pad_size
+//    w1 => src_strd
+//    w2 => wd
+//    w3 => pad_size
 
     .global ih264_pad_top_av8
 
@@ -86,6 +86,7 @@ ih264_pad_top_av8:
 
     // STMFD sp!, {x4-x11,x14}                //stack stores the values of the arguments
     push_v_regs
+    sxtw      x1, w1
     stp       x19, x20, [sp, #-16]!
 
     sub       x5, x0, x1
@@ -96,15 +97,15 @@ loop_neon_memcpy_mul_16:
     // Load 16 bytes
     ld1       {v0.8b, v1.8b}, [x0], #16
     mov       x4, x5
-    mov       x7, x3
+    mov       w7, w3
     add       x5, x5, #16
 
 loop_neon_pad_top:
     st1       {v0.8b, v1.8b}, [x4], x6
-    subs      x7, x7, #1
+    subs      w7, w7, #1
     bne       loop_neon_pad_top
 
-    subs      x2, x2, #16
+    subs      w2, w2, #16
     bne       loop_neon_memcpy_mul_16
 
     // LDMFD sp!,{x4-x11,pc}                //Reload the registers from SP
@@ -160,9 +161,9 @@ loop_neon_pad_top:
 //                        WORD32 pad_size)
 //**************Variables Vs Registers*************************
 //    x0 => *pu1_src
-//    x1 => src_strd
-//    x2 => ht
-//    x3 => pad_size
+//    w1 => src_strd
+//    w2 => ht
+//    w3 => pad_size
 
 
 
@@ -172,6 +173,8 @@ ih264_pad_left_luma_av8:
 
     // STMFD sp!, {x4-x11,x14}                //stack stores the values of the arguments
     push_v_regs
+    sxtw      x1, w1
+    sxtw      x3, w3
     stp       x19, x20, [sp, #-16]!
 
 
@@ -218,7 +221,7 @@ loop_16:                                //  /*hard coded for width=16  ,height =
     st1       {v2.16b}, [x4], x1        // 16 bytes store
     dup       v4.16b, w10
     dup       v6.16b, w11
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     st1       {v4.16b}, [x4], x1        // 16 bytes store
     st1       {v6.16b}, [x4], x1        // 16 bytes store
     bne       loop_16
@@ -271,7 +274,7 @@ loop_32:                                //  /*hard coded for width=32 ,height =8
     st1       {v4.16b}, [x4], #16       // 16 bytes store
     dup       v6.16b, w11
     st1       {v4.16b}, [x4], x6        // 16 bytes store
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     st1       {v6.16b}, [x4], #16       // 16 bytes store
     st1       {v6.16b}, [x4], x6        // 16 bytes store
     bne       loop_32
@@ -333,9 +336,9 @@ end_func:
 //                            WORD32 pad_size)
 //{
 //    x0 => *pu1_src
-//    x1 => src_strd
-//    x2 => ht
-//    x3 => pad_size
+//    w1 => src_strd
+//    w2 => ht
+//    w3 => pad_size
 
 
 
@@ -345,6 +348,8 @@ ih264_pad_left_chroma_av8:
 
     // STMFD sp!, {x4-x11, x14}                //stack stores the values of the arguments
     push_v_regs
+    sxtw      x1, w1
+    sxtw      x3, w3
     stp       x19, x20, [sp, #-16]!
 
     sub       x4, x0, x3
@@ -374,7 +379,7 @@ loop_32_l_c:                            //  /*hard coded for width=32  ,height =
     dup       v6.8h, w11
     st1       {v4.16b}, [x4], #16       // 16 bytes store
     st1       {v4.16b}, [x4], x6        // 16 bytes store
-    subs      x2, x2, #4
+    subs      w2, w2, #4
     st1       {v6.16b}, [x4], #16       // 16 bytes store
     st1       {v6.16b}, [x4], x6        // 16 bytes store
 
@@ -403,7 +408,7 @@ loop_32_l_c:                            //  /*hard coded for width=32  ,height =
     dup       v6.8h, w11
     st1       {v4.16b}, [x4], #16       // 16 bytes store
     st1       {v4.16b}, [x4], x6        // 16 bytes store
-    subs      x2, x2, #4
+    subs      w2, w2, #4
     st1       {v6.16b}, [x4], #16       // 16 bytes store
     st1       {v6.16b}, [x4], x6        // 16 bytes store
 
@@ -500,9 +505,9 @@ end_func_l_c:
 //}
 //
 //    x0 => *pu1_src
-//    x1 => src_strd
-//    x2 => ht
-//    x3 => pad_size
+//    w1 => src_strd
+//    w2 => ht
+//    w3 => pad_size
 
 
 
@@ -512,6 +517,8 @@ ih264_pad_right_luma_av8:
 
     // STMFD sp!, {x4-x11, x14}                //stack stores the values of the arguments
     push_v_regs
+    sxtw      x1, w1
+    sxtw      x3, w3
     stp       x19, x20, [sp, #-16]!
 
     mov       x4, x0
@@ -558,7 +565,7 @@ loop_16_r: //  /*hard coded for width=16  ,height =8,16*/
     st1       {v2.16b}, [x4], x1        // 16 bytes store
     dup       v4.16b, w10
     dup       v6.16b, w11
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     st1       {v4.16b}, [x4], x1        // 16 bytes store
     st1       {v6.16b}, [x4], x1        // 16 bytes store
     bne       loop_16_r
@@ -611,7 +618,7 @@ loop_32_r:                              //  /*hard coded for width=32  ,height =
     st1       {v4.16b}, [x4], #16       // 16 bytes store
     dup       v6.16b, w11
     st1       {v4.16b}, [x4], x6        // 16 bytes store
-    subs      x2, x2, #8
+    subs      w2, w2, #8
     st1       {v6.16b}, [x4], #16       // 16 bytes store
     st1       {v6.16b}, [x4], x6        // 16 bytes store
     bne       loop_32_r
@@ -672,9 +679,9 @@ end_func_r:
 //                        WORD32 ht,
 //                        WORD32 pad_size)
 //    x0 => *pu1_src
-//    x1 => src_strd
-//    x2 => ht
-//    x3 => pad_size
+//    w1 => src_strd
+//    w2 => ht
+//    w3 => pad_size
 
 
 
@@ -684,6 +691,8 @@ ih264_pad_right_chroma_av8:
 
     // STMFD sp!, {x4-x11, x14}                //stack stores the values of the arguments
     push_v_regs
+    sxtw      x1, w1
+    sxtw      x3, w3
     stp       x19, x20, [sp, #-16]!
 
     mov       x4, x0
@@ -706,7 +715,7 @@ loop_32_r_c: //  /*hard coded for width=32 ,height =8,4*/
     st1       {v2.16b}, [x4], #16       // 16 bytes store
     dup       v4.8h, w10
     st1       {v2.16b}, [x4], x6        // 16 bytes store
-    subs      x2, x2, #4
+    subs      w2, w2, #4
     ldrh      w11, [x0]
     add       x0, x0, x1
     sxtw      x11, w11
@@ -740,7 +749,7 @@ loop_32_r_c: //  /*hard coded for width=32 ,height =8,4*/
     st1       {v4.16b}, [x4], #16       // 16 bytes store
     dup       v6.8h, w11
     st1       {v4.16b}, [x4], x6        // 16 bytes store
-    subs      x2, x2, #4
+    subs      w2, w2, #4
     st1       {v6.16b}, [x4], #16       // 16 bytes store
     st1       {v6.16b}, [x4], x6        // 16 bytes store
 
