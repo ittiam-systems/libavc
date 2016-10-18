@@ -1693,14 +1693,14 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
         ps_dec->ps_parse_cur_slice->ppv_map_ref_idx_to_poc = (volatile void **)pu1_buf;
     }
 
-    ps_dec->ps_cur_slice->u2_first_mb_in_slice = ps_dec->u2_total_mbs_coded << u1_mbaff;
+    ps_dec->ps_cur_slice->u2_first_mb_in_slice = ps_dec->u2_total_mbs_coded >> u1_mbaff;
     ps_dec->ps_cur_slice->i1_slice_alpha_c0_offset = 0;
     ps_dec->ps_cur_slice->i1_slice_beta_offset = 0;
 
     if(ps_dec->ps_cur_slice->u1_field_pic_flag)
         ps_dec->u2_prv_frame_num = ps_dec->ps_cur_slice->u2_frame_num;
 
-    ps_dec->ps_parse_cur_slice->u4_first_mb_in_slice = ps_dec->u2_total_mbs_coded << u1_mbaff;
+    ps_dec->ps_parse_cur_slice->u4_first_mb_in_slice = ps_dec->u2_total_mbs_coded >> u1_mbaff;
     ps_dec->ps_parse_cur_slice->u2_log2Y_crwd =    ps_dec->ps_cur_slice->u2_log2Y_crwd;
 
 
@@ -1723,6 +1723,11 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
     ps_dec->ps_parse_cur_slice->slice_type = P_SLICE;
     ps_dec->pf_mvpred_ref_tfr_nby2mb = ih264d_mv_pred_ref_tfr_nby2_pmb;
     ps_dec->ps_part = ps_dec->ps_parse_part_params;
+    ps_dec->u2_mbx =
+                    (MOD(ps_dec->ps_cur_slice->u2_first_mb_in_slice - 1, ps_dec->u2_frm_wd_in_mbs));
+    ps_dec->u2_mby =
+                    (DIV(ps_dec->ps_cur_slice->u2_first_mb_in_slice - 1, ps_dec->u2_frm_wd_in_mbs));
+    ps_dec->u2_mby <<= u1_mbaff;
 
     /******************************************************/
     /* Parsing / decoding the slice                       */
