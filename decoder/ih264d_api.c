@@ -2608,6 +2608,9 @@ WORD32 ih264d_set_flush_mode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op
 
     ps_ctl_op->u4_error_code = 0;
 
+    /* Ignore dangling fields during flush */
+    ps_dec->u1_top_bottom_decoded = 0;
+
     return IV_SUCCESS;
 }
 
