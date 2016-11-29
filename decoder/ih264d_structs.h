@@ -1057,7 +1057,6 @@ typedef struct _DecStruct
     prev_seq_params_t s_prev_seq_params;
     UWORD8 u1_cur_mb_fld_dec_flag; /* current Mb fld or Frm */
 
-    WORD8 pi1_left_pred_mode[8];
     UWORD8 u1_topleft_mb_fld;
     UWORD8 u1_topleft_mbtype;
     UWORD8 u1_topleft_mb_fld_bot;
@@ -1067,6 +1066,9 @@ typedef struct _DecStruct
     UWORD16 u2_top_left_mask;
     UWORD16 u2_top_right_mask;
     dec_err_status_t * ps_dec_err_status;
+    /* Ensure pi1_left_pred_mode is aligned to 4 byte boundary,
+    by declaring this after a pointer or an integer */
+    WORD8 pi1_left_pred_mode[8];
 
     UWORD8 u1_mb_idx_mv;
     UWORD16 u2_mv_2mb[2];
