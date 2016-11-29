@@ -160,17 +160,13 @@ void ih264e_init_cabac_table(entropy_ctxt_t *ps_ent_ctxt)
         /* 0th entry of mb_map_ctxt_inc will be always be containing default values */
         /* for CABAC context representing MB not available                       */
         mb_info_ctxt_t *ps_def_ctxt = ps_cabac_ctxt->ps_mb_map_ctxt_inc - 1;
-        UWORD32 *pu4_temp;
-        WORD8 i;
 
         ps_def_ctxt->u1_mb_type = CAB_SKIP;
         ps_def_ctxt->u1_cbp = 0x0f;
         ps_def_ctxt->u1_intrapred_chroma_mode = 0;
-        pu4_temp = (UWORD32 *)ps_def_ctxt->i1_ref_idx;
-        pu4_temp[0] = 0;
-        pu4_temp = (UWORD32 *)ps_def_ctxt->u1_mv;
-        for (i = 0; i < 4; i++, pu4_temp++)
-            (*pu4_temp) = 0;
+
+        memset(ps_def_ctxt->i1_ref_idx, 0, sizeof(ps_def_ctxt->i1_ref_idx));
+        memset(ps_def_ctxt->u1_mv, 0, sizeof(ps_def_ctxt->u1_mv));
         ps_cabac_ctxt->ps_def_ctxt_mb_info = ps_def_ctxt;
     }
 }
