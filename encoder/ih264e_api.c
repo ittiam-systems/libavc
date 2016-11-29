@@ -3823,7 +3823,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
         UWORD8 *pu1_buf = ps_mem_rec->pv_base;
 
         /* size of header data of 1 mb */
-        size = 40;
+        size = sizeof(mb_hdr_t);
 
         /* size for 1 row of mbs */
         size = size * max_mb_cols;

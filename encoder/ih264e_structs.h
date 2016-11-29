@@ -1151,6 +1151,184 @@ typedef struct
 
 /**
 ******************************************************************************
+*  @brief     mb_hdr structures to access first few common elements of above
+* structures
+******************************************************************************
+*/
+
+typedef struct
+{
+    /**
+     * mb type and mode
+     */
+    UWORD8 u1_mb_type_mode;
+
+    /**
+     * CBP
+     */
+    UWORD8 u1_cbp;
+
+    /**
+     * MB qp delta
+     */
+    UWORD8 u1_mb_qp_delta;
+
+    /**
+     * Element to align structure to 2 byte boundary
+     */
+    UWORD8 u1_pad;
+}mb_hdr_common_t;
+
+/**
+******************************************************************************
+*  @brief      macro block info for I4x4 MB
+******************************************************************************
+*/
+typedef struct
+{
+    /**
+     * Common MB header params
+     */
+    mb_hdr_common_t common;
+
+    /**
+     * Sub block modes, 2 modes per byte
+     */
+    UWORD8 au1_sub_blk_modes[8];
+}mb_hdr_i4x4_t;
+
+/**
+******************************************************************************
+*  @brief      macro block info for I8x8 MB
+******************************************************************************
+*/
+typedef struct
+{
+    /**
+     * Common MB header params
+     */
+    mb_hdr_common_t common;
+
+
+    /**
+     * Sub block modes, 2 modes per byte
+     */
+    UWORD8 au1_sub_blk_modes[2];
+}mb_hdr_i8x8_t;
+
+/**
+******************************************************************************
+*  @brief      macro block info for I16x16 MB
+******************************************************************************
+*/
+typedef struct
+{
+    /**
+     * Common MB header params
+     */
+    mb_hdr_common_t common;
+
+}mb_hdr_i16x16_t;
+
+/**
+******************************************************************************
+*  @brief      macro block info for P16x16 MB
+******************************************************************************
+*/
+typedef struct
+{
+    /**
+     * Common MB header params
+     */
+    mb_hdr_common_t common;
+
+    /**
+     * MV
+     */
+    WORD16 ai2_mv[2];
+}mb_hdr_p16x16_t;
+
+/**
+******************************************************************************
+*  @brief      macro block info for PSKIP MB
+******************************************************************************
+*/
+typedef struct
+{
+    /**
+     * Common MB header params
+     */
+    mb_hdr_common_t common;
+
+}mb_hdr_pskip_t;
+
+/**
+******************************************************************************
+*  @brief      macro block info for B16x16 MB
+******************************************************************************
+*/
+typedef struct
+{
+    /**
+     * Common MB header params
+     */
+    mb_hdr_common_t common;
+
+
+    /**
+     * MV
+     */
+    WORD16 ai2_mv[2][2];
+}mb_hdr_b16x16_t;
+
+/**
+******************************************************************************
+*  @brief      macro block info for BDIRECT MB
+******************************************************************************
+*/
+typedef struct
+{
+    /**
+     * Common MB header params
+     */
+    mb_hdr_common_t common;
+
+}mb_hdr_bdirect_t;
+
+/**
+******************************************************************************
+*  @brief      macro block info for PSKIP MB
+******************************************************************************
+*/
+typedef struct
+{
+    /**
+     * Common MB header params
+     */
+    mb_hdr_common_t common;
+
+}mb_hdr_bskip_t;
+
+/**
+******************************************************************************
+*  @brief      Union of mb_hdr structures for size calculation
+*  and to access first few common elements
+******************************************************************************
+*/
+
+typedef union
+{
+    mb_hdr_i4x4_t       mb_hdr_i4x4;
+    mb_hdr_i8x8_t       mb_hdr_i8x8;
+    mb_hdr_i16x16_t     mb_hdr_i16x16;
+    mb_hdr_p16x16_t     mb_hdr_p16x16;
+    mb_hdr_pskip_t      mb_hdr_pskip;
+    mb_hdr_b16x16_t     mb_hdr_b16x16;
+    mb_hdr_bdirect_t    mb_hdr_bdirect;
+    mb_hdr_bskip_t      mb_hdr_bskip;
+}mb_hdr_t;
+/**
+******************************************************************************
 *  @brief      structure presenting the neighbor availability of a mb
 *  or subblk or any other partition
 ******************************************************************************
