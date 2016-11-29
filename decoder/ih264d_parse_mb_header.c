@@ -1172,7 +1172,6 @@ void ih264d_get_mvd_cabac(UWORD8 u1_sub_mb,
     /***************************************************************/
     /* Store abs_mvd_values cabac contexts                         */
     /***************************************************************/
-#ifndef ARM
     {
         UWORD8 u1_i;
         for(u1_i = 0; u1_i < u1_part_wd; u1_i++, pu1_top_mv_ctxt += 4)
@@ -1187,46 +1186,6 @@ void ih264d_get_mvd_cabac(UWORD8 u1_sub_mb,
             pu1_lft_mv_ctxt[1] = u1_abs_mvd_y;
         }
     }
-#else
-    /* Optimising the loop, with Little-Endian Assumption */
-    {
-        UWORD16 *pu2_top_cxt = (UWORD16 *)pu1_top_mv_ctxt;
-        UWORD16 *pu2_lft_cxt = (UWORD16 *)pu1_lft_mv_ctxt;
-        UWORD16 u2_pack_mvd = (UWORD16)((u1_abs_mvd_y << 8) | u1_abs_mvd_x);
-        UWORD8 u1_wd = u1_part_wd, u1_ht = u1_part_ht;
-
-        u1_wd--;
-        *pu2_top_cxt = u2_pack_mvd;
-        pu2_top_cxt += 2;
-        if(u1_wd)
-        {
-            u1_wd--;
-            *pu2_top_cxt = u2_pack_mvd;
-            pu2_top_cxt += 2;
-        }
-        if(u1_wd)
-        {
-            *pu2_top_cxt = u2_pack_mvd;
-            pu2_top_cxt += 2;
-            *pu2_top_cxt = u2_pack_mvd;
-        }
-        u1_ht--;
-        *pu2_lft_cxt = u2_pack_mvd;
-        pu2_lft_cxt += 2;
-        if(u1_ht)
-        {
-            u1_ht--;
-            *pu2_lft_cxt = u2_pack_mvd;
-            pu2_lft_cxt += 2;
-        }
-        if(u1_ht)
-        {
-            *pu2_lft_cxt = u2_pack_mvd;
-            pu2_lft_cxt += 2;
-            *pu2_lft_cxt = u2_pack_mvd;
-        }
-    }
-#endif
 }
 
 /*****************************************************************************/
