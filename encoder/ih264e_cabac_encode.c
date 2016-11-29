@@ -339,7 +339,7 @@ static void ih264e_cabac_enc_4x4mb_modes(cabac_ctxt_t *ps_cabac_ctxt,
     for (i = 0; i < 16; i += 2)
     {
         /* sub blk idx 1 */
-        byte = *pu1_intra_4x4_modes++;
+        byte = pu1_intra_4x4_modes[i >> 1];
         if (byte & 0x1)
         {
             ih264e_cabac_encode_bin(ps_cabac_ctxt,
@@ -1540,14 +1540,14 @@ static void ih264e_cabac_enc_mvds_b16x16(cabac_ctxt_t *ps_cabac_ctxt,
             u2_abs_mvd_y_b = (UWORD16) pu1_top_mv_ctxt[1];
             u2_abs_mvd_x_a = (UWORD16) pu1_lft_mv_ctxt[0];
             u2_abs_mvd_y_a = (UWORD16) pu1_lft_mv_ctxt[1];
-            u2_mv = *(pi2_mv_ptr++);
+            u2_mv = pi2_mv_ptr[0];
 
             ih264e_cabac_enc_ctx_mvd(u2_mv, MVD_X,
                                     (UWORD16) (u2_abs_mvd_x_a + u2_abs_mvd_x_b),
                                     ps_cabac_ctxt);
 
             u1_abs_mvd_x = CLIP3(0, 127, ABS(u2_mv));
-            u2_mv = *(pi2_mv_ptr++);
+            u2_mv = pi2_mv_ptr[1];
 
             ih264e_cabac_enc_ctx_mvd(u2_mv, MVD_Y,
                                     (UWORD16) (u2_abs_mvd_y_a + u2_abs_mvd_y_b),
@@ -1555,6 +1555,7 @@ static void ih264e_cabac_enc_mvds_b16x16(cabac_ctxt_t *ps_cabac_ctxt,
 
             u1_abs_mvd_y = CLIP3(0, 127, ABS(u2_mv));
         }
+
         /***************************************************************/
         /* Store abs_mvd_values cabac contexts                         */
         /***************************************************************/
@@ -1571,14 +1572,14 @@ static void ih264e_cabac_enc_mvds_b16x16(cabac_ctxt_t *ps_cabac_ctxt,
             u2_abs_mvd_y_b = (UWORD16) pu1_top_mv_ctxt[3];
             u2_abs_mvd_x_a = (UWORD16) pu1_lft_mv_ctxt[2];
             u2_abs_mvd_y_a = (UWORD16) pu1_lft_mv_ctxt[3];
-            u2_mv = *(pi2_mv_ptr++);
+            u2_mv = pi2_mv_ptr[2];
 
             ih264e_cabac_enc_ctx_mvd(u2_mv, MVD_X,
                                     (UWORD16) (u2_abs_mvd_x_a + u2_abs_mvd_x_b),
                                     ps_cabac_ctxt);
 
             u1_abs_mvd_x = CLIP3(0, 127, ABS(u2_mv));
-            u2_mv = *(pi2_mv_ptr++);
+            u2_mv = pi2_mv_ptr[3];
 
             ih264e_cabac_enc_ctx_mvd(u2_mv, MVD_Y,
                                     (UWORD16) (u2_abs_mvd_y_a + u2_abs_mvd_y_b),
@@ -1624,11 +1625,11 @@ IH264E_ERROR_T ih264e_write_islice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
     cabac_ctxt_t *ps_cabac_ctxt = ps_ent_ctxt->ps_cabac;
     /* packed header data */
     UWORD8 *pu1_byte = ps_ent_ctxt->pv_mb_header_data;
+    mb_hdr_common_t *ps_mb_hdr = (mb_hdr_common_t *)ps_ent_ctxt->pv_mb_header_data;
     mb_info_ctxt_t *ps_curr_ctxt;
     WORD32 mb_tpm, mb_type, cbp, chroma_intra_mode, luma_intra_mode;
     WORD8 mb_qp_delta;
     UWORD32 u4_cbp_l, u4_cbp_c;
-    WORD32 byte_count = 0;
     WORD32 bitstream_start_offset, bitstream_end_offset;
 
     if ((ps_bitstream->u4_strm_buf_offset + MIN_STREAM_SIZE_MB)
@@ -1638,12 +1639,10 @@ IH264E_ERROR_T ih264e_write_islice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
         return (IH264E_BITSTREAM_BUFFER_OVERFLOW);
     }
     /* mb header info */
-    mb_tpm = *pu1_byte++;
-    byte_count++;
-    cbp = *pu1_byte++;
-    byte_count++;
-    mb_qp_delta = *pu1_byte++;
-    byte_count++;
+    mb_tpm = ps_mb_hdr->u1_mb_type_mode;
+    cbp = ps_mb_hdr->u1_cbp;
+    mb_qp_delta = ps_mb_hdr->u1_mb_qp_delta;
+
     /* mb type */
     mb_type = mb_tpm & 0xF;
 
@@ -1671,9 +1670,10 @@ IH264E_ERROR_T ih264e_write_islice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
                                    MB_TYPE_I_SLICE);
 
     if (mb_type == I4x4)
-    {   /* Encode 4x4 MB modes */
-        ih264e_cabac_enc_4x4mb_modes(ps_cabac_ctxt, pu1_byte);
-        byte_count += 8;
+    {
+        /* Encode 4x4 MB modes */
+        mb_hdr_i4x4_t *ps_mb_hdr_i4x4 = (mb_hdr_i4x4_t *)ps_ent_ctxt->pv_mb_header_data;
+        ih264e_cabac_enc_4x4mb_modes(ps_cabac_ctxt, ps_mb_hdr_i4x4->au1_sub_blk_modes);
     }
     /* Encode chroma mode */
     ih264e_cabac_enc_chroma_predmode(chroma_intra_mode, ps_cabac_ctxt);
@@ -1731,17 +1731,18 @@ IH264E_ERROR_T ih264e_write_islice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
     memset(ps_curr_ctxt->u1_mv, 0, 16);
     memset(ps_cabac_ctxt->pu1_left_mv_ctxt_inc, 0, 16);
     ps_cabac_ctxt->ps_curr_ctxt_mb_info->u1_cbp = cbp;
-    ps_ent_ctxt->pv_mb_header_data = ((WORD8 *)ps_ent_ctxt->pv_mb_header_data) + byte_count;
+
     if (mb_type == I16x16)
     {
         ps_curr_ctxt->u1_mb_type = CAB_I16x16;
-
+        pu1_byte += sizeof(mb_hdr_i16x16_t);
     }
     else
     {
         ps_curr_ctxt->u1_mb_type = CAB_I4x4;
-
+        pu1_byte += sizeof(mb_hdr_i4x4_t);
     }
+    ps_ent_ctxt->pv_mb_header_data = pu1_byte;
     return IH264E_SUCCESS;
 }
 
@@ -1778,8 +1779,8 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
     WORD32 mb_tpm, mb_type, cbp, chroma_intra_mode, luma_intra_mode;
     WORD8 mb_qp_delta;
     UWORD32 u4_cbp_l, u4_cbp_c;
-    WORD32 byte_count = 0;
     UWORD8 *pu1_byte = ps_ent_ctxt->pv_mb_header_data;
+    mb_hdr_common_t *ps_mb_hdr = (mb_hdr_common_t *)ps_ent_ctxt->pv_mb_header_data;
 
     if ((ps_bitstream->u4_strm_buf_offset + MIN_STREAM_SIZE_MB)
                     >= ps_bitstream->u4_max_strm_size)
@@ -1788,8 +1789,7 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
         return (IH264E_BITSTREAM_BUFFER_OVERFLOW);
     }
     /* mb header info */
-    mb_tpm = *pu1_byte++;
-    byte_count++;
+    mb_tpm = ps_mb_hdr->u1_mb_type_mode;
 
     /* mb type */
     mb_type = mb_tpm & 0xF;
@@ -1800,10 +1800,8 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
     /* if Intra MB */
     if (mb_type == I16x16 || mb_type == I4x4)
     {
-        cbp = *pu1_byte++;
-        byte_count++;
-        mb_qp_delta = *pu1_byte++;
-        byte_count++;
+        cbp = ps_mb_hdr->u1_cbp;
+        mb_qp_delta = ps_mb_hdr->u1_mb_qp_delta;
 
         /* Starting bitstream offset for header in bits */
         bitstream_start_offset = GET_NUM_BITS(ps_bitstream);
@@ -1833,9 +1831,10 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
         }
 
         if (mb_type == I4x4)
-        {   /* Intra 4x4 modes */
-            ih264e_cabac_enc_4x4mb_modes(ps_cabac_ctxt, pu1_byte);
-            byte_count += 8;
+        {
+            /* Intra 4x4 modes */
+            mb_hdr_i4x4_t *ps_mb_hdr_i4x4 = (mb_hdr_i4x4_t *)ps_ent_ctxt->pv_mb_header_data;
+            ih264e_cabac_enc_4x4mb_modes(ps_cabac_ctxt, ps_mb_hdr_i4x4->au1_sub_blk_modes);
         }
         chroma_intra_mode = (mb_tpm >> 6);
 
@@ -1901,13 +1900,15 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
         if (mb_type == I16x16)
         {
             ps_curr_ctxt->u1_mb_type = CAB_I16x16;
+            pu1_byte += sizeof(mb_hdr_i16x16_t);
         }
         else
         {
             ps_curr_ctxt->u1_mb_type = CAB_I4x4;
+            pu1_byte += sizeof(mb_hdr_i4x4_t);
         }
 
-        ps_ent_ctxt->pv_mb_header_data = ((WORD8 *)ps_ent_ctxt->pv_mb_header_data) + byte_count;
+        ps_ent_ctxt->pv_mb_header_data = pu1_byte;
 
         return IH264E_SUCCESS;
     }
@@ -1918,10 +1919,9 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
         /* Encoding P16x16 */
         if (mb_type != PSKIP)
         {
-            cbp = *pu1_byte++;
-            byte_count++;
-            mb_qp_delta = *pu1_byte++;
-            byte_count++;
+            mb_hdr_p16x16_t *ps_mb_hdr_p16x16 = (mb_hdr_p16x16_t *)ps_ent_ctxt->pv_mb_header_data;
+            cbp = ps_mb_hdr->u1_cbp;
+            mb_qp_delta = ps_mb_hdr->u1_mb_qp_delta;
 
             /* Encoding mb_skip */
             ih264e_cabac_enc_mb_skip(0, ps_cabac_ctxt, MB_SKIP_FLAG_P_SLICE);
@@ -1937,8 +1937,8 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
             }
             ps_curr_ctxt->u1_mb_type = CAB_P;
             {
-                WORD16 *pi2_mv_ptr = (WORD16 *) pu1_byte;
-                byte_count += 4;
+                WORD16 *pi2_mv_ptr = (WORD16 *) ps_mb_hdr_p16x16->ai2_mv;
+
                 ps_curr_ctxt->u1_mb_type = (ps_curr_ctxt->u1_mb_type
                                             | CAB_NON_BD16x16);
                  /* Encoding motion vector for P16x16 */
@@ -1960,6 +1960,8 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
             /* Starting bitstream offset for residue */
             bitstream_start_offset = bitstream_end_offset;
 
+            pu1_byte += sizeof(mb_hdr_p16x16_t);
+
         }
         else/* MB = PSKIP */
         {
@@ -1978,6 +1980,7 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
                             - bitstream_start_offset;
             /* Starting bitstream offset for residue */
 
+            pu1_byte += sizeof(mb_hdr_pskip_t);
         }
 
         if (cbp > 0)
@@ -2002,7 +2005,8 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
         }
         ps_curr_ctxt->u1_intrapred_chroma_mode = 0;
         ps_curr_ctxt->u1_cbp = cbp;
-        ps_ent_ctxt->pv_mb_header_data = ((WORD8 *)ps_ent_ctxt->pv_mb_header_data) + byte_count;
+        ps_ent_ctxt->pv_mb_header_data = pu1_byte;
+
         return IH264E_SUCCESS;
     }
 }
@@ -2066,8 +2070,8 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
     WORD32 mb_tpm, mb_type, cbp, chroma_intra_mode, luma_intra_mode;
     WORD8 mb_qp_delta;
     UWORD32 u4_cbp_l, u4_cbp_c;
-    WORD32 byte_count = 0;
     UWORD8 *pu1_byte = ps_ent_ctxt->pv_mb_header_data;
+    mb_hdr_common_t *ps_mb_hdr = (mb_hdr_common_t *)ps_ent_ctxt->pv_mb_header_data;
 
     if ((ps_bitstream->u4_strm_buf_offset + MIN_STREAM_SIZE_MB)
                     >= ps_bitstream->u4_max_strm_size)
@@ -2076,8 +2080,7 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
         return (IH264E_BITSTREAM_BUFFER_OVERFLOW);
     }
     /* mb header info */
-    mb_tpm = *pu1_byte++;
-    byte_count++;
+    mb_tpm = ps_mb_hdr->u1_mb_type_mode;
 
     /* mb type */
     mb_type = mb_tpm & 0xF;
@@ -2088,10 +2091,8 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
     /* if Intra MB */
     if (mb_type == I16x16 || mb_type == I4x4)
     {
-        cbp = *pu1_byte++;
-        byte_count++;
-        mb_qp_delta = *pu1_byte++;
-        byte_count++;
+        cbp = ps_mb_hdr->u1_cbp;
+        mb_qp_delta = ps_mb_hdr->u1_mb_qp_delta;
 
         /* Starting bitstream offset for header in bits */
         bitstream_start_offset = GET_NUM_BITS(ps_bitstream);
@@ -2138,9 +2139,10 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
         }
 
         if (mb_type == I4x4)
-        { /* Intra 4x4 modes */
-            ih264e_cabac_enc_4x4mb_modes(ps_cabac_ctxt, pu1_byte);
-            byte_count += 8;
+        {
+            /* Intra 4x4 modes */
+            mb_hdr_i4x4_t *ps_mb_hdr_i4x4 = (mb_hdr_i4x4_t *)ps_ent_ctxt->pv_mb_header_data;
+            ih264e_cabac_enc_4x4mb_modes(ps_cabac_ctxt, ps_mb_hdr_i4x4->au1_sub_blk_modes);
         }
         chroma_intra_mode = (mb_tpm >> 6);
 
@@ -2206,13 +2208,15 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
         if (mb_type == I16x16)
         {
             ps_curr_ctxt->u1_mb_type = CAB_I16x16;
+            pu1_byte += sizeof(mb_hdr_i16x16_t);
         }
         else
         {
             ps_curr_ctxt->u1_mb_type = CAB_I4x4;
+            pu1_byte += sizeof(mb_hdr_i4x4_t);
         }
 
-        ps_ent_ctxt->pv_mb_header_data = ((WORD8 *)ps_ent_ctxt->pv_mb_header_data) + byte_count;
+        ps_ent_ctxt->pv_mb_header_data = pu1_byte;
 
         return IH264E_SUCCESS;
     }
@@ -2224,10 +2228,9 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
         /* Encoding B_Direct_16x16 */
         if (mb_type == BDIRECT)
         {
-            cbp = *pu1_byte++;
-            byte_count++;
-            mb_qp_delta = *pu1_byte++;
-            byte_count++;
+            cbp = ps_mb_hdr->u1_cbp;
+            mb_qp_delta = ps_mb_hdr->u1_mb_qp_delta;
+
 
             /* Encoding mb_skip */
             ih264e_cabac_enc_mb_skip(0, ps_cabac_ctxt, MB_SKIP_FLAG_B_SLICE);
@@ -2275,6 +2278,7 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
             bitstream_start_offset = bitstream_end_offset;
             /* Starting bitstream offset for residue */
 
+            pu1_byte += sizeof(mb_hdr_bdirect_t);
         }
 
         else if (mb_type == BSKIP)/* MB = BSKIP */
@@ -2293,17 +2297,18 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
                             - bitstream_start_offset;
             /* Starting bitstream offset for residue */
 
+            pu1_byte += sizeof(mb_hdr_bskip_t);
         }
 
         else /* mbype is B_L0_16x16, B_L1_16x16 or B_Bi_16x16 */
         {
+            mb_hdr_b16x16_t *ps_mb_hdr_b16x16 = (mb_hdr_b16x16_t *)ps_ent_ctxt->pv_mb_header_data;
+
             WORD32 i4_mb_part_pred_mode = (mb_tpm >> 4);
             UWORD32 u4_mb_type = mb_type - B16x16 + B_L0_16x16
                             + i4_mb_part_pred_mode;
-            cbp = *pu1_byte++;
-            byte_count++;
-            mb_qp_delta = *pu1_byte++;
-            byte_count++;
+            cbp = ps_mb_hdr->u1_cbp;
+            mb_qp_delta = ps_mb_hdr->u1_mb_qp_delta;
 
             /* Encoding mb_skip */
             ih264e_cabac_enc_mb_skip(0, ps_cabac_ctxt, MB_SKIP_FLAG_B_SLICE);
@@ -2338,11 +2343,9 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
 
             ps_curr_ctxt->u1_mb_type = CAB_NON_BD16x16;
             {
-                WORD16 *pi2_mv_ptr = (WORD16 *) pu1_byte;
+                WORD16 *pi2_mv_ptr = (WORD16 *) ps_mb_hdr_b16x16->ai2_mv;
+
                 /* Get the pred modes */
-
-                byte_count += 4 * (1 + (i4_mb_part_pred_mode == PRED_BI));
-
                 ps_curr_ctxt->u1_mb_type = (ps_curr_ctxt->u1_mb_type
                                 | CAB_NON_BD16x16);
                 /* Encoding motion vector for B16x16 */
@@ -2364,6 +2367,8 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
                             - bitstream_start_offset;
             /* Starting bitstream offset for residue */
             bitstream_start_offset = bitstream_end_offset;
+
+            pu1_byte += sizeof(mb_hdr_b16x16_t);
         }
 
         if (cbp > 0)
@@ -2388,7 +2393,7 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
         }
         ps_curr_ctxt->u1_intrapred_chroma_mode = 0;
         ps_curr_ctxt->u1_cbp = cbp;
-        ps_ent_ctxt->pv_mb_header_data = ((WORD8 *)ps_ent_ctxt->pv_mb_header_data) + byte_count;
+        ps_ent_ctxt->pv_mb_header_data = pu1_byte;
         return IH264E_SUCCESS;
     }
 }

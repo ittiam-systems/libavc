@@ -959,6 +959,7 @@ IH264E_ERROR_T ih264e_write_islice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
     /* packed header data */
     UWORD8 *pu1_byte = ps_ent_ctxt->pv_mb_header_data;
+    mb_hdr_common_t *ps_mb_hdr = (mb_hdr_common_t *)ps_ent_ctxt->pv_mb_header_data;
 
     /* mb header info */
     /*
@@ -986,9 +987,9 @@ IH264E_ERROR_T ih264e_write_islice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
     /********************************************************************/
 
     /* mb header info */
-    mb_tpm = *pu1_byte++;
-    cbp = *pu1_byte++;
-    mb_qp_delta = *pu1_byte++;
+    mb_tpm = ps_mb_hdr->u1_mb_type_mode;
+    cbp = ps_mb_hdr->u1_cbp;
+    mb_qp_delta = ps_mb_hdr->u1_mb_qp_delta;
 
     /* mb type */
     mb_type = mb_tpm & 0xF;
@@ -1009,9 +1010,13 @@ IH264E_ERROR_T ih264e_write_islice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
         /* intra_chroma_pred_mode */
         PUT_BITS_UEV(ps_bitstream, chroma_intra_mode, error_status, "intra_chroma_pred_mode");
+
+        pu1_byte += sizeof(mb_hdr_i16x16_t);
     }
     else if (mb_type == I4x4)
     {
+        mb_hdr_i4x4_t *ps_mb_hdr_i4x4 = (mb_hdr_i4x4_t *)ps_ent_ctxt->pv_mb_header_data;
+
         /* mb sub blk modes */
         WORD32 intra_pred_mode_flag, rem_intra_mode;
         WORD32 byte;
@@ -1024,7 +1029,7 @@ IH264E_ERROR_T ih264e_write_islice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
         for (i = 0; i < 16; i += 2)
         {
             /* sub blk idx 1 */
-            byte = *pu1_byte++;
+            byte = ps_mb_hdr_i4x4->au1_sub_blk_modes[i >> 1];
 
             intra_pred_mode_flag = byte & 0x1;
 
@@ -1056,11 +1061,14 @@ IH264E_ERROR_T ih264e_write_islice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
         /* intra_chroma_pred_mode */
         PUT_BITS_UEV(ps_bitstream, chroma_intra_mode, error_status, "intra_chroma_pred_mode");
+
+        pu1_byte += sizeof(mb_hdr_i4x4_t);
     }
     else if (mb_type == I8x8)
     {
         /* transform 8x8 flag */
         UWORD32 u4_transform_size_8x8_flag = ps_ent_ctxt->i1_transform_8x8_mode_flag;
+        mb_hdr_i8x8_t *ps_mb_hdr_i8x8 = (mb_hdr_i8x8_t *)ps_ent_ctxt->pv_mb_header_data;
 
         /* mb sub blk modes */
         WORD32 intra_pred_mode_flag, rem_intra_mode;
@@ -1080,7 +1088,7 @@ IH264E_ERROR_T ih264e_write_islice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
         for (i = 0; i < 4; i++)
         {
             /* sub blk idx 1 */
-            byte = *pu1_byte++;
+            byte = ps_mb_hdr_i8x8->au1_sub_blk_modes[i >> 1];
 
             intra_pred_mode_flag = byte & 0x1;
 
@@ -1112,6 +1120,8 @@ IH264E_ERROR_T ih264e_write_islice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
         /* intra_chroma_pred_mode */
         PUT_BITS_UEV(ps_bitstream, chroma_intra_mode, error_status, "intra_chroma_pred_mode");
+
+        pu1_byte += sizeof(mb_hdr_i8x8_t);
     }
     else
     {
@@ -1181,6 +1191,7 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
     /* packed header data */
     UWORD8 *pu1_byte = ps_ent_ctxt->pv_mb_header_data;
+    mb_hdr_common_t *ps_mb_hdr = (mb_hdr_common_t *)ps_ent_ctxt->pv_mb_header_data;
 
     /* mb header info */
     /*
@@ -1211,7 +1222,7 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
     /********************************************************************/
 
     /* mb header info */
-    mb_tpm = *pu1_byte++;
+    mb_tpm = ps_mb_hdr->u1_mb_type_mode;
 
     /* mb type */
     mb_type = mb_tpm & 0xF;
@@ -1227,6 +1238,7 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
         (*ps_ent_ctxt->pi4_mb_skip_run)++;
 
         /* store the index of the next mb syntax layer */
+        pu1_byte += sizeof(mb_hdr_pskip_t);
         ps_ent_ctxt->pv_mb_header_data = pu1_byte;
 
         /* set nnz to zero */
@@ -1248,8 +1260,8 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
     }
 
     /* remaining mb header info */
-    cbp = *pu1_byte++;
-    mb_qp_delta = *pu1_byte++;
+    cbp = ps_mb_hdr->u1_cbp;
+    mb_qp_delta = ps_mb_hdr->u1_mb_qp_delta;
 
     /* mb skip run */
     PUT_BITS_UEV(ps_bitstream, *ps_ent_ctxt->pi4_mb_skip_run, error_status, "mb skip run");
@@ -1278,9 +1290,12 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
         /* intra_chroma_pred_mode */
         PUT_BITS_UEV(ps_bitstream, chroma_intra_mode, error_status, "intra_chroma_pred_mode");
+        pu1_byte += sizeof(mb_hdr_i16x16_t);
     }
     else if (mb_type == I4x4)
     {
+        mb_hdr_i4x4_t *ps_mb_hdr_i4x4 = (mb_hdr_i4x4_t *)ps_ent_ctxt->pv_mb_header_data;
+
         /* mb sub blk modes */
         WORD32 intra_pred_mode_flag, rem_intra_mode;
         WORD32 byte;
@@ -1296,7 +1311,7 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
         for (i = 0; i < 16; i += 2)
         {
             /* sub blk idx 1 */
-            byte = *pu1_byte++;
+            byte = ps_mb_hdr_i4x4->au1_sub_blk_modes[i >> 1];
 
             intra_pred_mode_flag = byte & 0x1;
 
@@ -1328,9 +1343,13 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
         /* intra_chroma_pred_mode */
         PUT_BITS_UEV(ps_bitstream, chroma_intra_mode, error_status, "intra_chroma_pred_mode");
+
+        pu1_byte += sizeof(mb_hdr_i4x4_t);
     }
     else if (mb_type == I8x8)
     {
+        mb_hdr_i8x8_t *ps_mb_hdr_i8x8 = (mb_hdr_i8x8_t *)ps_ent_ctxt->pv_mb_header_data;
+
         /* transform 8x8 flag */
         UWORD32 u4_transform_size_8x8_flag = ps_ent_ctxt->i1_transform_8x8_mode_flag;
 
@@ -1355,7 +1374,7 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
         for (i = 0; i < 4; i++)
         {
             /* sub blk idx 1 */
-            byte = *pu1_byte++;
+            byte = ps_mb_hdr_i8x8->au1_sub_blk_modes[i >> 1];
 
             intra_pred_mode_flag = byte & 0x1;
 
@@ -1387,14 +1406,18 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
         /* intra_chroma_pred_mode */
         PUT_BITS_UEV(ps_bitstream, chroma_intra_mode, error_status, "intra_chroma_pred_mode");
+
+        pu1_byte += sizeof(mb_hdr_i8x8_t);
     }
     else
     {
+        mb_hdr_p16x16_t *ps_mb_hdr_p16x16 = (mb_hdr_p16x16_t *)ps_ent_ctxt->pv_mb_header_data;
+
         /* inter macro block partition cnt */
         const UWORD8 au1_part_cnt[] = { 1, 2, 2, 4 };
 
         /* mv ptr */
-        WORD16 *pi2_mv_ptr = (WORD16 *)pu1_byte;
+        WORD16 *pi2_mv_ptr = (WORD16 *)ps_mb_hdr_p16x16->ai2_mv;
 
         /* number of partitions for the current mb */
         UWORD32 u4_part_cnt = au1_part_cnt[mb_type - 3];
@@ -1410,7 +1433,8 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
             PUT_BITS_SEV(ps_bitstream, *pi2_mv_ptr++, error_status, "mv y");
         }
 
-        pu1_byte = (UWORD8 *)pi2_mv_ptr;
+        pu1_byte += sizeof(mb_hdr_p16x16_t);
+
     }
 
     /* coded_block_pattern */
@@ -1479,6 +1503,7 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
     /* packed header data */
     UWORD8 *pu1_byte = ps_ent_ctxt->pv_mb_header_data;
+    mb_hdr_common_t *ps_mb_hdr = (mb_hdr_common_t *)ps_ent_ctxt->pv_mb_header_data;
 
     /* mb header info */
     /*
@@ -1508,7 +1533,7 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
     /*                    BEGIN HEADER GENERATION                       */
     /********************************************************************/
 
-    mb_tpm = *pu1_byte++;
+    mb_tpm = ps_mb_hdr->u1_mb_type_mode;
 
     /* mb type */
     mb_type = mb_tpm & 0xF;
@@ -1524,6 +1549,7 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
         (*ps_ent_ctxt->pi4_mb_skip_run)++;
 
         /* store the index of the next mb syntax layer */
+        pu1_byte += sizeof(mb_hdr_bskip_t);
         ps_ent_ctxt->pv_mb_header_data = pu1_byte;
 
         /* set nnz to zero */
@@ -1547,8 +1573,8 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
 
     /* remaining mb header info */
-    cbp = *pu1_byte++;
-    mb_qp_delta = *pu1_byte++;
+    cbp = ps_mb_hdr->u1_cbp;
+    mb_qp_delta = ps_mb_hdr->u1_mb_qp_delta;
 
     /* mb skip run */
     PUT_BITS_UEV(ps_bitstream, *ps_ent_ctxt->pi4_mb_skip_run, error_status, "mb skip run");
@@ -1577,9 +1603,13 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
         /* intra_chroma_pred_mode */
         PUT_BITS_UEV(ps_bitstream, chroma_intra_mode, error_status, "intra_chroma_pred_mode");
+        pu1_byte += sizeof(mb_hdr_i16x16_t);
+
     }
     else if (mb_type == I4x4)
     {
+        mb_hdr_i4x4_t *ps_mb_hdr_i4x4 = (mb_hdr_i4x4_t *)ps_ent_ctxt->pv_mb_header_data;
+
         /* mb sub blk modes */
         WORD32 intra_pred_mode_flag, rem_intra_mode;
         WORD32 byte;
@@ -1595,7 +1625,7 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
         for (i = 0; i < 16; i += 2)
         {
             /* sub blk idx 1 */
-            byte = *pu1_byte++;
+            byte = ps_mb_hdr_i4x4->au1_sub_blk_modes[i >> 1];
 
             intra_pred_mode_flag = byte & 0x1;
 
@@ -1627,9 +1657,13 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
         /* intra_chroma_pred_mode */
         PUT_BITS_UEV(ps_bitstream, chroma_intra_mode, error_status, "intra_chroma_pred_mode");
+        pu1_byte += sizeof(mb_hdr_i4x4_t);
+
     }
     else if (mb_type == I8x8)
     {
+        mb_hdr_i8x8_t *ps_mb_hdr_i8x8 = (mb_hdr_i8x8_t *)ps_ent_ctxt->pv_mb_header_data;
+
         /* transform 8x8 flag */
         UWORD32 u4_transform_size_8x8_flag = ps_ent_ctxt->i1_transform_8x8_mode_flag;
 
@@ -1654,7 +1688,7 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
         for (i = 0; i < 4; i++)
         {
             /* sub blk idx 1 */
-            byte = *pu1_byte++;
+            byte = ps_mb_hdr_i8x8->au1_sub_blk_modes[i >> 1];
 
             intra_pred_mode_flag = byte & 0x1;
 
@@ -1686,20 +1720,23 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
 
         /* intra_chroma_pred_mode */
         PUT_BITS_UEV(ps_bitstream, chroma_intra_mode, error_status, "intra_chroma_pred_mode");
+        pu1_byte += sizeof(mb_hdr_i8x8_t);
+
     }
     else if(mb_type == BDIRECT)
     {
         is_inter = 1;
         /* write mb type */
         PUT_BITS_UEV(ps_bitstream, B_DIRECT_16x16, error_status, "mb type");
+        pu1_byte += sizeof(mb_hdr_bdirect_t);
+
     }
     else /* if mb_type == B16x16 */
     {
+        mb_hdr_b16x16_t *ps_mb_hdr_b16x16 = (mb_hdr_b16x16_t *)ps_ent_ctxt->pv_mb_header_data;
+
         /* inter macro block partition cnt for 16x16 16x8 8x16 8x8 */
         const UWORD8 au1_part_cnt[] = { 1, 2, 2, 4 };
-
-        /* mv ptr */
-        WORD16 *pi2_mvd_ptr = (WORD16 *)pu1_byte;
 
         /* number of partitions for the current mb */
         UWORD32 u4_part_cnt = au1_part_cnt[mb_type - B16x16];
@@ -1718,21 +1755,17 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cavlc(entropy_ctxt_t *ps_ent_ctxt)
         {
             if (i4_mb_part_pred_mode != PRED_L1)/* || PRED_BI */
             {
-                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr, error_status, "mv l0 x");
-                pi2_mvd_ptr++;
-                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr, error_status, "mv l0 y");
-                pi2_mvd_ptr++;
+                PUT_BITS_SEV(ps_bitstream, ps_mb_hdr_b16x16->ai2_mv[0][0], error_status, "mv l0 x");
+                PUT_BITS_SEV(ps_bitstream, ps_mb_hdr_b16x16->ai2_mv[0][1], error_status, "mv l0 y");
             }
             if (i4_mb_part_pred_mode != PRED_L0)/* || PRED_BI */
             {
-                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr, error_status, "mv l1 x");
-                pi2_mvd_ptr++;
-                PUT_BITS_SEV(ps_bitstream, *pi2_mvd_ptr, error_status, "mv l1 y");
-                pi2_mvd_ptr++;
+                PUT_BITS_SEV(ps_bitstream, ps_mb_hdr_b16x16->ai2_mv[1][0], error_status, "mv l1 x");
+                PUT_BITS_SEV(ps_bitstream, ps_mb_hdr_b16x16->ai2_mv[1][1], error_status, "mv l1 y");
             }
         }
 
-        pu1_byte = (UWORD8 *)pi2_mvd_ptr;
+        pu1_byte += sizeof(mb_hdr_b16x16_t);
     }
 
     /* coded_block_pattern */

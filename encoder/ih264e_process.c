@@ -652,18 +652,19 @@ IH264E_ERROR_T ih264e_pack_header_data(process_ctxt_t *ps_proc)
     {
         /* pointer to mb header storage space */
         UWORD8 *pu1_ptr = ps_proc->pv_mb_header_data;
+        mb_hdr_i4x4_t *ps_mb_hdr = (mb_hdr_i4x4_t *)ps_proc->pv_mb_header_data;
 
         /* temp var */
         WORD32 i4, byte;
 
         /* mb type plus mode */
-        *pu1_ptr++ = (ps_proc->u1_c_i8_mode << 6) + u4_mb_type;
+        ps_mb_hdr->common.u1_mb_type_mode = (ps_proc->u1_c_i8_mode << 6) + u4_mb_type;
 
         /* cbp */
-        *pu1_ptr++ = ps_proc->u4_cbp;
+        ps_mb_hdr->common.u1_cbp = ps_proc->u4_cbp;
 
         /* mb qp delta */
-        *pu1_ptr++ = ps_proc->u4_mb_qp - ps_proc->u4_mb_qp_prev;
+        ps_mb_hdr->common.u1_mb_qp_delta = ps_proc->u4_mb_qp - ps_proc->u4_mb_qp_prev;
 
         /* sub mb modes */
         for (i4 = 0; i4 < 16; i4 ++)
@@ -710,63 +711,66 @@ IH264E_ERROR_T ih264e_pack_header_data(process_ctxt_t *ps_proc)
                 }
             }
 
-            *pu1_ptr++ = byte;
+            ps_mb_hdr->au1_sub_blk_modes[i4 >> 1] =  byte;
         }
 
         /* end of mb layer */
+        pu1_ptr += sizeof(mb_hdr_i4x4_t);
         ps_proc->pv_mb_header_data = pu1_ptr;
     }
     else if (u4_mb_type == I16x16)
     {
         /* pointer to mb header storage space */
         UWORD8 *pu1_ptr = ps_proc->pv_mb_header_data;
+        mb_hdr_i16x16_t *ps_mb_hdr = (mb_hdr_i16x16_t *)ps_proc->pv_mb_header_data;
 
         /* mb type plus mode */
-        *pu1_ptr++ = (ps_proc->u1_c_i8_mode << 6) + (ps_proc->u1_l_i16_mode << 4) + u4_mb_type;
+        ps_mb_hdr->common.u1_mb_type_mode = (ps_proc->u1_c_i8_mode << 6) + (ps_proc->u1_l_i16_mode << 4) + u4_mb_type;
 
         /* cbp */
-        *pu1_ptr++ = ps_proc->u4_cbp;
+        ps_mb_hdr->common.u1_cbp = ps_proc->u4_cbp;
 
         /* mb qp delta */
-        *pu1_ptr++ = ps_proc->u4_mb_qp - ps_proc->u4_mb_qp_prev;
+        ps_mb_hdr->common.u1_mb_qp_delta = ps_proc->u4_mb_qp - ps_proc->u4_mb_qp_prev;
 
         /* end of mb layer */
+        pu1_ptr += sizeof(mb_hdr_i16x16_t);
         ps_proc->pv_mb_header_data = pu1_ptr;
     }
     else if (u4_mb_type == P16x16)
     {
         /* pointer to mb header storage space */
         UWORD8 *pu1_ptr = ps_proc->pv_mb_header_data;
+        mb_hdr_p16x16_t *ps_mb_hdr = (mb_hdr_p16x16_t *)ps_proc->pv_mb_header_data;
 
-        WORD16 *i2_mv_ptr;
-
-        /* mb type plus mode */
-        *pu1_ptr++ = u4_mb_type;
+        /* mb type */
+        ps_mb_hdr->common.u1_mb_type_mode = u4_mb_type;
 
         /* cbp */
-        *pu1_ptr++ = ps_proc->u4_cbp;
+        ps_mb_hdr->common.u1_cbp = ps_proc->u4_cbp;
 
         /* mb qp delta */
-        *pu1_ptr++ = ps_proc->u4_mb_qp - ps_proc->u4_mb_qp_prev;
+        ps_mb_hdr->common.u1_mb_qp_delta = ps_proc->u4_mb_qp - ps_proc->u4_mb_qp_prev;
 
-        i2_mv_ptr = (WORD16 *)pu1_ptr;
+        ps_mb_hdr->ai2_mv[0] = ps_proc->ps_pu->s_me_info[0].s_mv.i2_mvx - ps_proc->ps_pred_mv[0].s_mv.i2_mvx;
 
-        *i2_mv_ptr++ = ps_proc->ps_pu->s_me_info[0].s_mv.i2_mvx - ps_proc->ps_pred_mv[0].s_mv.i2_mvx;
-
-        *i2_mv_ptr++ = ps_proc->ps_pu->s_me_info[0].s_mv.i2_mvy - ps_proc->ps_pred_mv[0].s_mv.i2_mvy;
+        ps_mb_hdr->ai2_mv[1] = ps_proc->ps_pu->s_me_info[0].s_mv.i2_mvy - ps_proc->ps_pred_mv[0].s_mv.i2_mvy;
 
         /* end of mb layer */
-        ps_proc->pv_mb_header_data = i2_mv_ptr;
+        pu1_ptr += sizeof(mb_hdr_p16x16_t);
+        ps_proc->pv_mb_header_data = pu1_ptr;
     }
     else if (u4_mb_type == PSKIP)
     {
         /* pointer to mb header storage space */
         UWORD8 *pu1_ptr = ps_proc->pv_mb_header_data;
+        mb_hdr_pskip_t *ps_mb_hdr = (mb_hdr_pskip_t *)ps_proc->pv_mb_header_data;
 
-        /* mb type plus mode */
-        *pu1_ptr++ = u4_mb_type;
+        /* mb type */
+        ps_mb_hdr->common.u1_mb_type_mode = u4_mb_type;
 
         /* end of mb layer */
+        pu1_ptr += sizeof(mb_hdr_pskip_t);
         ps_proc->pv_mb_header_data = pu1_ptr;
     }
     else if(u4_mb_type == B16x16)
@@ -774,58 +778,59 @@ IH264E_ERROR_T ih264e_pack_header_data(process_ctxt_t *ps_proc)
 
         /* pointer to mb header storage space */
         UWORD8 *pu1_ptr = ps_proc->pv_mb_header_data;
-
-        WORD16 *i2_mv_ptr;
+        mb_hdr_b16x16_t *ps_mb_hdr = (mb_hdr_b16x16_t *)ps_proc->pv_mb_header_data;
 
         UWORD32 u4_pred_mode = ps_proc->ps_pu->b2_pred_mode;
 
         /* mb type plus mode */
-        *pu1_ptr++ = (u4_pred_mode << 4) + u4_mb_type;
+        ps_mb_hdr->common.u1_mb_type_mode = (u4_pred_mode << 4) + u4_mb_type;
 
         /* cbp */
-        *pu1_ptr++ = ps_proc->u4_cbp;
+        ps_mb_hdr->common.u1_cbp = ps_proc->u4_cbp;
 
         /* mb qp delta */
-        *pu1_ptr++ = ps_proc->u4_mb_qp - ps_proc->u4_mb_qp_prev;
+        ps_mb_hdr->common.u1_mb_qp_delta = ps_proc->u4_mb_qp - ps_proc->u4_mb_qp_prev;
 
         /* l0 & l1 me data */
-        i2_mv_ptr = (WORD16 *)pu1_ptr;
-
         if (u4_pred_mode != PRED_L1)
         {
-            *i2_mv_ptr++ = ps_proc->ps_pu->s_me_info[0].s_mv.i2_mvx
+            ps_mb_hdr->ai2_mv[0][0] = ps_proc->ps_pu->s_me_info[0].s_mv.i2_mvx
                             - ps_proc->ps_pred_mv[0].s_mv.i2_mvx;
 
-            *i2_mv_ptr++ = ps_proc->ps_pu->s_me_info[0].s_mv.i2_mvy
+            ps_mb_hdr->ai2_mv[0][1] = ps_proc->ps_pu->s_me_info[0].s_mv.i2_mvy
                             - ps_proc->ps_pred_mv[0].s_mv.i2_mvy;
         }
         if (u4_pred_mode != PRED_L0)
         {
-            *i2_mv_ptr++ = ps_proc->ps_pu->s_me_info[1].s_mv.i2_mvx
+            ps_mb_hdr->ai2_mv[1][0] = ps_proc->ps_pu->s_me_info[1].s_mv.i2_mvx
                             - ps_proc->ps_pred_mv[1].s_mv.i2_mvx;
 
-            *i2_mv_ptr++ = ps_proc->ps_pu->s_me_info[1].s_mv.i2_mvy
+            ps_mb_hdr->ai2_mv[1][1] = ps_proc->ps_pu->s_me_info[1].s_mv.i2_mvy
                             - ps_proc->ps_pred_mv[1].s_mv.i2_mvy;
         }
 
         /* end of mb layer */
-        ps_proc->pv_mb_header_data = i2_mv_ptr;
+        pu1_ptr += sizeof(mb_hdr_b16x16_t);
+        ps_proc->pv_mb_header_data = pu1_ptr;
 
     }
     else if(u4_mb_type == BDIRECT)
     {
         /* pointer to mb header storage space */
         UWORD8 *pu1_ptr = ps_proc->pv_mb_header_data;
+        mb_hdr_bdirect_t *ps_mb_hdr = (mb_hdr_bdirect_t *)ps_proc->pv_mb_header_data;
 
         /* mb type plus mode */
-        *pu1_ptr++ = u4_mb_type;
+        ps_mb_hdr->common.u1_mb_type_mode = u4_mb_type;
 
         /* cbp */
-        *pu1_ptr++ = ps_proc->u4_cbp;
+        ps_mb_hdr->common.u1_cbp = ps_proc->u4_cbp;
 
         /* mb qp delta */
-        *pu1_ptr++ = ps_proc->u4_mb_qp - ps_proc->u4_mb_qp_prev;
+        ps_mb_hdr->common.u1_mb_qp_delta = ps_proc->u4_mb_qp - ps_proc->u4_mb_qp_prev;
 
+        /* end of mb layer */
+        pu1_ptr += sizeof(mb_hdr_bdirect_t);
         ps_proc->pv_mb_header_data = pu1_ptr;
 
     }
@@ -835,11 +840,13 @@ IH264E_ERROR_T ih264e_pack_header_data(process_ctxt_t *ps_proc)
 
         /* pointer to mb header storage space */
         UWORD8 *pu1_ptr = ps_proc->pv_mb_header_data;
+        mb_hdr_bskip_t *ps_mb_hdr = (mb_hdr_bskip_t *)ps_proc->pv_mb_header_data;
 
         /* mb type plus mode */
-        *pu1_ptr++ = (u4_pred_mode << 4) + u4_mb_type;
+        ps_mb_hdr->common.u1_mb_type_mode = (u4_pred_mode << 4) + u4_mb_type;
 
         /* end of mb layer */
+        pu1_ptr += sizeof(mb_hdr_bskip_t);
         ps_proc->pv_mb_header_data = pu1_ptr;
     }
 
