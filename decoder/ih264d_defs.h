@@ -257,6 +257,7 @@ enum
 /** Profile Types*/
 #define BASE_PROFILE_IDC    66
 #define MAIN_PROFILE_IDC    77
+#define EXTENDED_PROFILE_IDC    88
 #define HIGH_PROFILE_IDC   100
 
 
