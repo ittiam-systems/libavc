@@ -6,7 +6,6 @@ libavcd_inc_dir_arm64   +=  $(LOCAL_PATH)/common/armv8
 
 libavcd_srcs_c_arm64    += decoder/arm/ih264d_function_selector.c
 
-ifeq ($(ARCH_ARM_HAVE_NEON),true)
 libavcd_srcs_c_arm64    += decoder/arm/ih264d_function_selector_av8.c
 
 libavcd_srcs_asm_arm64    +=  common/armv8/ih264_intra_pred_chroma_av8.s
@@ -34,11 +33,6 @@ libavcd_srcs_asm_arm64    +=  common/armv8/ih264_ihadamard_scaling_av8.s
 libavcd_srcs_asm_arm64    +=  common/armv8/ih264_intra_pred_luma_8x8_av8.s
 
 libavcd_cflags_arm64 += -DDEFAULT_ARCH=D_ARCH_ARMV8_GENERIC
-else
-libavcd_cflags_arm64 += -DDISABLE_NEON -DDEFAULT_ARCH=D_ARCH_ARM_NONEON
-endif
-
-
 
 
 LOCAL_SRC_FILES_arm64 += $(libavcd_srcs_c_arm64) $(libavcd_srcs_asm_arm64)
