@@ -7,7 +7,6 @@ libavce_inc_dir_arm64   +=  $(LOCAL_PATH)/common/armv8
 
 libavce_srcs_c_arm64    += encoder/arm/ih264e_function_selector.c
 
-ifeq ($(ARCH_ARM_HAVE_NEON),true)
 libavce_srcs_c_arm64    += encoder/arm/ih264e_function_selector_av8.c
 
 libavce_srcs_asm_arm64    +=  common/armv8/ih264_resi_trans_quant_av8.s
@@ -34,12 +33,6 @@ libavce_srcs_asm_arm64    +=  encoder/armv8/ih264e_half_pel_av8.s
 
 #ME
 libavce_srcs_asm_arm64    +=  encoder/armv8/ime_distortion_metrics_av8.s
-
-else
-libavce_cflags_arm64 += -DDISABLE_NEON
-endif
-
-
 
 
 LOCAL_SRC_FILES_arm64 += $(libavce_srcs_c_arm64) $(libavce_srcs_asm_arm64)
