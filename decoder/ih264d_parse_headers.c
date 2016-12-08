@@ -533,18 +533,14 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     )
     {
 
-        if((uc_constraint_set1_flag != 1) && (uc_constraint_set0_flag != 1))
+        /* Apart from Baseline, main and high profile,
+         * only extended profile is supported provided
+         * uc_constraint_set0_flag or uc_constraint_set1_flag are set to 1
+         */
+        if((u1_profile_idc != EXTENDED_PROFILE_IDC) ||
+           ((uc_constraint_set1_flag != 1) && (uc_constraint_set0_flag != 1)))
         {
-            if(NULL != ps_dec)
-            {
-                UWORD32 i4_error_code;
-                i4_error_code = ERROR_FEATURE_UNAVAIL;
-                return i4_error_code;
-            }
-            else
-            {
-                return (ERROR_FEATURE_UNAVAIL);
-            }
+            return (ERROR_FEATURE_UNAVAIL);
         }
     }
 
