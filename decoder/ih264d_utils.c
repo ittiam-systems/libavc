@@ -1940,8 +1940,9 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
 
     if(ps_dec->u1_separate_parse)
     {
+        /* Needs one extra row of info, to hold top row data */
         size = sizeof(mb_neigbour_params_t)
-                        * 2 * ((u4_wd_mbs + 2) * u4_ht_mbs);
+                        * 2 * ((u4_wd_mbs + 2) * (u4_ht_mbs + 1));
     }
     else
     {
