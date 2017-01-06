@@ -1596,7 +1596,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
             {
                 if(ps_dec->u1_separate_parse)
                 {
-                    ps_cur_mb_info = ps_dec->ps_nmb_info - 1;
+                    ps_cur_mb_info = ps_dec->ps_nmb_info;
                 }
                 else
                 {
