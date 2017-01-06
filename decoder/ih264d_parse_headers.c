@@ -1078,7 +1078,9 @@ WORD32 ih264d_parse_nal_unit(iv_obj_t *dec_hdl,
             u1_nal_unit_type = NAL_UNIT_TYPE(u1_first_byte);
             // if any other nal unit other than slice nal is encountered in between a
             // frame break out of loop without consuming header
-            if((ps_dec->u2_total_mbs_coded != 0) && (u1_nal_unit_type > IDR_SLICE_NAL))
+            if ((ps_dec->u4_slice_start_code_found == 1)
+                    && (ps_dec->u1_pic_decode_done != 1)
+                    && (u1_nal_unit_type > IDR_SLICE_NAL))
             {
                 return ERROR_INCOMPLETE_FRAME;
             }
