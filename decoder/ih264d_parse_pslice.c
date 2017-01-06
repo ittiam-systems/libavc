@@ -1606,13 +1606,13 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
             ps_dec->u1_mb_ngbr_availablity =
                     ps_cur_mb_info->u1_mb_ngbr_availablity;
 
-            // Going back 1 mb
-            ps_dec->pv_parse_tu_coeff_data = ps_dec->pv_prev_mb_parse_tu_coeff_data;
-            ps_dec->u2_cur_mb_addr--;
-            ps_dec->i4_submb_ofst -= SUB_BLK_SIZE;
-
             if(u1_num_mbs)
             {
+                // Going back 1 mb
+                ps_dec->pv_parse_tu_coeff_data = ps_dec->pv_prev_mb_parse_tu_coeff_data;
+                ps_dec->u2_cur_mb_addr--;
+                ps_dec->i4_submb_ofst -= SUB_BLK_SIZE;
+
                 // Parse/decode N-MB left unparsed
                 if (ps_dec->u1_pr_sl_type == P_SLICE
                         || ps_dec->u1_pr_sl_type == B_SLICE)
