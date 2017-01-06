@@ -1581,8 +1581,13 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
         {
             // Slice data corrupted
             // in the case of mbaff, conceal from the even mb.
-            u1_num_mbs = (ps_dec->u4_num_mbs_cur_nmb >> u1_mbaff ) << u1_mbaff;
+            if((u1_mbaff) && (ps_dec->u4_num_mbs_cur_nmb & 1))
+            {
+                ps_dec->u4_num_mbs_cur_nmb = ps_dec->u4_num_mbs_cur_nmb - 1;
+                ps_dec->u2_cur_mb_addr--;
+            }
 
+            u1_num_mbs = ps_dec->u4_num_mbs_cur_nmb;
             if(u1_num_mbs)
             {
                 ps_cur_mb_info = ps_dec->ps_nmb_info + u1_num_mbs - 1;
