@@ -3269,7 +3269,8 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         /* if new frame in not found (if we are still getting slices from previous frame)
          * ih264d_deblock_display is not called. Such frames will not be added to reference /display
          */
-        if((ps_dec->ps_dec_err_status->u1_err_flag & REJECT_CUR_PIC) == 0)
+        if (((ps_dec->ps_dec_err_status->u1_err_flag & REJECT_CUR_PIC) == 0)
+                && (ps_dec->u4_pic_buf_got == 1))
         {
             /* Calling Function to deblock Picture and Display */
             ret = ih264d_deblock_display(ps_dec);
