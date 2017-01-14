@@ -80,7 +80,7 @@ WORD32 ih264d_parse_buffering_period(buf_period_t *ps_buf_prd,
     UNUSED(ps_buf_prd);
     u1_seq_parameter_set_id = ih264d_uev(pu4_bitstrm_ofst,
                                          pu4_bitstrm_buf);
-    if(u1_seq_parameter_set_id > MAX_NUM_SEQ_PARAMS)
+    if(u1_seq_parameter_set_id >= MAX_NUM_SEQ_PARAMS)
         return ERROR_INVALID_SEQ_PARAM;
     ps_seq = &ps_dec->ps_sps[u1_seq_parameter_set_id];
     if(TRUE != ps_seq->u1_is_valid)
