@@ -1663,11 +1663,15 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                 return 0;
             }
 
-            // Inserting new slice
-            ps_dec->u2_cur_slice_num++;
-             ps_dec->i2_prev_slice_mbx = ps_dec->u2_mbx;
-            ps_dec->i2_prev_slice_mby = ps_dec->u2_mby;
-            ps_dec->ps_parse_cur_slice++;
+            /* Inserting new slice only if the current slice has atleast 1 MB*/
+            if(ps_dec->ps_parse_cur_slice->u4_first_mb_in_slice <
+                    (UWORD32)(ps_dec->u2_total_mbs_coded >> ps_slice->u1_mbaff_frame_flag))
+            {
+                ps_dec->i2_prev_slice_mbx = ps_dec->u2_mbx;
+                ps_dec->i2_prev_slice_mby = ps_dec->u2_mby;
+                ps_dec->u2_cur_slice_num++;
+                ps_dec->ps_parse_cur_slice++;
+            }
 
         }
         else
