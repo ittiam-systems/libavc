@@ -1568,7 +1568,6 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                 }
             }
         }
-        ps_dec->u4_first_slice_in_pic = 0;
     }
     else
     {
