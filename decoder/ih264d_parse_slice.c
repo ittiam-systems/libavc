@@ -1056,8 +1056,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
 
     /*we currently don not support ASO*/
     if(((u2_first_mb_in_slice << ps_cur_slice->u1_mbaff_frame_flag)
-                    <= ps_dec->u2_cur_mb_addr) && (ps_dec->u2_cur_mb_addr != 0)
-                    && (ps_dec->u4_first_slice_in_pic != 0))
+                    <= ps_dec->u2_cur_mb_addr) && (ps_dec->u4_first_slice_in_pic == 0))
     {
         return ERROR_CORRUPTED_SLICE;
     }
