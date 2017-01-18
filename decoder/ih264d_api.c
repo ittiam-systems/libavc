@@ -2210,7 +2210,8 @@ WORD32 ih264d_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
         u4_mem_size += (sizeof(UWORD32) * 3 * (MAX_REF_BUFS * MAX_REF_BUFS)) << 3;
         u4_mem_size = ALIGN64(u4_mem_size);
 
-        u4_mem_size += sizeof(UWORD32) * 2 * 3 * (MAX_REF_BUFS * MAX_REF_BUFS);
+        u4_mem_size += sizeof(UWORD32) * 2 * 3
+                        * ((MAX_FRAMES << 1) * (MAX_FRAMES << 1));
         u4_mem_size = ALIGN64(u4_mem_size);
 
         memTab[MEM_REC_INTERNAL_SCRATCH].u4_mem_alignment =

@@ -2197,7 +2197,7 @@ WORD16 ih264d_get_memory_dec_params(dec_struct_t * ps_dec)
 
         ps_dec->pu4_wts_ofsts_mat = (UWORD32 *)(pu1_scratch_mem_base + u4_scratch_mem_used);
         u4_scratch_mem_used += sizeof(UWORD32) * 2 * 3
-                        * (MAX_FRAMES * MAX_FRAMES);
+                        * ((MAX_FRAMES << 1) * (MAX_FRAMES << 1));
         u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
     }
     /********************************************************************/
