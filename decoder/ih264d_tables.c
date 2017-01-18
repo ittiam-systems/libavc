@@ -855,7 +855,8 @@ const UWORD8 gau1_ih264d_top_left_mb_part_indx_mod[] =
     { 0, 0 /* Junk */, /* 16x16 */
       0, 8, /* 16x8 */
       0, 2, /* 8x16 */
-      0, 2, 8, 10 /* 8x8 */
+      0, 2, 8, 10 /* 8x8 */,
+      0 /* One extra entry is read at the end of loop, but not used */
     };
 
 /*!
