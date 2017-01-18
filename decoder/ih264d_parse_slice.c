@@ -1343,6 +1343,8 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
                 ps_cur_slice->u1_redundant_pic_cnt = u1_redundant_pic_cnt;
                 ps_cur_slice->u1_nal_ref_idc = u1_nal_ref_idc;
                 ps_cur_slice->u1_pic_order_cnt_type = u1_pic_order_cnt_type;
+                ps_cur_slice->u1_mbaff_frame_flag = ps_seq->u1_mb_aff_flag
+                        && (!u1_field_pic_flag);
             }
         }
         else
