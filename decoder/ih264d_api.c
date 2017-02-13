@@ -1989,7 +1989,9 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         if(buflen == -1)
             buflen = 0;
         /* Ignore bytes beyond the allocated size of intermediate buffer */
-        buflen = MIN(buflen, buf_size);
+        /* Since 8 bytes are read ahead, ensure 8 bytes are free at the
+        end of the buffer, which will be memset to 0 after emulation prevention */
+        buflen = MIN(buflen, buf_size - 8);
 
         bytes_consumed = buflen + u4_length_of_start_code;
         ps_dec_op->u4_num_bytes_consumed += bytes_consumed;
