@@ -436,7 +436,7 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
         ps_cur_pic->pu1_col_zero_flag = (UWORD8 *)ps_col_mv->pv_col_zero_flag;
         ps_cur_pic->ps_mv = (mv_pred_t *)ps_col_mv->pv_mv;
         ps_dec->au1_pic_buf_ref_flag[cur_pic_buf_id] = 0;
-        if(ps_dec->u1_first_slice_in_stream)
+
         {
             /*make first entry of list0 point to cur pic,so that if first Islice is in error, ref pic struct will have valid entries*/
             ps_dec->ps_ref_pic_buf_lx[0] = ps_dec->ps_dpb_mgr->ps_init_dpb[0];
