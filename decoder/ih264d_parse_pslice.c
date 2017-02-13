@@ -1516,7 +1516,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
             //if valid SPS PPS is not found return error
             if(j == -1)
             {
-                return ERROR_INV_SPS_PPS_T;
+                return ERROR_INV_SLICE_HDR_T;
             }
 
             /* call ih264d_start_of_pic only if it was not called earlier*/
