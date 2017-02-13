@@ -867,6 +867,10 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
         if(u1_mbaff)
         {
             ih264d_update_mbaff_left_nnz(ps_dec, ps_cur_mb_info);
+            if(!uc_more_data_flag && (0 == (i2_cur_mb_addr & 1)))
+            {
+                return ERROR_EOB_FLUSHBITS_T;
+            }
         }
         /**************************************************************/
         /* Get next Macroblock address                                */
