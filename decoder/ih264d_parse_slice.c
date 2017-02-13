@@ -1138,19 +1138,19 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
 
     u4_temp = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
     if(u4_temp & MASK_ERR_PIC_SET_ID)
-        return ERROR_INV_SPS_PPS_T;
+        return ERROR_INV_SLICE_HDR_T;
     /* discard slice if pic param is invalid */
     COPYTHECONTEXT("SH: pic_parameter_set_id", u4_temp);
     ps_pps = &ps_dec->ps_pps[u4_temp];
     if(FALSE == ps_pps->u1_is_valid)
     {
-        return ERROR_INV_SPS_PPS_T;
+        return ERROR_INV_SLICE_HDR_T;
     }
     ps_seq = ps_pps->ps_sps;
     if(!ps_seq)
-        return ERROR_INV_SPS_PPS_T;
+        return ERROR_INV_SLICE_HDR_T;
     if(FALSE == ps_seq->u1_is_valid)
-        return ERROR_INV_SPS_PPS_T;
+        return ERROR_INV_SLICE_HDR_T;
 
     /* Get the frame num */
     u2_frame_num = ih264d_get_bits_h264(ps_bitstrm,
@@ -1199,7 +1199,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         u4_idr_pic_id = ih264d_uev(pu4_bitstrm_ofst,
                                    pu4_bitstrm_buf);
         if(u4_idr_pic_id > 65535)
-            return ERROR_INV_SPS_PPS_T;
+            return ERROR_INV_SLICE_HDR_T;
         COPYTHECONTEXT("SH:  ", u4_idr_pic_id);
     }
 
@@ -1214,7 +1214,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
                         ps_bitstrm,
                         ps_seq->u1_log2_max_pic_order_cnt_lsb_minus);
         if(i_temp < 0 || i_temp >= ps_seq->i4_max_pic_order_cntLsb)
-            return ERROR_INV_SPS_PPS_T;
+            return ERROR_INV_SLICE_HDR_T;
         s_tmp_poc.i4_pic_order_cnt_lsb = i_temp;
         COPYTHECONTEXT("SH: pic_order_cnt_lsb", s_tmp_poc.i4_pic_order_cnt_lsb);
 
@@ -1251,7 +1251,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
     {
         u4_temp = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
         if(u4_temp > MAX_REDUNDANT_PIC_CNT)
-            return ERROR_INV_SPS_PPS_T;
+            return ERROR_INV_SLICE_HDR_T;
         u1_redundant_pic_cnt = u4_temp;
         COPYTHECONTEXT("SH: redundant_pic_cnt", u1_redundant_pic_cnt);
     }
