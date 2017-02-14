@@ -1116,13 +1116,6 @@ WORD32 ih264d_parse_nal_unit(iv_obj_t *dec_hdl,
                                                             == IDR_SLICE_NAL),
                                             u1_nal_ref_idc, ps_dec);
 
-                            if((ps_dec->u4_first_slice_in_pic != 0)&&
-                                ((ps_dec->ps_dec_err_status->u1_err_flag & REJECT_CUR_PIC) == 0))
-                            {
-                                /*  if the first slice header was not valid set to 1 */
-                                ps_dec->u4_first_slice_in_pic = 1;
-                            }
-
                             if(i_status != OK)
                             {
                                 return i_status;
