@@ -935,15 +935,11 @@ WORD32 ih264d_deblock_display(dec_struct_t *ps_dec)
  **************************************************************************
  */
 
-WORD32 ih264d_end_of_pic(dec_struct_t *ps_dec,
-                       UWORD8 u1_is_idr_slice,
-                       UWORD16 u2_frame_num)
+WORD32 ih264d_end_of_pic(dec_struct_t *ps_dec)
 {
     dec_slice_params_t *ps_cur_slice = ps_dec->ps_cur_slice;
     WORD32 ret;
 
-    ps_dec->u2_mbx = 0xffff;
-    ps_dec->u2_mby = 0;
     {
         dec_err_status_t * ps_err = ps_dec->ps_dec_err_status;
         if(ps_err->u1_err_flag & REJECT_CUR_PIC)
@@ -957,43 +953,10 @@ WORD32 ih264d_end_of_pic(dec_struct_t *ps_dec,
     ret = ih264d_end_of_pic_processing(ps_dec);
     if(ret != OK)
         return ret;
-    ps_dec->u2_total_mbs_coded = 0;
     /*--------------------------------------------------------------------*/
     /* ih264d_decode_pic_order_cnt - calculate the Pic Order Cnt                    */
     /* Needed to detect end of picture                                    */
     /*--------------------------------------------------------------------*/
-    {
-        pocstruct_t *ps_prev_poc = &ps_dec->s_prev_pic_poc;
-        pocstruct_t *ps_cur_poc = &ps_dec->s_cur_pic_poc;
-        if((0 == u1_is_idr_slice) && ps_cur_slice->u1_nal_ref_idc)
-            ps_dec->u2_prev_ref_frame_num = ps_cur_slice->u2_frame_num;
-
-        if(u1_is_idr_slice || ps_cur_slice->u1_mmco_equalto5)
-            ps_dec->u2_prev_ref_frame_num = 0;
-
-        if(ps_dec->ps_cur_sps->u1_gaps_in_frame_num_value_allowed_flag)
-        {
-            ret = ih264d_decode_gaps_in_frame_num(ps_dec, u2_frame_num);
-            if(ret != OK)
-                return ret;
-        }
-
-        ps_prev_poc->i4_prev_frame_num_ofst = ps_cur_poc->i4_prev_frame_num_ofst;
-        ps_prev_poc->u2_frame_num = ps_cur_poc->u2_frame_num;
-        ps_prev_poc->u1_mmco_equalto5 = ps_cur_slice->u1_mmco_equalto5;
-        if(ps_cur_slice->u1_nal_ref_idc)
-        {
-            ps_prev_poc->i4_pic_order_cnt_lsb = ps_cur_poc->i4_pic_order_cnt_lsb;
-            ps_prev_poc->i4_pic_order_cnt_msb = ps_cur_poc->i4_pic_order_cnt_msb;
-            ps_prev_poc->i4_delta_pic_order_cnt_bottom =
-                            ps_cur_poc->i4_delta_pic_order_cnt_bottom;
-            ps_prev_poc->i4_delta_pic_order_cnt[0] =
-                            ps_cur_poc->i4_delta_pic_order_cnt[0];
-            ps_prev_poc->i4_delta_pic_order_cnt[1] =
-                            ps_cur_poc->i4_delta_pic_order_cnt[1];
-            ps_prev_poc->u1_bot_field = ps_cur_poc->u1_bot_field;
-        }
-    }
 
     H264_MUTEX_UNLOCK(&ps_dec->process_disp_mutex);
 
@@ -1159,7 +1122,43 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
 
     COPYTHECONTEXT("SH: frame_num", u2_frame_num);
 //    H264_DEC_DEBUG_PRINT("Second field: %d frame num: %d prv_frame_num: %d \n", ps_dec->u1_second_field, u2_frame_num, ps_dec->u2_prv_frame_num);
+    if(!ps_dec->u1_first_slice_in_stream && (ps_dec->u4_first_slice_in_pic == 2))
+    {
+        pocstruct_t *ps_prev_poc = &ps_dec->s_prev_pic_poc;
+        pocstruct_t *ps_cur_poc = &ps_dec->s_cur_pic_poc;
 
+        ps_dec->u2_mbx = 0xffff;
+        ps_dec->u2_mby = 0;
+
+        if((0 == u1_is_idr_slice) && ps_cur_slice->u1_nal_ref_idc)
+            ps_dec->u2_prev_ref_frame_num = ps_cur_slice->u2_frame_num;
+
+        if(u1_is_idr_slice || ps_cur_slice->u1_mmco_equalto5)
+            ps_dec->u2_prev_ref_frame_num = 0;
+
+        if(ps_dec->ps_cur_sps->u1_gaps_in_frame_num_value_allowed_flag)
+        {
+            ih264d_decode_gaps_in_frame_num(ps_dec, u2_frame_num);
+        }
+
+        ps_prev_poc->i4_prev_frame_num_ofst = ps_cur_poc->i4_prev_frame_num_ofst;
+        ps_prev_poc->u2_frame_num = ps_cur_poc->u2_frame_num;
+        ps_prev_poc->u1_mmco_equalto5 = ps_cur_slice->u1_mmco_equalto5;
+        if(ps_cur_slice->u1_nal_ref_idc)
+        {
+            ps_prev_poc->i4_pic_order_cnt_lsb = ps_cur_poc->i4_pic_order_cnt_lsb;
+            ps_prev_poc->i4_pic_order_cnt_msb = ps_cur_poc->i4_pic_order_cnt_msb;
+            ps_prev_poc->i4_delta_pic_order_cnt_bottom =
+                            ps_cur_poc->i4_delta_pic_order_cnt_bottom;
+            ps_prev_poc->i4_delta_pic_order_cnt[0] =
+                            ps_cur_poc->i4_delta_pic_order_cnt[0];
+            ps_prev_poc->i4_delta_pic_order_cnt[1] =
+                            ps_cur_poc->i4_delta_pic_order_cnt[1];
+            ps_prev_poc->u1_bot_field = ps_cur_poc->u1_bot_field;
+        }
+
+        ps_dec->u2_total_mbs_coded = 0;
+    }
     /* Get the field related flags  */
     if(!ps_seq->u1_frame_mbs_only_flag)
     {
@@ -1271,6 +1270,12 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
                                             u1_nal_unit_type, u4_idr_pic_id,
                                             u1_field_pic_flag,
                                             u1_bottom_field_flag);
+        if(i1_is_end_of_poc)
+        {
+            ps_dec->u1_first_slice_in_stream = 0;
+            return ERROR_INCOMPLETE_FRAME;
+        }
+
     }
 
     /*--------------------------------------------------------------------*/
@@ -1425,49 +1430,6 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
     }
     ps_dec->u1_slice_header_done = 0;
 
-    /*--------------------------------------------------------------------*/
-    /* If the slice is part of new picture, do End of Pic processing.     */
-    /*--------------------------------------------------------------------*/
-    if(!ps_dec->u1_first_slice_in_stream)
-    {
-        UWORD8 uc_mbs_exceed = 0;
-
-        if(ps_dec->u2_total_mbs_coded
-                        == (ps_dec->ps_cur_sps->u2_max_mb_addr + 1))
-        {
-            /*u2_total_mbs_coded is forced  to u2_max_mb_addr+ 1 at the end of decode ,so
-             ,if it is first slice in pic dont consider u2_total_mbs_coded to detect new picture */
-            if(ps_dec->u4_first_slice_in_pic == 0)
-                uc_mbs_exceed = 1;
-        }
-
-        if(i1_is_end_of_poc || uc_mbs_exceed)
-        {
-
-            if(1 == ps_dec->u1_last_pic_not_decoded)
-            {
-                ret = ih264d_end_of_pic_dispbuf_mgr(ps_dec);
-
-                if(ret != OK)
-                    return ret;
-
-                ret = ih264d_end_of_pic(ps_dec, u1_is_idr_slice, u2_frame_num);
-                if(ret != OK)
-                    return ret;
-#if WIN32
-                H264_DEC_DEBUG_PRINT(" ------ PIC SKIPPED ------\n");
-#endif
-                return RET_LAST_SKIP;
-            }
-            else
-            {
-                ret = ih264d_end_of_pic(ps_dec, u1_is_idr_slice, u2_frame_num);
-                if(ret != OK)
-                    return ret;
-            }
-
-        }
-    }
 
     if(u1_field_pic_flag)
     {
