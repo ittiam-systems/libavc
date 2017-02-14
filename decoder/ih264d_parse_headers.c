@@ -914,6 +914,15 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
             return IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED;
         }
 
+        /* If MBAff is enabled, decoder support is limited to streams with
+         * width less than half of H264_MAX_FRAME_WIDTH.
+         * In case of MBAff decoder processes two rows at a time
+         */
+        if((u2_pic_wd << ps_seq->u1_mb_aff_flag) > H264_MAX_FRAME_WIDTH)
+        {
+            return IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED;
+        }
+
         ps_dec->u2_disp_height = i4_cropped_ht;
 
         ps_dec->u2_disp_width = i4_cropped_wd;
