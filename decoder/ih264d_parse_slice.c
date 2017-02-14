@@ -723,6 +723,7 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
     ps_dec->u4_deblk_mb_y = 0;
     ps_dec->pu4_wt_ofsts = ps_dec->pu4_wts_ofsts_mat;
 
+    ps_dec->u4_first_slice_in_pic = 0;
     H264_MUTEX_UNLOCK(&ps_dec->process_disp_mutex);
     return OK;
 }
@@ -1122,7 +1123,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
 
     COPYTHECONTEXT("SH: frame_num", u2_frame_num);
 //    H264_DEC_DEBUG_PRINT("Second field: %d frame num: %d prv_frame_num: %d \n", ps_dec->u1_second_field, u2_frame_num, ps_dec->u2_prv_frame_num);
-    if(!ps_dec->u1_first_slice_in_stream && (ps_dec->u4_first_slice_in_pic == 2))
+    if(!ps_dec->u1_first_slice_in_stream && ps_dec->u4_first_slice_in_pic)
     {
         pocstruct_t *ps_prev_poc = &ps_dec->s_prev_pic_poc;
         pocstruct_t *ps_cur_poc = &ps_dec->s_cur_pic_poc;
@@ -1262,7 +1263,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
     i1_is_end_of_poc = 1;
     ps_dec->ps_dec_err_status->u1_err_flag &= MASK_REJECT_CUR_PIC;
 
-    if(ps_dec->u4_first_slice_in_pic != 2)
+    if(ps_dec->u4_first_slice_in_pic == 0)
     {
         i1_is_end_of_poc = ih264d_is_end_of_pic(u2_frame_num, u1_nal_ref_idc,
                                             &s_tmp_poc, &ps_dec->s_cur_pic_poc,
@@ -1315,7 +1316,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
 
             u1_is_idr_slice = ps_cur_slice->u1_nal_unit_type == IDR_SLICE_NAL;
         }
-        else if(ps_dec->u4_first_slice_in_pic == 2)
+        else if(ps_dec->u4_first_slice_in_pic)
         {
             if(u2_first_mb_in_slice > 0)
             {
@@ -1340,25 +1341,12 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         }
         else
         {
-
-            if(ps_dec->u4_first_slice_in_pic)
-            {
-                /* if valid slice header is not decoded do start of pic processing
-                 * since in the current process call, frame num is not updated in the slice structure yet
-                 * ih264d_is_end_of_pic is checked with valid frame num of previous process call,
-                 * although i1_is_end_of_poc is set there could be  more slices in the frame,
-                 * so conceal only till cur slice */
-                prev_slice_err = 1;
-                num_mb_skipped = u2_first_mb_in_slice << u1_mbaff;
-            }
-            else
-            {
-                /* since i1_is_end_of_poc is set ,means new frame num is encountered. so conceal the current frame
-                 * completely */
-                prev_slice_err = 2;
-                num_mb_skipped = (ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
-                        - ps_dec->u2_total_mbs_coded;
-            }
+            /* since i1_is_end_of_poc is set ,means new frame num is encountered. so conceal the current frame
+             * completely */
+            prev_slice_err = 2;
+            num_mb_skipped = (ps_dec->u2_frm_ht_in_mbs
+                            * ps_dec->u2_frm_wd_in_mbs)
+                            - ps_dec->u2_total_mbs_coded;
             ps_cur_poc = &s_tmp_poc;
         }
     }
@@ -1461,7 +1449,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         ps_dec->ps_cur_pic->i4_poc = i4_temp_poc;
         ps_dec->ps_cur_pic->i4_avg_poc = i4_temp_poc;
     }
-    if(ps_dec->u4_first_slice_in_pic == 2)
+    if(ps_dec->u4_first_slice_in_pic)
     {
         ret = ih264d_decode_pic_order_cnt(u1_is_idr_slice, u2_frame_num,
                                           &ps_dec->s_prev_pic_poc,
@@ -1529,7 +1517,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
             ps_dec->pf_mvpred = ih264d_mvpred_nonmbaff;
     }
 
-    if(ps_dec->u4_first_slice_in_pic == 2)
+    if(ps_dec->u4_first_slice_in_pic)
     {
         if(u2_first_mb_in_slice == 0)
         {
@@ -1858,8 +1846,6 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
     if(ps_dec->u1_slice_header_done)
     {
         /* set to zero to indicate a valid slice has been decoded */
-        /* first slice header successfully decoded */
-        ps_dec->u4_first_slice_in_pic = 0;
         ps_dec->u1_first_slice_in_stream = 0;
     }
 
