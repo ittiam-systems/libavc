@@ -41,9 +41,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
                                  UWORD8 u1_nal_ref_idc,
                                  dec_struct_t * ps_dec );
 
-WORD32 ih264d_end_of_pic(dec_struct_t *ps_dec,
-                         UWORD8 u1_is_idr_slice,
-                         UWORD16 u2_frame_num);
+WORD32 ih264d_end_of_pic(dec_struct_t *ps_dec);
 WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
                            WORD32 i4_poc,
                            pocstruct_t *ps_temp_poc,
@@ -53,4 +51,5 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
 WORD32 ih264d_ref_idx_reordering(dec_struct_t * ps_dec, UWORD8 u1_isB);
 WORD32 ih264d_read_mmco_commands(dec_struct_t * ps_dec);
 void ih264d_form_pred_weight_matrix(dec_struct_t *ps_dec);
+WORD32 ih264d_end_of_pic_dispbuf_mgr(dec_struct_t * ps_dec);
 #endif /* _IH264D_PARSE_SLICE_H_ */

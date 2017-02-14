@@ -1459,7 +1459,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
     UWORD32 u1_mbaff = ps_slice->u1_mbaff_frame_flag;
     parse_part_params_t *ps_part_info;
     WORD32 ret;
-
+    UNUSED(u1_is_idr_slice);
 
     if(ps_dec->ps_dec_err_status->u1_err_flag & REJECT_CUR_PIC)
     {
@@ -1476,16 +1476,6 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
     {
         /* first slice - missing/header corruption */
         ps_dec->ps_cur_slice->u2_frame_num = u2_frame_num;
-
-
-        if(!ps_dec->u1_first_slice_in_stream)
-        {
-            ih264d_end_of_pic(ps_dec, u1_is_idr_slice,
-                ps_dec->ps_cur_slice->u2_frame_num);
-            ps_dec->s_cur_pic_poc.u2_frame_num =
-                ps_dec->ps_cur_slice->u2_frame_num;
-        }
-
         {
             WORD32 i, j, poc = 0;
 
