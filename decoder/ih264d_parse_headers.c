@@ -567,13 +567,13 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     if(NULL == ps_dec->ps_cur_sps)
         ps_dec->ps_cur_sps = ps_seq;
 
-    if((3 == ps_dec->i4_header_decoded) && (ps_seq->u1_profile_idc != u1_profile_idc))
+    if((ps_dec->i4_header_decoded & 1) && (ps_seq->u1_profile_idc != u1_profile_idc))
     {
         ps_dec->u1_res_changed = 1;
         return IVD_RES_CHANGED;
     }
 
-    if((3 == ps_dec->i4_header_decoded) && (ps_seq->u1_level_idc != u1_level_idc))
+    if((ps_dec->i4_header_decoded & 1) && (ps_seq->u1_level_idc != u1_level_idc))
     {
         ps_dec->u1_res_changed = 1;
         return IVD_RES_CHANGED;
@@ -747,7 +747,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     }
 
     /* Compare with older num_ref_frames is header is already once */
-    if((3 == ps_dec->i4_header_decoded) && (ps_seq->u1_num_ref_frames != u4_temp))
+    if((ps_dec->i4_header_decoded & 1) && (ps_seq->u1_num_ref_frames != u4_temp))
     {
         ps_dec->u1_res_changed = 1;
         return IVD_RES_CHANGED;
@@ -897,12 +897,12 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
             return ERROR_INV_SPS_PPS_T;
         }
 
-        if((3 == ps_dec->i4_header_decoded) && (ps_dec->u2_pic_wd != u2_pic_wd))
+        if((ps_dec->i4_header_decoded & 1) && (ps_dec->u2_pic_wd != u2_pic_wd))
         {
             ps_dec->u1_res_changed = 1;
             return IVD_RES_CHANGED;
         }
-        if((3 == ps_dec->i4_header_decoded) && (ps_dec->u2_pic_ht != u2_pic_ht))
+        if((ps_dec->i4_header_decoded & 1) && (ps_dec->u2_pic_ht != u2_pic_ht))
         {
             ps_dec->u1_res_changed = 1;
             return IVD_RES_CHANGED;
@@ -930,7 +930,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     }
 
     /* Backup u4_num_reorder_frames if header is already decoded */
-    if((3 == ps_dec->i4_header_decoded) &&
+    if((ps_dec->i4_header_decoded & 1) &&
                     (1 == ps_seq->u1_vui_parameters_present_flag) &&
                     (1 == ps_seq->s_vui.u1_bitstream_restriction_flag))
     {
@@ -948,7 +948,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     }
 
     /* Compare older u4_num_reorder_frames with the new one if header is already decoded */
-    if((3 == ps_dec->i4_header_decoded) &&
+    if((ps_dec->i4_header_decoded & 1) &&
                     (-1 != (WORD32)u4_num_reorder_frames) &&
                     (1 == ps_seq->u1_vui_parameters_present_flag) &&
                     (1 == ps_seq->s_vui.u1_bitstream_restriction_flag) &&
