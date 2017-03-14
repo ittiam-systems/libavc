@@ -1557,7 +1557,6 @@ WORD32 ih264d_decode_gaps_in_frame_num(dec_struct_t *ps_dec,
 
     ps_cur_slice = ps_dec->ps_cur_slice;
     ps_pic_params = ps_dec->ps_cur_pps;
-    ps_cur_slice->u1_field_pic_flag = 0;
 
     i4_frame_gaps = 0;
     ps_dpb_mgr = ps_dec->ps_dpb_mgr;
