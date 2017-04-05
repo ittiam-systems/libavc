@@ -291,6 +291,8 @@ WORD32 ih264d_insert_lt_node(dpb_manager_t *ps_dpb_mgr,
             ps_mov_node->s_bot_field.u1_reference_info = IS_LONG_TERM;
             ps_mov_node->s_top_field.u1_long_term_frame_idx = u4_lt_idx;
             ps_mov_node->s_bot_field.u1_long_term_frame_idx = u4_lt_idx;
+            u1_mark_bot_field_long_term = 1;
+            u1_mark_top_field_long_term = 1;
         }
 
         ps_mov_node->u1_lt_idx = u4_lt_idx; //Assign the LT index to the node
@@ -337,7 +339,7 @@ WORD32 ih264d_insert_lt_node(dpb_manager_t *ps_dpb_mgr,
         /* Increment LT buf count only if new LT node inserted    */
         /* If Increment during top_field is done, don't increment */
         /* for bottom field, as both them are part of same pic.   */
-        if(!u1_mark_bot_field_long_term)
+        if(u1_mark_bot_field_long_term)
             ps_dpb_mgr->u1_num_lt_ref_bufs++;
 
     }
