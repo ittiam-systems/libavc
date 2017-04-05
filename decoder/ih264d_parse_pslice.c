@@ -1456,7 +1456,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
     UWORD32 u1_inter_mb_type;
     UWORD32 u1_deblk_mb_type;
     UWORD16 u2_total_mbs_coded;
-    UWORD32 u1_mbaff = ps_slice->u1_mbaff_frame_flag;
+    UWORD32 u1_mbaff;
     parse_part_params_t *ps_part_info;
     WORD32 ret;
     UNUSED(u1_is_idr_slice);
@@ -1579,7 +1579,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
         {
             // Slice data corrupted
             // in the case of mbaff, conceal from the even mb.
-            if((u1_mbaff) && (ps_dec->u4_num_mbs_cur_nmb & 1))
+            if((ps_dec->ps_cur_slice->u1_mbaff_frame_flag) && (ps_dec->u4_num_mbs_cur_nmb & 1))
             {
                 ps_dec->u4_num_mbs_cur_nmb = ps_dec->u4_num_mbs_cur_nmb - 1;
                 ps_dec->u2_cur_mb_addr--;
@@ -1626,7 +1626,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
 
                 u1_num_mbs_next = i2_pic_wdin_mbs - ps_dec->u2_mbx - 1;
                 u1_end_of_row = (!u1_num_mbs_next)
-                        && (!(u1_mbaff && (u1_num_mbs & 0x01)));
+                        && (!(ps_dec->ps_cur_slice->u1_mbaff_frame_flag && (u1_num_mbs & 0x01)));
                 u1_slice_end = 1;
                 u1_tfr_n_mb = 1;
                 ps_cur_mb_info->u1_end_of_slice = u1_slice_end;
@@ -1699,7 +1699,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
         pu1_buf += size * ps_dec->u2_cur_slice_num;
         ps_dec->ps_parse_cur_slice->ppv_map_ref_idx_to_poc = (volatile void **)pu1_buf;
     }
-
+    u1_mbaff = ps_slice->u1_mbaff_frame_flag;
     ps_dec->ps_cur_slice->u2_first_mb_in_slice = ps_dec->u2_total_mbs_coded >> u1_mbaff;
     ps_dec->ps_cur_slice->i1_slice_alpha_c0_offset = 0;
     ps_dec->ps_cur_slice->i1_slice_beta_offset = 0;
