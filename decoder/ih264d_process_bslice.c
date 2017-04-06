@@ -1494,7 +1494,7 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
                 UWORD8 u1_i;
                 pic_buffer_t *ps_ref_pic;
 
-                ps_ref_pic = ps_dpb_mgr->ps_init_dpb[1][0] + MAX_REF_BUFS;
+                ps_ref_pic = ps_dpb_mgr->ps_init_dpb[0][0] + MAX_REF_BUFS;
 
                 if(NULL == ps_ref_pic->pu1_buf1)
                 {
@@ -1521,7 +1521,7 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
             UWORD8 u1_i;
             pic_buffer_t *ps_ref_pic;
 
-            ps_ref_pic = ps_dpb_mgr->ps_init_dpb[1][0];
+            ps_ref_pic = ps_dpb_mgr->ps_init_dpb[0][0];
 
             if(NULL == ps_ref_pic->pu1_buf1)
             {
