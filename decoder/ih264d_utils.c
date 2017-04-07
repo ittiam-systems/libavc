@@ -2171,6 +2171,12 @@ WORD16 ih264d_get_memory_dec_params(dec_struct_t * ps_dec)
                         * (ps_dec->u1_recon_mb_grp);
         u4_scratch_mem_used = ALIGN64(u4_scratch_mem_used);
 
+        {
+            UWORD32 u4_buff_size;
+            u4_buff_size = sizeof(parse_pmbarams_t) * (ps_dec->u1_recon_mb_grp);
+            memset(ps_dec->ps_parse_mb_data, 0 ,u4_buff_size);
+        }
+
         ps_dec->ps_parse_part_params = (void *)(pu1_scratch_mem_base
                         + u4_scratch_mem_used);
         u4_scratch_mem_used += sizeof(parse_part_params_t)
