@@ -2361,10 +2361,8 @@ WORD32 ih264d_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
         UWORD32 u4_num_entries;
         u4_num_entries = u4_total_num_mbs;
 
-        if(1 == num_ref_frames)
-            u4_num_entries *= 16;
-        else
-            u4_num_entries *= 16 * 2;
+
+        u4_num_entries *= 16 * 2;
 
         memTab[MEM_REC_PRED_INFO_PKD].u4_mem_size = sizeof(pred_info_pkd_t)
                         * u4_num_entries;
