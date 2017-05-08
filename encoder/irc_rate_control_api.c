@@ -756,6 +756,16 @@ void irc_update_frame_level_info(rate_control_api_t *ps_rate_control_api,
     {
         u1_is_scd = 0;
     }
+    /* For frames that contain plane areas that differ from reference frames, encoder
+     * might generate more INTRA MBs because of lower SAD compared with INTER MBs.
+     * Such cases should not be treated as scene change.
+     * For such frames bits consumed will be lesser than the allocated bits.
+     */
+    if(i4_total_frame_bits < ps_rate_control_api->i4_prev_frm_est_bits)
+    {
+        u1_is_scd = 0;
+    }
+
     trace_printf((const WORD8*)"i4_total_frame_bits %d\n", i4_total_frame_bits);
 
     if(!i4_is_it_a_skip && !i4_is_pic_handling_done)
