@@ -563,6 +563,23 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
 
     ps_seq = ps_dec->pv_scratch_sps_pps;
     *ps_seq = ps_dec->ps_sps[u1_seq_parameter_set_id];
+
+    if(NULL == ps_dec->ps_cur_sps)
+        ps_dec->ps_cur_sps = ps_seq;
+
+    if((ps_dec->i4_header_decoded & 1) && (ps_seq->u1_profile_idc != u1_profile_idc))
+    {
+        ps_dec->u1_res_changed = 1;
+        return IVD_RES_CHANGED;
+    }
+
+    if((ps_dec->i4_header_decoded & 1) && (ps_seq->u1_level_idc != u1_level_idc))
+    {
+        ps_dec->u1_res_changed = 1;
+        return IVD_RES_CHANGED;
+    }
+
+
     ps_seq->u1_profile_idc = u1_profile_idc;
     ps_seq->u1_level_idc = u1_level_idc;
     ps_seq->u1_seq_parameter_set_id = u1_seq_parameter_set_id;
@@ -729,6 +746,14 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     {
         return ERROR_NUM_REF;
     }
+
+    /* Compare with older num_ref_frames is header is already once */
+    if((ps_dec->i4_header_decoded & 1) && (ps_seq->u1_num_ref_frames != u4_temp))
+    {
+        ps_dec->u1_res_changed = 1;
+        return IVD_RES_CHANGED;
+    }
+
     ps_seq->u1_num_ref_frames = u4_temp;
 
     if(ps_seq->u1_num_ref_frames > ps_dec->u4_num_ref_frames_at_init)
@@ -922,12 +947,12 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
             return ERROR_INV_SPS_PPS_T;
         }
 
-        if((3 == ps_dec->i4_header_decoded) && (ps_dec->u2_pic_wd != u2_pic_wd))
+        if((ps_dec->i4_header_decoded & 1) && (ps_dec->u2_pic_wd != u2_pic_wd))
         {
             ps_dec->u1_res_changed = 1;
             return IVD_RES_CHANGED;
         }
-        if((3 == ps_dec->i4_header_decoded) && (ps_dec->u2_pic_ht != u2_pic_ht))
+        if((ps_dec->i4_header_decoded & 1) && (ps_dec->u2_pic_ht != u2_pic_ht))
         {
             ps_dec->u1_res_changed = 1;
             return IVD_RES_CHANGED;
@@ -960,6 +985,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
         if(ret != OK)
             return ret;
     }
+
 
     if(ps_dec->u4_level_at_init < u1_level_idc)
     {
