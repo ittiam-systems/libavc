@@ -361,11 +361,13 @@ WORD32 ih264d_parse_pps(dec_struct_t * ps_dec, dec_bit_stream_t * ps_bitstrm)
         }
 
         /* read second_chroma_qp_index_offset syntax element */
-        ps_pps->i1_second_chroma_qp_index_offset = ih264d_sev(
+        i_temp = ih264d_sev(
                         pu4_bitstrm_ofst, pu4_bitstrm_buf);
 
-        if((ps_pps->i1_second_chroma_qp_index_offset + 12) > 24)
+        if((i_temp < -12) || (i_temp > 12))
             return ERROR_INV_RANGE_QP_T;
+
+        ps_pps->i1_second_chroma_qp_index_offset = i_temp;
     }
 
     /* In case bitstream read has exceeded the filled size, then
