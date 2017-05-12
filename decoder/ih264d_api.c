@@ -2310,6 +2310,10 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                 ps_dec->u1_top_bottom_decoded |= TOP_FIELD_ONLY;
             }
         }
+        else
+        {
+                ps_dec->u1_top_bottom_decoded = TOP_FIELD_ONLY | BOT_FIELD_ONLY;
+        }
 
         /* if new frame in not found (if we are still getting slices from previous frame)
          * ih264d_deblock_display is not called. Such frames will not be added to reference /display
