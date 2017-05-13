@@ -1873,6 +1873,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     size = sizeof(parse_pmbarams_t) * (ps_dec->u1_recon_mb_grp);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_parse_mb_data = pv_buf;
 
     size = sizeof(parse_part_params_t)
