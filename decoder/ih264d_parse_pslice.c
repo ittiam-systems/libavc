@@ -1006,8 +1006,7 @@ WORD32 ih264d_parse_inter_slice_data_cabac(dec_struct_t * ps_dec,
         {
             ih264d_update_mbaff_left_nnz(ps_dec, ps_cur_mb_info);
         }
-        /* Next macroblock information */
-        i2_cur_mb_addr++;
+
 
         if(ps_cur_mb_info->u1_topmb && u1_mbaff)
             uc_more_data_flag = 1;
@@ -1019,6 +1018,15 @@ WORD32 ih264d_parse_inter_slice_data_cabac(dec_struct_t * ps_dec,
             COPYTHECONTEXT("Decode Sliceterm",!uc_more_data_flag);
         }
 
+        if(u1_mbaff)
+        {
+            if(!uc_more_data_flag && (0 == (i2_cur_mb_addr & 1)))
+            {
+                return ERROR_EOB_FLUSHBITS_T;
+            }
+        }
+        /* Next macroblock information */
+        i2_cur_mb_addr++;
         u1_num_mbs++;
         u1_num_mbsNby2++;
         ps_parse_mb_data++;
