@@ -1409,9 +1409,8 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     pu1_buf += size / 2;
     ps_dec->ps_dpb_mgr->ps_init_dpb[1][0] = (struct pic_buffer_t *)pu1_buf;
 
-    size = (sizeof(UWORD32) * 3
-                        * (MAX_FRAMES * MAX_FRAMES))
-                        << 3;
+    size = (sizeof(UWORD32) * 2 * 3
+                        * ((MAX_FRAMES << 1) * (MAX_FRAMES << 1)) * 2);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     ps_dec->pu4_mbaff_wt_mat = pv_buf;
