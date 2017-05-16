@@ -866,6 +866,8 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
             ps_cur_deblk_mb->u1_mb_qp = ps_dec->u1_qp;
         }
 
+        uc_more_data_flag = MORE_RBSP_DATA(ps_bitstrm);
+
         if(u1_mbaff)
         {
             ih264d_update_mbaff_left_nnz(ps_dec, ps_cur_mb_info);
@@ -879,7 +881,7 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
         /**************************************************************/
 
         i2_cur_mb_addr++;
-        uc_more_data_flag = MORE_RBSP_DATA(ps_bitstrm);
+
 
         /* Store the colocated information */
         {
@@ -1087,8 +1089,7 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
             {
                 ih264d_update_mbaff_left_nnz(ps_dec, ps_cur_mb_info);
             }
-            /* Next macroblock information */
-            i2_cur_mb_addr++;
+
 
             if(ps_cur_mb_info->u1_topmb && u1_mbaff)
                 uc_more_data_flag = 1;
@@ -1099,6 +1100,16 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
                 uc_more_data_flag = !uc_more_data_flag;
                 COPYTHECONTEXT("Decode Sliceterm",!uc_more_data_flag);
             }
+
+            if(u1_mbaff)
+            {
+                if(!uc_more_data_flag && (0 == (i2_cur_mb_addr & 1)))
+                {
+                    return ERROR_EOB_FLUSHBITS_T;
+                }
+            }
+            /* Next macroblock information */
+            i2_cur_mb_addr++;
             /* Store the colocated information */
             {
 
