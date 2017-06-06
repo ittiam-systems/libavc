@@ -1927,6 +1927,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ps_dec->u4_bs_deblk_thread_created = 0;
     ps_dec->u4_cur_bs_mb_num = 0;
     ps_dec->u4_start_recon_deblk  = 0;
+    ps_dec->u4_sps_cnt_in_process = 0;
 
     DEBUG_THREADS_PRINTF(" Starting process call\n");
 
