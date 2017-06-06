@@ -1154,6 +1154,16 @@ WORD32 ih264d_parse_nal_unit(iv_obj_t *dec_hdl,
                     /* ! */
                     ih264d_rbsp_to_sodb(ps_dec->ps_bitstrm);
                     i_status = ih264d_parse_sps(ps_dec, ps_bitstrm);
+                    ps_dec->u4_sps_cnt_in_process++;
+                    /*If a resolution change happens within a process call, due to multiple sps
+                     * we will not support it.
+                     */
+                    if((ps_dec->u4_sps_cnt_in_process > 1 ) &&
+                                    (i_status == IVD_RES_CHANGED))
+                    {
+                        i_status = ERROR_INV_SPS_PPS_T;
+                        ps_dec->u1_res_changed = 0;
+                    }
                     if(i_status == ERROR_INV_SPS_PPS_T)
                         return i_status;
                     if(!i_status)

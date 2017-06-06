@@ -1249,6 +1249,7 @@ typedef struct _DecStruct
     UWORD32 u4_cur_bs_mb_num;
     UWORD32 u4_bs_cur_slice_num_mbs;
     UWORD32 u4_cur_deblk_mb_num;
+    UWORD32 u4_sps_cnt_in_process;
     volatile UWORD16 u2_cur_slice_num_bs;
 
     UWORD32 u4_deblk_mb_x;
