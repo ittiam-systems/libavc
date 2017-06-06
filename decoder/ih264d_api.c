@@ -1002,7 +1002,6 @@ void ih264d_init_decoder(void * ps_dec_params)
     ps_dec->ps_cur_sps = NULL;
     ps_dec->u1_init_dec_flag = 0;
     ps_dec->u1_first_slice_in_stream = 1;
-    ps_dec->u1_first_pb_nal_in_pic = 1;
     ps_dec->u1_last_pic_not_decoded = 0;
     ps_dec->u4_app_disp_width = 0;
     ps_dec->i4_header_decoded = 0;
@@ -1919,7 +1918,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ps_dec->cur_dec_mb_num = 0;
     ps_dec->cur_recon_mb_num = 0;
     ps_dec->u4_first_slice_in_pic = 1;
-    ps_dec->u1_first_pb_nal_in_pic = 1;
     ps_dec->u1_slice_header_done = 0;
     ps_dec->u1_dangling_field = 0;
 
