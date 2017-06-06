@@ -284,10 +284,8 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
 
     {
         dec_err_status_t * ps_err = ps_dec->ps_dec_err_status;
-        if(ps_dec->u1_sl_typ_5_9
-                        && ((ps_cur_slice->u1_slice_type == I_SLICE)
-                                        || (ps_cur_slice->u1_slice_type
-                                                        == SI_SLICE)))
+        if((ps_cur_slice->u1_slice_type == I_SLICE)
+                        || (ps_cur_slice->u1_slice_type == SI_SLICE))
             ps_err->u1_cur_pic_type = PIC_TYPE_I;
         else
             ps_err->u1_cur_pic_type = PIC_TYPE_UNKNOWN;
@@ -1034,14 +1032,12 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
 
     u1_slice_type = u4_temp;
     COPYTHECONTEXT("SH: slice_type",(u1_slice_type));
-    ps_dec->u1_sl_typ_5_9 = 0;
     /* Find Out the Slice Type is 5 to 9 or not then Set the Flag   */
     /* u1_sl_typ_5_9 = 1 .Which tells that all the slices in the Pic*/
     /* will be of same type of current                            */
     if(u1_slice_type > 4)
     {
         u1_slice_type -= 5;
-        ps_dec->u1_sl_typ_5_9 = 1;
     }
 
     {
