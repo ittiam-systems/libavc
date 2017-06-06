@@ -1289,11 +1289,22 @@ WORD32 ih264d_do_mmco_buffer(dpb_commands_t *ps_dpb_cmds,
                                           u4_cur_pic_num);
                     if(ret != OK)
                         return ret;
-                    ret = ih264d_delete_st_node_or_make_lt(ps_dpb_mgr,
-                                                     u4_cur_pic_num, u4_lt_idx,
-                                                     u1_fld_pic_flag);
-                    if(ret != OK)
-                        return ret;
+
+                    if(ps_dpb_mgr->u1_num_st_ref_bufs > 0)
+
+                    {
+                        ret = ih264d_delete_st_node_or_make_lt(ps_dpb_mgr,
+                                                               u4_cur_pic_num,
+                                                               u4_lt_idx,
+                                                               u1_fld_pic_flag);
+                        if(ret != OK)
+                            return ret;
+                    }
+                    else
+                    {
+                        return ERROR_DBP_MANAGER_T;
+                    }
+
                     u1_marked_lt = 1;
                     break;
                 }
