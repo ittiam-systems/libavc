@@ -1405,22 +1405,9 @@ WORD32 ih264d_parse_bslice(dec_struct_t * ps_dec, UWORD16 u2_first_mb_in_slice)
         ps_slice->u1_num_ref_idx_lx_active[0] = u4_temp;
         ps_slice->u1_num_ref_idx_lx_active[1] = ui_temp1;
     }
-    /* Initialize the Reference list once in Picture if the slice type    */
-    /* of first slice is between 5 to 9 defined in table 7.3 of standard  */
-    /* If picture contains both P & B slices then Initialize the Reference*/
-    /* List only when it switches from P to B and B to P                     */
 
-    {
-        UWORD8 init_idx_flg = (ps_dec->u1_pr_sl_type
-                        != ps_dec->ps_cur_slice->u1_slice_type);
-        if(ps_dec->u1_first_pb_nal_in_pic
-                        || (init_idx_flg & !ps_dec->u1_sl_typ_5_9)
-                        || ps_dec->u1_num_ref_idx_lx_active_prev
-                                        != ps_dec->ps_cur_slice->u1_num_ref_idx_lx_active[0])
-            ih264d_init_ref_idx_lx_b(ps_dec);
-        if(ps_dec->u1_first_pb_nal_in_pic & ps_dec->u1_sl_typ_5_9)
-            ps_dec->u1_first_pb_nal_in_pic = 0;
-    }
+
+    ih264d_init_ref_idx_lx_b(ps_dec);
     /* Store the value for future slices in the same picture */
     ps_dec->u1_num_ref_idx_lx_active_prev =
                     ps_dec->ps_cur_slice->u1_num_ref_idx_lx_active[0];
