@@ -564,7 +564,10 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     /*--------------------------------------------------------------------*/
 
     ps_seq = ps_dec->pv_scratch_sps_pps;
-    *ps_seq = ps_dec->ps_sps[u1_seq_parameter_set_id];
+    if(ps_dec->i4_header_decoded & 1)
+    {
+        *ps_seq = *ps_dec->ps_cur_sps;
+    }
 
 
     if((ps_dec->i4_header_decoded & 1) && (ps_seq->u1_profile_idc != u1_profile_idc))
