@@ -72,6 +72,7 @@
 #include "ih264d_parse_islice.h"
 #define RET_LAST_SKIP  0x80000000
 
+WORD32 check_app_out_buf_size(dec_struct_t *ps_dec);
 /*!
  **************************************************************************
  * \if Function name : ih264d_form_pred_weight_matrix \endif
@@ -180,6 +181,10 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
     WORD32 ret;
 
     H264_MUTEX_LOCK(&ps_dec->process_disp_mutex);
+
+    /* check output buffer size given by the application */
+    if(check_app_out_buf_size(ps_dec) != IV_SUCCESS)
+        return IVD_DISP_FRM_ZERO_OP_BUF_SIZE;
 
     ps_prev_poc->i4_pic_order_cnt_lsb = ps_cur_poc->i4_pic_order_cnt_lsb;
     ps_prev_poc->i4_pic_order_cnt_msb = ps_cur_poc->i4_pic_order_cnt_msb;
