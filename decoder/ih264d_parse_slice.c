@@ -441,11 +441,23 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
         ps_dec->au1_pic_buf_ref_flag[cur_pic_buf_id] = 0;
 
         {
-            /*make first entry of list0 point to cur pic,so that if first Islice is in error, ref pic struct will have valid entries*/
+            /*make first entry of list0 and list1 point to cur pic,
+             *so that if first slice is in error, ref pic struct will have valid entries*/
             ps_dec->ps_ref_pic_buf_lx[0] = ps_dec->ps_dpb_mgr->ps_init_dpb[0];
+            ps_dec->ps_ref_pic_buf_lx[1] = ps_dec->ps_dpb_mgr->ps_init_dpb[1];
             *(ps_dec->ps_dpb_mgr->ps_init_dpb[0][0]) = *ps_cur_pic;
             /* Initialize for field reference as well */
             *(ps_dec->ps_dpb_mgr->ps_init_dpb[0][MAX_REF_BUFS]) = *ps_cur_pic;
+
+            *(ps_dec->ps_dpb_mgr->ps_mod_dpb[0][0]) = *ps_cur_pic;
+            /* Initialize for field reference as well */
+            *(ps_dec->ps_dpb_mgr->ps_mod_dpb[0][MAX_REF_BUFS]) = *ps_cur_pic;
+            *(ps_dec->ps_dpb_mgr->ps_init_dpb[1][0]) = *ps_cur_pic;
+            /* Initialize for field reference as well */
+            *(ps_dec->ps_dpb_mgr->ps_init_dpb[1][MAX_REF_BUFS]) = *ps_cur_pic;
+            *(ps_dec->ps_dpb_mgr->ps_mod_dpb[1][0]) = *ps_cur_pic;
+            /* Initialize for field reference as well */
+            *(ps_dec->ps_dpb_mgr->ps_mod_dpb[1][MAX_REF_BUFS]) = *ps_cur_pic;
         }
 
         if(!ps_dec->ps_cur_pic)
