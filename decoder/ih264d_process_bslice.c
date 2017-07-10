@@ -1212,7 +1212,8 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
     struct dpb_info_t *ps_next_dpb;
     WORD32 i_cur_poc, i_max_st_poc, i_min_st_poc, i_ref_poc, i_temp_poc;
     WORD8 i;
-    UWORD8 u1_max_lt_index, u1_min_lt_index, u1_lt_index;
+    UWORD8 u1_max_lt_index, u1_min_lt_index;
+    UWORD32 u4_lt_index;
     UWORD8 u1_field_pic_flag;
     dec_slice_params_t *ps_cur_slice;
     UWORD8 u1_L0, u1_L1;
@@ -1264,9 +1265,9 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
     }
     for(i = 0; i < ps_dpb_mgr->u1_num_lt_ref_bufs; i++)
     {
-        u1_lt_index = ps_next_dpb->u1_lt_idx;
-        u1_max_lt_index = (UWORD8)(MAX(u1_max_lt_index, u1_lt_index));
-        u1_min_lt_index = (UWORD8)(MIN(u1_min_lt_index, u1_lt_index));
+        u4_lt_index = ps_next_dpb->u1_lt_idx;
+        u1_max_lt_index = (UWORD8)(MAX(u1_max_lt_index, u4_lt_index));
+        u1_min_lt_index = (UWORD8)(MIN(u1_min_lt_index, u4_lt_index));
 
         /* Chase the next link */
         ps_next_dpb = ps_next_dpb->ps_prev_long;
@@ -1333,12 +1334,12 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
     /* Start from ST head */
 
     u1_num_short_term_bufs = u1_L0;
-    for(u1_lt_index = u1_min_lt_index; u1_lt_index <= u1_max_lt_index; u1_lt_index++)
+    for(u4_lt_index = u1_min_lt_index; u4_lt_index <= u1_max_lt_index; u4_lt_index++)
     {
         ps_next_dpb = ps_dpb_mgr->ps_dpb_ht_head;
         for(i = 0; i < ps_dpb_mgr->u1_num_lt_ref_bufs; i++)
         {
-            if(ps_next_dpb->u1_lt_idx == u1_lt_index)
+            if(ps_next_dpb->u1_lt_idx == u4_lt_index)
             {
                 ih264d_insert_pic_in_ref_pic_listx(ps_ref_pic_buf_lx,
                                                    ps_next_dpb->ps_pic_buf);
@@ -1466,13 +1467,13 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
         /* Start from ST head */
         u1_num_short_term_bufs = u1_L1;
 
-        for(u1_lt_index = u1_min_lt_index; u1_lt_index <= u1_max_lt_index;
-                        u1_lt_index++)
+        for(u4_lt_index = u1_min_lt_index; u4_lt_index <= u1_max_lt_index;
+                        u4_lt_index++)
         {
             ps_next_dpb = ps_dpb_mgr->ps_dpb_ht_head;
             for(i = 0; i < ps_dpb_mgr->u1_num_lt_ref_bufs; i++)
             {
-                if(ps_next_dpb->u1_lt_idx == u1_lt_index)
+                if(ps_next_dpb->u1_lt_idx == u4_lt_index)
                 {
                     ih264d_insert_pic_in_ref_pic_listx(ps_ref_pic_buf_lx,
                                                        ps_next_dpb->ps_pic_buf);
