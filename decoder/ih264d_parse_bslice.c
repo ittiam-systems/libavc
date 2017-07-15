@@ -1531,10 +1531,7 @@ WORD32 ih264d_parse_bslice(dec_struct_t * ps_dec, UWORD16 u2_first_mb_in_slice)
             }
 
             num_entries = ((2 * num_entries) + 1);
-            if(BASE_PROFILE_IDC != ps_dec->ps_cur_sps->u1_profile_idc)
-            {
-                num_entries *= 2;
-            }
+            num_entries *= 2;
 
             size = num_entries * sizeof(void *);
             size += PAD_MAP_IDX_POC * sizeof(void *);
