@@ -917,7 +917,9 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
         }
 
         /* Check for unsupported resolutions */
-        if((u2_pic_wd > H264_MAX_FRAME_WIDTH) || (u2_pic_ht > H264_MAX_FRAME_HEIGHT))
+        if((u2_pic_wd > H264_MAX_FRAME_WIDTH) || (u2_pic_ht > H264_MAX_FRAME_HEIGHT)
+                || (u2_pic_wd < H264_MIN_FRAME_WIDTH) || (u2_pic_ht < H264_MIN_FRAME_HEIGHT)
+                || (u2_pic_wd * (UWORD32)u2_pic_ht > H264_MAX_FRAME_SIZE))
         {
             return IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED;
         }

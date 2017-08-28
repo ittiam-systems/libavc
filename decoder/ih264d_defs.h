@@ -34,8 +34,9 @@
  *
  ************************************************************************
  */
-#define H264_MAX_FRAME_WIDTH                3840
-#define H264_MAX_FRAME_HEIGHT               2176
+#define H264_MAX_FRAME_WIDTH                4096
+#define H264_MAX_FRAME_HEIGHT               4096
+#define H264_MAX_FRAME_SIZE                 (4096 * 2048)
 
 #define H264_MIN_FRAME_WIDTH                16
 #define H264_MIN_FRAME_HEIGHT               16
