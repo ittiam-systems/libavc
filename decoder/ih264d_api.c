@@ -1804,7 +1804,8 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                     && ps_dec->i4_decode_header == 0)
     {
         UWORD32 i;
-        if(ps_dec->ps_out_buffer->u4_num_bufs == 0)
+        if((ps_dec->ps_out_buffer->u4_num_bufs == 0) ||
+           (ps_dec->ps_out_buffer->u4_num_bufs > IVD_VIDDEC_MAX_IO_BUFFERS))
         {
             ps_dec_op->u4_error_code |= 1 << IVD_UNSUPPORTEDPARAM;
             ps_dec_op->u4_error_code |= IVD_DISP_FRM_ZERO_OP_BUFS;
