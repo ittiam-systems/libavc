@@ -1961,7 +1961,7 @@ WORD32 ih264d_parse_pslice(dec_struct_t *ps_dec, UWORD16 u2_first_mb_in_slice)
 
 
         UWORD8 u1_max_ref_idx = MAX_FRAMES << u1_field_pic_flag;
-        if(u4_temp > u1_max_ref_idx)
+        if(u4_temp > u1_max_ref_idx || u4_temp < 1)
         {
             return ERROR_NUM_REF;
         }
