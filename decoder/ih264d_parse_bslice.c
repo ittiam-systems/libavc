@@ -1399,7 +1399,8 @@ WORD32 ih264d_parse_bslice(dec_struct_t * ps_dec, UWORD16 u2_first_mb_in_slice)
         {
             u1_max_ref_idx = MAX_FRAMES << 1;
         }
-        if((u4_temp > u1_max_ref_idx) || (ui_temp1 > u1_max_ref_idx))
+        if((u4_temp > u1_max_ref_idx) || (ui_temp1 > u1_max_ref_idx)
+                        || (u4_temp < 1) || (ui_temp1 < 1))
         {
             return ERROR_NUM_REF;
         }
