@@ -79,7 +79,7 @@ cc_library_static {
                 "-DDEFAULT_ARCH=D_ARCH_ARM_NONEON",
             ],
 
-            armv7_a_neon: {
+            neon: {
                 srcs: [
                     "decoder/arm/ih264d_function_selector_a9q.c",
                     "common/arm/ih264_intra_pred_chroma_a9q.s",
@@ -326,7 +326,7 @@ cc_library_static {
                 "-DDISABLE_NEON",
             ],
 
-            armv7_a_neon: {
+            neon: {
                 srcs: [
                     "encoder/arm/ih264e_function_selector_a9q.c",
                     "common/arm/ih264_resi_trans_quant_a9.s",
