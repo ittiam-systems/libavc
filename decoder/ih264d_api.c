@@ -2197,9 +2197,10 @@ WORD32 ih264d_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
         u4_mem_size = ALIGN64(u4_mem_size);
         u4_mem_size += sizeof(UWORD8) * (MB_LUM_SIZE);
         u4_mem_size = ALIGN64(u4_mem_size);
-        u4_mem_size += sizeof(parse_pmbarams_t) * luma_width_in_mbs; //Max recon mb group*/
+        u4_mem_size += sizeof(parse_pmbarams_t) * luma_width_in_mbs * 2; /*Max recon mb group*/
         u4_mem_size = ALIGN64(u4_mem_size);
-        u4_mem_size += (sizeof(parse_part_params_t) * luma_width_in_mbs) << 4; //Max recon mb group*/
+        u4_mem_size += (sizeof(parse_part_params_t) * luma_width_in_mbs * 2)
+                        << 4; /*Max recon mb group*/
         u4_mem_size = ALIGN64(u4_mem_size);
 
         u4_mem_size += 2 * MAX_REF_BUFS * sizeof(struct pic_buffer_t);
@@ -2224,7 +2225,7 @@ WORD32 ih264d_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
 
         UWORD32 u4_mem_used;
         UWORD32 u4_numRows = MB_SIZE << 1;
-        UWORD32 u4_blk_wd = ((luma_width_in_mbs << 4) >> 1) + 8;
+        UWORD32 u4_blk_wd = (((luma_width_in_mbs * 2) << 4) >> 1) + 8;
 
         u4_mem_used = 0;
         u4_mem_used += ((luma_width_in_mbs * sizeof(deblkmb_neighbour_t)) << 1);
@@ -2235,11 +2236,11 @@ WORD32 ih264d_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
                         * (((luma_width_in_mbs + 1) << 1) + 1));
         u4_mem_used = ALIGN64(u4_mem_used);
 
-        u4_mem_used += (sizeof(mv_pred_t) * luma_width_in_mbs * 16);
+        u4_mem_used += (sizeof(mv_pred_t) * luma_width_in_mbs * 2 * 16);
         u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += (sizeof(mv_pred_t) * luma_width_in_mbs * 16);
+        u4_mem_used += (sizeof(mv_pred_t) * luma_width_in_mbs * 2 * 16);
         u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += (sizeof(mv_pred_t) * luma_width_in_mbs * 4
+        u4_mem_used += (sizeof(mv_pred_t) * luma_width_in_mbs * 2 * 4
                         * MV_SCRATCH_BUFS);
         u4_mem_used = ALIGN64(u4_mem_used);
         u4_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
@@ -2248,7 +2249,7 @@ WORD32 ih264d_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
         u4_mem_used = ALIGN64(u4_mem_used);
         u4_numRows = BLK8x8SIZE << 1;
 
-        u4_blk_wd = ((luma_width_in_mbs << 3) >> 1) + 8;
+        u4_blk_wd = (((luma_width_in_mbs * 2) << 3) >> 1) + 8;
 
         u4_mem_used += sizeof(UWORD8) * u4_numRows * u4_blk_wd;
         u4_mem_used = ALIGN64(u4_mem_used);
@@ -2267,11 +2268,11 @@ WORD32 ih264d_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
         u4_mem_used = ALIGN64(u4_mem_used);
         u4_mem_used += sizeof(mb_neigbour_params_t) * (luma_width_in_mbs + 1)
                         * luma_height_in_mbs;
-        u4_mem_used += luma_width;
+        u4_mem_used += luma_width + (PAD_LEN_Y_H << 1);
         u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += luma_width;
+        u4_mem_used += luma_width + (PAD_LEN_UV_H << 2);
         u4_mem_used = ALIGN64(u4_mem_used);
-        u4_mem_used += luma_width;
+        u4_mem_used += luma_width + (PAD_LEN_UV_H << 2);
         u4_mem_used = ALIGN64(u4_mem_used);
 
         u4_mem_used += ((MB_SIZE + 4) << 1) * PAD_LEN_Y_H;
