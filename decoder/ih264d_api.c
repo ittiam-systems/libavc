@@ -3713,7 +3713,6 @@ WORD32 ih264d_set_flush_mode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op
 
     dec_struct_t * ps_dec;
     ivd_ctl_flush_op_t *ps_ctl_op = (ivd_ctl_flush_op_t*)pv_api_op;
-    ps_ctl_op->u4_error_code = 0;
 
     ps_dec = (dec_struct_t *)(dec_hdl->pv_codec_handle);
     UNUSED(pv_api_ip);
@@ -3729,8 +3728,7 @@ WORD32 ih264d_set_flush_mode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op
     ih264d_release_display_bufs(ps_dec);
     }
 
-    ps_ctl_op->u4_error_code =
-                    ((ivd_ctl_flush_op_t*)ps_dec->pv_dec_out)->u4_error_code; //verify the value
+    ps_ctl_op->u4_error_code = 0;
 
     return IV_SUCCESS;
 
