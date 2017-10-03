@@ -1382,9 +1382,8 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         if(ps_dec->u1_dangling_field == 1)
         {
             ps_dec->u1_second_field = 1 - ps_dec->u1_second_field;
-            ps_cur_slice->u1_bottom_field_flag = u1_bottom_field_flag;
-            ps_dec->u2_prv_frame_num = u2_frame_num;
             ps_dec->u1_first_slice_in_stream = 0;
+            ps_dec->u1_top_bottom_decoded = TOP_FIELD_ONLY | BOT_FIELD_ONLY;
             return ERROR_DANGLING_FIELD_IN_PIC;
         }
 
