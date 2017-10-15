@@ -6,6 +6,9 @@ cc_library_static {
     cflags: [
         "-fPIC",
         "-O3",
+        "-Wall",
+        "-Werror",
+        "-Wno-unused-variable",
     ],
 
     export_include_dirs: [
@@ -242,6 +245,9 @@ cc_library_static {
         "-fPIC",
 
         "-O3",
+        "-Wall",
+        "-Werror",
+        "-Wno-error=constant-conversion",
     ],
 
     export_include_dirs: [

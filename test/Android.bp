@@ -7,6 +7,8 @@ cc_test {
         "-DARM",
         "-DMD5_DISABLE",
         "-fPIC",
+        "-Wall",
+        "-Werror",
     ],
     local_include_dirs: [
         "decoder/",
@@ -26,6 +28,9 @@ cc_test {
         "-DMD5_DISABLE",
         "-fPIC",
         "-pie",
+        "-Wall",
+        "-Werror",
+        "-Wno-unused-variable",
     ],
     local_include_dirs: [
         "encoder/",
