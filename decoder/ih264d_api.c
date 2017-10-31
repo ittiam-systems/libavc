@@ -2044,7 +2044,8 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             void *pv_buf;
             void *pv_mem_ctxt = ps_dec->pv_mem_ctxt;
             size = MAX(256000, ps_dec->u2_pic_wd * ps_dec->u2_pic_ht * 3 / 2);
-            pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+            pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128,
+                                              size + EXTRA_BS_OFFSET);
             RETURN_IF((NULL == pv_buf), IV_FAIL);
             ps_dec->pu1_bits_buf_dynamic = pv_buf;
             ps_dec->u4_dynamic_bits_buf_size = size;
