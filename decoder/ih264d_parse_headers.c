@@ -479,7 +479,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
 {
     UWORD8 i;
     dec_seq_params_t *ps_seq = NULL;
-    UWORD8 u1_profile_idc, u1_level_idc, u1_seq_parameter_set_id;
+    UWORD8 u1_profile_idc, u1_level_idc, u1_seq_parameter_set_id, u1_mb_aff_flag = 0;
     UWORD16 i2_max_frm_num;
     UWORD32 *pu4_bitstrm_buf = ps_bitstrm->pu4_buffer;
     UWORD32 *pu4_bitstrm_ofst = &ps_bitstrm->u4_ofst;
@@ -796,9 +796,19 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     COPYTHECONTEXT("SPS: frame_mbs_only_flag", u1_frm);
 
     if(!u1_frm)
+        u1_mb_aff_flag = ih264d_get_bit_h264(ps_bitstrm);
+
+    if((ps_dec->i4_header_decoded & 1)
+                    && (ps_seq->u1_mb_aff_flag != u1_mb_aff_flag))
+    {
+        ps_dec->u1_res_changed = 1;
+        return IVD_RES_CHANGED;
+    }
+
+    if(!u1_frm)
     {
         u2_pic_ht <<= 1;
-        ps_seq->u1_mb_aff_flag = ih264d_get_bit_h264(ps_bitstrm);
+        ps_seq->u1_mb_aff_flag = u1_mb_aff_flag;
         COPYTHECONTEXT("SPS: mb_adaptive_frame_field_flag",
                         ps_seq->u1_mb_aff_flag);
 
