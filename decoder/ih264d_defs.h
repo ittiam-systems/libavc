@@ -107,6 +107,9 @@
 /* For 420SP */
 #define YUV420SP_FACTOR 2
 
+/*To prevent buffer overflow access; in case the size of nal unit is
+ *  greater than the allocated buffer size*/
+#define EXTRA_BS_OFFSET 16*16*2
 
 /**
  ***************************************************************************
