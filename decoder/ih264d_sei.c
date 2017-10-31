@@ -336,7 +336,7 @@ WORD32 ih264d_parse_sei_message(dec_struct_t *ps_dec,
         ui4_payload_type = 0;
 
         u4_bits = ih264d_get_bits_h264(ps_bitstrm, 8);
-        while(0xff == u4_bits)
+        while(0xff == u4_bits && !EXCEED_OFFSET(ps_bitstrm))
         {
             u4_bits = ih264d_get_bits_h264(ps_bitstrm, 8);
             ui4_payload_type += 255;
@@ -345,7 +345,7 @@ WORD32 ih264d_parse_sei_message(dec_struct_t *ps_dec,
 
         ui4_payload_size = 0;
         u4_bits = ih264d_get_bits_h264(ps_bitstrm, 8);
-        while(0xff == u4_bits)
+        while(0xff == u4_bits && !EXCEED_OFFSET(ps_bitstrm))
         {
             u4_bits = ih264d_get_bits_h264(ps_bitstrm, 8);
             ui4_payload_size += 255;
@@ -370,7 +370,8 @@ WORD32 ih264d_parse_sei_message(dec_struct_t *ps_dec,
             {
                 H264_DEC_DEBUG_PRINT("\nError in parsing SEI message");
             }
-            while(0 == ih264d_check_byte_aligned(ps_bitstrm))
+            while(0 == ih264d_check_byte_aligned(ps_bitstrm)
+                            && !EXCEED_OFFSET(ps_bitstrm))
             {
                 u4_bits = ih264d_get_bit_h264(ps_bitstrm);
                 if(u4_bits)
