@@ -2290,7 +2290,9 @@ WORD32 ih264d_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
 
     memTab[MEM_REC_BITSBUF].u4_mem_alignment = (128 * 8) / CHAR_BIT;
     memTab[MEM_REC_BITSBUF].e_mem_type = IV_EXTERNAL_CACHEABLE_PERSISTENT_MEM;
-    memTab[MEM_REC_BITSBUF].u4_mem_size = MAX(256000, (luma_width * luma_height * 3 / 2));
+    memTab[MEM_REC_BITSBUF].u4_mem_size = MAX(
+                    256000,
+                    (luma_width * luma_height * 3 / 2)) + EXTRA_BS_OFFSET;
 
     {
 
@@ -2994,7 +2996,9 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         /* Ignore bytes beyond the allocated size of intermediate buffer */
         /* Since 8 bytes are read ahead, ensure 8 bytes are free at the
         end of the buffer, which will be memset to 0 after emulation prevention */
-        buflen = MIN(buflen, (WORD32)(ps_dec->ps_mem_tab[MEM_REC_BITSBUF].u4_mem_size - 8));
+        buflen = MIN(buflen,
+                     (WORD32)(ps_dec->ps_mem_tab[MEM_REC_BITSBUF].u4_mem_size
+                                     - 8 - EXTRA_BS_OFFSET));
 
         bytes_consumed = buflen + u4_length_of_start_code;
         ps_dec_op->u4_num_bytes_consumed += bytes_consumed;
