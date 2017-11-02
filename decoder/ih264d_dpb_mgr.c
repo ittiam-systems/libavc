@@ -842,7 +842,7 @@ WORD32 ih264d_ref_idx_reordering(dec_struct_t *ps_dec, UWORD8 uc_lx)
 WORD32 ih264d_read_mmco_commands(struct _DecStruct * ps_dec)
 {
     dec_bit_stream_t *ps_bitstrm = ps_dec->ps_bitstrm;
-    dpb_commands_t *ps_dpb_cmds = ps_dec->ps_dpb_cmds;
+    dpb_commands_t *ps_dpb_cmds = &(ps_dec->s_dpb_cmds_scratch);
     dec_slice_params_t * ps_slice = ps_dec->ps_cur_slice;
     WORD32 j;
     UWORD8 u1_buf_mode;
