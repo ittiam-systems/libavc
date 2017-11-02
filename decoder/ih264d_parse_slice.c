@@ -1858,6 +1858,15 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
     if(ret != OK)
         return ret;
 
+    if(u1_nal_ref_idc != 0)
+    {
+        if(!ps_dec->ps_dpb_cmds->u1_dpb_commands_read)
+        {
+            memcpy((void *)ps_dec->ps_dpb_cmds, (void *)(&(ps_dec->s_dpb_cmds_scratch)),
+                   sizeof(dpb_commands_t));
+        }
+    }
+
     /* storing last Mb X and MbY of the slice */
     ps_dec->i2_prev_slice_mbx = ps_dec->u2_mbx;
     ps_dec->i2_prev_slice_mby = ps_dec->u2_mby;
