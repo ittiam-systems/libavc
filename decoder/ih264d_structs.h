@@ -968,6 +968,7 @@ typedef struct _DecStruct
     /* Variables for Decode Buffer Management */
     dpb_manager_t *ps_dpb_mgr;
     dpb_commands_t *ps_dpb_cmds;
+    dpb_commands_t s_dpb_cmds_scratch;
 
     /* Variables Required for N MB design */
     dec_mb_info_t *ps_nmb_info;
