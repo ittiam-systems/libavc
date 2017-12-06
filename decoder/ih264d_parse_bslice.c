@@ -1197,7 +1197,8 @@ void ih264d_get_implicit_weights(dec_struct_t *ps_dec)
     struct pic_buffer_t *ps_pic_buff0, *ps_pic_buff1;
     WORD16 i2_dist_scale_factor;
     WORD16 i16_tb, i16_td, i16_tx;
-    UWORD32 u4_poc0, u4_poc1;
+    WORD32 i4_tb, i4_td;
+    WORD32 i4_poc0, i4_poc1;
     UWORD32 ui_temp0, ui_temp1;
     UWORD8 uc_num_ref_idx_l0_active, uc_num_ref_idx_l1_active;
 
@@ -1210,18 +1211,18 @@ void ih264d_get_implicit_weights(dec_struct_t *ps_dec)
     for(i = 0; i < uc_num_ref_idx_l0_active; i++)
     {
         ps_pic_buff0 = ps_dec->ps_ref_pic_buf_lx[0][i];
-        u4_poc0 = ps_pic_buff0->i4_avg_poc;
+        i4_poc0 = ps_pic_buff0->i4_avg_poc;
         for(j = 0; j < uc_num_ref_idx_l1_active; j++)
         {
             ps_pic_buff1 = ps_dec->ps_ref_pic_buf_lx[1][j];
-            u4_poc1 = ps_pic_buff1->i4_avg_poc;
+            i4_poc1 = ps_pic_buff1->i4_avg_poc;
 
-            if(u4_poc1 != u4_poc0)
+            if(i4_poc1 != i4_poc0)
             {
-                i16_tb = ps_dec->ps_cur_pic->i4_poc - u4_poc0;
-                i16_tb = CLIP3(-128, 127, i16_tb);
-                i16_td = u4_poc1 - u4_poc0;
-                i16_td = CLIP3(-128, 127, i16_td);
+                i4_tb = ps_dec->ps_cur_pic->i4_poc - i4_poc0;
+                i16_tb = CLIP3(-128, 127, i4_tb);
+                i4_td = i4_poc1 - i4_poc0;
+                i16_td = CLIP3(-128, 127, i4_td);
                 i16_tx = (16384 + ABS(SIGN_POW2_DIV(i16_td, 1))) / i16_td;
                 i2_dist_scale_factor = CLIP3(-1024, 1023,
                                             (((i16_tb * i16_tx) + 32) >> 6));
@@ -1272,7 +1273,7 @@ void ih264d_get_implicit_weights(dec_struct_t *ps_dec)
                     u2_l0_idx += MAX_REF_BUFS;
                 }
                 ps_pic_buff0 = ps_dec->ps_ref_pic_buf_lx[0][u2_l0_idx];
-                u4_poc0 = ps_pic_buff0->i4_poc;
+                i4_poc0 = ps_pic_buff0->i4_poc;
                 for(j = 0; j < (uc_num_ref_idx_l1_active << 1); j++)
                 {
                     UWORD16 u2_l1_idx;
@@ -1285,13 +1286,13 @@ void ih264d_get_implicit_weights(dec_struct_t *ps_dec)
                         u2_l1_idx += MAX_REF_BUFS;
                     }
                     ps_pic_buff1 = ps_dec->ps_ref_pic_buf_lx[1][u2_l1_idx];
-                    u4_poc1 = ps_pic_buff1->i4_poc;
-                    if(u4_poc1 != u4_poc0)
+                    i4_poc1 = ps_pic_buff1->i4_poc;
+                    if(i4_poc1 != i4_poc0)
                     {
-                        i16_tb = i4_cur_poc - u4_poc0;
-                        i16_tb = CLIP3(-128, 127, i16_tb);
-                        i16_td = u4_poc1 - u4_poc0;
-                        i16_td = CLIP3(-128, 127, i16_td);
+                        i4_tb = i4_cur_poc - i4_poc0;
+                        i16_tb = CLIP3(-128, 127, i4_tb);
+                        i4_td = i4_poc1 - i4_poc0;
+                        i16_td = CLIP3(-128, 127, i4_td);
                         i16_tx = (16384 + ABS(SIGN_POW2_DIV(i16_td, 1)))
                                         / i16_td;
                         i2_dist_scale_factor = CLIP3(
@@ -1398,7 +1399,8 @@ WORD32 ih264d_parse_bslice(dec_struct_t * ps_dec, UWORD16 u2_first_mb_in_slice)
         {
             u1_max_ref_idx = MAX_FRAMES << 1;
         }
-        if((u4_temp > u1_max_ref_idx) || (ui_temp1 > u1_max_ref_idx))
+        if((u4_temp > u1_max_ref_idx) || (ui_temp1 > u1_max_ref_idx)
+                        || (u4_temp < 1) || (ui_temp1 < 1))
         {
             return ERROR_NUM_REF;
         }

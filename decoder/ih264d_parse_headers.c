@@ -791,6 +791,12 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
                     u1_level_idc, ps_seq->u2_total_num_of_mbs);
 
     u1_frm = ih264d_get_bit_h264(ps_bitstrm);
+    if((ps_dec->i4_header_decoded & 1) && (ps_seq->u1_frame_mbs_only_flag != u1_frm))
+    {
+        ps_dec->u1_res_changed = 1;
+        return IVD_RES_CHANGED;
+    }
+
     ps_seq->u1_frame_mbs_only_flag = u1_frm;
 
     COPYTHECONTEXT("SPS: frame_mbs_only_flag", u1_frm);
@@ -911,7 +917,9 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
         }
 
         /* Check for unsupported resolutions */
-        if((u2_pic_wd > H264_MAX_FRAME_WIDTH) || (u2_pic_ht > H264_MAX_FRAME_HEIGHT))
+        if((u2_pic_wd > H264_MAX_FRAME_WIDTH) || (u2_pic_ht > H264_MAX_FRAME_HEIGHT)
+                || (u2_pic_wd < H264_MIN_FRAME_WIDTH) || (u2_pic_ht < H264_MIN_FRAME_HEIGHT)
+                || (u2_pic_wd * (UWORD32)u2_pic_ht > H264_MAX_FRAME_SIZE))
         {
             return IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED;
         }
