@@ -1042,12 +1042,15 @@ WORD32 ih264d_get_next_display_field(dec_struct_t * ps_dec,
                         buf = ps_dec->disp_bufs[i].buf[1];
                         buf += ps_dec->disp_bufs[i].u4_ofst[1];
                         pv_disp_op->s_disp_frm_buf.pv_u_buf = buf
-                                        + pic_buf->u2_crop_offset_uv;
+                                        + (pic_buf->u2_crop_offset_uv
+                                           / YUV420SP_FACTOR);
 
                         buf = ps_dec->disp_bufs[i].buf[2];
                         buf += ps_dec->disp_bufs[i].u4_ofst[2];
                         pv_disp_op->s_disp_frm_buf.pv_v_buf = buf
-                                        + pic_buf->u2_crop_offset_uv;
+                                        + (pic_buf->u2_crop_offset_uv
+                                           / YUV420SP_FACTOR);
+
                     }
                 }
             }
