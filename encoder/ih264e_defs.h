@@ -202,7 +202,7 @@
 #define DEFAULT_RECON_ENABLE            0
 #define DEFAULT_RC                      IVE_RC_STORAGE
 #define DEFAULT_MAX_FRAMERATE           120000
-#define DEFAULT_MAX_BITRATE             20000000
+#define DEFAULT_MAX_BITRATE             50000000
 #define DEFAULT_MAX_NUM_BFRAMES         0
 #define DEFAULT_MAX_SRCH_RANGE_X        256
 #define DEFAULT_MAX_SRCH_RANGE_Y        256
