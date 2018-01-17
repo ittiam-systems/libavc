@@ -2098,7 +2098,7 @@ WORD32 ih264e_process(process_ctxt_t *ps_proc)
             }
 
             /* If we already have the minimum sad, there is no point in searching for sad again */
-            if (ps_proc->u4_min_sad_reached == 0)
+            if (ps_proc->u4_min_sad_reached == 0 || ps_codec->s_cfg.u4_enc_speed_preset != IVE_FASTEST)
             {
                 /* intra gating in inter slices */
                 /* No need of gating if we want to force intra, we need to find the threshold only if inter is enabled by AIR*/
