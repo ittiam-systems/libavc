@@ -428,7 +428,8 @@ void ih264e_evaluate_intra16x16_modes_for_least_cost_rdoptoff(process_ctxt_t *ps
     /* set valid intra modes for evaluation */
     u4_valid_intra_modes = u1_valid_intra_modes[i4_ngbr_avbl];
 
-    if (ps_codec->s_cfg.u4_enc_speed_preset == IVE_FAST)
+    if (ps_codec->s_cfg.u4_enc_speed_preset == IVE_FAST ||
+                    ps_codec->s_cfg.u4_enc_speed_preset == IVE_FASTEST)
         u4_valid_intra_modes &= ~(1 << PLANE_I16x16);
 
     /* evaluate b/w HORZ_I16x16, VERT_I16x16 & DC_I16x16 */
@@ -440,8 +441,7 @@ void ih264e_evaluate_intra16x16_modes_for_least_cost_rdoptoff(process_ctxt_t *ps
     /* cost = distortion + lambda*rate */
     i4_mb_cost_least = i4_mb_distortion_least;
 
-    if ((( (u4_valid_intra_modes >> 3) & 1) != 0) && (ps_codec->s_cfg.u4_enc_speed_preset != IVE_FASTEST ||
-                    ps_proc->i4_slice_type == ISLICE))
+    if (((u4_valid_intra_modes >> 3) & 1) != 0)
     {
         /* intra prediction for PLANE mode*/
         (ps_codec->apf_intra_pred_16_l)[PLANE_I16x16](pu1_ngbr_pels_i16, pu1_pred_mb_intra_16x16_plane, 0, i4_pred_strd, i4_ngbr_avbl);
@@ -1450,7 +1450,8 @@ void ih264e_evaluate_chroma_intra8x8_modes_for_least_cost_rdoptoff(process_ctxt_
 
     u4_valid_intra_modes = u1_valid_intra_modes[i4_ngbr_avbl];
 
-    if (ps_codec->s_cfg.u4_enc_speed_preset == IVE_FAST)
+    if (ps_codec->s_cfg.u4_enc_speed_preset == IVE_FAST ||
+                    ps_codec->s_cfg.u4_enc_speed_preset == IVE_FASTEST)
         u4_valid_intra_modes &= ~(1 << PLANE_CH_I8x8);
 
     i4_chroma_mb_distortion = INT_MAX;
