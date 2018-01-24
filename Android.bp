@@ -231,6 +231,14 @@ cc_library_static {
             ],
         },
     },
+
+    sanitize: {
+    	cfi: true,
+        diag: {
+            cfi: true,
+        },
+        blacklist: "cfi_blacklist.txt",
+    },
 }
 
 cc_library_static {
@@ -491,6 +499,14 @@ cc_library_static {
                 "encoder/x86/ime_distortion_metrics_sse42.c",
             ],
         },
+    },
+
+    sanitize: {
+    	cfi: true,
+        diag: {
+            cfi: true,
+        },
+        blacklist: "cfi_blacklist.txt",
     },
 }
 
