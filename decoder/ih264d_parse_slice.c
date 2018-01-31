@@ -1826,7 +1826,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         ps_dec->ps_cur_pic->u4_pack_slc_typ |= I_SLC_BIT;
 
         ret = ih264d_parse_islice(ps_dec, u2_first_mb_in_slice);
-
+        ps_dec->u1_pr_sl_type = u1_slice_type;
         if(ps_dec->i4_pic_type != B_SLICE && ps_dec->i4_pic_type != P_SLICE)
             ps_dec->i4_pic_type = I_SLICE;
 
