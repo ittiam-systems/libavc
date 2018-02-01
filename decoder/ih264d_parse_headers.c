@@ -30,6 +30,8 @@
  * \author  AI
  **************************************************************************
  */
+#include <string.h>
+
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
 #include "ih264_platform_macros.h"
@@ -564,6 +566,8 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     /*--------------------------------------------------------------------*/
 
     ps_seq = ps_dec->pv_scratch_sps_pps;
+    memset(ps_seq, 0, sizeof(dec_seq_params_t));
+
     if(ps_dec->i4_header_decoded & 1)
     {
         *ps_seq = *ps_dec->ps_cur_sps;
