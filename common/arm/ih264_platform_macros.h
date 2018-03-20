@@ -128,12 +128,17 @@ static __inline UWORD32 ITT_BIG_ENDIAN(UWORD32 x)
 
 #define INLINE inline
 
+/* In normal cases, 0 will not be passed as an argument to CLZ and CTZ.
+As CLZ and CTZ outputs are used as a shift value in few places, these return
+31 for u4_word == 0 case, just to handle error cases gracefully without any
+undefined behaviour */
+
 static INLINE UWORD32 CLZ(UWORD32 u4_word)
 {
     if(u4_word)
         return (__builtin_clz(u4_word));
     else
-        return 32;
+        return 31;
 }
 static INLINE UWORD32 CTZ(UWORD32 u4_word)
 {
