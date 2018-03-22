@@ -96,7 +96,7 @@ void ih264_ihadamard_scaling_4x4_ssse3(WORD16* pi2_src,
     __m128i src_r0_r1, src_r2_r3, sign_reg, zero_8x16b = _mm_setzero_si128();
     __m128i src_r0, src_r1, src_r2, src_r3;
     __m128i temp0, temp1, temp2, temp3;
-    __m128i add_rshift = _mm_set1_epi32((1 << (5 - u4_qp_div_6)));
+    __m128i add_rshift = _mm_set1_epi32((u4_qp_div_6 < 6) ? (1 << (5 - u4_qp_div_6)) : 0);
     __m128i mult_val = _mm_set1_epi32(pu2_iscal_mat[0] * pu2_weigh_mat[0]);
 
     __m128i mask = _mm_set1_epi32(val);

@@ -118,7 +118,7 @@ void ih264_iquant_itrans_recon_4x4_sse42(WORD16 *pi2_src,
     __m128i zero_8x16b = _mm_setzero_si128();          // all bits reset to zero
     __m128i temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
     __m128i resq_r0, resq_r1, resq_r2, resq_r3;
-    __m128i add_rshift = _mm_set1_epi32((1 << (3 - u4_qp_div_6)));
+    __m128i add_rshift = _mm_set1_epi32((u4_qp_div_6 < 4) ? (1 << (3 - u4_qp_div_6)) : 0);
     __m128i value_32 = _mm_set1_epi32(32);
     UNUSED (pi2_tmp);
 
@@ -367,7 +367,7 @@ void ih264_iquant_itrans_recon_chroma_4x4_sse42(WORD16 *pi2_src,
     __m128i zero_8x16b = _mm_setzero_si128();          // all bits reset to zero
     __m128i temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
     __m128i resq_r0, resq_r1, resq_r2, resq_r3;
-    __m128i add_rshift = _mm_set1_epi32((1 << (3 - u4_qp_div_6)));
+    __m128i add_rshift = _mm_set1_epi32((u4_qp_div_6 < 4) ? (1 << (3 - u4_qp_div_6)) : 0);
     __m128i value_32 = _mm_set1_epi32(32);
     __m128i chroma_mask = _mm_set1_epi16 (0xFF);
     __m128i out_r0, out_r1, out_r2, out_r3;
