@@ -374,9 +374,6 @@ WORD32 ih264d_insert_st_node(dpb_manager_t *ps_dpb_mgr,
         if((ps_dpb_info[i].ps_pic_buf == ps_pic_buf)
                         && ps_dpb_info[i].u1_used_as_ref)
         {
-            /* Can occur only for field bottom pictures */
-            ps_dpb_info[i].s_bot_field.u1_reference_info = IS_SHORT_TERM;
-
             /*signal an error in the case of frame pic*/
             if(ps_dpb_info[i].ps_pic_buf->u1_pic_type == FRM_PIC)
             {
@@ -384,6 +381,8 @@ WORD32 ih264d_insert_st_node(dpb_manager_t *ps_dpb_mgr,
             }
             else
             {
+                /* Can occur only for field bottom pictures */
+                ps_dpb_info[i].s_bot_field.u1_reference_info = IS_SHORT_TERM;
                 return OK;
             }
         }
