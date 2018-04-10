@@ -1473,9 +1473,13 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         /* IDR Picture or POC wrap around */
         if(i4_poc == 0)
         {
-            ps_dec->i4_prev_max_display_seq = ps_dec->i4_prev_max_display_seq
-                            + ps_dec->i4_max_poc
-                            + ps_dec->u1_max_dec_frame_buffering + 1;
+            UWORD64 u8_temp;
+            u8_temp = (UWORD64)ps_dec->i4_prev_max_display_seq
+                      + ps_dec->i4_max_poc
+                      + ps_dec->u1_max_dec_frame_buffering + 1;
+            /*If i4_prev_max_display_seq overflows integer range, reset it */
+            ps_dec->i4_prev_max_display_seq = (u8_temp > 0x7fffffff)?
+                                              0 : u8_temp;
             ps_dec->i4_max_poc = 0;
         }
     }
