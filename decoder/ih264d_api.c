@@ -1979,8 +1979,16 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     }
 
-    if(ps_dec->u1_flushfrm && ps_dec->u1_init_dec_flag)
+    if(ps_dec->u1_flushfrm)
     {
+        if(ps_dec->u1_init_dec_flag == 0)
+        {
+            /*Come out of flush mode and return*/
+            ps_dec->u1_flushfrm = 0;
+            return (IV_FAIL);
+        }
+
+
 
         ih264d_get_next_display_field(ps_dec, ps_dec->ps_out_buffer,
                                       &(ps_dec->s_disp_op));
