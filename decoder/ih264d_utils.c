@@ -1264,6 +1264,7 @@ void ih264d_release_display_bufs(dec_struct_t *ps_dec)
     WORD32 i4_min_poc;
     WORD32 i4_min_poc_buf_id;
     WORD32 i4_min_index;
+    UWORD64 u8_temp;
     dpb_manager_t *ps_dpb_mgr = ps_dec->ps_dpb_mgr;
     WORD32 (*i4_poc_buf_id_map)[3] = ps_dpb_mgr->ai4_poc_buf_id_map;
 
@@ -1308,9 +1309,11 @@ void ih264d_release_display_bufs(dec_struct_t *ps_dec)
         }
     }
     ps_dpb_mgr->i1_poc_buf_id_entries = 0;
-    ps_dec->i4_prev_max_display_seq = ps_dec->i4_prev_max_display_seq
-                    + ps_dec->i4_max_poc + ps_dec->u1_max_dec_frame_buffering
-                    + 1;
+    u8_temp = (UWORD64)ps_dec->i4_prev_max_display_seq + ps_dec->i4_max_poc
+              + ps_dec->u1_max_dec_frame_buffering + 1;
+    /*If i4_prev_max_display_seq overflows integer range, reset it */
+    ps_dec->i4_prev_max_display_seq = (u8_temp > 0x7fffffff)?
+                                      0 : u8_temp;
     ps_dec->i4_max_poc = 0;
 }
 
@@ -1582,11 +1585,13 @@ WORD32 ih264d_decode_gaps_in_frame_num(dec_struct_t *ps_dec,
             /* IDR Picture or POC wrap around */
             if(i4_poc == 0)
             {
-                ps_dec->i4_prev_max_display_seq =
-                                ps_dec->i4_prev_max_display_seq
-                                                + ps_dec->i4_max_poc
-                                                + ps_dec->u1_max_dec_frame_buffering
-                                                + 1;
+                UWORD64 u8_temp;
+                u8_temp = (UWORD64)ps_dec->i4_prev_max_display_seq
+                          + ps_dec->i4_max_poc
+                          + ps_dec->u1_max_dec_frame_buffering + 1;
+                /*If i4_prev_max_display_seq overflows integer range, reset it */
+                ps_dec->i4_prev_max_display_seq = (u8_temp > 0x7fffffff)?
+                                                  0 : u8_temp;
                 ps_dec->i4_max_poc = 0;
             }
 
