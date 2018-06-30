@@ -27,7 +27,6 @@ cc_test {
         "-DARM",
         "-DMD5_DISABLE",
         "-fPIC",
-        "-pie",
         "-Wall",
         "-Werror",
         "-Wno-unused-variable",
