@@ -234,10 +234,12 @@ cc_library_static {
 
     sanitize: {
     	cfi: true,
+        integer_overflow: true,
         diag: {
             cfi: true,
+            integer_overflow: true,
         },
-        blacklist: "cfi_blacklist.txt",
+        blacklist: "libavc_blacklist.txt",
     },
 }
 
@@ -503,10 +505,12 @@ cc_library_static {
 
     sanitize: {
     	cfi: true,
+        integer_overflow: true,
         diag: {
             cfi: true,
+            integer_overflow: true,
         },
-        blacklist: "cfi_blacklist.txt",
+        blacklist: "libavc_blacklist.txt",
     },
 }
 
