@@ -233,10 +233,10 @@ cc_library_static {
     },
 
     sanitize: {
-    	cfi: true,
         integer_overflow: true,
+        // Enable CFI if this becomes a shared library.
+        // cfi: true,
         diag: {
-            cfi: true,
             integer_overflow: true,
         },
         blacklist: "libavc_blacklist.txt",
@@ -504,10 +504,10 @@ cc_library_static {
     },
 
     sanitize: {
-    	cfi: true,
         integer_overflow: true,
+        // Enable CFI if this becomes a shared library.
+        // cfi: true,
         diag: {
-            cfi: true,
             integer_overflow: true,
         },
         blacklist: "libavc_blacklist.txt",
