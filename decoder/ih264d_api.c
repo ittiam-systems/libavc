@@ -1490,20 +1490,37 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
 /*****************************************************************************/
 WORD32 ih264d_create(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 {
+    ih264d_create_ip_t *ps_create_ip;
     ih264d_create_op_t *ps_create_op;
 
     WORD32 ret;
 
+    ps_create_ip = (ih264d_create_ip_t *)pv_api_ip;
     ps_create_op = (ih264d_create_op_t *)pv_api_op;
 
     ps_create_op->s_ivd_create_op_t.u4_error_code = 0;
-
+    dec_hdl = NULL;
     ret = ih264d_allocate_static_bufs(&dec_hdl, pv_api_ip, pv_api_op);
 
     /* If allocation of some buffer fails, then free buffers allocated till then */
-    if((IV_FAIL == ret) && (NULL != dec_hdl))
+    if(IV_FAIL == ret)
     {
-        ih264d_free_static_bufs(dec_hdl);
+        if(dec_hdl)
+        {
+            if(dec_hdl->pv_codec_handle)
+            {
+                ih264d_free_static_bufs(dec_hdl);
+            }
+            else
+            {
+                void (*pf_aligned_free)(void *pv_mem_ctxt, void *pv_buf);
+                void *pv_mem_ctxt;
+
+                pf_aligned_free = ps_create_ip->s_ivd_create_ip_t.pf_aligned_free;
+                pv_mem_ctxt  = ps_create_ip->s_ivd_create_ip_t.pv_mem_ctxt;
+                pf_aligned_free(pv_mem_ctxt, dec_hdl);
+            }
+        }
         ps_create_op->s_ivd_create_op_t.u4_error_code = IVD_MEM_ALLOC_FAILED;
         ps_create_op->s_ivd_create_op_t.u4_error_code = 1 << IVD_FATALERROR;
 
@@ -1681,8 +1698,8 @@ WORD32 check_app_out_buf_size(dec_struct_t *ps_dec)
     }
     else
     {
-        /* In case of shared mode, do not check validity of ps_dec->ps_out_buffer */
-        return (IV_SUCCESS);
+        pic_wd = ps_dec->u2_frm_wd_y;
+        pic_ht = ps_dec->u2_frm_ht_y;
     }
 
     if(ps_dec->u4_app_disp_width > pic_wd)
@@ -1692,14 +1709,34 @@ WORD32 check_app_out_buf_size(dec_struct_t *ps_dec)
                                                  ps_dec->u1_chroma_format,
                                                  &au4_min_out_buf_size[0]);
 
-    if(ps_dec->ps_out_buffer->u4_num_bufs < u4_min_num_out_bufs)
-        return IV_FAIL;
 
-    for(i = 0; i < u4_min_num_out_bufs; i++)
+    if(0 == ps_dec->u4_share_disp_buf)
     {
-        if(ps_dec->ps_out_buffer->u4_min_out_buf_size[i]
-                        < au4_min_out_buf_size[i])
-            return (IV_FAIL);
+        if(ps_dec->ps_out_buffer->u4_num_bufs < u4_min_num_out_bufs)
+            return IV_FAIL;
+
+        for(i = 0; i < u4_min_num_out_bufs; i++)
+        {
+            if(ps_dec->ps_out_buffer->u4_min_out_buf_size[i]
+                            < au4_min_out_buf_size[i])
+                return (IV_FAIL);
+        }
+    }
+    else
+    {
+        if(ps_dec->disp_bufs[0].u4_num_bufs < u4_min_num_out_bufs)
+            return IV_FAIL;
+
+        for(i = 0; i < u4_min_num_out_bufs; i++)
+        {
+            /* We need to check only with the disp_buffer[0], because we have
+             * already ensured that all the buffers are of the same size in
+             * ih264d_set_display_frame.
+             */
+            if(ps_dec->disp_bufs[0].u4_bufsize[i] < au4_min_out_buf_size[i])
+                return (IV_FAIL);
+        }
+
     }
 
     return (IV_SUCCESS);
@@ -2052,7 +2089,8 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             void *pv_buf;
             void *pv_mem_ctxt = ps_dec->pv_mem_ctxt;
             size = MAX(256000, ps_dec->u2_pic_wd * ps_dec->u2_pic_ht * 3 / 2);
-            pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+            pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128,
+                                              size + EXTRA_BS_OFFSET);
             RETURN_IF((NULL == pv_buf), IV_FAIL);
             ps_dec->pu1_bits_buf_dynamic = pv_buf;
             ps_dec->u4_dynamic_bits_buf_size = size;
@@ -2648,6 +2686,7 @@ WORD32 ih264d_set_display_frame(iv_obj_t *dec_hdl,
                                 void *pv_api_op)
 {
 
+    UWORD32 u4_disp_buf_size[3], u4_num_disp_bufs;
     ivd_set_display_frame_ip_t *dec_disp_ip;
     ivd_set_display_frame_op_t *dec_disp_op;
 
@@ -2667,8 +2706,36 @@ WORD32 ih264d_set_display_frame(iv_obj_t *dec_hdl,
         u4_num_bufs = MIN(u4_num_bufs, MAX_DISP_BUFS_NEW);
 
         ps_dec->u4_num_disp_bufs = u4_num_bufs;
+
+        /* Get the number and sizes of the first buffer. Compare this with the
+         * rest to make sure all the buffers are of the same size.
+         */
+        u4_num_disp_bufs = dec_disp_ip->s_disp_buffer[0].u4_num_bufs;
+
+        u4_disp_buf_size[0] =
+          dec_disp_ip->s_disp_buffer[0].u4_min_out_buf_size[0];
+        u4_disp_buf_size[1] =
+          dec_disp_ip->s_disp_buffer[0].u4_min_out_buf_size[1];
+        u4_disp_buf_size[2] =
+          dec_disp_ip->s_disp_buffer[0].u4_min_out_buf_size[2];
+
         for(i = 0; i < u4_num_bufs; i++)
         {
+            if(dec_disp_ip->s_disp_buffer[i].u4_num_bufs != u4_num_disp_bufs)
+            {
+                return IV_FAIL;
+            }
+
+            if((dec_disp_ip->s_disp_buffer[i].u4_min_out_buf_size[0]
+                != u4_disp_buf_size[0])
+                || (dec_disp_ip->s_disp_buffer[i].u4_min_out_buf_size[1]
+                    != u4_disp_buf_size[1])
+                || (dec_disp_ip->s_disp_buffer[i].u4_min_out_buf_size[2]
+                    != u4_disp_buf_size[2]))
+            {
+                return IV_FAIL;
+            }
+
             ps_dec->disp_bufs[i].u4_num_bufs =
                             dec_disp_ip->s_disp_buffer[i].u4_num_bufs;
 
