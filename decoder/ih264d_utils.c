@@ -1835,16 +1835,19 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     size = u4_total_mbs;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu1_dec_mb_map = pv_buf;
 
     size = u4_total_mbs;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu1_recon_mb_map = pv_buf;
 
     size = u4_total_mbs * sizeof(UWORD16);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu2_slice_num_map = pv_buf;
 
     /************************************************************/
@@ -1866,17 +1869,20 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
                         * ((ps_dec->u1_recon_mb_grp) << 4);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_parse_part_params = pv_buf;
 
     size = ((u4_wd_mbs * sizeof(deblkmb_neighbour_t)) << uc_frmOrFld);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_deblk_top_mb = pv_buf;
 
     size = ((sizeof(ctxt_inc_mb_info_t))
                         * (((u4_wd_mbs + 1) << uc_frmOrFld) + 1));
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->p_ctxt_inc_mb_map = pv_buf;
 
     /* 0th entry of CtxtIncMbMap will be always be containing default values
@@ -1887,12 +1893,14 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
                         * 16);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_mv_p[0] = pv_buf;
 
     size = (sizeof(mv_pred_t) * ps_dec->u1_recon_mb_grp
                         * 16);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_mv_p[1] = pv_buf;
 
     {
@@ -1903,6 +1911,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
                             * ps_dec->u1_recon_mb_grp * 4);
             pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
             RETURN_IF((NULL == pv_buf), IV_FAIL);
+            memset(pv_buf, 0, size);
             ps_dec->ps_mv_top_p[i] = pv_buf;
         }
     }
@@ -1991,6 +2000,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     size = sizeof(pred_info_pkd_t) * num_entries;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_pred_pkd = pv_buf;
 
     /* Allocate memory for coeff data */
@@ -2004,6 +2014,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     size += u4_total_mbs * 32;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
 
     ps_dec->pi2_coeff_data = pv_buf;
 
@@ -2025,6 +2036,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
         size *= u4_num_bufs;
         pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
         RETURN_IF((NULL == pv_buf), IV_FAIL);
+        memset(pv_buf, 0, size);
         ps_dec->pu1_mv_bank_buf_base = pv_buf;
     }
 
@@ -2058,6 +2070,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     size *= ps_dec->u1_pic_bufs;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu1_pic_buf_base = pv_buf;
 
     /* Post allocation Increment Actions */

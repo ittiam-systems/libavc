@@ -1235,6 +1235,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     ps_create_op->s_ivd_create_op_t.pv_handle = NULL;
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, sizeof(iv_obj_t));
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, sizeof(iv_obj_t));
     *dec_hdl = (iv_obj_t *)pv_buf;
     ps_create_op->s_ivd_create_op_t.pv_handle = *dec_hdl;
 
@@ -1272,82 +1273,98 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     size = ((sizeof(dec_seq_params_t)) * MAX_NUM_SEQ_PARAMS);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_sps = pv_buf;
 
     size = (sizeof(dec_pic_params_t)) * MAX_NUM_PIC_PARAMS;
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_pps = pv_buf;
 
     size = ithread_get_handle_size();
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pv_dec_thread_handle = pv_buf;
 
     size = ithread_get_handle_size();
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pv_bs_deblk_thread_handle = pv_buf;
 
     size = sizeof(dpb_manager_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_dpb_mgr = pv_buf;
 
     size = sizeof(pred_info_t) * 2 * 32;
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_pred = pv_buf;
 
     size = sizeof(disp_mgr_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pv_disp_buf_mgr = pv_buf;
 
     size = sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pv_pic_buf_mgr = pv_buf;
 
     size = sizeof(struct pic_buffer_t) * (H264_MAX_REF_PICS * 2);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_pic_buf_base = pv_buf;
 
     size = sizeof(dec_err_status_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_dec_err_status = (dec_err_status_t *)pv_buf;
 
     size = sizeof(sei);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_sei = (sei *)pv_buf;
 
     size = sizeof(dpb_commands_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_dpb_cmds = (dpb_commands_t *)pv_buf;
 
     size = sizeof(dec_bit_stream_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_bitstrm = (dec_bit_stream_t *)pv_buf;
 
     size = sizeof(dec_slice_params_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_cur_slice = (dec_slice_params_t *)pv_buf;
 
     size = MAX(sizeof(dec_seq_params_t), sizeof(dec_pic_params_t));
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pv_scratch_sps_pps = pv_buf;
 
 
     ps_dec->u4_static_bits_buf_size = 256000;
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, ps_dec->u4_static_bits_buf_size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, ps_dec->u4_static_bits_buf_size);
     ps_dec->pu1_bits_buf_static = pv_buf;
 
 
@@ -1364,6 +1381,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     size = (sizeof(bin_ctxt_model_t) * NUM_CABAC_CTXTS);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->p_cabac_ctxt_table_t = pv_buf;
 
 
@@ -1371,6 +1389,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     size = sizeof(ctxt_inc_mb_info_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_left_mb_ctxt_info = pv_buf;
 
 
@@ -1378,6 +1397,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     size = MAX_REF_BUF_SIZE * 2;
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu1_ref_buff_base = pv_buf;
     ps_dec->pu1_ref_buff = ps_dec->pu1_ref_buff_base + MAX_REF_BUF_SIZE;
 
@@ -1386,12 +1406,14 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
                         * PRED_BUFFER_HEIGHT * 2);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pi2_pred1 = pv_buf;
 
 
     size = sizeof(UWORD8) * (MB_LUM_SIZE);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu1_temp_mc_buffer = pv_buf;
 
 
@@ -1400,6 +1422,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     size = 8 * MAX_REF_BUFS * sizeof(struct pic_buffer_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
 
     ps_dec->pu1_init_dpb_base = pv_buf;
     pu1_buf = pv_buf;
@@ -1412,24 +1435,28 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
                         * ((MAX_FRAMES << 1) * (MAX_FRAMES << 1)) * 2);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu4_mbaff_wt_mat = pv_buf;
 
     size = sizeof(UWORD32) * 2 * 3
                         * ((MAX_FRAMES << 1) * (MAX_FRAMES << 1));
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu4_wts_ofsts_mat = pv_buf;
 
 
     size = (sizeof(neighbouradd_t) << 2);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_left_mvpred_addr = pv_buf;
 
 
     size = sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pv_mv_buf_mgr = pv_buf;
 
 
@@ -2092,6 +2119,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128,
                                               size + EXTRA_BS_OFFSET);
             RETURN_IF((NULL == pv_buf), IV_FAIL);
+            memset(pv_buf, 0, size + EXTRA_BS_OFFSET);
             ps_dec->pu1_bits_buf_dynamic = pv_buf;
             ps_dec->u4_dynamic_bits_buf_size = size;
         }
