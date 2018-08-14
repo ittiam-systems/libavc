@@ -574,7 +574,7 @@ void ih264e_evaluate_intra_4x4_modes_ssse3(UWORD8 *pu1_src,
             pred2_16x8b = _mm_set1_epi8(dcval);
         }
         else
-            pred2_16x8b = _mm_set1_epi8(128);
+            pred2_16x8b = _mm_set1_epi8(-128);
 
         sad_8x16b = _mm_sad_epu8(src_16x8b, pred2_16x8b);
 
@@ -1135,7 +1135,7 @@ void ih264e_evaluate_intra_chroma_modes_ssse3(UWORD8 *pu1_src,
         }
         else
         {
-            pred1_16x8b = _mm_set1_epi8(128);
+            pred1_16x8b = _mm_set1_epi8(-128);
 
             tmp1_8x16b = _mm_sad_epu8(src1_16x8b, pred1_16x8b);
             tmp2_8x16b = _mm_sad_epu8(src2_16x8b, pred1_16x8b);

@@ -19,7 +19,7 @@
 */
 #ifdef __ANDROID__
 #include "log/log.h"
-#include <cutils/log.h>
+#include <android/log.h>
 #endif
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
