@@ -1000,7 +1000,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
     dec_pic_params_t *ps_pps;
     dec_seq_params_t *ps_seq;
     dec_slice_params_t *ps_cur_slice = ps_dec->ps_cur_slice;
-    pocstruct_t s_tmp_poc;
+    pocstruct_t s_tmp_poc = {0};
     WORD32 i_delta_poc[2];
     WORD32 i4_poc = 0;
     UWORD16 u2_first_mb_in_slice, u2_frame_num;
