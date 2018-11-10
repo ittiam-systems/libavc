@@ -918,7 +918,20 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
             ps_dec->u1_res_changed = 1;
             return IVD_RES_CHANGED;
         }
+
+        if((ps_dec->i4_header_decoded & 1) && (ps_dec->u2_disp_width != i4_cropped_wd))
+        {
+            ps_dec->u1_res_changed = 1;
+            return IVD_RES_CHANGED;
+        }
+
         if((ps_dec->i4_header_decoded & 1) && (ps_dec->u2_pic_ht != u2_pic_ht))
+        {
+            ps_dec->u1_res_changed = 1;
+            return IVD_RES_CHANGED;
+        }
+
+        if((ps_dec->i4_header_decoded & 1) && (ps_dec->u2_disp_height != i4_cropped_ht))
         {
             ps_dec->u1_res_changed = 1;
             return IVD_RES_CHANGED;
