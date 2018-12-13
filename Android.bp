@@ -9,6 +9,7 @@ cc_library_static {
         "-Wall",
         "-Werror",
         "-Wno-unused-variable",
+        "-Wno-null-pointer-arithmetic",
     ],
 
     export_include_dirs: [
