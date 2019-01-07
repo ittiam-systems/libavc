@@ -20,9 +20,15 @@ fun:ih264d_ref_idx_reordering
 fun:ih264d_decode_temporal_direct
 # encoder/ime.c:153: 0 - 1 cannot be represented in type 'UWORD32'
 fun:ime_diamond_search_16x16
+# encoder/irc_rate_control_api.c:1251: 1000 * 1065353216 cannot be represented in type 'unsigned int'
+fun:irc_change_frame_rate
 # encoder/irc_rate_control_api.c:310: 6000000 * 1000 cannot be represented in type 'unsigned int'
 fun:irc_initialise_rate_control
 
 # Numerous overflows in multiple functions, CAVLC is a compression technique.
 src:*/decoder/ih264d_parse_cavlc.c
 src:*/encoder/ih264e_cavlc.c
+
+# Performance related
+fun:ih264e_pack_c_mb
+fun:ime_compute_satqd_16x16_lumainter_a9q
