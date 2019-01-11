@@ -600,7 +600,7 @@ enum
 #endif //DEBLOCK_THREAD
 
 #define NUM_COEFFS_IN_4x4BLK 16
-
+#define CABAC_BITS_TO_READ 23
 
 #define MEMSET_16BYTES(pu4_start,value)                         \
 {                                                               \
