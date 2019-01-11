@@ -44,6 +44,9 @@
 #define CLIP_U10(x) CLIP3(0, 1023, (x))
 #define CLIP_S10(x) CLIP3(-512, 511, (x))
 
+#define CLIP_U11(x) CLIP3(0, 2047, (x))
+#define CLIP_S11(x) CLIP3(-1024, 1023, (x))
+
 #define CLIP_U12(x) CLIP3(0, 4095, (x))
 #define CLIP_S12(x) CLIP3(-2048, 2047, (x))
 

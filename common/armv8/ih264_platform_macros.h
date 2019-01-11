@@ -62,6 +62,18 @@ static __inline WORD32 CLIP_S10(WORD32 x)
     return x;
 }
 
+static __inline WORD32 CLIP_U11(WORD32 x)
+{
+    asm("usat %0, #11, %1" : "=r"(x) : "r"(x));
+    return x;
+}
+
+static __inline WORD32 CLIP_S11(WORD32 x)
+{
+    asm("ssat %0, #11, %1" : "=r"(x) : "r"(x));
+    return x;
+}
+
 static __inline WORD32 CLIP_U12(WORD32 x)
 {
     asm("usat %0, #12, %1" : "=r"(x) : "r"(x));
@@ -100,6 +112,9 @@ static __inline UWORD32 ITT_BIG_ENDIAN(UWORD32 x)
 
 #define CLIP_U10(x) CLIP3(0, 1023, (x))
 #define CLIP_S10(x) CLIP3(-512, 511, (x))
+
+#define CLIP_U11(x) CLIP3(0, 2047, (x))
+#define CLIP_S11(x) CLIP3(-1024, 1023, (x))
 
 #define CLIP_U12(x) CLIP3(0, 4095, (x))
 #define CLIP_S12(x) CLIP3(-2048, 2047, (x))
