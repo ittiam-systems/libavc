@@ -351,6 +351,7 @@ enum
 #define DISP_BOT_FLD    0x01
 
 /** Slice Types */
+#define NA_SLICE -1
 #define P_SLICE  0
 #define B_SLICE  1
 #define I_SLICE  2

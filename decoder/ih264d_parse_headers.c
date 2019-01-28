@@ -488,7 +488,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     UWORD8 u1_frm, uc_constraint_set0_flag, uc_constraint_set1_flag;
     WORD32 i4_cropped_ht, i4_cropped_wd;
     UWORD32 u4_temp;
-    WORD32 pic_height_in_map_units_minus1 = 0;
+    UWORD32 u4_pic_height_in_map_units, u4_pic_width_in_mbs;
     UWORD32 u2_pic_wd = 0;
     UWORD32 u2_pic_ht = 0;
     UWORD32 u2_frm_wd_y = 0;
@@ -498,7 +498,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     UWORD32 u2_crop_offset_y = 0;
     UWORD32 u2_crop_offset_uv = 0;
     WORD32 ret;
-    UWORD32 u4_num_reorder_frames;
+    WORD32 num_reorder_frames;
     /* High profile related syntax element */
     WORD32 i4_i;
     /* G050 */
@@ -771,18 +771,25 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     /*--------------------------------------------------------------------*/
     /* Decode FrameWidth and FrameHeight and related values               */
     /*--------------------------------------------------------------------*/
-    ps_seq->u2_frm_wd_in_mbs = 1
+    u4_pic_width_in_mbs = 1
                     + ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
     COPYTHECONTEXT("SPS: pic_width_in_mbs_minus1",
-                    ps_seq->u2_frm_wd_in_mbs - 1);
-    u2_pic_wd = (ps_seq->u2_frm_wd_in_mbs << 4);
+                   u4_pic_width_in_mbs - 1);
 
-    pic_height_in_map_units_minus1 = ih264d_uev(pu4_bitstrm_ofst,
+    u4_pic_height_in_map_units = 1 + ih264d_uev(pu4_bitstrm_ofst,
                                                 pu4_bitstrm_buf);
-    ps_seq->u2_frm_ht_in_mbs = 1 + pic_height_in_map_units_minus1;
 
-    u2_pic_ht = (ps_seq->u2_frm_ht_in_mbs << 4);
+    /* Check  for unsupported resolutions*/
+    if((u4_pic_width_in_mbs > (H264_MAX_FRAME_WIDTH >> 4)) ||
+        (u4_pic_height_in_map_units > (H264_MAX_FRAME_HEIGHT >> 4)))
+    {
+        return IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED;
+    }
+    ps_seq->u2_frm_wd_in_mbs = u4_pic_width_in_mbs;
+    ps_seq->u2_frm_ht_in_mbs = u4_pic_height_in_map_units;
 
+    u2_pic_wd = (u4_pic_width_in_mbs << 4);
+    u2_pic_ht = (u4_pic_height_in_map_units << 4);
     /*--------------------------------------------------------------------*/
     /* Get the value of MaxMbAddress and Number of bits needed for it     */
     /*--------------------------------------------------------------------*/
@@ -911,8 +918,8 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
                         + (u2_lft_ofst >> 1) * YUV420SP_FACTOR;
         /* Calculate the display picture width and height based on crop      */
         /* information                                                       */
-        i4_cropped_ht = u2_pic_ht - (u2_btm_ofst + u2_top_ofst);
-        i4_cropped_wd = u2_pic_wd - (u2_rgt_ofst + u2_lft_ofst);
+        i4_cropped_ht = (WORD32)u2_pic_ht - (WORD32)(u2_btm_ofst + u2_top_ofst);
+        i4_cropped_wd = (WORD32)u2_pic_wd - (WORD32)(u2_rgt_ofst + u2_lft_ofst);
 
         if((i4_cropped_ht < MB_SIZE) || (i4_cropped_wd < MB_SIZE))
         {
@@ -943,7 +950,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
             return IVD_RES_CHANGED;
         }
 
-        /* Check for unsupported resolutions */
+        /* Check again for unsupported resolutions with updated values*/
         if((u2_pic_wd > H264_MAX_FRAME_WIDTH) || (u2_pic_ht > H264_MAX_FRAME_HEIGHT)
                 || (u2_pic_wd < H264_MIN_FRAME_WIDTH) || (u2_pic_ht < H264_MIN_FRAME_HEIGHT)
                 || (u2_pic_wd * (UWORD32)u2_pic_ht > H264_MAX_FRAME_SIZE))
@@ -962,16 +969,16 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
 
     }
 
-    /* Backup u4_num_reorder_frames if header is already decoded */
+    /* Backup num_reorder_frames if header is already decoded */
     if((ps_dec->i4_header_decoded & 1) &&
                     (1 == ps_seq->u1_vui_parameters_present_flag) &&
                     (1 == ps_seq->s_vui.u1_bitstream_restriction_flag))
     {
-        u4_num_reorder_frames =  ps_seq->s_vui.u4_num_reorder_frames;
+        num_reorder_frames =  (WORD32)ps_seq->s_vui.u4_num_reorder_frames;
     }
     else
     {
-        u4_num_reorder_frames = -1;
+        num_reorder_frames = -1;
     }
     if(1 == ps_seq->u1_vui_parameters_present_flag)
     {
@@ -980,12 +987,12 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
             return ret;
     }
 
-    /* Compare older u4_num_reorder_frames with the new one if header is already decoded */
+    /* Compare older num_reorder_frames with the new one if header is already decoded */
     if((ps_dec->i4_header_decoded & 1) &&
-                    (-1 != (WORD32)u4_num_reorder_frames) &&
+                    (-1 != num_reorder_frames) &&
                     (1 == ps_seq->u1_vui_parameters_present_flag) &&
                     (1 == ps_seq->s_vui.u1_bitstream_restriction_flag) &&
-                    (ps_seq->s_vui.u4_num_reorder_frames != u4_num_reorder_frames))
+                    ((WORD32)ps_seq->s_vui.u4_num_reorder_frames != num_reorder_frames))
     {
         ps_dec->u1_res_changed = 1;
         return IVD_RES_CHANGED;

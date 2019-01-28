@@ -53,6 +53,8 @@
 #define CLIP_U16(x) CLIP3(0, 65535, (x))
 #define CLIP_S16(x) CLIP3(-32768, 32767, (x))
 
+#define CLIP_S32(x) CLIP3(-4294967296, 4294967295, (x))
+
 #define MEM_ALIGN16 __attribute__ ((aligned (16)))
 
 #define SHL(x,y) (((y) < 32) ? ((x) << (y)) : 0)

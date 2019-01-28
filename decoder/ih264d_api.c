@@ -1008,7 +1008,7 @@ void ih264d_init_decoder(void * ps_dec_params)
     ps_dec->u4_total_frames_decoded = 0;
 
     ps_dec->i4_error_code = 0;
-    ps_dec->i4_content_type = -1;
+    ps_dec->i4_content_type = IV_CONTENTTYPE_NA;
     ps_dec->ps_cur_slice->u1_mbaff_frame_flag = 0;
 
     ps_dec->ps_dec_err_status->u1_err_flag = ACCEPT_ALL_PICS; //REJECT_PB_PICS;
@@ -1058,9 +1058,9 @@ void ih264d_init_decoder(void * ps_dec_params)
 
     /* The Initial Frame Rate Info is not Present */
     ps_dec->i4_vui_frame_rate = -1;
-    ps_dec->i4_pic_type = -1;
-    ps_dec->i4_frametype = -1;
-    ps_dec->i4_content_type = -1;
+    ps_dec->i4_pic_type = NA_SLICE;
+    ps_dec->i4_frametype = IV_NA_FRAME;
+    ps_dec->i4_content_type = IV_CONTENTTYPE_NA;
 
     ps_dec->u1_res_changed = 0;
 
@@ -1905,12 +1905,12 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ps_dec->u4_ts = ps_dec_ip->u4_ts;
 
     ps_dec_op->u4_error_code = 0;
-    ps_dec_op->e_pic_type = -1;
+    ps_dec_op->e_pic_type = IV_NA_FRAME;
     ps_dec_op->u4_output_present = 0;
     ps_dec_op->u4_frame_decoded_flag = 0;
 
-    ps_dec->i4_frametype = -1;
-    ps_dec->i4_content_type = -1;
+    ps_dec->i4_frametype = IV_NA_FRAME;
+    ps_dec->i4_content_type = IV_CONTENTTYPE_NA;
 
     ps_dec->u4_slice_start_code_found = 0;
 
@@ -3490,7 +3490,7 @@ WORD32 ih264d_rel_display_frame(iv_obj_t *dec_hdl,
     ivd_rel_display_frame_op_t *ps_rel_op;
     UWORD32 buf_released = 0;
 
-    UWORD32 u4_ts = -1;
+    UWORD32 u4_ts = 0;
     dec_struct_t *ps_dec = dec_hdl->pv_codec_handle;
 
     ps_rel_ip = (ivd_rel_display_frame_ip_t *)pv_api_ip;

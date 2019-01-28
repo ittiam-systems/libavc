@@ -133,6 +133,10 @@ static __inline UWORD32 ITT_BIG_ENDIAN(UWORD32 x)
 
 #endif
 
+/*saturating instructions are not available for WORD64 in ARMv7, hence we cannot
+ * use inline assembly like other clips*/
+#define CLIP_S32(x) CLIP3(-4294967296, 4294967295, (x))
+
 #define DATA_SYNC() __sync_synchronize()
 
 #define SHL(x,y) (((y) < 32) ? ((x) << (y)) : 0)
