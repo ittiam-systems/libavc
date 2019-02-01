@@ -18,8 +18,7 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #ifdef __ANDROID__
-#include "log/log.h"
-#include <android/log.h>
+#include <log/log.h>
 #endif
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
