@@ -690,12 +690,12 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
         if((ps_seq->i4_seq_scaling_matrix_present_flag)
                         || (ps_pps->i4_pic_scaling_matrix_present_flag))
         {
-            ih264d_form_scaling_matrix_picture(ps_seq, ps_pps, ps_dec);
+            ret = ih264d_form_scaling_matrix_picture(ps_seq, ps_pps, ps_dec);
             ps_dec->s_high_profile.u1_scaling_present = 1;
         }
         else
         {
-            ih264d_form_default_scaling_matrix(ps_dec);
+            ret = ih264d_form_default_scaling_matrix(ps_dec);
         }
 
         if(ps_pps->i4_transform_8x8_mode_flag)
@@ -705,9 +705,12 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
     }
     else
     {
-        ih264d_form_default_scaling_matrix(ps_dec);
+        ret = ih264d_form_default_scaling_matrix(ps_dec);
     }
-
+    
+    if(ret != OK)
+        return ret;
+ 
     /* required while reading the transform_size_8x8 u4_flag */
     ps_dec->s_high_profile.u1_direct_8x8_inference_flag =
                     ps_seq->u1_direct_8x8_inference_flag;
