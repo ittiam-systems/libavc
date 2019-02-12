@@ -238,11 +238,6 @@ cc_library_static {
         misc_undefined: ["bounds"],
         // Enable CFI if this becomes a shared library.
         // cfi: true,
-        diag: {
-            integer_overflow: true,
-            misc_undefined: ["bounds"],
-            no_recover: ["bounds", "integer"],
-        },
         blacklist: "libavc_blacklist.txt",
     },
 }
@@ -512,11 +507,6 @@ cc_library_static {
         misc_undefined: ["bounds"],
         // Enable CFI if this becomes a shared library.
         // cfi: true,
-        diag: {
-            integer_overflow: true,
-            misc_undefined: ["bounds"],
-            no_recover: ["bounds", "integer"],
-        },
         blacklist: "libavc_blacklist.txt",
     },
 }
