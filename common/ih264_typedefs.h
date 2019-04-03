@@ -37,23 +37,23 @@
 #ifndef _IH264_TYPEDEFS_H_
 #define _IH264_TYPEDEFS_H_
 
-
+#include <stdint.h>
 /*****************************************************************************/
 /* Unsigned data types                                                       */
 /*****************************************************************************/
-typedef unsigned char   UWORD8;
-typedef unsigned short  UWORD16;
-typedef unsigned int    UWORD32;
-typedef unsigned long long   UWORD64;
+typedef uint8_t   UWORD8;
+typedef uint16_t  UWORD16;
+typedef uint32_t  UWORD32;
+typedef uint64_t  UWORD64;
 
 
 /*****************************************************************************/
 /* Signed data types                                                         */
 /*****************************************************************************/
-typedef signed char     WORD8;
-typedef short           WORD16;
-typedef int             WORD32;
-
+typedef int8_t     WORD8;
+typedef int16_t    WORD16;
+typedef int32_t    WORD32;
+typedef int64_t    WORD64;
 
 /*****************************************************************************/
 /* Miscellaneous data types                                                  */

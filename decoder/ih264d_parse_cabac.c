@@ -400,7 +400,7 @@ UWORD8 ih264d_read_coeff4x4_cabac(dec_bit_stream_t *ps_bitstrm,
                         {
                             UWORD32 uc_bin;
                             UWORD32 bits_to_flush;
-                            UWORD32 max_bits = 32;
+
 
                             bits_to_flush = 0;
                             /*renormalize to ensure there 23 bits more in the u4_code_int_val_ofst*/
@@ -409,7 +409,7 @@ UWORD8 ih264d_read_coeff4x4_cabac(dec_bit_stream_t *ps_bitstrm,
 
                                 u4_clz = CLZ(u4_code_int_range);
                                 FLUSHBITS(u4_offset, u4_clz)
-                                NEXTBITS(read_bits, u4_offset, pu4_buffer, 23)
+                                NEXTBITS(read_bits, u4_offset, pu4_buffer, CABAC_BITS_TO_READ)
                                 u4_code_int_range = u4_code_int_range << u4_clz;
                                 u4_code_int_val_ofst = (u4_code_int_val_ofst
                                                 << u4_clz) | read_bits;
@@ -438,7 +438,7 @@ UWORD8 ih264d_read_coeff4x4_cabac(dec_bit_stream_t *ps_bitstrm,
                                                 ps_cab_env);INC_BYPASS_BINS(ps_cab_env);
 
                             }
-                            while(uc_bin && (bits_to_flush < max_bits));
+                            while(uc_bin && (bits_to_flush < CABAC_BITS_TO_READ));
 
                             u4_value = (bits_to_flush - 1);
 
@@ -459,7 +459,7 @@ UWORD8 ih264d_read_coeff4x4_cabac(dec_bit_stream_t *ps_bitstrm,
 
                                 u4_clz = CLZ(u4_code_int_range);
                                 FLUSHBITS(u4_offset, u4_clz)
-                                NEXTBITS(read_bits, u4_offset, pu4_buffer, 23)
+                                NEXTBITS(read_bits, u4_offset, pu4_buffer, CABAC_BITS_TO_READ)
                                 u4_code_int_range = u4_code_int_range << u4_clz;
                                 u4_code_int_val_ofst = (u4_code_int_val_ofst
                                                 << u4_clz) | read_bits;
@@ -868,7 +868,7 @@ void ih264d_read_coeff8x8_cabac(dec_bit_stream_t *ps_bitstrm,
                         {
                             UWORD32 uc_bin;
                             UWORD32 bits_to_flush;
-                            UWORD32 max_bits = 32;
+
 
                             bits_to_flush = 0;
                             /*renormalize to ensure there 23 bits more in the u4_code_int_val_ofst*/
@@ -877,7 +877,7 @@ void ih264d_read_coeff8x8_cabac(dec_bit_stream_t *ps_bitstrm,
 
                                 u4_clz = CLZ(u4_code_int_range);
                                 FLUSHBITS(u4_offset, u4_clz)
-                                NEXTBITS(read_bits, u4_offset, pu4_buffer, 23)
+                                NEXTBITS(read_bits, u4_offset, pu4_buffer, CABAC_BITS_TO_READ)
                                 u4_code_int_range = u4_code_int_range << u4_clz;
                                 u4_code_int_val_ofst = (u4_code_int_val_ofst
                                                 << u4_clz) | read_bits;
@@ -902,7 +902,7 @@ void ih264d_read_coeff8x8_cabac(dec_bit_stream_t *ps_bitstrm,
                                 }
 
                             }
-                            while(uc_bin && (bits_to_flush < max_bits));
+                            while(uc_bin && (bits_to_flush < CABAC_BITS_TO_READ));
 
                             u4_value = (bits_to_flush - 1);
                         }
@@ -921,7 +921,7 @@ void ih264d_read_coeff8x8_cabac(dec_bit_stream_t *ps_bitstrm,
 
                                 u4_clz = CLZ(u4_code_int_range);
                                 FLUSHBITS(u4_offset, u4_clz)
-                                NEXTBITS(read_bits, u4_offset, pu4_buffer, 23)
+                                NEXTBITS(read_bits, u4_offset, pu4_buffer, CABAC_BITS_TO_READ)
                                 u4_code_int_range = u4_code_int_range << u4_clz;
                                 u4_code_int_val_ofst = (u4_code_int_val_ofst
                                                 << u4_clz) | read_bits;
@@ -967,7 +967,7 @@ void ih264d_read_coeff8x8_cabac(dec_bit_stream_t *ps_bitstrm,
 
                         //Value of K
                         ui16_sufS += u4_value;
-                        i2_abs_lvl += ui16_sufS;
+                        i2_abs_lvl += (WORD32)ui16_sufS;
                     }
                     else
                     {

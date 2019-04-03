@@ -240,8 +240,9 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             WORD32 frame_num_ofst;
             WORD32 abs_frm_num;
             WORD32 poc_cycle_cnt, frame_num_in_poc_cycle;
-            WORD32 expected_delta_poc_cycle;
+            WORD64 i8_expected_delta_poc_cycle;
             WORD32 expected_poc;
+            WORD64 i8_result;
 
             prev_frame_num = (WORD32)ps_cur_slice->u2_frame_num;
             if(!u1_is_idr_slice)
@@ -269,25 +270,25 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             else if(prev_frame_num > ((WORD32)u2_frame_num))
             {
                 frame_num_ofst = i4_prev_frame_num_ofst
-                                + ps_seq->u2_u4_max_pic_num_minus1 + 1;
+                                + (WORD32)ps_seq->u2_u4_max_pic_num_minus1 + 1;
             }
             else
                 frame_num_ofst = i4_prev_frame_num_ofst;
 
             /* 2. Derivation for absFrameNum */
             if(0 != ps_seq->u1_num_ref_frames_in_pic_order_cnt_cycle)
-                abs_frm_num = frame_num_ofst + u2_frame_num;
+                abs_frm_num = frame_num_ofst + (WORD32)u2_frame_num;
             else
                 abs_frm_num = 0;
             if((u1_nal_ref_idc == 0) && (abs_frm_num > 0))
                 abs_frm_num = abs_frm_num - 1;
 
             /* 4. expectedDeltaPerPicOrderCntCycle is derived as */
-            expected_delta_poc_cycle = 0;
+            i8_expected_delta_poc_cycle = 0;
             for(i = 0; i < ps_seq->u1_num_ref_frames_in_pic_order_cnt_cycle;
                             i++)
             {
-                expected_delta_poc_cycle +=
+                i8_expected_delta_poc_cycle +=
                                 ps_seq->i4_ofst_for_ref_frame[i];
             }
 
@@ -303,13 +304,16 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
                                 MOD((abs_frm_num - 1),
                                     ps_seq->u1_num_ref_frames_in_pic_order_cnt_cycle);
 
-                expected_poc = poc_cycle_cnt
-                                * expected_delta_poc_cycle;
+                i8_result = poc_cycle_cnt
+                                * i8_expected_delta_poc_cycle;
+
                 for(i = 0; i <= frame_num_in_poc_cycle; i++)
                 {
-                    expected_poc = expected_poc
+                    i8_result = i8_result
                                     + ps_seq->i4_ofst_for_ref_frame[i];
                 }
+
+                expected_poc =(WORD32)CLIP_S32(i8_result);
             }
             else
                 expected_poc = 0;
@@ -376,7 +380,7 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             else if(prev_frame_num > ((WORD32)u2_frame_num))
             {
                 frame_num_ofst = i4_prev_frame_num_ofst
-                                + ps_seq->u2_u4_max_pic_num_minus1 + 1;
+                                + (WORD32)ps_seq->u2_u4_max_pic_num_minus1 + 1;
             }
             else
                 frame_num_ofst = i4_prev_frame_num_ofst;
@@ -385,10 +389,10 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             if(u1_is_idr_slice)
                 tmp_poc = 0;
             else if(u1_nal_ref_idc == 0)
-                tmp_poc = ((frame_num_ofst + u2_frame_num) << 1)
+                tmp_poc = ((frame_num_ofst + (WORD32)u2_frame_num) << 1)
                                 - 1;
             else
-                tmp_poc = ((frame_num_ofst + u2_frame_num) << 1);
+                tmp_poc = ((frame_num_ofst + (WORD32)u2_frame_num) << 1);
 
             /* 6. TopFieldOrderCnt or BottomFieldOrderCnt are derived as */
             if(!u1_field_pic_flag)
@@ -706,9 +710,9 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
 
     ps_dec->ps_dpb_mgr->u2_pic_ht = ps_dec->u2_pic_ht;
     ps_dec->ps_dpb_mgr->u2_pic_wd = ps_dec->u2_pic_wd;
-    ps_dec->i4_pic_type = -1;
-    ps_dec->i4_frametype = -1;
-    ps_dec->i4_content_type = -1;
+    ps_dec->i4_pic_type = NA_SLICE;
+    ps_dec->i4_frametype = IV_NA_FRAME;
+    ps_dec->i4_content_type = IV_CONTENTTYPE_NA;
 
     /*--------------------------------------------------------------------*/
     /* Get the value of MaxMbAddress and frmheight in Mbs                 */
@@ -909,7 +913,7 @@ WORD32 ih264d_get_next_display_field(dec_struct_t * ps_dec,
                     (disp_mgr_t *)ps_dec->pv_disp_buf_mgr, &i4_disp_buf_id);
     ps_dec->u4_num_fld_in_frm = 0;
     u4_api_ret = -1;
-    pv_disp_op->u4_ts = -1;
+    pv_disp_op->u4_ts = 0;
     pv_disp_op->e_output_format = ps_dec->u1_chroma_format;
 
     pv_disp_op->s_disp_frm_buf.pv_y_buf = ps_out_buffer->pu1_bufs[0];

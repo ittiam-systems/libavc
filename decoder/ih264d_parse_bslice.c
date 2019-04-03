@@ -1220,11 +1220,11 @@ void ih264d_get_implicit_weights(dec_struct_t *ps_dec)
             if(i4_poc1 != i4_poc0)
             {
                 i4_tb = ps_dec->ps_cur_pic->i4_poc - i4_poc0;
-                i16_tb = CLIP3(-128, 127, i4_tb);
+                i16_tb = CLIP_S8(i4_tb);
                 i4_td = i4_poc1 - i4_poc0;
-                i16_td = CLIP3(-128, 127, i4_td);
+                i16_td = CLIP_S8(i4_td);
                 i16_tx = (16384 + ABS(SIGN_POW2_DIV(i16_td, 1))) / i16_td;
-                i2_dist_scale_factor = CLIP3(-1024, 1023,
+                i2_dist_scale_factor = CLIP_S11(
                                             (((i16_tb * i16_tx) + 32) >> 6));
 
                 if(/*((u4_poc1 - u4_poc0) == 0) ||*/
@@ -1290,14 +1290,13 @@ void ih264d_get_implicit_weights(dec_struct_t *ps_dec)
                     if(i4_poc1 != i4_poc0)
                     {
                         i4_tb = i4_cur_poc - i4_poc0;
-                        i16_tb = CLIP3(-128, 127, i4_tb);
+                        i16_tb = CLIP_S8(i4_tb);
                         i4_td = i4_poc1 - i4_poc0;
-                        i16_td = CLIP3(-128, 127, i4_td);
+                        i16_td = CLIP_S8(i4_td);
                         i16_tx = (16384 + ABS(SIGN_POW2_DIV(i16_td, 1)))
                                         / i16_td;
-                        i2_dist_scale_factor = CLIP3(
-                                        -1024, 1023,
-                                        (((i16_tb * i16_tx) + 32) >> 6));
+                        i2_dist_scale_factor = CLIP_S11(
+                                                    (((i16_tb * i16_tx) + 32) >> 6));
 
                         if(/*((u4_poc1 - u4_poc0) == 0) ||*/
                         (!(ps_pic_buff1->u1_is_short && ps_pic_buff0->u1_is_short))

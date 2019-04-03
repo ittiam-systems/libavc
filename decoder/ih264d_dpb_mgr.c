@@ -747,18 +747,22 @@ WORD32 ih264d_ref_idx_reordering(dec_struct_t *ps_dec, UWORD8 uc_lx)
         ui_nextUev = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
         if(ui_remapIdc != 2)
         {
+            if(ui_nextUev > ui_max_frame_num)
+                return ERROR_DBP_MANAGER_T;
+
             ui_nextUev = ui_nextUev + 1;
+
             if(ui_remapIdc == 0)
             {
                 // diffPicNum is -ve
-                i_temp = u2_pred_frame_num - ui_nextUev;
+                i_temp = (WORD32)u2_pred_frame_num - (WORD32)ui_nextUev;
                 if(i_temp < 0)
                     i_temp += ui_max_frame_num;
             }
             else
             {
                 // diffPicNum is +ve
-                i_temp = u2_pred_frame_num + ui_nextUev;
+                i_temp = (WORD32)u2_pred_frame_num + (WORD32)ui_nextUev;
                 if(i_temp >= ui_max_frame_num)
                     i_temp -= ui_max_frame_num;
             }
@@ -786,7 +790,12 @@ WORD32 ih264d_ref_idx_reordering(dec_struct_t *ps_dec, UWORD8 uc_lx)
         }
         else //2
         {
-            UWORD8 u1_lt_idx = (UWORD8)ui_nextUev;
+            UWORD8 u1_lt_idx;
+
+            if(ui_nextUev > (MAX_REF_BUFS + 1))
+                return ERROR_DBP_MANAGER_T;
+
+            u1_lt_idx = (UWORD8)ui_nextUev;
 
             for(i = 0; i < (ps_cur_slice->u1_initial_list_size[uc_lx]); i++)
             {
@@ -1170,7 +1179,7 @@ WORD32 ih264d_do_mmco_buffer(dpb_commands_t *ps_dpb_cmds,
                         u4_diff_pic_num = ps_mmc_params->u4_diff_pic_num; //Get absDiffPicnumMinus1
                         if(u1_fld_pic_flag)
                             i4_cur_pic_num = i4_cur_pic_num * 2 + 1;
-                        i4_pic_num = i4_cur_pic_num - (u4_diff_pic_num + 1);
+                        i4_pic_num = ((WORD32)i4_cur_pic_num - ((WORD32)u4_diff_pic_num + 1));
                     }
 
                     if(ps_dpb_mgr->u1_num_st_ref_bufs > 0)
@@ -1218,7 +1227,7 @@ WORD32 ih264d_do_mmco_buffer(dpb_commands_t *ps_dpb_cmds,
                         if(u1_fld_pic_flag)
                             i4_cur_pic_num = i4_cur_pic_num * 2 + 1;
 
-                        i4_pic_num = i4_cur_pic_num - (u4_diff_pic_num + 1);
+                        i4_pic_num = (WORD32)i4_cur_pic_num - ((WORD32)u4_diff_pic_num + 1);
                     }
 
                     u4_lt_idx = ps_mmc_params->u4_lt_idx; //Get long term index

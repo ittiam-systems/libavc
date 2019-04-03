@@ -351,6 +351,7 @@ enum
 #define DISP_BOT_FLD    0x01
 
 /** Slice Types */
+#define NA_SLICE -1
 #define P_SLICE  0
 #define B_SLICE  1
 #define I_SLICE  2
@@ -600,7 +601,7 @@ enum
 #endif //DEBLOCK_THREAD
 
 #define NUM_COEFFS_IN_4x4BLK 16
-
+#define CABAC_BITS_TO_READ 23
 
 #define MEMSET_16BYTES(pu4_start,value)                         \
 {                                                               \
