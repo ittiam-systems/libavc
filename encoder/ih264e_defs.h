@@ -202,7 +202,7 @@
 #define DEFAULT_RECON_ENABLE            0
 #define DEFAULT_RC                      IVE_RC_STORAGE
 #define DEFAULT_MAX_FRAMERATE           120000
-#define DEFAULT_MAX_BITRATE             50000000
+#define DEFAULT_MAX_BITRATE             240000000
 #define DEFAULT_MAX_NUM_BFRAMES         0
 #define DEFAULT_MAX_SRCH_RANGE_X        256
 #define DEFAULT_MAX_SRCH_RANGE_Y        256
@@ -218,7 +218,7 @@
 #define DEFAULT_AIR_MODE                IVE_AIR_MODE_NONE
 #define DEFAULT_AIR_REFRESH_PERIOD      30
 #define DEFAULT_VBV_DELAY               1000
-#define DEFAULT_VBV_SIZE                16800000 /* level 3.1 */
+#define DEFAULT_VBV_SIZE                240000000 /* level 6.0 */
 #define DEFAULT_NUM_CORES               1
 #define DEFAULT_ME_SPEED_PRESET         100
 #define DEFAULT_HPEL                    1
