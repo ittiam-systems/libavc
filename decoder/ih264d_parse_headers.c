@@ -608,7 +608,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
         /* Monochrome is not supported */
         if(ps_seq->i4_chroma_format_idc != 1)
         {
-            return ERROR_INV_SPS_PPS_T;
+            return ERROR_FEATURE_UNAVAIL;
         }
 
         /* reading bit_depth_luma_minus8   */
@@ -617,7 +617,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
 
         if(ps_seq->i4_bit_depth_luma_minus8 != 0)
         {
-            return ERROR_INV_SPS_PPS_T;
+            return ERROR_FEATURE_UNAVAIL;
         }
 
         /* reading bit_depth_chroma_minus8   */
@@ -626,7 +626,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
 
         if(ps_seq->i4_bit_depth_chroma_minus8 != 0)
         {
-            return ERROR_INV_SPS_PPS_T;
+            return ERROR_FEATURE_UNAVAIL;
         }
 
         /* reading qpprime_y_zero_transform_bypass_flag   */
