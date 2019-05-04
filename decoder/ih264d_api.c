@@ -2432,16 +2432,10 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     }
 
 //Report if header (sps and pps) has not been decoded yet
-    if(ps_dec->i4_header_decoded != 3)
-    {
-        ps_dec_op->u4_error_code |= (1 << IVD_INSUFFICIENTDATA);
-
-    }
-
     if(ps_dec->i4_decode_header == 1 && ps_dec->i4_header_decoded != 3)
     {
         ps_dec_op->u4_error_code |= (1 << IVD_INSUFFICIENTDATA);
-
+        api_ret_value = IV_FAIL;
     }
     if(ps_dec->u4_prev_nal_skipped)
     {
