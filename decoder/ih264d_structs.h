@@ -1231,7 +1231,6 @@ typedef struct _DecStruct
     UWORD32 u4_num_mbs_cur_nmb;
     UWORD32 u4_app_deblk_disable_level;
     UWORD32 u4_app_disable_deblk_frm;
-    WORD32 i4_app_skip_mode;
     WORD32 i4_mv_frac_mask;
 
     disp_buf_t disp_bufs[MAX_DISP_BUFS_NEW];
@@ -1239,9 +1238,6 @@ typedef struct _DecStruct
     UWORD32 u4_disp_buf_to_be_freed[MAX_DISP_BUFS_NEW];
     UWORD32 u4_share_disp_buf;
     UWORD32 u4_num_disp_bufs;
-    UWORD32 u4_prev_nal_skipped;
-    UWORD32 u4_return_to_app;
-    WORD32 i4_dec_skip_mode;
 
     UWORD32 u4_bs_deblk_thread_created;
     volatile UWORD32 u4_start_recon_deblk;

@@ -975,9 +975,6 @@ void ih264d_init_decoder(void * ps_dec_params)
     ps_dec->i4_degrade_type = 0;
     ps_dec->i4_degrade_pics = 0;
 
-    ps_dec->i4_app_skip_mode = IVD_SKIP_NONE;
-    ps_dec->i4_dec_skip_mode = IVD_SKIP_NONE;
-
     memset(ps_dec->ps_pps, 0,
            ((sizeof(dec_pic_params_t)) * MAX_NUM_PIC_PARAMS));
     memset(ps_dec->ps_sps, 0,
@@ -2074,8 +2071,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         ih264d_init_decoder(ps_dec);
     }
 
-    ps_dec->u4_prev_nal_skipped = 0;
-
     ps_dec->u2_cur_mb_addr = 0;
     ps_dec->u2_total_mbs_coded = 0;
     ps_dec->u2_cur_slice_num = 0;
@@ -2152,51 +2147,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         bytes_consumed = buflen + u4_length_of_start_code;
         ps_dec_op->u4_num_bytes_consumed += bytes_consumed;
 
-        {
-            UWORD8 u1_firstbyte, u1_nal_ref_idc;
-
-            if(ps_dec->i4_app_skip_mode == IVD_SKIP_B)
-            {
-                u1_firstbyte = *(pu1_buf + u4_length_of_start_code);
-                u1_nal_ref_idc = (UWORD8)(NAL_REF_IDC(u1_firstbyte));
-                if(u1_nal_ref_idc == 0)
-                {
-                    /*skip non reference frames*/
-                    cur_slice_is_nonref = 1;
-                    continue;
-                }
-                else
-                {
-                    if(1 == cur_slice_is_nonref)
-                    {
-                        /*We have encountered a referenced frame,return to app*/
-                        ps_dec_op->u4_num_bytes_consumed -=
-                                        bytes_consumed;
-                        ps_dec_op->e_pic_type = IV_B_FRAME;
-                        ps_dec_op->u4_error_code =
-                                        IVD_DEC_FRM_SKIPPED;
-                        ps_dec_op->u4_error_code |= (1
-                                        << IVD_UNSUPPORTEDPARAM);
-                        ps_dec_op->u4_frame_decoded_flag = 0;
-                        ps_dec_op->u4_size =
-                                        sizeof(ivd_video_decode_op_t);
-                        /*signal the decode thread*/
-                        ih264d_signal_decode_thread(ps_dec);
-                        /* close deblock thread if it is not closed yet*/
-                        if(ps_dec->u4_num_cores == 3)
-                        {
-                            ih264d_signal_bs_deblk_thread(ps_dec);
-                        }
-
-                        return (IV_FAIL);
-                    }
-                }
-
-            }
-
-        }
-
-
         if(buflen)
         {
             memcpy(pu1_bitstrm_buf, pu1_buf + u4_length_of_start_code,
@@ -2247,7 +2197,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
         }
 
-        ps_dec->u4_return_to_app = 0;
         ret = ih264d_parse_nal_unit(dec_hdl, ps_dec_op,
                               pu1_bitstrm_buf, buflen);
         if(ret != OK)
@@ -2283,27 +2232,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             }
 
         }
-
-        if(ps_dec->u4_return_to_app)
-        {
-            /*We have encountered a referenced frame,return to app*/
-            ps_dec_op->u4_num_bytes_consumed -= bytes_consumed;
-            ps_dec_op->u4_error_code = IVD_DEC_FRM_SKIPPED;
-            ps_dec_op->u4_error_code |= (1 << IVD_UNSUPPORTEDPARAM);
-            ps_dec_op->u4_frame_decoded_flag = 0;
-            ps_dec_op->u4_size = sizeof(ivd_video_decode_op_t);
-            /*signal the decode thread*/
-            ih264d_signal_decode_thread(ps_dec);
-            /* close deblock thread if it is not closed yet*/
-            if(ps_dec->u4_num_cores == 3)
-            {
-                ih264d_signal_bs_deblk_thread(ps_dec);
-            }
-            return (IV_FAIL);
-
-        }
-
-
 
         header_data_left = ((ps_dec->i4_decode_header == 1)
                         && (ps_dec->i4_header_decoded != 3)
@@ -2436,21 +2364,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     {
         ps_dec_op->u4_error_code |= (1 << IVD_INSUFFICIENTDATA);
         api_ret_value = IV_FAIL;
-    }
-    if(ps_dec->u4_prev_nal_skipped)
-    {
-        /*We have encountered a referenced frame,return to app*/
-        ps_dec_op->u4_error_code = IVD_DEC_FRM_SKIPPED;
-        ps_dec_op->u4_error_code |= (1 << IVD_UNSUPPORTEDPARAM);
-        ps_dec_op->u4_frame_decoded_flag = 0;
-        ps_dec_op->u4_size = sizeof(ivd_video_decode_op_t);
-        /* close deblock thread if it is not closed yet*/
-        if(ps_dec->u4_num_cores == 3)
-        {
-            ih264d_signal_bs_deblk_thread(ps_dec);
-        }
-        return (IV_FAIL);
-
     }
 
     if((ps_dec->u4_pic_buf_got == 1)
@@ -3163,32 +3076,10 @@ WORD32 ih264d_set_params(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     ps_ctl_op->u4_error_code = 0;
 
-    ps_dec->i4_app_skip_mode = ps_ctl_ip->e_frm_skip_mode;
-
-    /*Is it really supported test it when you so the corner testing using test app*/
-
     if(ps_ctl_ip->e_frm_skip_mode != IVD_SKIP_NONE)
     {
-
-        if(ps_ctl_ip->e_frm_skip_mode == IVD_SKIP_P)
-            ps_dec->u4_skip_frm_mask |= 1 << P_SLC_BIT;
-        else if(ps_ctl_ip->e_frm_skip_mode == IVD_SKIP_B)
-            ps_dec->u4_skip_frm_mask |= 1 << B_SLC_BIT;
-        else if(ps_ctl_ip->e_frm_skip_mode == IVD_SKIP_PB)
-        {
-            ps_dec->u4_skip_frm_mask |= 1 << B_SLC_BIT;
-            ps_dec->u4_skip_frm_mask |= 1 << P_SLC_BIT;
-        }
-        else if(ps_ctl_ip->e_frm_skip_mode == IVD_SKIP_I)
-            ps_dec->u4_skip_frm_mask |= 1 << I_SLC_BIT;
-        else
-        {
-            //dynamic parameter not supported
-            //Put an appropriate error code to return the error..
-            //when you do the error code tests and after that remove this comment
-            ps_ctl_op->u4_error_code = (1 << IVD_UNSUPPORTEDPARAM);
-            ret = IV_FAIL;
-        }
+        ps_ctl_op->u4_error_code = (1 << IVD_UNSUPPORTEDPARAM);
+        ret = IV_FAIL;
     }
 
     if(ps_ctl_ip->u4_disp_wd >= ps_dec->u2_pic_wd)
