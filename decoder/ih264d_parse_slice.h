@@ -37,6 +37,7 @@
 #include "ih264_platform_macros.h"
 #include "ih264d_structs.h"
 #include "ih264d_error_handler.h"
+WORD32 ih264d_fix_error_in_dpb(dec_struct_t * ps_dec);
 WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
                                  UWORD8 u1_nal_ref_idc,
                                  dec_struct_t * ps_dec );
