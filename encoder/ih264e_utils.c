@@ -193,7 +193,7 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
     picture_type_e e_pictype;
     WORD32 i4_skip;
     UWORD32 ctxt_sel, u4_pic_id, u4_pic_disp_id;
-    UWORD8 u1_frame_qp;
+    UWORD8 u1_frame_qp, i;
     UWORD32 max_frame_bits = 0x7FFFFFFF;
 
     /*  Mark that the last input frame has been received */
@@ -235,7 +235,7 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
      *Queue the input to the queue
      **************************************************************************/
     ps_inp_buf = &(ps_codec->as_inp_list[ps_codec->i4_pic_cnt
-                                         % MAX_NUM_BFRAMES]);
+                                         % MAX_NUM_INP_FRAMES]);
 
     /* copy input info. to internal structure */
     ps_inp_buf->s_raw_buf = ps_ive_ip->s_inp_buf;
@@ -342,7 +342,7 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
     ps_codec->s_rate_control.pre_encode_skip[ctxt_sel] = i4_skip;
 
     /* Get a buffer to encode */
-    ps_inp_buf = &(ps_codec->as_inp_list[u4_pic_id % MAX_NUM_BFRAMES]);
+    ps_inp_buf = &(ps_codec->as_inp_list[u4_pic_id % MAX_NUM_INP_FRAMES]);
 
     /* copy dequeued input to output */
     ps_enc_buff->s_raw_buf = ps_inp_buf->s_raw_buf;
@@ -400,43 +400,53 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
      *     I/P and I/P.
      */
     if (ps_enc_buff->u4_is_last && (ps_codec->pic_type == PIC_P)
-                    && ps_codec->s_cfg.u4_num_bframes && (ps_codec->i4_poc > 1))
+                    && ps_codec->s_cfg.u4_num_bframes)
     {
-        UWORD32 u4_cntr, u4_lst_bframe;
-        inp_buf_t *ps_swap_buff, *ps_inp_list, *ps_cur_pic;
-
-        u4_cntr = (u4_pic_id + 1) % MAX_NUM_BFRAMES;
-        u4_lst_bframe = u4_pic_id ? ((u4_pic_id - 1) % MAX_NUM_BFRAMES) : (MAX_NUM_BFRAMES - 1);
+        WORD32 cntr;
+        WORD32 lst_bframe = -1;
+        UWORD32 u4_timestamp_low = 0;
+        UWORD32 u4_timestamp_high = 0;
+        inp_buf_t *ps_swap_buff, *ps_inp_list;
 
         ps_inp_list = &ps_codec->as_inp_list[0];
-        ps_cur_pic = &ps_inp_list[u4_pic_id % MAX_NUM_BFRAMES];
 
-        /* Now search the pic in most recent past to current frame */
-        for(; u4_cntr != (u4_pic_id % MAX_NUM_BFRAMES);
-                        u4_cntr = ((u4_cntr + 1) % MAX_NUM_BFRAMES))
+        /* Now search the inp list for highest timestamp */
+        for(cntr = 0; cntr < MAX_NUM_INP_FRAMES; cntr++)
         {
-            if ( (ps_inp_list[u4_cntr].u4_timestamp_low  <= ps_cur_pic->u4_timestamp_low) &&
-                 (ps_inp_list[u4_cntr].u4_timestamp_high <= ps_cur_pic->u4_timestamp_high) &&
-                 (ps_inp_list[u4_cntr].u4_timestamp_low  >= ps_inp_list[u4_lst_bframe].u4_timestamp_low) &&
-                 (ps_inp_list[u4_cntr].u4_timestamp_high >= ps_inp_list[u4_lst_bframe].u4_timestamp_high))
+            if(ps_inp_list[cntr].s_raw_buf.apv_bufs[0] != NULL)
             {
-                u4_lst_bframe = u4_cntr;
+                if ((ps_inp_list[cntr].u4_timestamp_high  > u4_timestamp_high) ||
+                    (ps_inp_list[cntr].u4_timestamp_high  == u4_timestamp_high &&
+                     ps_inp_list[cntr].u4_timestamp_low  > u4_timestamp_low))
+                {
+                    u4_timestamp_low = ps_inp_list[cntr].u4_timestamp_low;
+                    u4_timestamp_high = ps_inp_list[cntr].u4_timestamp_high;
+                    lst_bframe = cntr;
+                }
             }
         }
 
-        ps_swap_buff = &(ps_codec->as_inp_list[u4_lst_bframe]);
+        if(lst_bframe != -1)
+        {
+            ps_swap_buff = &(ps_codec->as_inp_list[lst_bframe]);
 
-        /* copy the last B buffer to output */
-        *ps_enc_buff = *ps_swap_buff;
+            /* copy the last B buffer to output */
+            *ps_enc_buff = *ps_swap_buff;
 
-        /* Store the current buf into the queue in place of last B buf */
-        *ps_swap_buff = *ps_inp_buf;
-
+            /* Store the current buf into the queue in place of last B buf */
+            *ps_swap_buff = *ps_inp_buf;
+        }
     }
 
     if (ps_enc_buff->u4_is_last)
     {
         ps_codec->pic_type = PIC_NA;
+    }
+
+    /* The buffer in the queue is set to NULL to specify that encoding is done for that frame */
+    for(i = 0; i < 3; i++)
+    {
+        ps_inp_buf->s_raw_buf.apv_bufs[i] = NULL;
     }
 
     /* Return the buffer status */
