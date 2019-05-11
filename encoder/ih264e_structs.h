@@ -2801,7 +2801,7 @@ struct _codec_t
     /**
      * input buffer queue
      */
-    inp_buf_t as_inp_list[MAX_NUM_BFRAMES];
+    inp_buf_t as_inp_list[MAX_NUM_INP_FRAMES];
 
     /**
      * Flag to indicate if any IDR requests are pending

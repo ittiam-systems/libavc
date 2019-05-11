@@ -134,7 +134,12 @@
 /**
  *  Maximum number of B pictures between two I/P pictures
  */
-#define MAX_NUM_BFRAMES     10
+#define MAX_NUM_BFRAMES     8
+
+/**
+ *  Maximum number of pictures in input queue
+ */
+#define MAX_NUM_INP_FRAMES  ((MAX_NUM_BFRAMES) + 2)
 
 /**
  *  Maximum number of reference buffers in DPB manager
