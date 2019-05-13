@@ -34,6 +34,8 @@
  *
  ************************************************************************
  */
+#include <stdint.h>
+
 #define H264_MAX_FRAME_WIDTH                4080
 #define H264_MAX_FRAME_HEIGHT               4080
 #define H264_MAX_FRAME_SIZE                 (4096 * 2048)
@@ -46,6 +48,9 @@
 /** Bit manipulation macros */
 #define CHECKBIT(a,i) ((a) &  (1 << i))
 #define CLEARBIT(a,i) ((a) &= ~(1 << i))
+
+/** Macro to check if a number lies in the valid integer range */
+#define IS_OUT_OF_RANGE_S32(a) (((a) < INT32_MIN) || ((a) > INT32_MAX))
 
 /** Macro to convert a integer to a boolean value */
 #define BOOLEAN(x) (!!(x))
