@@ -1670,7 +1670,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             {
                 /* Align the size to multiple of 8, so that SIMD functions
                 can read 64 bits at a time. Only 25 bytes are actaully used */
-                UWORD8 au1_ngbr_pels[32];
+                UWORD8 au1_ngbr_pels[32] = {0};
                 WORD32 ngbr_avail;
                 ngbr_avail = u1_is_left_sub_block << 0;
                 ngbr_avail |= u1_is_top_sub_block << 2;

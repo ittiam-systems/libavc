@@ -690,12 +690,12 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
         if((ps_seq->i4_seq_scaling_matrix_present_flag)
                         || (ps_pps->i4_pic_scaling_matrix_present_flag))
         {
-            ih264d_form_scaling_matrix_picture(ps_seq, ps_pps, ps_dec);
+            ret = ih264d_form_scaling_matrix_picture(ps_seq, ps_pps, ps_dec);
             ps_dec->s_high_profile.u1_scaling_present = 1;
         }
         else
         {
-            ih264d_form_default_scaling_matrix(ps_dec);
+            ret = ih264d_form_default_scaling_matrix(ps_dec);
         }
 
         if(ps_pps->i4_transform_8x8_mode_flag)
@@ -705,9 +705,12 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
     }
     else
     {
-        ih264d_form_default_scaling_matrix(ps_dec);
+        ret = ih264d_form_default_scaling_matrix(ps_dec);
     }
-
+    
+    if(ret != OK)
+        return ret;
+ 
     /* required while reading the transform_size_8x8 u4_flag */
     ps_dec->s_high_profile.u1_direct_8x8_inference_flag =
                     ps_seq->u1_direct_8x8_inference_flag;
@@ -979,6 +982,69 @@ WORD32 ih264d_end_of_pic(dec_struct_t *ps_dec)
     return OK;
 }
 
+
+/*!
+ **************************************************************************
+ * \if Function name : ih264d_fix_error_in_dpb \endif
+ *
+ * \brief
+ *    fix error in DPB
+ *
+ * \return
+ *    Number of node(s) deleted
+ **************************************************************************
+ */
+
+WORD32 ih264d_fix_error_in_dpb(dec_struct_t *ps_dec)
+{
+    /*--------------------------------------------------------------------*/
+    /* If there is common node in lt_list and st_list then delete it from */
+    /* st_list                                                            */
+    /*--------------------------------------------------------------------*/
+    UWORD8 no_of_nodes_deleted = 0;
+    UWORD8 lt_ref_num = ps_dec->ps_dpb_mgr->u1_num_lt_ref_bufs;
+    struct dpb_info_t *ps_lt_curr_dpb = ps_dec->ps_dpb_mgr->ps_dpb_ht_head;
+    while(lt_ref_num && ps_lt_curr_dpb)
+    {
+        if(ps_dec->ps_dpb_mgr->ps_dpb_st_head
+                && ((ps_lt_curr_dpb->s_bot_field.u1_reference_info
+                        | ps_lt_curr_dpb->s_top_field.u1_reference_info)
+                        == (IS_SHORT_TERM | IS_LONG_TERM)))
+        {
+            struct dpb_info_t *ps_st_next_dpb = ps_dec->ps_dpb_mgr->ps_dpb_st_head;
+            struct dpb_info_t *ps_st_curr_dpb = ps_dec->ps_dpb_mgr->ps_dpb_st_head;
+            UWORD8 st_ref_num = ps_dec->ps_dpb_mgr->u1_num_st_ref_bufs;
+            while(st_ref_num && ps_st_curr_dpb)
+            {
+                if(ps_st_curr_dpb == ps_lt_curr_dpb)
+                {
+                    if(st_ref_num == ps_dec->ps_dpb_mgr->u1_num_st_ref_bufs)
+                    {
+                        ps_dec->ps_dpb_mgr->ps_dpb_st_head =
+                                ps_dec->ps_dpb_mgr->ps_dpb_st_head->ps_prev_short;
+                        ps_st_curr_dpb = ps_dec->ps_dpb_mgr->ps_dpb_st_head;
+                    }
+                    else
+                    {
+                        ps_st_next_dpb->ps_prev_short = ps_st_curr_dpb->ps_prev_short;
+                    }
+                    ps_dec->ps_dpb_mgr->u1_num_st_ref_bufs--;
+                    ps_dec->ps_dpb_mgr->u1_num_lt_ref_bufs++;
+                    no_of_nodes_deleted++;
+                    break;
+                }
+                ps_st_next_dpb = ps_st_curr_dpb;
+                ps_st_curr_dpb = ps_st_curr_dpb->ps_prev_short;
+                st_ref_num--;
+            }
+        }
+        ps_lt_curr_dpb = ps_lt_curr_dpb->ps_prev_long;
+        lt_ref_num--;
+    }
+    return no_of_nodes_deleted;
+}
+
+
 /*!
  **************************************************************************
  * \if Function name : DecodeSlice \endif
@@ -1000,7 +1066,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
     dec_pic_params_t *ps_pps;
     dec_seq_params_t *ps_seq;
     dec_slice_params_t *ps_cur_slice = ps_dec->ps_cur_slice;
-    pocstruct_t s_tmp_poc;
+    pocstruct_t s_tmp_poc = {0};
     WORD32 i_delta_poc[2];
     WORD32 i4_poc = 0;
     UWORD16 u2_first_mb_in_slice, u2_frame_num;
@@ -1055,62 +1121,6 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
     if(u1_slice_type > 4)
     {
         u1_slice_type -= 5;
-    }
-
-    {
-        UWORD32 skip;
-
-        if((ps_dec->i4_app_skip_mode == IVD_SKIP_PB)
-                        || (ps_dec->i4_dec_skip_mode == IVD_SKIP_PB))
-        {
-            UWORD32 u4_bit_stream_offset = 0;
-
-            if(ps_dec->u1_nal_unit_type == IDR_SLICE_NAL)
-            {
-                skip = 0;
-
-                ps_dec->i4_dec_skip_mode = IVD_SKIP_NONE;
-            }
-            else if((I_SLICE == u1_slice_type)
-                            && (1 >= ps_dec->ps_cur_sps->u1_num_ref_frames))
-            {
-                skip = 0;
-
-                ps_dec->i4_dec_skip_mode = IVD_SKIP_NONE;
-            }
-            else
-            {
-                skip = 1;
-            }
-
-            /* If one frame worth of data is already skipped, do not skip the next one */
-            if((0 == u2_first_mb_in_slice) && (1 == ps_dec->u4_prev_nal_skipped))
-            {
-                skip = 0;
-            }
-
-            if(skip)
-            {
-                ps_dec->u4_prev_nal_skipped = 1;
-                ps_dec->i4_dec_skip_mode = IVD_SKIP_PB;
-                return 0;
-            }
-            else
-            {
-                /* If the previous NAL was skipped, then
-                 do not process that buffer in this call.
-                 Return to app and process it in the next call.
-                 This is necessary to handle cases where I/IDR is not complete in
-                 the current buffer and application intends to fill the remaining part of the bitstream
-                 later. This ensures we process only frame worth of data in every call */
-                if(1 == ps_dec->u4_prev_nal_skipped)
-                {
-                    ps_dec->u4_return_to_app = 1;
-                    return 0;
-                }
-            }
-        }
-
     }
 
     u4_temp = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
@@ -1473,9 +1483,13 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         /* IDR Picture or POC wrap around */
         if(i4_poc == 0)
         {
-            ps_dec->i4_prev_max_display_seq = ps_dec->i4_prev_max_display_seq
-                            + ps_dec->i4_max_poc
-                            + ps_dec->u1_max_dec_frame_buffering + 1;
+            UWORD64 u8_temp;
+            u8_temp = (UWORD64)ps_dec->i4_prev_max_display_seq
+                      + ps_dec->i4_max_poc
+                      + ps_dec->u1_max_dec_frame_buffering + 1;
+            /*If i4_prev_max_display_seq overflows integer range, reset it */
+            ps_dec->i4_prev_max_display_seq = (u8_temp > 0x7fffffff)?
+                                              0 : u8_temp;
             ps_dec->i4_max_poc = 0;
         }
     }
@@ -1820,6 +1834,10 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
     {
         ps_dec->pv_proc_tu_coeff_data = ps_dec->pv_parse_tu_coeff_data;
     }
+
+    ret = ih264d_fix_error_in_dpb(ps_dec);
+    if(ret < 0)
+        return ERROR_DBP_MANAGER_T;
 
     if(u1_slice_type == I_SLICE)
     {

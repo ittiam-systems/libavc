@@ -240,8 +240,9 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             WORD32 frame_num_ofst;
             WORD32 abs_frm_num;
             WORD32 poc_cycle_cnt, frame_num_in_poc_cycle;
-            WORD32 expected_delta_poc_cycle;
+            WORD64 i8_expected_delta_poc_cycle;
             WORD32 expected_poc;
+            WORD64 i8_result;
 
             prev_frame_num = (WORD32)ps_cur_slice->u2_frame_num;
             if(!u1_is_idr_slice)
@@ -269,25 +270,25 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             else if(prev_frame_num > ((WORD32)u2_frame_num))
             {
                 frame_num_ofst = i4_prev_frame_num_ofst
-                                + ps_seq->u2_u4_max_pic_num_minus1 + 1;
+                                + (WORD32)ps_seq->u2_u4_max_pic_num_minus1 + 1;
             }
             else
                 frame_num_ofst = i4_prev_frame_num_ofst;
 
             /* 2. Derivation for absFrameNum */
             if(0 != ps_seq->u1_num_ref_frames_in_pic_order_cnt_cycle)
-                abs_frm_num = frame_num_ofst + u2_frame_num;
+                abs_frm_num = frame_num_ofst + (WORD32)u2_frame_num;
             else
                 abs_frm_num = 0;
             if((u1_nal_ref_idc == 0) && (abs_frm_num > 0))
                 abs_frm_num = abs_frm_num - 1;
 
             /* 4. expectedDeltaPerPicOrderCntCycle is derived as */
-            expected_delta_poc_cycle = 0;
+            i8_expected_delta_poc_cycle = 0;
             for(i = 0; i < ps_seq->u1_num_ref_frames_in_pic_order_cnt_cycle;
                             i++)
             {
-                expected_delta_poc_cycle +=
+                i8_expected_delta_poc_cycle +=
                                 ps_seq->i4_ofst_for_ref_frame[i];
             }
 
@@ -303,42 +304,71 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
                                 MOD((abs_frm_num - 1),
                                     ps_seq->u1_num_ref_frames_in_pic_order_cnt_cycle);
 
-                expected_poc = poc_cycle_cnt
-                                * expected_delta_poc_cycle;
+                i8_result = poc_cycle_cnt
+                                * i8_expected_delta_poc_cycle;
+
                 for(i = 0; i <= frame_num_in_poc_cycle; i++)
                 {
-                    expected_poc = expected_poc
+                    i8_result = i8_result
                                     + ps_seq->i4_ofst_for_ref_frame[i];
                 }
+
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                    return ERROR_INV_POC;
+
+                expected_poc = (WORD32)i8_result;
+
             }
             else
                 expected_poc = 0;
 
             if(u1_nal_ref_idc == 0)
             {
-                expected_poc = expected_poc
+                i8_result = expected_poc
                                 + ps_seq->i4_ofst_for_non_ref_pic;
+
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                    return ERROR_INV_POC;
+
+                expected_poc = (WORD32)i8_result;
             }
 
             /* 6. TopFieldOrderCnt or BottomFieldOrderCnt are derived as */
             if(!u1_field_pic_flag)
             {
-                i4_top_field_order_cnt = expected_poc
+                i8_result = expected_poc
                                 + ps_cur_poc->i4_delta_pic_order_cnt[0];
-                i4_bottom_field_order_cnt = i4_top_field_order_cnt
+
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                    return ERROR_INV_POC;
+                i4_top_field_order_cnt = (WORD32)i8_result;
+
+                i8_result = i4_top_field_order_cnt
                                 + ps_seq->i4_ofst_for_top_to_bottom_field
                                 + ps_cur_poc->i4_delta_pic_order_cnt[1];
+
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                    return ERROR_INV_POC;
+                i4_bottom_field_order_cnt = (WORD32)i8_result;
             }
             else if(!u1_bottom_field_flag)
             {
-                i4_top_field_order_cnt = expected_poc
+                i8_result = expected_poc
                                 + ps_cur_poc->i4_delta_pic_order_cnt[0];
+
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                    return ERROR_INV_POC;
+                i4_top_field_order_cnt = (WORD32)i8_result;
             }
             else
             {
-                i4_bottom_field_order_cnt = expected_poc
+                i8_result = expected_poc
                                 + ps_seq->i4_ofst_for_top_to_bottom_field
                                 + ps_cur_poc->i4_delta_pic_order_cnt[0];
+
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                    return ERROR_INV_POC;
+                i4_bottom_field_order_cnt = (WORD32)i8_result;
             }
             /* Copy the current POC info into Previous POC structure */
             ps_cur_poc->i4_prev_frame_num_ofst = frame_num_ofst;
@@ -376,7 +406,7 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             else if(prev_frame_num > ((WORD32)u2_frame_num))
             {
                 frame_num_ofst = i4_prev_frame_num_ofst
-                                + ps_seq->u2_u4_max_pic_num_minus1 + 1;
+                                + (WORD32)ps_seq->u2_u4_max_pic_num_minus1 + 1;
             }
             else
                 frame_num_ofst = i4_prev_frame_num_ofst;
@@ -385,10 +415,10 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             if(u1_is_idr_slice)
                 tmp_poc = 0;
             else if(u1_nal_ref_idc == 0)
-                tmp_poc = ((frame_num_ofst + u2_frame_num) << 1)
+                tmp_poc = ((frame_num_ofst + (WORD32)u2_frame_num) << 1)
                                 - 1;
             else
-                tmp_poc = ((frame_num_ofst + u2_frame_num) << 1);
+                tmp_poc = ((frame_num_ofst + (WORD32)u2_frame_num) << 1);
 
             /* 6. TopFieldOrderCnt or BottomFieldOrderCnt are derived as */
             if(!u1_field_pic_flag)
@@ -706,9 +736,9 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
 
     ps_dec->ps_dpb_mgr->u2_pic_ht = ps_dec->u2_pic_ht;
     ps_dec->ps_dpb_mgr->u2_pic_wd = ps_dec->u2_pic_wd;
-    ps_dec->i4_pic_type = -1;
-    ps_dec->i4_frametype = -1;
-    ps_dec->i4_content_type = -1;
+    ps_dec->i4_pic_type = NA_SLICE;
+    ps_dec->i4_frametype = IV_NA_FRAME;
+    ps_dec->i4_content_type = IV_CONTENTTYPE_NA;
 
     /*--------------------------------------------------------------------*/
     /* Get the value of MaxMbAddress and frmheight in Mbs                 */
@@ -909,7 +939,7 @@ WORD32 ih264d_get_next_display_field(dec_struct_t * ps_dec,
                     (disp_mgr_t *)ps_dec->pv_disp_buf_mgr, &i4_disp_buf_id);
     ps_dec->u4_num_fld_in_frm = 0;
     u4_api_ret = -1;
-    pv_disp_op->u4_ts = -1;
+    pv_disp_op->u4_ts = 0;
     pv_disp_op->e_output_format = ps_dec->u1_chroma_format;
 
     pv_disp_op->s_disp_frm_buf.pv_y_buf = ps_out_buffer->pu1_bufs[0];
@@ -1264,6 +1294,7 @@ void ih264d_release_display_bufs(dec_struct_t *ps_dec)
     WORD32 i4_min_poc;
     WORD32 i4_min_poc_buf_id;
     WORD32 i4_min_index;
+    UWORD64 u8_temp;
     dpb_manager_t *ps_dpb_mgr = ps_dec->ps_dpb_mgr;
     WORD32 (*i4_poc_buf_id_map)[3] = ps_dpb_mgr->ai4_poc_buf_id_map;
 
@@ -1308,9 +1339,11 @@ void ih264d_release_display_bufs(dec_struct_t *ps_dec)
         }
     }
     ps_dpb_mgr->i1_poc_buf_id_entries = 0;
-    ps_dec->i4_prev_max_display_seq = ps_dec->i4_prev_max_display_seq
-                    + ps_dec->i4_max_poc + ps_dec->u1_max_dec_frame_buffering
-                    + 1;
+    u8_temp = (UWORD64)ps_dec->i4_prev_max_display_seq + ps_dec->i4_max_poc
+              + ps_dec->u1_max_dec_frame_buffering + 1;
+    /*If i4_prev_max_display_seq overflows integer range, reset it */
+    ps_dec->i4_prev_max_display_seq = (u8_temp > 0x7fffffff)?
+                                      0 : u8_temp;
     ps_dec->i4_max_poc = 0;
 }
 
@@ -1582,11 +1615,13 @@ WORD32 ih264d_decode_gaps_in_frame_num(dec_struct_t *ps_dec,
             /* IDR Picture or POC wrap around */
             if(i4_poc == 0)
             {
-                ps_dec->i4_prev_max_display_seq =
-                                ps_dec->i4_prev_max_display_seq
-                                                + ps_dec->i4_max_poc
-                                                + ps_dec->u1_max_dec_frame_buffering
-                                                + 1;
+                UWORD64 u8_temp;
+                u8_temp = (UWORD64)ps_dec->i4_prev_max_display_seq
+                          + ps_dec->i4_max_poc
+                          + ps_dec->u1_max_dec_frame_buffering + 1;
+                /*If i4_prev_max_display_seq overflows integer range, reset it */
+                ps_dec->i4_prev_max_display_seq = (u8_temp > 0x7fffffff)?
+                                                  0 : u8_temp;
                 ps_dec->i4_max_poc = 0;
             }
 
@@ -1830,16 +1865,19 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     size = u4_total_mbs;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu1_dec_mb_map = pv_buf;
 
     size = u4_total_mbs;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu1_recon_mb_map = pv_buf;
 
     size = u4_total_mbs * sizeof(UWORD16);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu2_slice_num_map = pv_buf;
 
     /************************************************************/
@@ -1861,17 +1899,20 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
                         * ((ps_dec->u1_recon_mb_grp) << 4);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_parse_part_params = pv_buf;
 
     size = ((u4_wd_mbs * sizeof(deblkmb_neighbour_t)) << uc_frmOrFld);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_deblk_top_mb = pv_buf;
 
     size = ((sizeof(ctxt_inc_mb_info_t))
                         * (((u4_wd_mbs + 1) << uc_frmOrFld) + 1));
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->p_ctxt_inc_mb_map = pv_buf;
 
     /* 0th entry of CtxtIncMbMap will be always be containing default values
@@ -1882,12 +1923,14 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
                         * 16);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_mv_p[0] = pv_buf;
 
     size = (sizeof(mv_pred_t) * ps_dec->u1_recon_mb_grp
                         * 16);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_mv_p[1] = pv_buf;
 
     {
@@ -1898,6 +1941,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
                             * ps_dec->u1_recon_mb_grp * 4);
             pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
             RETURN_IF((NULL == pv_buf), IV_FAIL);
+            memset(pv_buf, 0, size);
             ps_dec->ps_mv_top_p[i] = pv_buf;
         }
     }
@@ -1986,6 +2030,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     size = sizeof(pred_info_pkd_t) * num_entries;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_pred_pkd = pv_buf;
 
     /* Allocate memory for coeff data */
@@ -1999,6 +2044,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     size += u4_total_mbs * 32;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
 
     ps_dec->pi2_coeff_data = pv_buf;
 
@@ -2020,6 +2066,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
         size *= u4_num_bufs;
         pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
         RETURN_IF((NULL == pv_buf), IV_FAIL);
+        memset(pv_buf, 0, size);
         ps_dec->pu1_mv_bank_buf_base = pv_buf;
     }
 
@@ -2053,6 +2100,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     size *= ps_dec->u1_pic_bufs;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu1_pic_buf_base = pv_buf;
 
     /* Post allocation Increment Actions */

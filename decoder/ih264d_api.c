@@ -975,9 +975,6 @@ void ih264d_init_decoder(void * ps_dec_params)
     ps_dec->i4_degrade_type = 0;
     ps_dec->i4_degrade_pics = 0;
 
-    ps_dec->i4_app_skip_mode = IVD_SKIP_NONE;
-    ps_dec->i4_dec_skip_mode = IVD_SKIP_NONE;
-
     memset(ps_dec->ps_pps, 0,
            ((sizeof(dec_pic_params_t)) * MAX_NUM_PIC_PARAMS));
     memset(ps_dec->ps_sps, 0,
@@ -1008,7 +1005,7 @@ void ih264d_init_decoder(void * ps_dec_params)
     ps_dec->u4_total_frames_decoded = 0;
 
     ps_dec->i4_error_code = 0;
-    ps_dec->i4_content_type = -1;
+    ps_dec->i4_content_type = IV_CONTENTTYPE_NA;
     ps_dec->ps_cur_slice->u1_mbaff_frame_flag = 0;
 
     ps_dec->ps_dec_err_status->u1_err_flag = ACCEPT_ALL_PICS; //REJECT_PB_PICS;
@@ -1058,9 +1055,9 @@ void ih264d_init_decoder(void * ps_dec_params)
 
     /* The Initial Frame Rate Info is not Present */
     ps_dec->i4_vui_frame_rate = -1;
-    ps_dec->i4_pic_type = -1;
-    ps_dec->i4_frametype = -1;
-    ps_dec->i4_content_type = -1;
+    ps_dec->i4_pic_type = NA_SLICE;
+    ps_dec->i4_frametype = IV_NA_FRAME;
+    ps_dec->i4_content_type = IV_CONTENTTYPE_NA;
 
     ps_dec->u1_res_changed = 0;
 
@@ -1235,6 +1232,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     ps_create_op->s_ivd_create_op_t.pv_handle = NULL;
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, sizeof(iv_obj_t));
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, sizeof(iv_obj_t));
     *dec_hdl = (iv_obj_t *)pv_buf;
     ps_create_op->s_ivd_create_op_t.pv_handle = *dec_hdl;
 
@@ -1272,82 +1270,98 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     size = ((sizeof(dec_seq_params_t)) * MAX_NUM_SEQ_PARAMS);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_sps = pv_buf;
 
     size = (sizeof(dec_pic_params_t)) * MAX_NUM_PIC_PARAMS;
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_pps = pv_buf;
 
     size = ithread_get_handle_size();
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pv_dec_thread_handle = pv_buf;
 
     size = ithread_get_handle_size();
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pv_bs_deblk_thread_handle = pv_buf;
 
     size = sizeof(dpb_manager_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_dpb_mgr = pv_buf;
 
     size = sizeof(pred_info_t) * 2 * 32;
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_pred = pv_buf;
 
     size = sizeof(disp_mgr_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pv_disp_buf_mgr = pv_buf;
 
     size = sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pv_pic_buf_mgr = pv_buf;
 
     size = sizeof(struct pic_buffer_t) * (H264_MAX_REF_PICS * 2);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_pic_buf_base = pv_buf;
 
     size = sizeof(dec_err_status_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_dec_err_status = (dec_err_status_t *)pv_buf;
 
     size = sizeof(sei);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_sei = (sei *)pv_buf;
 
     size = sizeof(dpb_commands_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_dpb_cmds = (dpb_commands_t *)pv_buf;
 
     size = sizeof(dec_bit_stream_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_bitstrm = (dec_bit_stream_t *)pv_buf;
 
     size = sizeof(dec_slice_params_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_cur_slice = (dec_slice_params_t *)pv_buf;
 
     size = MAX(sizeof(dec_seq_params_t), sizeof(dec_pic_params_t));
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pv_scratch_sps_pps = pv_buf;
 
 
     ps_dec->u4_static_bits_buf_size = 256000;
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, ps_dec->u4_static_bits_buf_size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, ps_dec->u4_static_bits_buf_size);
     ps_dec->pu1_bits_buf_static = pv_buf;
 
 
@@ -1364,6 +1378,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     size = (sizeof(bin_ctxt_model_t) * NUM_CABAC_CTXTS);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->p_cabac_ctxt_table_t = pv_buf;
 
 
@@ -1371,6 +1386,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     size = sizeof(ctxt_inc_mb_info_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_left_mb_ctxt_info = pv_buf;
 
 
@@ -1378,6 +1394,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     size = MAX_REF_BUF_SIZE * 2;
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu1_ref_buff_base = pv_buf;
     ps_dec->pu1_ref_buff = ps_dec->pu1_ref_buff_base + MAX_REF_BUF_SIZE;
 
@@ -1386,12 +1403,14 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
                         * PRED_BUFFER_HEIGHT * 2);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pi2_pred1 = pv_buf;
 
 
     size = sizeof(UWORD8) * (MB_LUM_SIZE);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu1_temp_mc_buffer = pv_buf;
 
 
@@ -1400,6 +1419,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     size = 8 * MAX_REF_BUFS * sizeof(struct pic_buffer_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
 
     ps_dec->pu1_init_dpb_base = pv_buf;
     pu1_buf = pv_buf;
@@ -1412,24 +1432,28 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
                         * ((MAX_FRAMES << 1) * (MAX_FRAMES << 1)) * 2);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu4_mbaff_wt_mat = pv_buf;
 
     size = sizeof(UWORD32) * 2 * 3
                         * ((MAX_FRAMES << 1) * (MAX_FRAMES << 1));
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pu4_wts_ofsts_mat = pv_buf;
 
 
     size = (sizeof(neighbouradd_t) << 2);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->ps_left_mvpred_addr = pv_buf;
 
 
     size = sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
     ps_dec->pv_mv_buf_mgr = pv_buf;
 
 
@@ -1522,7 +1546,7 @@ WORD32 ih264d_create(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             }
         }
         ps_create_op->s_ivd_create_op_t.u4_error_code = IVD_MEM_ALLOC_FAILED;
-        ps_create_op->s_ivd_create_op_t.u4_error_code = 1 << IVD_FATALERROR;
+        ps_create_op->s_ivd_create_op_t.u4_error_code |= 1 << IVD_FATALERROR;
 
         return IV_FAIL;
     }
@@ -1564,6 +1588,8 @@ UWORD32 ih264d_map_error(UWORD32 i4_err_status)
         case ERROR_PROFILE_NOT_SUPPORTED:
         case ERROR_INIT_NOT_DONE:
         case IVD_MEM_ALLOC_FAILED:
+        case ERROR_FEATURE_UNAVAIL:
+        case IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED:
             temp = 1 << IVD_FATALERROR;
             H264_DEC_DEBUG_PRINT("\nFatal Error\n");
             break;
@@ -1598,7 +1624,6 @@ UWORD32 ih264d_map_error(UWORD32 i4_err_status)
             break;
 
         case ERROR_NOT_SUPP_RESOLUTION:
-        case ERROR_FEATURE_UNAVAIL:
         case ERROR_ACTUAL_LEVEL_GREATER_THAN_INIT:
             temp = 1 << IVD_UNSUPPORTEDINPUT;
             break;
@@ -1878,12 +1903,12 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ps_dec->u4_ts = ps_dec_ip->u4_ts;
 
     ps_dec_op->u4_error_code = 0;
-    ps_dec_op->e_pic_type = -1;
+    ps_dec_op->e_pic_type = IV_NA_FRAME;
     ps_dec_op->u4_output_present = 0;
     ps_dec_op->u4_frame_decoded_flag = 0;
 
-    ps_dec->i4_frametype = -1;
-    ps_dec->i4_content_type = -1;
+    ps_dec->i4_frametype = IV_NA_FRAME;
+    ps_dec->i4_content_type = IV_CONTENTTYPE_NA;
 
     ps_dec->u4_slice_start_code_found = 0;
 
@@ -2046,8 +2071,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         ih264d_init_decoder(ps_dec);
     }
 
-    ps_dec->u4_prev_nal_skipped = 0;
-
     ps_dec->u2_cur_mb_addr = 0;
     ps_dec->u2_total_mbs_coded = 0;
     ps_dec->u2_cur_slice_num = 0;
@@ -2092,6 +2115,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128,
                                               size + EXTRA_BS_OFFSET);
             RETURN_IF((NULL == pv_buf), IV_FAIL);
+            memset(pv_buf, 0, size + EXTRA_BS_OFFSET);
             ps_dec->pu1_bits_buf_dynamic = pv_buf;
             ps_dec->u4_dynamic_bits_buf_size = size;
         }
@@ -2122,51 +2146,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
         bytes_consumed = buflen + u4_length_of_start_code;
         ps_dec_op->u4_num_bytes_consumed += bytes_consumed;
-
-        {
-            UWORD8 u1_firstbyte, u1_nal_ref_idc;
-
-            if(ps_dec->i4_app_skip_mode == IVD_SKIP_B)
-            {
-                u1_firstbyte = *(pu1_buf + u4_length_of_start_code);
-                u1_nal_ref_idc = (UWORD8)(NAL_REF_IDC(u1_firstbyte));
-                if(u1_nal_ref_idc == 0)
-                {
-                    /*skip non reference frames*/
-                    cur_slice_is_nonref = 1;
-                    continue;
-                }
-                else
-                {
-                    if(1 == cur_slice_is_nonref)
-                    {
-                        /*We have encountered a referenced frame,return to app*/
-                        ps_dec_op->u4_num_bytes_consumed -=
-                                        bytes_consumed;
-                        ps_dec_op->e_pic_type = IV_B_FRAME;
-                        ps_dec_op->u4_error_code =
-                                        IVD_DEC_FRM_SKIPPED;
-                        ps_dec_op->u4_error_code |= (1
-                                        << IVD_UNSUPPORTEDPARAM);
-                        ps_dec_op->u4_frame_decoded_flag = 0;
-                        ps_dec_op->u4_size =
-                                        sizeof(ivd_video_decode_op_t);
-                        /*signal the decode thread*/
-                        ih264d_signal_decode_thread(ps_dec);
-                        /* close deblock thread if it is not closed yet*/
-                        if(ps_dec->u4_num_cores == 3)
-                        {
-                            ih264d_signal_bs_deblk_thread(ps_dec);
-                        }
-
-                        return (IV_FAIL);
-                    }
-                }
-
-            }
-
-        }
-
 
         if(buflen)
         {
@@ -2218,7 +2197,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
         }
 
-        ps_dec->u4_return_to_app = 0;
         ret = ih264d_parse_nal_unit(dec_hdl, ps_dec_op,
                               pu1_bitstrm_buf, buflen);
         if(ret != OK)
@@ -2232,6 +2210,8 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                             || (ret == ERROR_UNAVAIL_PICBUF_T)
                             || (ret == ERROR_UNAVAIL_MVBUF_T)
                             || (ret == ERROR_INV_SPS_PPS_T)
+                            || (ret == ERROR_FEATURE_UNAVAIL)
+                            || (ret == IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED)
                             || (ret == IVD_DISP_FRM_ZERO_OP_BUF_SIZE))
             {
                 ps_dec->u4_slice_start_code_found = 0;
@@ -2252,27 +2232,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             }
 
         }
-
-        if(ps_dec->u4_return_to_app)
-        {
-            /*We have encountered a referenced frame,return to app*/
-            ps_dec_op->u4_num_bytes_consumed -= bytes_consumed;
-            ps_dec_op->u4_error_code = IVD_DEC_FRM_SKIPPED;
-            ps_dec_op->u4_error_code |= (1 << IVD_UNSUPPORTEDPARAM);
-            ps_dec_op->u4_frame_decoded_flag = 0;
-            ps_dec_op->u4_size = sizeof(ivd_video_decode_op_t);
-            /*signal the decode thread*/
-            ih264d_signal_decode_thread(ps_dec);
-            /* close deblock thread if it is not closed yet*/
-            if(ps_dec->u4_num_cores == 3)
-            {
-                ih264d_signal_bs_deblk_thread(ps_dec);
-            }
-            return (IV_FAIL);
-
-        }
-
-
 
         header_data_left = ((ps_dec->i4_decode_header == 1)
                         && (ps_dec->i4_header_decoded != 3)
@@ -2401,31 +2360,10 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     }
 
 //Report if header (sps and pps) has not been decoded yet
-    if(ps_dec->i4_header_decoded != 3)
-    {
-        ps_dec_op->u4_error_code |= (1 << IVD_INSUFFICIENTDATA);
-
-    }
-
     if(ps_dec->i4_decode_header == 1 && ps_dec->i4_header_decoded != 3)
     {
         ps_dec_op->u4_error_code |= (1 << IVD_INSUFFICIENTDATA);
-
-    }
-    if(ps_dec->u4_prev_nal_skipped)
-    {
-        /*We have encountered a referenced frame,return to app*/
-        ps_dec_op->u4_error_code = IVD_DEC_FRM_SKIPPED;
-        ps_dec_op->u4_error_code |= (1 << IVD_UNSUPPORTEDPARAM);
-        ps_dec_op->u4_frame_decoded_flag = 0;
-        ps_dec_op->u4_size = sizeof(ivd_video_decode_op_t);
-        /* close deblock thread if it is not closed yet*/
-        if(ps_dec->u4_num_cores == 3)
-        {
-            ih264d_signal_bs_deblk_thread(ps_dec);
-        }
-        return (IV_FAIL);
-
+        api_ret_value = IV_FAIL;
     }
 
     if((ps_dec->u4_pic_buf_got == 1)
@@ -3138,32 +3076,10 @@ WORD32 ih264d_set_params(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     ps_ctl_op->u4_error_code = 0;
 
-    ps_dec->i4_app_skip_mode = ps_ctl_ip->e_frm_skip_mode;
-
-    /*Is it really supported test it when you so the corner testing using test app*/
-
     if(ps_ctl_ip->e_frm_skip_mode != IVD_SKIP_NONE)
     {
-
-        if(ps_ctl_ip->e_frm_skip_mode == IVD_SKIP_P)
-            ps_dec->u4_skip_frm_mask |= 1 << P_SLC_BIT;
-        else if(ps_ctl_ip->e_frm_skip_mode == IVD_SKIP_B)
-            ps_dec->u4_skip_frm_mask |= 1 << B_SLC_BIT;
-        else if(ps_ctl_ip->e_frm_skip_mode == IVD_SKIP_PB)
-        {
-            ps_dec->u4_skip_frm_mask |= 1 << B_SLC_BIT;
-            ps_dec->u4_skip_frm_mask |= 1 << P_SLC_BIT;
-        }
-        else if(ps_ctl_ip->e_frm_skip_mode == IVD_SKIP_I)
-            ps_dec->u4_skip_frm_mask |= 1 << I_SLC_BIT;
-        else
-        {
-            //dynamic parameter not supported
-            //Put an appropriate error code to return the error..
-            //when you do the error code tests and after that remove this comment
-            ps_ctl_op->u4_error_code = (1 << IVD_UNSUPPORTEDPARAM);
-            ret = IV_FAIL;
-        }
+        ps_ctl_op->u4_error_code = (1 << IVD_UNSUPPORTEDPARAM);
+        ret = IV_FAIL;
     }
 
     if(ps_ctl_ip->u4_disp_wd >= ps_dec->u2_pic_wd)
@@ -3462,7 +3378,7 @@ WORD32 ih264d_rel_display_frame(iv_obj_t *dec_hdl,
     ivd_rel_display_frame_op_t *ps_rel_op;
     UWORD32 buf_released = 0;
 
-    UWORD32 u4_ts = -1;
+    UWORD32 u4_ts = 0;
     dec_struct_t *ps_dec = dec_hdl->pv_codec_handle;
 
     ps_rel_ip = (ivd_rel_display_frame_ip_t *)pv_api_ip;

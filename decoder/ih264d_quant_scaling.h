@@ -25,11 +25,11 @@ void ih264d_scaling_list(WORD16 *pi2_scaling_list,
                   dec_bit_stream_t *ps_bitstrm);
 
 
-void ih264d_form_scaling_matrix_picture(dec_seq_params_t *ps_seq,
-                                 dec_pic_params_t *ps_pic,
-                                 dec_struct_t *ps_dec);
+WORD32 ih264d_form_scaling_matrix_picture(dec_seq_params_t *ps_seq,
+                                          dec_pic_params_t *ps_pic,
+                                          dec_struct_t *ps_dec);
 
-void ih264d_form_default_scaling_matrix(dec_struct_t *ps_dec);
+WORD32 ih264d_form_default_scaling_matrix(dec_struct_t *ps_dec);
 
 
 

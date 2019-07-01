@@ -38,20 +38,26 @@
 #ifndef _IH264_PLATFORM_MACROS_H_
 #define _IH264_PLATFORM_MACROS_H_
 
+#include <stdint.h>
 #include <immintrin.h>
 
-
-#define CLIP_U8(x) CLIP3(0, 255, (x))
-#define CLIP_S8(x) CLIP3(-128, 127, (x))
+#define CLIP_U8(x) CLIP3(0, UINT8_MAX, (x))
+#define CLIP_S8(x) CLIP3(INT8_MIN, INT8_MAX, (x))
 
 #define CLIP_U10(x) CLIP3(0, 1023, (x))
 #define CLIP_S10(x) CLIP3(-512, 511, (x))
 
+#define CLIP_U11(x) CLIP3(0, 2047, (x))
+#define CLIP_S11(x) CLIP3(-1024, 1023, (x))
+
 #define CLIP_U12(x) CLIP3(0, 4095, (x))
 #define CLIP_S12(x) CLIP3(-2048, 2047, (x))
 
-#define CLIP_U16(x) CLIP3(0, 65535, (x))
-#define CLIP_S16(x) CLIP3(-32768, 32767, (x))
+#define CLIP_U16(x) CLIP3(0, UINT16_MAX, (x))
+#define CLIP_S16(x) CLIP3(INT16_MIN, INT16_MAX, (x))
+
+#define CLIP_U32(x) CLIP3(0, UINT32_MAX, (x))
+#define CLIP_S32(x) CLIP3(INT32_MIN, INT32_MAX, (x))
 
 #define MEM_ALIGN16 __attribute__ ((aligned (16)))
 
@@ -68,12 +74,17 @@
 
 #define PLD(a)
 
+/* In normal cases, 0 will not be passed as an argument to CLZ and CTZ.
+As CLZ and CTZ outputs are used as a shift value in few places, these return
+31 for u4_word == 0 case, just to handle error cases gracefully without any
+undefined behaviour */
+
 static __inline UWORD32 CLZ(UWORD32 u4_word)
 {
     if(u4_word)
     return(__builtin_clz(u4_word));
     else
-        return 32;
+        return 31;
 }
 
 static __inline UWORD32 CTZ(UWORD32 u4_word)

@@ -36,6 +36,8 @@
 #ifndef _IH264_PLATFORM_MACROS_H_
 #define _IH264_PLATFORM_MACROS_H_
 
+#include <stdint.h>
+
 #ifndef  ARMV8
 
 static __inline WORD32 CLIP_U8(WORD32 x)
@@ -59,6 +61,18 @@ static __inline WORD32 CLIP_U10(WORD32 x)
 static __inline WORD32 CLIP_S10(WORD32 x)
 {
     asm("ssat %0, #10, %1" : "=r"(x) : "r"(x));
+    return x;
+}
+
+static __inline WORD32 CLIP_U11(WORD32 x)
+{
+    asm("usat %0, #11, %1" : "=r"(x) : "r"(x));
+    return x;
+}
+
+static __inline WORD32 CLIP_S11(WORD32 x)
+{
+    asm("ssat %0, #11, %1" : "=r"(x) : "r"(x));
     return x;
 }
 
@@ -95,17 +109,20 @@ static __inline UWORD32 ITT_BIG_ENDIAN(UWORD32 x)
 
 #else
 
-#define CLIP_U8(x) CLIP3(0, 255, (x))
-#define CLIP_S8(x) CLIP3(-128, 127, (x))
+#define CLIP_U8(x) CLIP3(0, UINT8_MAX, (x))
+#define CLIP_S8(x) CLIP3(INT8_MIN, INT8_MAX, (x))
 
 #define CLIP_U10(x) CLIP3(0, 1023, (x))
 #define CLIP_S10(x) CLIP3(-512, 511, (x))
 
+#define CLIP_U11(x) CLIP3(0, 2047, (x))
+#define CLIP_S11(x) CLIP3(-1024, 1023, (x))
+
 #define CLIP_U12(x) CLIP3(0, 4095, (x))
 #define CLIP_S12(x) CLIP3(-2048, 2047, (x))
 
-#define CLIP_U16(x) CLIP3(0, 65535, (x))
-#define CLIP_S16(x) CLIP3(-32768, 32767, (x))
+#define CLIP_U16(x) CLIP3(0, UINT16_MAX, (x))
+#define CLIP_S16(x) CLIP3(INT16_MIN, INT16_MAX, (x))
 
 #define ITT_BIG_ENDIAN(x)       __asm__("rev %0, %1" : "=r"(x) : "r"(x));
 
@@ -118,6 +135,11 @@ static __inline UWORD32 ITT_BIG_ENDIAN(UWORD32 x)
 
 #endif
 
+/*saturating instructions are not available for WORD64 in ARMv7, hence we cannot
+ * use inline assembly like other clips*/
+#define CLIP_U32(x) CLIP3(0, UINT32_MAX, (x))
+#define CLIP_S32(x) CLIP3(INT32_MIN, INT32_MAX, (x))
+
 #define DATA_SYNC() __sync_synchronize()
 
 #define SHL(x,y) (((y) < 32) ? ((x) << (y)) : 0)
@@ -128,12 +150,17 @@ static __inline UWORD32 ITT_BIG_ENDIAN(UWORD32 x)
 
 #define INLINE inline
 
+/* In normal cases, 0 will not be passed as an argument to CLZ and CTZ.
+As CLZ and CTZ outputs are used as a shift value in few places, these return
+31 for u4_word == 0 case, just to handle error cases gracefully without any
+undefined behaviour */
+
 static INLINE UWORD32 CLZ(UWORD32 u4_word)
 {
     if(u4_word)
         return (__builtin_clz(u4_word));
     else
-        return 32;
+        return 31;
 }
 static INLINE UWORD32 CTZ(UWORD32 u4_word)
 {

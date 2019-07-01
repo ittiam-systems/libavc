@@ -118,7 +118,7 @@ void ih264_iquant_itrans_recon_4x4_ssse3(WORD16 *pi2_src,
     __m128i zero_8x16b = _mm_setzero_si128();          // all bits reset to zero
     __m128i temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
     __m128i resq_r0, resq_r1, resq_r2, resq_r3;
-    __m128i add_rshift = _mm_set1_epi32((1 << (3 - u4_qp_div_6)));
+    __m128i add_rshift = _mm_set1_epi32((u4_qp_div_6 < 4) ? (1 << (3 - u4_qp_div_6)) : 0);
     __m128i value_32 = _mm_set1_epi32(32);
     UNUSED (pi2_tmp);
     UNUSED (pi2_dc_ld_addr);
@@ -384,7 +384,7 @@ void ih264_iquant_itrans_recon_8x8_ssse3(WORD16 *pi2_src,
     // __m128i one_8x16b = _mm_set1_epi8(255); // all bits set to 1
     // __m128i one_zero_mask = _mm_unpacklo_epi16(one_8x16b, zero_8x16b); // 1 0 1 0 1 0 1 0 --- 16 bits size
     __m128i value_32 = _mm_set1_epi32(32);
-    __m128i add_rshift = _mm_set1_epi32((1 << (5 - qp_div)));
+    __m128i add_rshift = _mm_set1_epi32((qp_div < 6) ? (1 << (5 - qp_div)) : 0);
     __m128i dequant_r0;
     __m128i predload_r;
     __m128i pred_r0_1, pred_r1_1, pred_r2_1, pred_r3_1, pred_r4_1, pred_r5_1,
