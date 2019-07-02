@@ -348,9 +348,10 @@ WORD32 ih264d_parse_pps(dec_struct_t * ps_dec, dec_bit_stream_t * ps_bitstrm)
 
                 if(ps_pps->u1_pic_scaling_list_present_flag[i4_i])
                 {
+                    WORD32 ret;
                     if(i4_i < 6)
                     {
-                        ih264d_scaling_list(
+                        ret = ih264d_scaling_list(
                                         ps_pps->i2_pic_scalinglist4x4[i4_i],
                                         16,
                                         &ps_pps->u1_pic_use_default_scaling_matrix_flag[i4_i],
@@ -358,11 +359,16 @@ WORD32 ih264d_parse_pps(dec_struct_t * ps_dec, dec_bit_stream_t * ps_bitstrm)
                     }
                     else
                     {
-                        ih264d_scaling_list(
+                        ret = ih264d_scaling_list(
                                         ps_pps->i2_pic_scalinglist8x8[i4_i - 6],
                                         64,
                                         &ps_pps->u1_pic_use_default_scaling_matrix_flag[i4_i],
                                         ps_bitstrm);
+                    }
+
+                    if(ret != OK)
+                    {
+                        return ret;
                     }
                 }
             }
@@ -663,7 +669,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
                 {
                     if(i4_i < 6)
                     {
-                        ih264d_scaling_list(
+                        ret = ih264d_scaling_list(
                                         ps_seq->i2_scalinglist4x4[i4_i],
                                         16,
                                         &ps_seq->u1_use_default_scaling_matrix_flag[i4_i],
@@ -671,11 +677,15 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
                     }
                     else
                     {
-                        ih264d_scaling_list(
+                        ret = ih264d_scaling_list(
                                         ps_seq->i2_scalinglist8x8[i4_i - 6],
                                         64,
                                         &ps_seq->u1_use_default_scaling_matrix_flag[i4_i],
                                         ps_bitstrm);
+                    }
+                    if(ret != OK)
+                    {
+                        return ret;
                     }
                 }
             }
