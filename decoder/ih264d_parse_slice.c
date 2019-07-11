@@ -835,12 +835,7 @@ WORD32 ih264d_end_of_pic_dispbuf_mgr(dec_struct_t * ps_dec)
             if(ret != OK)
                 return ret;
 
-            {
-                ivd_video_decode_op_t * ps_dec_output =
-                                (ivd_video_decode_op_t *)ps_dec->pv_dec_out;
 
-                ps_dec_output->u4_frame_decoded_flag = 1;
-            }
             if(ps_dec->au1_pic_buf_ref_flag[ps_dec->u1_pic_buf_id] == 0)
             {
                 ih264_buf_mgr_release((buf_mgr_t *)ps_dec->pv_mv_buf_mgr,
@@ -861,6 +856,11 @@ WORD32 ih264d_end_of_pic_dispbuf_mgr(dec_struct_t * ps_dec)
                         || ((TOP_FIELD_ONLY | BOT_FIELD_ONLY)
                                         == ps_dec->u1_top_bottom_decoded))
         {
+            ivd_video_decode_op_t * ps_dec_output =
+                            (ivd_video_decode_op_t *)ps_dec->pv_dec_out;
+            /* u4_frame_decoded_flag is set to 1 only after both fields
+             * are decoded or it is not a field */
+            ps_dec_output->u4_frame_decoded_flag = 1;
             if(IVD_DECODE_FRAME_OUT == ps_dec->e_frm_out_mode)
             {
                 ret = ih264d_assign_display_seq(ps_dec);
