@@ -979,6 +979,69 @@ WORD32 ih264d_end_of_pic(dec_struct_t *ps_dec)
     return OK;
 }
 
+
+/*!
+ **************************************************************************
+ * \if Function name : ih264d_fix_error_in_dpb \endif
+ *
+ * \brief
+ *    fix error in DPB
+ *
+ * \return
+ *    Number of node(s) deleted
+ **************************************************************************
+ */
+
+WORD32 ih264d_fix_error_in_dpb(dec_struct_t *ps_dec)
+{
+    /*--------------------------------------------------------------------*/
+    /* If there is common node in lt_list and st_list then delete it from */
+    /* st_list                                                            */
+    /*--------------------------------------------------------------------*/
+    UWORD8 no_of_nodes_deleted = 0;
+    UWORD8 lt_ref_num = ps_dec->ps_dpb_mgr->u1_num_lt_ref_bufs;
+    struct dpb_info_t *ps_lt_curr_dpb = ps_dec->ps_dpb_mgr->ps_dpb_ht_head;
+    while(lt_ref_num && ps_lt_curr_dpb)
+    {
+        if(ps_dec->ps_dpb_mgr->ps_dpb_st_head
+                && ((ps_lt_curr_dpb->s_bot_field.u1_reference_info
+                        | ps_lt_curr_dpb->s_top_field.u1_reference_info)
+                        == (IS_SHORT_TERM | IS_LONG_TERM)))
+        {
+            struct dpb_info_t *ps_st_next_dpb = ps_dec->ps_dpb_mgr->ps_dpb_st_head;
+            struct dpb_info_t *ps_st_curr_dpb = ps_dec->ps_dpb_mgr->ps_dpb_st_head;
+            UWORD8 st_ref_num = ps_dec->ps_dpb_mgr->u1_num_st_ref_bufs;
+            while(st_ref_num && ps_st_curr_dpb)
+            {
+                if(ps_st_curr_dpb == ps_lt_curr_dpb)
+                {
+                    if(st_ref_num == ps_dec->ps_dpb_mgr->u1_num_st_ref_bufs)
+                    {
+                        ps_dec->ps_dpb_mgr->ps_dpb_st_head =
+                                ps_dec->ps_dpb_mgr->ps_dpb_st_head->ps_prev_short;
+                        ps_st_curr_dpb = ps_dec->ps_dpb_mgr->ps_dpb_st_head;
+                    }
+                    else
+                    {
+                        ps_st_next_dpb->ps_prev_short = ps_st_curr_dpb->ps_prev_short;
+                    }
+                    ps_dec->ps_dpb_mgr->u1_num_st_ref_bufs--;
+                    ps_dec->ps_dpb_mgr->u1_num_lt_ref_bufs++;
+                    no_of_nodes_deleted++;
+                    break;
+                }
+                ps_st_next_dpb = ps_st_curr_dpb;
+                ps_st_curr_dpb = ps_st_curr_dpb->ps_prev_short;
+                st_ref_num--;
+            }
+        }
+        ps_lt_curr_dpb = ps_lt_curr_dpb->ps_prev_long;
+        lt_ref_num--;
+    }
+    return no_of_nodes_deleted;
+}
+
+
 /*!
  **************************************************************************
  * \if Function name : DecodeSlice \endif
@@ -1820,6 +1883,10 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
     {
         ps_dec->pv_proc_tu_coeff_data = ps_dec->pv_parse_tu_coeff_data;
     }
+
+    ret = ih264d_fix_error_in_dpb(ps_dec);
+    if(ret < 0)
+        return ERROR_DBP_MANAGER_T;
 
     if(u1_slice_type == I_SLICE)
     {
