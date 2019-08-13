@@ -26,6 +26,7 @@ cc_test {
 cc_test {
     name: "avcenc",
     gtest: false,
+    host_supported: true,
 
     cflags: [
         "-DPROFILE_ENABLE",

@@ -246,6 +246,7 @@ cc_library_static {
 cc_library_static {
     name: "libavcenc",
     vendor_available: true,
+    host_supported: true,
     shared_libs: ["liblog", "libcutils",],
 
     cflags: [
