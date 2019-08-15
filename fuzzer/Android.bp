@@ -1,0 +1,8 @@
+cc_fuzz {
+    name: "avc_dec_fuzzer",
+    srcs: [
+        "avc_dec_fuzzer.cpp",
+    ],
+    static_libs: ["libavcdec"],
+    shared_libs: ["liblog"],
+}
