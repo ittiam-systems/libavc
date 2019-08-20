@@ -528,8 +528,6 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
                     }
                 }
             }
-            /* Dont execute any further instructions until store synchronization took place */
-            DATA_SYNC();
         }
 
         /* Ending bitstream offset for header in bits */
@@ -616,6 +614,9 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
 
         DEBUG("entropy status %x", ps_entropy->i4_error_code);
     }
+
+    /* Dont execute any further instructions until store synchronization took place */
+    DATA_SYNC();
 
     /* allow threads to dequeue entropy jobs */
     ps_codec->au4_entropy_thread_active[ctxt_sel] = 0;
