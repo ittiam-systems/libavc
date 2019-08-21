@@ -17,49 +17,6 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
-/*
- * Fuzzer for libavc decoder
- * ==========================
- * Requirements
- * --------------
- * Requires Clang 6.0 or above (needs to support -fsanitize=fuzzer,
- * -fsanitize=fuzzer-no-link)
- *
-
- * Steps to build
- * --------------
- * Clone libavc repository
-   $git clone https://android.googlesource.com/platform/external/libavc
-
- * Create a directory inside libavc and change directory
-   $cd libavc
-   $mkdir avc_dec_fuzzer
-   $cd avc_dec_fuzzer/
-
- * Build libavc using cmake.
-   $CC=clang CXX=clang++ cmake ../ \
-   -DSANITIZE=fuzzer-no-link,address,signed-integer-overflow
-
- * Build libavcdec
-   $make -j32
-
- * Build avc fuzzer
-   $ clang++ -std=c++11 -fsanitize=fuzzer,address -I.  -I../ \
-   -I../common -I../decoder -Wl,--start-group \
-   ../fuzzer/avc_dec_fuzzer.cpp -o ./avc_dec_fuzzer \
-   ./libavcdec.a -Wl,--end-group
-
- * create a corpus directory and copy some elementary avc files there.
- * Empty corpus directoy also is acceptable, though not recommended
-   $mkdir CORPUS && cp some-files CORPUS
-
- * Run fuzzing:
-   $./avc_dec_fuzzer CORPUS
-
- * References:
- * http://llvm.org/docs/LibFuzzer.html
- * https://github.com/google/oss-fuzz
- */
 
 #include <malloc.h>
 #include <stddef.h>
