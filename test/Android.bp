@@ -1,7 +1,7 @@
 cc_test {
     name: "avcdec",
     gtest: false,
-
+    host_supported:true,
     cflags: [
         "-DPROFILE_ENABLE",
         "-DARM",
