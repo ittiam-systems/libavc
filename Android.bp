@@ -1,6 +1,7 @@
 cc_library_static {
     name: "libavcdec",
     vendor_available: true,
+    host_supported:true,
     shared_libs: ["liblog", "libcutils",],
 
     cflags: [
