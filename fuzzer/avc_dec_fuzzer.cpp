@@ -38,14 +38,24 @@ const IV_COLOR_FORMAT_T supportedColorFormats[] = {
     IV_YUV_420P,   IV_YUV_420SP_UV, IV_YUV_420SP_VU,
     IV_YUV_422ILE, IV_RGB_565,      IV_RGBA_8888};
 
+/* Decoder ignores invalid arch, i.e. for arm build, if SSSE3 is requested,
+ * decoder defaults to a supported configuration. So same set of supported
+ * architectures can be used in arm/arm64/x86 builds */
+const IVD_ARCH_T supportedArchitectures[] = {
+    ARCH_ARM_NONEON,  ARCH_ARM_A9Q,   ARCH_ARM_NEONINTR, ARCH_ARMV8_GENERIC,
+    ARCH_X86_GENERIC, ARCH_X86_SSSE3, ARCH_X86_SSE42};
+
 enum {
   OFFSET_COLOR_FORMAT = 6,
   OFFSET_NUM_CORES,
+  OFFSET_ARCH,
   /* Should be the last entry */
   OFFSET_MAX,
 };
 
+const static int kMaxNumDecodeCalls = 100;
 const static int kSupportedColorFormats = NELEMENTS(supportedColorFormats);
+const static int kSupportedArchitectures = NELEMENTS(supportedArchitectures);
 const static int kMaxCores = 4;
 void *iv_aligned_malloc(void *ctxt, WORD32 alignment, WORD32 size) {
   void *buf = NULL;
@@ -76,6 +86,7 @@ class Codec {
   IV_API_CALL_STATUS_T decodeFrame(const uint8_t *data, size_t size,
                                    size_t *bytesConsumed);
   void setParams(IVD_VIDEO_DECODE_MODE_T mode);
+  void setArchitecture(IVD_ARCH_T arch);
 
  private:
   IV_COLOR_FORMAT_T mColorFormat;
@@ -172,6 +183,20 @@ void Codec::setParams(IVD_VIDEO_DECODE_MODE_T mode) {
   ivd_api_function(mCodec, (void *)&s_ctl_ip, (void *)&s_ctl_op);
 }
 
+void Codec::setArchitecture(IVD_ARCH_T arch) {
+  ih264d_ctl_set_processor_ip_t s_ctl_ip;
+  ih264d_ctl_set_processor_op_t s_ctl_op;
+
+  s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
+  s_ctl_ip.e_sub_cmd =
+      (IVD_CONTROL_API_COMMAND_TYPE_T)IH264D_CMD_CTL_SET_PROCESSOR;
+  s_ctl_ip.u4_arch = arch;
+  s_ctl_ip.u4_soc = SOC_GENERIC;
+  s_ctl_ip.u4_size = sizeof(ih264d_ctl_set_processor_ip_t);
+  s_ctl_op.u4_size = sizeof(ih264d_ctl_set_processor_op_t);
+
+  ivd_api_function(mCodec, (void *)&s_ctl_ip, (void *)&s_ctl_op);
+}
 void Codec::freeFrame() {
   for (int i = 0; i < mOutBufHandle.u4_num_bufs; i++) {
     if (mOutBufHandle.pu1_bufs[i]) {
@@ -299,7 +324,8 @@ IV_API_CALL_STATUS_T Codec::decodeFrame(const uint8_t *data, size_t size,
    * to feed next data */
   if (!*bytesConsumed) *bytesConsumed = 4;
 
-  if (mWidth != dec_op.u4_pic_wd || mHeight != dec_op.u4_pic_ht) {
+  if (dec_op.u4_pic_wd && dec_op.u4_pic_ht &&
+      (mWidth != dec_op.u4_pic_wd || mHeight != dec_op.u4_pic_ht)) {
     mWidth = std::min(dec_op.u4_pic_wd, (UWORD32)10240);
     mHeight = std::min(dec_op.u4_pic_ht, (UWORD32)10240);
     allocFrame();
@@ -314,19 +340,23 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   }
   size_t colorFormatOfst = std::min((size_t)OFFSET_COLOR_FORMAT, size - 1);
   size_t numCoresOfst = std::min((size_t)OFFSET_NUM_CORES, size - 1);
+  size_t architectureOfst = std::min((size_t)OFFSET_ARCH, size - 1);
+  size_t architectureIdx = data[architectureOfst] % kSupportedArchitectures;
+  IVD_ARCH_T arch = (IVD_ARCH_T)supportedArchitectures[architectureIdx];
   size_t colorFormatIdx = data[colorFormatOfst] % kSupportedColorFormats;
   IV_COLOR_FORMAT_T colorFormat =
       (IV_COLOR_FORMAT_T)(supportedColorFormats[colorFormatIdx]);
   uint32_t numCores = (data[numCoresOfst] % kMaxCores) + 1;
-
+  size_t numDecodeCalls = 0;
   Codec *codec = new Codec(colorFormat, numCores);
   codec->createCodec();
+  codec->setArchitecture(arch);
   codec->setCores();
   codec->decodeHeader(data, size);
   codec->setParams(IVD_DECODE_FRAME);
   codec->allocFrame();
 
-  while (size > 0) {
+  while (size > 0 && numDecodeCalls < kMaxNumDecodeCalls) {
     IV_API_CALL_STATUS_T ret;
     size_t bytesConsumed;
     ret = codec->decodeFrame(data, size, &bytesConsumed);
@@ -334,6 +364,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     bytesConsumed = std::min(size, bytesConsumed);
     data += bytesConsumed;
     size -= bytesConsumed;
+    numDecodeCalls++;
   }
 
   codec->freeFrame();
