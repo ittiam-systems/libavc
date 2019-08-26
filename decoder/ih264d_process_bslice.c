@@ -1360,17 +1360,17 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
         /* reference list to handle of errors        */
         {
             UWORD8 u1_i;
-            pic_buffer_t *ps_ref_pic;
+            pic_buffer_t ref_pic;
 
-            ps_ref_pic = ps_dpb_mgr->ps_init_dpb[0][0] + MAX_REF_BUFS;
+            ref_pic = *(ps_dpb_mgr->ps_init_dpb[0][0] + MAX_REF_BUFS);
 
-            if(NULL == ps_ref_pic->pu1_buf1)
+            if(NULL == ref_pic.pu1_buf1)
             {
-                ps_ref_pic = ps_dec->ps_cur_pic;
+                ref_pic = *ps_dec->ps_cur_pic;
             }
             for(u1_i = u1_L0; u1_i < u1_max_ref_idx_l0; u1_i++)
             {
-                *ps_ref_pic_buf_lx = *ps_ref_pic;
+                *ps_ref_pic_buf_lx = ref_pic;
                 ps_ref_pic_buf_lx++;
             }
         }
@@ -1387,17 +1387,17 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
     /* reference list to handle of errors        */
     {
         UWORD8 u1_i;
-        pic_buffer_t *ps_ref_pic;
+        pic_buffer_t ref_pic;
 
-        ps_ref_pic = ps_dpb_mgr->ps_init_dpb[0][0];
+        ref_pic = *(ps_dpb_mgr->ps_init_dpb[0][0]);
 
-        if(NULL == ps_ref_pic->pu1_buf1)
+        if(NULL == ref_pic.pu1_buf1)
         {
-            ps_ref_pic = ps_dec->ps_cur_pic;
+            ref_pic = *ps_dec->ps_cur_pic;
         }
         for(u1_i = u1_L0; u1_i < u1_max_ref_idx_l0; u1_i++)
         {
-            *ps_ref_pic_buf_lx = *ps_ref_pic;
+            *ps_ref_pic_buf_lx = ref_pic;
             ps_ref_pic_buf_lx++;
         }
     }
@@ -1493,17 +1493,17 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
             /* reference list to handle of errors        */
             {
                 UWORD8 u1_i;
-                pic_buffer_t *ps_ref_pic;
+                pic_buffer_t ref_pic;
 
-                ps_ref_pic = ps_dpb_mgr->ps_init_dpb[0][0] + MAX_REF_BUFS;
+                ref_pic = *(ps_dpb_mgr->ps_init_dpb[0][0] + MAX_REF_BUFS);
 
-                if(NULL == ps_ref_pic->pu1_buf1)
+                if(NULL == ref_pic.pu1_buf1)
                 {
-                    ps_ref_pic = ps_dec->ps_cur_pic;
+                    ref_pic = *ps_dec->ps_cur_pic;
                 }
                 for(u1_i = u1_L1; u1_i < u1_max_ref_idx_l1; u1_i++)
                 {
-                    *ps_ref_pic_buf_lx = *ps_ref_pic;
+                    *ps_ref_pic_buf_lx = ref_pic;
                     ps_ref_pic_buf_lx++;
                 }
             }
@@ -1520,17 +1520,17 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
         /* reference list to handle of errors        */
         {
             UWORD8 u1_i;
-            pic_buffer_t *ps_ref_pic;
+            pic_buffer_t ref_pic;
 
-            ps_ref_pic = ps_dpb_mgr->ps_init_dpb[0][0];
+            ref_pic = *(ps_dpb_mgr->ps_init_dpb[0][0]);
 
-            if(NULL == ps_ref_pic->pu1_buf1)
+            if(NULL == ref_pic.pu1_buf1)
             {
-                ps_ref_pic = ps_dec->ps_cur_pic;
+                ref_pic = *ps_dec->ps_cur_pic;
             }
             for(u1_i = u1_L1; u1_i < u1_max_ref_idx_l1; u1_i++)
             {
-                *ps_ref_pic_buf_lx = *ps_ref_pic;
+                *ps_ref_pic_buf_lx = ref_pic;
                 ps_ref_pic_buf_lx++;
             }
         }
