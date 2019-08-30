@@ -19,7 +19,7 @@
 */
 #ifndef _IH264D_QUANT_SCALING_H_
 #define _IH264D_QUANT_SCALING_H_
-void ih264d_scaling_list(WORD16 *pi2_scaling_list,
+WORD32 ih264d_scaling_list(WORD16 *pi2_scaling_list,
                   WORD32 i4_size_of_scalinglist,
                   UWORD8 *pu1_use_default_scaling_matrix_flag,
                   dec_bit_stream_t *ps_bitstrm);
