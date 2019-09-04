@@ -597,7 +597,7 @@ WORD32 ih264d_decode_temporal_direct(dec_struct_t * ps_dec,
     const UWORD8 *pu1_mb_partw = (const UWORD8 *)gau1_ih264d_mb_partw;
     WORD8 c_refFrm0, c_refFrm1;
     UWORD8 u1_ref_idx0, u1_is_cur_mb_fld;
-    UWORD32 pic0_poc, pic1_poc, cur_poc;
+    WORD32 pic0_poc, pic1_poc, cur_poc;
     WORD32 ret = 0;
 
     u1_is_cur_mb_fld = ps_cur_mb_info->u1_mb_field_decodingflag;
@@ -756,7 +756,7 @@ WORD32 ih264d_decode_temporal_direct(dec_struct_t * ps_dec,
         }
         {
             WORD16 i16_td;
-
+            WORD32 diff;
             if(c_refFrm0 >= 0)
             {
                 i2_mv_x0 = ps_mv->i2_mv[0];
@@ -782,7 +782,8 @@ WORD32 ih264d_decode_temporal_direct(dec_struct_t * ps_dec,
                 i2_mv_y0 *= 2;
             }
 
-            i16_td = pic1_poc - pic0_poc;
+            diff = pic1_poc - pic0_poc;
+            i16_td = CLIP_S8(diff);
             if((ps_pic_buff0->u1_is_short == 0) || (i16_td == 0))
             {
                 i2_mv_x1 = 0;
@@ -792,12 +793,11 @@ WORD32 ih264d_decode_temporal_direct(dec_struct_t * ps_dec,
             {
                 WORD16 i16_tb, i16_tx, i2_dist_scale_factor, i16_temp;
 
-                i16_td = CLIP3(-128, 127, i16_td);
-                i16_tb = cur_poc - pic0_poc;
-                i16_tb = CLIP3(-128, 127, i16_tb);
+                diff = cur_poc - pic0_poc;
+                i16_tb = CLIP_S8(diff);
 
                 i16_tx = (16384 + ABS(SIGN_POW2_DIV(i16_td, 1))) / i16_td;
-                i2_dist_scale_factor = CLIP3(-1024, 1023,
+                i2_dist_scale_factor = CLIP_S11(
                                             (((i16_tb * i16_tx) + 32) >> 6));
                 i16_temp = (i2_mv_x0 * i2_dist_scale_factor + 128) >> 8;
                 i2_mv_x1 = i16_temp - i2_mv_x0;

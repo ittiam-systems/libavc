@@ -74,7 +74,7 @@ void ih264d_scaling_list(WORD16 *pi2_scaling_list,
     }
 }
 
-void ih264d_form_default_scaling_matrix(dec_struct_t *ps_dec)
+WORD32 ih264d_form_default_scaling_matrix(dec_struct_t *ps_dec)
 {
 
     /*************************************************************************/
@@ -108,11 +108,12 @@ void ih264d_form_default_scaling_matrix(dec_struct_t *ps_dec)
             }
         }
     }
+    return OK;
 }
 
-void ih264d_form_scaling_matrix_picture(dec_seq_params_t *ps_seq,
-                                        dec_pic_params_t *ps_pic,
-                                        dec_struct_t *ps_dec)
+WORD32 ih264d_form_scaling_matrix_picture(dec_seq_params_t *ps_seq,
+                                          dec_pic_params_t *ps_pic,
+                                          dec_struct_t *ps_dec)
 {
     /* default scaling matrices */
     WORD32 i4_i;
@@ -216,7 +217,7 @@ void ih264d_form_scaling_matrix_picture(dec_seq_params_t *ps_seq,
             {
                 if(!ps_pic->u1_pic_scaling_list_present_flag[i4_i])
                 {
-                    if(!ps_seq->u1_seq_scaling_list_present_flag[i4_i])
+                    if(!ps_seq->i4_seq_scaling_matrix_present_flag)
                     {
                         ps_dec->s_high_profile.pi2_scale_mat[i4_i] =
                                         (i4_i == 6) ? ((WORD16*)gai2_ih264d_default_intra8x8) : ((WORD16*)gai2_ih264d_default_inter8x8);
@@ -251,6 +252,9 @@ void ih264d_form_scaling_matrix_picture(dec_seq_params_t *ps_seq,
         /* for all 4x4 matrices */
         for(i4_i = 0; i4_i < 6; i4_i++)
         {
+            if(ps_dec->s_high_profile.pi2_scale_mat[i4_i] == NULL)
+                return ERROR_CORRUPTED_SLICE;
+
             for(i4_j = 0; i4_j < 16; i4_j++)
             {
                 ps_dec->s_high_profile.i2_scalinglist4x4[i4_i][pu1_inv_scan_4x4[i4_j]] =
@@ -262,6 +266,9 @@ void ih264d_form_scaling_matrix_picture(dec_seq_params_t *ps_seq,
         /* for all 8x8 matrices */
         for(i4_i = 0; i4_i < 2; i4_i++)
         {
+            if(ps_dec->s_high_profile.pi2_scale_mat[i4_i + 6] == NULL)
+                return ERROR_CORRUPTED_SLICE;
+
             for(i4_j = 0; i4_j < 64; i4_j++)
             {
                 ps_dec->s_high_profile.i2_scalinglist8x8[i4_i][gau1_ih264d_inv_scan_prog8x8_cabac[i4_j]] =
@@ -270,5 +277,6 @@ void ih264d_form_scaling_matrix_picture(dec_seq_params_t *ps_seq,
             }
         }
     }
+    return OK;
 }
 

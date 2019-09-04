@@ -474,8 +474,11 @@ WORD32 ih264d_cavlc_4x4res_block_totalcoeff_2to10(UWORD32 u4_isdc,
 
         pi2_trlone_lkup = ppi2_trlone_lkup[(1 << u4_cnt) - 2 + u4_signs];
 
-        while(u4_cnt--)
+        while(u4_cnt)
+        {
             i2_level_arr[i--] = *pi2_trlone_lkup++;
+            u4_cnt--;
+        }
     }
 
     /****************************************************************/
@@ -610,7 +613,7 @@ WORD32 ih264d_cavlc_4x4res_block_totalcoeff_2to10(UWORD32 u4_isdc,
         const UWORD8 *pu1_table_runbefore;
         UWORD32 u4_run;
         WORD32 k;
-        UWORD32 u4_scan_pos = u4_total_coeff + u4_total_zeroes - 1 + u4_isdc;
+        WORD32 u4_scan_pos = u4_total_coeff + u4_total_zeroes - 1 + u4_isdc;
         WORD32 u4_zeroes_left = u4_total_zeroes;
         k = u4_total_coeff - 1;
 
@@ -638,9 +641,12 @@ WORD32 ih264d_cavlc_4x4res_block_totalcoeff_2to10(UWORD32 u4_isdc,
 
             SET_BIT(ps_tu_4x4->u2_sig_coeff_map, u4_scan_pos);
             *pi2_coeff_data++ = i2_level_arr[k--];
-            u4_zeroes_left -= u4_run;
-            u4_scan_pos -= (u4_run + 1);
+            u4_zeroes_left -= (WORD32)u4_run;
+            u4_scan_pos -= (WORD32)(u4_run + 1);
         }
+
+        if (u4_zeroes_left < 0 || u4_scan_pos < 0)
+            return -1;
 
         /**************************************************************/
         /* Decoding Runs for 0 < zeros left <=6                       */
@@ -658,9 +664,11 @@ WORD32 ih264d_cavlc_4x4res_block_totalcoeff_2to10(UWORD32 u4_isdc,
 
             SET_BIT(ps_tu_4x4->u2_sig_coeff_map, u4_scan_pos);
             *pi2_coeff_data++ = i2_level_arr[k--];
-            u4_zeroes_left -= u4_run;
-            u4_scan_pos -= (u4_run + 1);
+            u4_zeroes_left -= (WORD32)u4_run;
+            u4_scan_pos -= (WORD32)(u4_run + 1);
         }
+        if (u4_zeroes_left < 0 || u4_scan_pos < 0)
+            return -1;
         /**************************************************************/
         /* Decoding Runs End                                          */
         /**************************************************************/
@@ -668,8 +676,6 @@ WORD32 ih264d_cavlc_4x4res_block_totalcoeff_2to10(UWORD32 u4_isdc,
         /**************************************************************/
         /* Copy the remaining coefficients                            */
         /**************************************************************/
-        if(u4_zeroes_left < 0)
-            return -1;
         while(k >= 0)
         {
 
@@ -755,8 +761,11 @@ WORD32 ih264d_cavlc_4x4res_block_totalcoeff_11to16(UWORD32 u4_isdc,
 
         pi2_trlone_lkup = ppi2_trlone_lkup[(1 << u4_cnt) - 2 + u4_signs];
 
-        while(u4_cnt--)
+        while(u4_cnt)
+        {
             i2_level_arr[i--] = *pi2_trlone_lkup++;
+            u4_cnt--;
+        }
     }
 
     /****************************************************************/
@@ -921,7 +930,7 @@ WORD32 ih264d_cavlc_4x4res_block_totalcoeff_11to16(UWORD32 u4_isdc,
         const UWORD8 *pu1_table_runbefore;
         UWORD32 u4_run;
         WORD32 k;
-        UWORD32 u4_scan_pos = u4_total_coeff + u4_total_zeroes - 1 + u4_isdc;
+        WORD32 u4_scan_pos = u4_total_coeff + u4_total_zeroes - 1 + u4_isdc;
         WORD32 u4_zeroes_left = u4_total_zeroes;
         k = u4_total_coeff - 1;
 
@@ -940,9 +949,12 @@ WORD32 ih264d_cavlc_4x4res_block_totalcoeff_11to16(UWORD32 u4_isdc,
             FLUSHBITS(u4_bitstream_offset, (u4_code & 0x03));
             SET_BIT(ps_tu_4x4->u2_sig_coeff_map, u4_scan_pos);
             *pi2_coeff_data++ = i2_level_arr[k--];
-            u4_zeroes_left -= u4_run;
-            u4_scan_pos -= (u4_run + 1);
+            u4_zeroes_left -= (WORD32)u4_run;
+            u4_scan_pos -= (WORD32)(u4_run + 1);
         }
+        if (u4_zeroes_left < 0 || u4_scan_pos < 0)
+          return -1;
+
         /**************************************************************/
         /* Decoding Runs End                                          */
         /**************************************************************/
@@ -950,8 +962,6 @@ WORD32 ih264d_cavlc_4x4res_block_totalcoeff_11to16(UWORD32 u4_isdc,
         /**************************************************************/
         /* Copy the remaining coefficients                            */
         /**************************************************************/
-        if(u4_zeroes_left < 0)
-            return -1;
         while(k >= 0)
         {
             SET_BIT(ps_tu_4x4->u2_sig_coeff_map, u4_scan_pos);
@@ -1031,8 +1041,11 @@ void ih264d_rest_of_residual_cav_chroma_dc_block(UWORD32 u4_total_coeff_trail_on
 
         pi2_trlone_lkup = ppi2_trlone_lkup[(1 << u4_cnt) - 2 + u4_signs];
 
-        while(u4_cnt--)
+        while(u4_cnt)
+        {
             i2_level_arr[i--] = *pi2_trlone_lkup++;
+            u4_cnt--;
+        }
     }
 
     /****************************************************************/
@@ -1154,7 +1167,7 @@ void ih264d_rest_of_residual_cav_chroma_dc_block(UWORD32 u4_total_coeff_trail_on
     {
         const UWORD8 *pu1_table_runbefore;
         UWORD32 u4_run;
-        UWORD32 u4_scan_pos = (u4_total_coeff + u4_total_zeroes - 1);
+        WORD32 u4_scan_pos = (u4_total_coeff + u4_total_zeroes - 1);
         UWORD32 u4_zeroes_left = u4_total_zeroes;
         i = u4_total_coeff - 1;
 
@@ -1173,8 +1186,8 @@ void ih264d_rest_of_residual_cav_chroma_dc_block(UWORD32 u4_total_coeff_trail_on
             FLUSHBITS(u4_bitstream_offset, (u4_code & 0x03));
             SET_BIT(ps_tu_4x4->u2_sig_coeff_map, u4_scan_pos);
             *pi2_coeff_data++ = i2_level_arr[i--];
-            u4_zeroes_left -= u4_run;
-            u4_scan_pos -= (u4_run + 1);
+            u4_zeroes_left -= (WORD32)u4_run;
+            u4_scan_pos -= (WORD32)(u4_run + 1);
         }
         /**************************************************************/
         /* Decoding Runs End                                          */
@@ -1378,10 +1391,10 @@ void ih264d_cavlc_parse_chroma_dc(dec_mb_info_t *ps_cur_mb_info,
         /*-----------------------------------------------------------*/
         /* Scaling and storing the values back                       */
         /*-----------------------------------------------------------*/
-        *pi2_coeff_data++ = ((i_z0 + i_z3) * u4_scale_u) >> 5;
-        *pi2_coeff_data++ = ((i_z0 - i_z3) * u4_scale_u) >> 5;
-        *pi2_coeff_data++ = ((i_z1 + i_z2) * u4_scale_u) >> 5;
-        *pi2_coeff_data++ = ((i_z1 - i_z2) * u4_scale_u) >> 5;
+        *pi2_coeff_data++ = (WORD16)(((i_z0 + i_z3) * (WORD32)u4_scale_u) >> 5);
+        *pi2_coeff_data++ = (WORD16)(((i_z0 - i_z3) * (WORD32)u4_scale_u) >> 5);
+        *pi2_coeff_data++ = (WORD16)(((i_z1 + i_z2) * (WORD32)u4_scale_u) >> 5);
+        *pi2_coeff_data++ = (WORD16)(((i_z1 - i_z2) * (WORD32)u4_scale_u) >> 5);
 
         ps_dec->pv_parse_tu_coeff_data = (void *)pi2_coeff_data;
 
@@ -1441,10 +1454,10 @@ void ih264d_cavlc_parse_chroma_dc(dec_mb_info_t *ps_cur_mb_info,
         /*-----------------------------------------------------------*/
         /* Scaling and storing the values back                       */
         /*-----------------------------------------------------------*/
-        *pi2_coeff_data++ = ((i_z0 + i_z3) * u4_scale_v) >> 5;
-        *pi2_coeff_data++ = ((i_z0 - i_z3) * u4_scale_v) >> 5;
-        *pi2_coeff_data++ = ((i_z1 + i_z2) * u4_scale_v) >> 5;
-        *pi2_coeff_data++ = ((i_z1 - i_z2) * u4_scale_v) >> 5;
+        *pi2_coeff_data++ = (WORD16)(((i_z0 + i_z3) * (WORD32)u4_scale_v) >> 5);
+        *pi2_coeff_data++ = (WORD16)(((i_z0 - i_z3) * (WORD32)u4_scale_v) >> 5);
+        *pi2_coeff_data++ = (WORD16)(((i_z1 + i_z2) * (WORD32)u4_scale_v) >> 5);
+        *pi2_coeff_data++ = (WORD16)(((i_z1 - i_z2) * (WORD32)u4_scale_v) >> 5);
 
         ps_dec->pv_parse_tu_coeff_data = (void *)pi2_coeff_data;
 

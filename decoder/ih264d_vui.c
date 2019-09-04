@@ -231,6 +231,11 @@ WORD32 ih264d_parse_vui_parametres(vui_t *ps_vu4,
                                                    pu4_bitstrm_buf);
         ps_vu4->u4_max_dec_frame_buffering = ih264d_uev(pu4_bitstrm_ofst,
                                                         pu4_bitstrm_buf);
+        if((ps_vu4->u4_max_dec_frame_buffering > (H264_MAX_REF_PICS * 2)) ||
+           (ps_vu4->u4_num_reorder_frames > ps_vu4->u4_max_dec_frame_buffering))
+        {
+            return ERROR_INV_SPS_PPS_T;
+        }
     }
     else
     {
