@@ -44,9 +44,6 @@
 #include <signal.h>
 #endif
 
-#ifndef IOS
-#include <malloc.h>
-#endif
 #ifdef IOS_DISPLAY
 #include "cast_types.h"
 #else
@@ -447,8 +444,13 @@ void ih264a_aligned_free(void *pv_ctxt, void *pv_buf)
 #if (!defined(IOS)) && (!defined(_WIN32))
 void * ih264a_aligned_malloc(void *pv_ctxt, WORD32 alignment, WORD32 i4_size)
 {
-   (void)pv_ctxt;
-    return memalign(alignment, i4_size);
+    void *buf = NULL;
+    (void)pv_ctxt;
+    if (0 != posix_memalign(&buf, alignment, i4_size))
+    {
+        return NULL;
+    }
+    return buf;
 }
 
 void ih264a_aligned_free(void *pv_ctxt, void *pv_buf)
