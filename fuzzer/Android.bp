@@ -8,4 +8,9 @@ cc_fuzz {
         "libavcdec",
         "liblog",
     ],
+    target: {
+        darwin: {
+            enabled: false,
+        },
+    },
 }

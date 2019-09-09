@@ -16,6 +16,11 @@ cc_test {
     srcs: ["decoder/main.c"],
     static_libs: ["libavcdec"],
     shared_libs: ["liblog"],
+    target: {
+        darwin: {
+            enabled: false,
+        },
+    },
 }
 
 cc_test {
