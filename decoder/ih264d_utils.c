@@ -769,6 +769,7 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
             else
                 ps_dec->i4_display_delay = ps_seq->s_vui.u4_num_reorder_frames * 2 + 2;
         }
+        ps_dec->i4_reorder_depth = ps_dec->i4_display_delay;
 
         if(IVD_DECODE_FRAME_OUT == ps_dec->e_frm_out_mode)
             ps_dec->i4_display_delay = 0;
@@ -945,6 +946,7 @@ WORD32 ih264d_get_next_display_field(dec_struct_t * ps_dec,
     pv_disp_op->s_disp_frm_buf.pv_y_buf = ps_out_buffer->pu1_bufs[0];
     pv_disp_op->s_disp_frm_buf.pv_u_buf = ps_out_buffer->pu1_bufs[1];
     pv_disp_op->s_disp_frm_buf.pv_v_buf = ps_out_buffer->pu1_bufs[2];
+    ps_dec->i4_display_index  = DEFAULT_POC;
     if(pic_buf != NULL)
     {
         pv_disp_op->e4_fld_type = 0;
@@ -961,6 +963,7 @@ WORD32 ih264d_get_next_display_field(dec_struct_t * ps_dec,
 
         /* ! */
         pv_disp_op->u4_ts = pic_buf->u4_ts;
+        ps_dec->i4_display_index = pic_buf->i4_poc;
 
         /* set the start of the Y, U and V buffer pointer for display    */
         ps_op_frm->pv_y_buf = pic_buf->pu1_buf1 + pic_buf->u2_crop_offset_y;
