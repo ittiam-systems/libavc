@@ -18,7 +18,6 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
-#include <malloc.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -49,8 +48,12 @@ enum {
 const static int kSupportedColorFormats = NELEMENTS(supportedColorFormats);
 const static int kMaxCores = 4;
 void *iv_aligned_malloc(void *ctxt, WORD32 alignment, WORD32 size) {
+  void *buf = NULL;
   (void)ctxt;
-  return memalign(alignment, size);
+  if (0 != posix_memalign(&buf, alignment, size)) {
+      return NULL;
+  }
+  return buf;
 }
 
 void iv_aligned_free(void *ctxt, void *buf) {
@@ -217,7 +220,7 @@ void Codec::allocFrame() {
   mOutBufHandle.u4_num_bufs = num_bufs;
   for (int i = 0; i < num_bufs; i++) {
     mOutBufHandle.u4_min_out_buf_size[i] = sizes[i];
-    mOutBufHandle.pu1_bufs[i] = (UWORD8 *)memalign(16, sizes[i]);
+    mOutBufHandle.pu1_bufs[i] = (UWORD8 *)iv_aligned_malloc(NULL, 16, sizes[i]);
   }
 }
 void Codec::decodeHeader(const uint8_t *data, size_t size) {
