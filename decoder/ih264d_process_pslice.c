@@ -940,7 +940,23 @@ WORD32 ih264d_parse_pred_weight_table(dec_slice_params_t * ps_cur_slice,
     return OK;
 }
 
-
+static int pic_num_compare(const void *pv_pic1, const void *pv_pic2)
+{
+    struct pic_buffer_t *ps_pic1 = *(struct pic_buffer_t **) pv_pic1;
+    struct pic_buffer_t *ps_pic2 = *(struct pic_buffer_t **) pv_pic2;
+    if (ps_pic1->i4_pic_num < ps_pic2->i4_pic_num)
+    {
+        return -1;
+    }
+    else if (ps_pic1->i4_pic_num > ps_pic2->i4_pic_num)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
 /*****************************************************************************/
 /*                                                                           */
 /*  Function Name : ih264d_init_ref_idx_lx_p                                        */
@@ -970,7 +986,7 @@ void ih264d_init_ref_idx_lx_p(dec_struct_t *ps_dec)
     struct pic_buffer_t *ps_ref_pic_buf_lx;
     dpb_manager_t *ps_dpb_mgr;
     struct dpb_info_t *ps_next_dpb;
-    WORD8 i;
+    WORD8 i, j;
     UWORD8 u1_max_lt_index, u1_min_lt_index;
     UWORD32 u4_lt_index;
     UWORD8 u1_field_pic_flag;
@@ -980,6 +996,7 @@ void ih264d_init_ref_idx_lx_p(dec_struct_t *ps_dec)
     WORD32 i4_temp_pic_num, i4_ref_pic_num;
     UWORD8 u1_num_short_term_bufs;
     UWORD8 u1_max_ref_idx_l0;
+    struct pic_buffer_t *aps_st_pic_bufs[2 * MAX_REF_BUFS] = {NULL};
 
     ps_cur_slice = ps_dec->ps_cur_slice;
     u1_field_pic_flag = ps_cur_slice->u1_field_pic_flag;
@@ -1009,6 +1026,16 @@ void ih264d_init_ref_idx_lx_p(dec_struct_t *ps_dec)
         /* Chase the next link */
         ps_next_dpb = ps_next_dpb->ps_prev_short;
     }
+
+    /* Sort ST ref pocs in ascending order */
+    ps_next_dpb = ps_dpb_mgr->ps_dpb_st_head;
+    for (j = 0; j < ps_dpb_mgr->u1_num_st_ref_bufs; j++)
+    {
+        aps_st_pic_bufs[j] = ps_next_dpb->ps_pic_buf;
+        ps_next_dpb = ps_next_dpb->ps_prev_short;
+    }
+    qsort(aps_st_pic_bufs, ps_dpb_mgr->u1_num_st_ref_bufs,
+        sizeof(aps_st_pic_bufs[0]), pic_num_compare);
 
     /* Start from LT head */
     ps_next_dpb = ps_dpb_mgr->ps_dpb_ht_head;
@@ -1040,26 +1067,18 @@ void ih264d_init_ref_idx_lx_p(dec_struct_t *ps_dec)
         ps_ref_pic_buf_lx = ps_dpb_mgr->ps_init_dpb[0][0];
         i4_temp_pic_num = i4_cur_pic_num;
     }
-
     /* Arrange all short term buffers in output order as given by pic_num */
     /* Arrange pic_num's less than Curr pic_num in the descending pic_num */
     /* order starting from (Curr pic_num - 1)                             */
-    for(; i4_temp_pic_num >= i4_min_st_pic_num; i4_temp_pic_num--)
+    for(j = ps_dpb_mgr->u1_num_st_ref_bufs - 1; j >= 0; j--)
     {
-        /* Start from ST head */
-        ps_next_dpb = ps_dpb_mgr->ps_dpb_st_head;
-        for(i = 0; i < ps_dpb_mgr->u1_num_st_ref_bufs; i++)
+        if(aps_st_pic_bufs[j])
         {
-            if((WORD32)ps_next_dpb->ps_pic_buf->i4_pic_num == i4_temp_pic_num)
-            {
-                /* Copy info in pic buffer */
-                ih264d_insert_pic_in_ref_pic_listx(ps_ref_pic_buf_lx,
-                                                   ps_next_dpb->ps_pic_buf);
-                ps_ref_pic_buf_lx++;
-                u1_L0++;
-                break;
-            }
-            ps_next_dpb = ps_next_dpb->ps_prev_short;
+            /* Copy info in pic buffer */
+            ih264d_insert_pic_in_ref_pic_listx(ps_ref_pic_buf_lx,
+                                               aps_st_pic_bufs[j]);
+            ps_ref_pic_buf_lx++;
+            u1_L0++;
         }
     }
 
