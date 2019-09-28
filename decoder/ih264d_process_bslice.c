@@ -1193,6 +1193,23 @@ void ih264d_convert_frm_mbaff_list(dec_struct_t *ps_dec)
         }
     }
 }
+static int poc_compare(const void *pv_pic1, const void *pv_pic2)
+{
+    struct pic_buffer_t *ps_pic1 = *(struct pic_buffer_t **) pv_pic1;
+    struct pic_buffer_t *ps_pic2 = *(struct pic_buffer_t **) pv_pic2;
+    if (ps_pic1->i4_poc < ps_pic2->i4_poc)
+    {
+        return -1;
+    }
+    else if (ps_pic1->i4_poc > ps_pic2->i4_poc)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
 /*!
  **************************************************************************
  * \if Function name : ih264d_init_ref_idx_lx_b \endif
@@ -1211,15 +1228,16 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
     dpb_manager_t *ps_dpb_mgr;
     struct dpb_info_t *ps_next_dpb;
     WORD32 i_cur_poc, i_max_st_poc, i_min_st_poc, i_ref_poc, i_temp_poc;
-    WORD8 i;
+    WORD8 i, j;
     UWORD8 u1_max_lt_index, u1_min_lt_index;
     UWORD32 u4_lt_index;
+    WORD32 i_cur_idx;
     UWORD8 u1_field_pic_flag;
     dec_slice_params_t *ps_cur_slice;
     UWORD8 u1_L0, u1_L1;
     UWORD8 u1_num_short_term_bufs;
     UWORD8 u1_max_ref_idx_l0, u1_max_ref_idx_l1;
-
+    struct pic_buffer_t *aps_st_pic_bufs[2 * MAX_REF_BUFS] = {NULL};
     ps_cur_slice = ps_dec->ps_cur_slice;
     u1_field_pic_flag = ps_cur_slice->u1_field_pic_flag;
     u1_max_ref_idx_l0 = ps_cur_slice->u1_num_ref_idx_lx_active[0]
@@ -1256,6 +1274,16 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
         ps_next_dpb = ps_next_dpb->ps_prev_short;
     }
 
+    /* Sort ST ref pocs in ascending order */
+    ps_next_dpb = ps_dpb_mgr->ps_dpb_st_head;
+    for (j = 0; j < ps_dpb_mgr->u1_num_st_ref_bufs; j++)
+    {
+        aps_st_pic_bufs[j] = ps_next_dpb->ps_pic_buf;
+        ps_next_dpb = ps_next_dpb->ps_prev_short;
+    }
+    qsort(aps_st_pic_bufs, ps_dpb_mgr->u1_num_st_ref_bufs,
+        sizeof(aps_st_pic_bufs[0]), poc_compare);
+
     /* Start from LT head */
     ps_next_dpb = ps_dpb_mgr->ps_dpb_ht_head;
     if(ps_next_dpb)
@@ -1275,58 +1303,57 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
 
     /* 1. Initialize refIdxL0 */
     u1_L0 = 0;
+    i_temp_poc = i_cur_poc;
     if(u1_field_pic_flag)
     {
         ps_ref_pic_buf_lx = ps_dpb_mgr->ps_init_dpb[0][0];
         ps_ref_pic_buf_lx += MAX_REF_BUFS;
-        i_temp_poc = i_cur_poc;
     }
     else
     {
         ps_ref_pic_buf_lx = ps_dpb_mgr->ps_init_dpb[0][0];
-        i_temp_poc = i_cur_poc - 1;
+        /* Avoid integer overflow while decrementing by one */
+        if (i_temp_poc > INT32_MIN)
+            i_temp_poc--;
+    }
+
+    i_cur_idx = -1;
+    for(j = 0; j < ps_dpb_mgr->u1_num_st_ref_bufs; j++)
+    {
+        if (NULL == aps_st_pic_bufs[j])
+        {
+            break;
+        }
+        if (aps_st_pic_bufs[j]->i4_poc <= i_temp_poc)
+        {
+            i_cur_idx = j;
+        }
     }
     /* Arrange all short term buffers in output order as given by POC */
     /* 1.1 Arrange POC's less than CurrPOC in the descending POC order starting
      from (CurrPOC - 1)*/
-    for(; i_temp_poc >= i_min_st_poc; i_temp_poc--)
+    for(j = i_cur_idx; j >= 0; j--)
     {
-        /* Start from ST head */
-        ps_next_dpb = ps_dpb_mgr->ps_dpb_st_head;
-        for(i = 0; i < ps_dpb_mgr->u1_num_st_ref_bufs; i++)
+        if(aps_st_pic_bufs[j])
         {
-            if((WORD32)ps_next_dpb->ps_pic_buf->i4_poc == i_temp_poc)
-            {
-                /* Copy info in pic buffer */
-                ih264d_insert_pic_in_ref_pic_listx(ps_ref_pic_buf_lx,
-                                                   ps_next_dpb->ps_pic_buf);
-                ps_ref_pic_buf_lx++;
-                u1_L0++;
-                break;
-            }
-            ps_next_dpb = ps_next_dpb->ps_prev_short;
+            /* Copy info in pic buffer */
+            ih264d_insert_pic_in_ref_pic_listx(ps_ref_pic_buf_lx,
+                                               aps_st_pic_bufs[j]);
+            ps_ref_pic_buf_lx++;
+            u1_L0++;
         }
     }
 
+    /* 1.2. Arrange POC's more than CurrPOC in the ascending POC order starting
+     from (CurrPOC + 1)*/
+    for(j = i_cur_idx + 1; j < ps_dpb_mgr->u1_num_st_ref_bufs; j++)
     {
-        /* 1.2. Arrange POC's more than CurrPOC in the ascending POC order starting
-         from (CurrPOC + 1)*/
-        for(i_temp_poc = i_cur_poc + 1; i_temp_poc <= i_max_st_poc; i_temp_poc++)
+        if(aps_st_pic_bufs[j])
         {
-            /* Start from ST head */
-            ps_next_dpb = ps_dpb_mgr->ps_dpb_st_head;
-            for(i = 0; i < ps_dpb_mgr->u1_num_st_ref_bufs; i++)
-            {
-                if((WORD32)ps_next_dpb->ps_pic_buf->i4_poc == i_temp_poc)
-                {
-                    ih264d_insert_pic_in_ref_pic_listx(ps_ref_pic_buf_lx,
-                                                       ps_next_dpb->ps_pic_buf);
-                    ps_ref_pic_buf_lx++;
-                    u1_L0++;
-                    break;
-                }
-                ps_next_dpb = ps_next_dpb->ps_prev_short;
-            }
+            ih264d_insert_pic_in_ref_pic_listx(ps_ref_pic_buf_lx,
+                                               aps_st_pic_bufs[j]);
+            ps_ref_pic_buf_lx++;
+            u1_L0++;
         }
     }
 
@@ -1415,51 +1442,29 @@ void ih264d_init_ref_idx_lx_b(dec_struct_t *ps_dec)
 
         /* 2.1. Arrange POC's more than CurrPOC in the ascending POC order starting
          from (CurrPOC + 1)*/
-        for(i_temp_poc = i_cur_poc + 1; i_temp_poc <= i_max_st_poc; i_temp_poc++)
+        for(j = i_cur_idx + 1; j < ps_dpb_mgr->u1_num_st_ref_bufs; j++)
         {
-            /* Start from ST head */
-            ps_next_dpb = ps_dpb_mgr->ps_dpb_st_head;
-            for(i = 0; i < ps_dpb_mgr->u1_num_st_ref_bufs; i++)
+            if(aps_st_pic_bufs[j])
             {
-                if((WORD32)ps_next_dpb->ps_pic_buf->i4_poc == i_temp_poc)
-                {
-                    ih264d_insert_pic_in_ref_pic_listx(ps_ref_pic_buf_lx,
-                                                       ps_next_dpb->ps_pic_buf);
-                    ps_ref_pic_buf_lx++;
-                    u1_L1++;
-                    break;
-                }
-                ps_next_dpb = ps_next_dpb->ps_prev_short;
+                /* Start from ST head */
+                ih264d_insert_pic_in_ref_pic_listx(ps_ref_pic_buf_lx,
+                                                   aps_st_pic_bufs[j]);
+                ps_ref_pic_buf_lx++;
+                u1_L1++;
             }
-        }
-
-        if(u1_field_pic_flag)
-        {
-            i_temp_poc = i_cur_poc;
-        }
-        else
-        {
-            i_temp_poc = i_cur_poc - 1;
         }
 
         /* Arrange all short term buffers in output order as given by POC */
         /* 2.2 Arrange POC's less than CurrPOC in the descending POC order starting
          from (CurrPOC - 1)*/
-        for(; i_temp_poc >= i_min_st_poc; i_temp_poc--)
+        for(j = i_cur_idx; j >= 0; j--)
         {
-            /* Start from ST head */
-            ps_next_dpb = ps_dpb_mgr->ps_dpb_st_head;
-            for(i = 0; i < ps_dpb_mgr->u1_num_st_ref_bufs; i++)
+            if(aps_st_pic_bufs[j])
             {
-                if((WORD32)ps_next_dpb->ps_pic_buf->i4_poc == i_temp_poc)
-                {
-                    ih264d_insert_pic_in_ref_pic_listx(ps_ref_pic_buf_lx,
-                                                       ps_next_dpb->ps_pic_buf);
-                    ps_ref_pic_buf_lx++;
-                    u1_L1++;
-                    break;
-                }
-                ps_next_dpb = ps_next_dpb->ps_prev_short;
+                ih264d_insert_pic_in_ref_pic_listx(ps_ref_pic_buf_lx,
+                                                   aps_st_pic_bufs[j]);
+                ps_ref_pic_buf_lx++;
+                u1_L1++;
             }
         }
 
