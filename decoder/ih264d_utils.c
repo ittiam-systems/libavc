@@ -324,7 +324,7 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
 
             if(u1_nal_ref_idc == 0)
             {
-                i8_result = expected_poc
+                i8_result = (WORD64)expected_poc
                                 + ps_seq->i4_ofst_for_non_ref_pic;
 
                 if(IS_OUT_OF_RANGE_S32(i8_result))
@@ -336,14 +336,14 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             /* 6. TopFieldOrderCnt or BottomFieldOrderCnt are derived as */
             if(!u1_field_pic_flag)
             {
-                i8_result = expected_poc
+                i8_result = (WORD64)expected_poc
                                 + ps_cur_poc->i4_delta_pic_order_cnt[0];
 
                 if(IS_OUT_OF_RANGE_S32(i8_result))
                     return ERROR_INV_POC;
                 i4_top_field_order_cnt = (WORD32)i8_result;
 
-                i8_result = i4_top_field_order_cnt
+                i8_result = (WORD64)i4_top_field_order_cnt
                                 + ps_seq->i4_ofst_for_top_to_bottom_field
                                 + ps_cur_poc->i4_delta_pic_order_cnt[1];
 
@@ -353,7 +353,7 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             }
             else if(!u1_bottom_field_flag)
             {
-                i8_result = expected_poc
+                i8_result = (WORD64)expected_poc
                                 + ps_cur_poc->i4_delta_pic_order_cnt[0];
 
                 if(IS_OUT_OF_RANGE_S32(i8_result))
@@ -362,7 +362,7 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             }
             else
             {
-                i8_result = expected_poc
+                i8_result = (WORD64)expected_poc
                                 + ps_seq->i4_ofst_for_top_to_bottom_field
                                 + ps_cur_poc->i4_delta_pic_order_cnt[0];
 
@@ -1641,6 +1641,15 @@ WORD32 ih264d_decode_gaps_in_frame_num(dec_struct_t *ps_dec,
                 return ret;
         }
 
+        {
+            UWORD64 i8_display_poc;
+            i8_display_poc = (UWORD64)ps_dec->i4_prev_max_display_seq +
+                        i4_poc;
+            if(IS_OUT_OF_RANGE_S32(i8_display_poc))
+            {
+                ps_dec->i4_prev_max_display_seq = 0;
+            }
+        }
         ret = ih264d_insert_pic_in_display_list(
                         ps_dec->ps_dpb_mgr, (WORD8) DO_NOT_DISP,
                         (WORD32)(ps_dec->i4_prev_max_display_seq + i4_poc),
