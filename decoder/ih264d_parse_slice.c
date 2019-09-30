@@ -825,7 +825,15 @@ WORD32 ih264d_end_of_pic_dispbuf_mgr(dec_struct_t * ps_dec)
             ps_cur_pic->u2_crop_offset_y = ps_dec->u2_crop_offset_y;
             ps_cur_pic->u2_crop_offset_uv = ps_dec->u2_crop_offset_uv;
             ps_cur_pic->u1_pic_type = 0;
-
+            {
+                UWORD64 i8_display_poc;
+                i8_display_poc = (UWORD64)ps_dec->i4_prev_max_display_seq +
+                            ps_dec->ps_cur_pic->i4_poc;
+                if(IS_OUT_OF_RANGE_S32(i8_display_poc))
+                {
+                    ps_dec->i4_prev_max_display_seq = 0;
+                }
+            }
             ret = ih264d_insert_pic_in_display_list(
                             ps_dec->ps_dpb_mgr,
                             ps_dec->u1_pic_buf_id,

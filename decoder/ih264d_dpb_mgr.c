@@ -1176,10 +1176,16 @@ WORD32 ih264d_do_mmco_buffer(dpb_commands_t *ps_dpb_cmds,
 
                     {
                         UWORD32 i4_cur_pic_num = u4_cur_pic_num;
+                        WORD64 i8_pic_num;
                         u4_diff_pic_num = ps_mmc_params->u4_diff_pic_num; //Get absDiffPicnumMinus1
                         if(u1_fld_pic_flag)
                             i4_cur_pic_num = i4_cur_pic_num * 2 + 1;
-                        i4_pic_num = ((WORD32)i4_cur_pic_num - ((WORD32)u4_diff_pic_num + 1));
+                        i8_pic_num = ((WORD64)i4_cur_pic_num - ((WORD64)u4_diff_pic_num + 1));
+                        if(IS_OUT_OF_RANGE_S32(i8_pic_num))
+                        {
+                            return ERROR_DBP_MANAGER_T;
+                        }
+                        i4_pic_num = i8_pic_num;
                     }
 
                     if(ps_dpb_mgr->u1_num_st_ref_bufs > 0)
@@ -1223,11 +1229,17 @@ WORD32 ih264d_do_mmco_buffer(dpb_commands_t *ps_dpb_cmds,
                 {
                     {
                         UWORD32 i4_cur_pic_num = u4_cur_pic_num;
+                        WORD64 i8_pic_num;
                         u4_diff_pic_num = ps_mmc_params->u4_diff_pic_num; //Get absDiffPicnumMinus1
                         if(u1_fld_pic_flag)
                             i4_cur_pic_num = i4_cur_pic_num * 2 + 1;
 
-                        i4_pic_num = (WORD32)i4_cur_pic_num - ((WORD32)u4_diff_pic_num + 1);
+                        i8_pic_num = (WORD64)i4_cur_pic_num - ((WORD64)u4_diff_pic_num + 1);
+                        if(IS_OUT_OF_RANGE_S32(i8_pic_num))
+                        {
+                            return ERROR_DBP_MANAGER_T;
+                        }
+                        i4_pic_num = i8_pic_num;
                     }
 
                     u4_lt_idx = ps_mmc_params->u4_lt_idx; //Get long term index
