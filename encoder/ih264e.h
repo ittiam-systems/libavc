@@ -47,11 +47,6 @@ extern "C" {
 #include "iv2.h"
 #include "ive2.h"
 /*****************************************************************************/
-/* Constant Macros                                                           */
-/*****************************************************************************/
-
-
-/*****************************************************************************/
 /* API Function Prototype                                                    */
 /*****************************************************************************/
 IV_STATUS_T ih264e_api_function(iv_obj_t *ps_handle, void *pv_api_ip,void *pv_api_op);
@@ -613,6 +608,234 @@ typedef struct
     /** Return error code                                               */
     UWORD32                                     u4_error_code;
 }ih264e_vui_op_t;
+
+/*****************************************************************************/
+/*    Video control  Set SEI MDCV params                                     */
+/*****************************************************************************/
+typedef struct
+{
+    /** size of the structure                                             */
+    UWORD32                                     u4_size;
+
+    /** Command type : IVE_CMD_VIDEO_CTL                                  */
+    IVE_API_COMMAND_TYPE_T                      e_cmd;
+
+    /** Sub command type : IVE_CMD_CTL_SET_SEI_MDCV_PARAMS                */
+    IVE_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+
+    /** mastering display color volume info present flag                  */
+    UWORD8                                      u1_sei_mdcv_params_present_flag;
+
+    /** Array to store the display_primaries_x values                     */
+    UWORD16                                     au2_display_primaries_x[3];
+
+    /** Array to store the display_primaries_y values                     */
+    UWORD16                                     au2_display_primaries_y[3];
+
+    /** Variable to store the white point x value                         */
+    UWORD16                                     u2_white_point_x;
+
+    /** Variable to store the white point y value                         */
+    UWORD16                                     u2_white_point_y;
+
+    /** Variable to store the max display mastering luminance value       */
+    UWORD32                                     u4_max_display_mastering_luminance;
+
+    /** Variable to store the min display mastering luminance value       */
+    UWORD32                                     u4_min_display_mastering_luminance;
+
+    /** Lower 32bits of time stamp corresponding to input buffer,
+     * from which this command takes effect                               */
+    UWORD32                                     u4_timestamp_low;
+
+    /** Upper 32bits of time stamp corresponding to input buffer,
+     * from which this command takes effect                               */
+    UWORD32                                     u4_timestamp_high;
+
+}ih264e_ctl_set_sei_mdcv_params_ip_t;
+
+typedef struct
+{
+    /** size of the structure                                           */
+    UWORD32                                     u4_size;
+
+    /** Return error code                                               */
+    UWORD32                                     u4_error_code;
+
+}ih264e_ctl_set_sei_mdcv_params_op_t;
+
+/*****************************************************************************/
+/*    Video control  Set SEI CLL params                                      */
+/*****************************************************************************/
+typedef struct
+{
+    /** size of the structure                                             */
+    UWORD32                                     u4_size;
+
+    /** Command type : IVE_CMD_VIDEO_CTL                                  */
+    IVE_API_COMMAND_TYPE_T                      e_cmd;
+
+    /** Sub command type : IVE_CMD_CTL_SET_SEI_CLL_PARAMS                 */
+    IVE_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+
+    /** content light level info present flag                             */
+    UWORD8                                      u1_sei_cll_params_present_flag;
+
+    /** The maximum pixel intensity of all samples                        */
+    UWORD16                                     u2_max_content_light_level;
+
+    /** The average pixel intensity of all samples                        */
+    UWORD16                                     u2_max_pic_average_light_level;
+
+    /** Lower 32bits of time stamp corresponding to input buffer,
+     * from which this command takes effect                               */
+    UWORD32                                     u4_timestamp_low;
+
+    /** Upper 32bits of time stamp corresponding to input buffer,
+     * from which this command takes effect                               */
+    UWORD32                                     u4_timestamp_high;
+
+}ih264e_ctl_set_sei_cll_params_ip_t;
+
+typedef struct
+{
+    /** size of the structure                                             */
+    UWORD32                                     u4_size;
+
+    /** Return error code                                                 */
+    UWORD32                                     u4_error_code;
+
+}ih264e_ctl_set_sei_cll_params_op_t;
+
+/*****************************************************************************/
+/*    Video control  Set SEI AVE params                                      */
+/*****************************************************************************/
+typedef struct
+{
+    /** size of the structure                                             */
+    UWORD32                                     u4_size;
+
+    /** Command type : IVE_CMD_VIDEO_CTL                                  */
+    IVE_API_COMMAND_TYPE_T                      e_cmd;
+
+    /** Sub command type : IVE_CMD_CTL_SET_SEI_AVE_PARAMS                 */
+    IVE_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+
+    /** ambient viewing environment info present flag                     */
+    UWORD8                                      u1_sei_ave_params_present_flag;
+
+    /** specifies the environmental illluminance of the ambient viewing
+     * environment                                                        */
+    UWORD32                                     u4_ambient_illuminance;
+
+    /** specify the normalized x chromaticity coordinates of the
+     * environmental ambient light in the nominal viewing environment     */
+    UWORD16                                     u2_ambient_light_x;
+
+    /** specify the normalized y chromaticity coordinates of the
+     * environmental ambient light in the nominal viewing environment     */
+    UWORD16                                     u2_ambient_light_y;
+
+    /** Lower 32bits of time stamp corresponding to input buffer,
+     * from which this command takes effect                               */
+    UWORD32                                     u4_timestamp_low;
+
+    /** Upper 32bits of time stamp corresponding to input buffer,
+     * from which this command takes effect                               */
+    UWORD32                                     u4_timestamp_high;
+
+}ih264e_ctl_set_sei_ave_params_ip_t;
+
+typedef struct
+{
+    /** size of the structure                                             */
+    UWORD32                                     u4_size;
+
+    /** Return error code                                                 */
+    UWORD32                                     u4_error_code;
+
+}ih264e_ctl_set_sei_ave_params_op_t;
+
+/*****************************************************************************/
+/*    Video control  Set SEI CCV params                                      */
+/*****************************************************************************/
+typedef struct
+{
+    /** size of the structure                                             */
+    UWORD32                                     u4_size;
+
+    /** Command type : IVE_CMD_VIDEO_CTL                                  */
+    IVE_API_COMMAND_TYPE_T                      e_cmd;
+
+    /** Sub command type : IVE_CMD_CTL_SET_SEI_CCV_PARAMS                 */
+    IVE_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+
+    /** content color volume info present flag                            */
+    UWORD8                                      u1_sei_ccv_params_present_flag;
+
+    /** Flag used to control persistence of CCV SEI messages              */
+    UWORD8                                      u1_ccv_cancel_flag;
+
+    /** specifies the persistence of the CCV SEI message for the
+     * current layer                                                      */
+    UWORD8                                      u1_ccv_persistence_flag;
+
+    /** specifies the presence of syntax elements ccv_primaries_x
+     * and ccv_primaries_y                                                */
+    UWORD8                                      u1_ccv_primaries_present_flag;
+
+    /** specifies that the syntax element ccv_min_luminance_value
+     * is present                                                         */
+    UWORD8                                      u1_ccv_min_luminance_value_present_flag;
+
+    /** specifies that the syntax element ccv_max_luminance_value
+     *  is present                                                        */
+    UWORD8                                      u1_ccv_max_luminance_value_present_flag;
+
+    /** specifies that the syntax element ccv_avg_luminance_value
+     *  is present                                                        */
+    UWORD8                                      u1_ccv_avg_luminance_value_present_flag;
+
+    /** shall be equal to 0 in bitstreams conforming to this version.
+     * Other values for reserved_zero_2bits are reserved for future use   */
+    UWORD8                                      u1_ccv_reserved_zero_2bits;
+
+    /** specify the normalized x chromaticity coordinates of the colour
+     * primary component c of the nominal content colour volume           */
+    WORD32                                      ai4_ccv_primaries_x[3];
+
+    /** specify the normalized y chromaticity coordinates of the colour
+     * primary component c of the nominal content colour volume           */
+    WORD32                                      ai4_ccv_primaries_y[3];
+
+    /** specifies the normalized minimum luminance value                  */
+    UWORD32                                     u4_ccv_min_luminance_value;
+
+    /** specifies the normalized maximum luminance value                  */
+    UWORD32                                     u4_ccv_max_luminance_value;
+
+    /** specifies the normalized average luminance value                  */
+    UWORD32                                     u4_ccv_avg_luminance_value;
+
+    /** Lower 32bits of time stamp corresponding to input buffer,
+     * from which this command takes effect                               */
+    UWORD32                                     u4_timestamp_low;
+
+    /** Upper 32bits of time stamp corresponding to input buffer,
+     * from which this command takes effect                               */
+    UWORD32                                     u4_timestamp_high;
+
+}ih264e_ctl_set_sei_ccv_params_ip_t;
+
+typedef struct
+{
+    /** size of the structure                                             */
+    UWORD32                                     u4_size;
+
+    /** Return error code                                                 */
+    UWORD32                                     u4_error_code;
+
+}ih264e_ctl_set_sei_ccv_params_op_t;
 
 
 /* The enum values should not have greater than 8 bits as this is assigned to WORD8 */

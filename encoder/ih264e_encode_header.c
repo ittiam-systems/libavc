@@ -33,6 +33,7 @@
 *  - ih264e_generate_nal_unit_header()
 *  - ih264e_generate_sps()
 *  - ih264e_generate_pps()
+*  - ih264e_generate_sei()
 *  - ih264e_generate_slice_header()
 *  - ih264e_get_level()
 *  - ih264e_populate_sps()
@@ -87,6 +88,7 @@
 #include "ih264e_rate_control.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
+#include "ih264e_sei.h"
 #include "ih264e_encode_header.h"
 #include "ih264_common_tables.h"
 #include "ih264_macros.h"
@@ -682,6 +684,71 @@ WORD32 ih264e_generate_pps(bitstrm_t *ps_bitstrm, pps_t *ps_pps, sps_t *ps_sps)
         PUT_BITS_SEV(ps_bitstrm, ps_pps->i1_second_chroma_qp_index_offset, return_status, "Second chroma QP offset");
     }
 
+    return_status |= ih264e_put_rbsp_trailing_bits(ps_bitstrm);
+
+    return return_status;
+}
+
+/**
+******************************************************************************
+*
+* @brief Generates SEI (Supplemental Enhancement Information)
+*
+* @par   Description
+*  This function generates Supplemental Enhancement Information header as per the spec
+*
+* @param[in]   ps_bitstrm
+*  pointer to bitstream context (handle)
+*
+* @param[in]   ps_sei
+*  pointer to structure containing SEI data
+*
+* @return      success or failure error code
+*
+******************************************************************************
+*/
+IH264E_ERROR_T ih264e_generate_sei(bitstrm_t *ps_bitstrm, sei_params_t *ps_sei, UWORD32 u4_insert_per_idr)
+{
+    WORD32 return_status = IH264E_SUCCESS;
+    WORD8  i1_nal_unit_type = NAL_SEI;
+    WORD8  i1_nal_ref_idc = 0;
+
+    /* Insert Start Code */
+    return_status |= ih264e_put_nal_start_code_prefix(ps_bitstrm, 1);
+
+    /* Insert Nal Unit Header */
+    return_status |= ih264e_generate_nal_unit_header(ps_bitstrm,
+                                                    i1_nal_unit_type, i1_nal_ref_idc);
+
+    /* Mastering Display Color SEI */
+    if(1 == ps_sei->u1_sei_mdcv_params_present_flag && u4_insert_per_idr)
+    {
+        return_status |= ih264e_put_sei_msg(IH264_SEI_MASTERING_DISP_COL_VOL,
+                                            ps_sei, ps_bitstrm);
+    }
+
+    /* Content Light Level Information*/
+    if(1 == ps_sei->u1_sei_cll_params_present_flag && u4_insert_per_idr)
+    {
+        return_status |= ih264e_put_sei_msg(IH264_SEI_CONTENT_LIGHT_LEVEL_DATA,
+                                            ps_sei, ps_bitstrm);
+    }
+
+    /* Ambient viewing environment SEI */
+    if(1 == ps_sei->u1_sei_ave_params_present_flag && u4_insert_per_idr)
+    {
+        return_status |= ih264e_put_sei_msg(IH264_SEI_AMBIENT_VIEWING_ENVIRONMENT,
+                                            ps_sei, ps_bitstrm);
+    }
+
+    /* Content color volume Information*/
+    if(1 == ps_sei->u1_sei_ccv_params_present_flag)
+    {
+        return_status |= ih264e_put_sei_msg(IH264_SEI_CONTENT_COLOR_VOLUME,
+                                            ps_sei, ps_bitstrm);
+    }
+
+    /* rbsp trailing bits */
     return_status |= ih264e_put_rbsp_trailing_bits(ps_bitstrm);
 
     return return_status;

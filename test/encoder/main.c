@@ -36,6 +36,7 @@
 #endif
 /* User include files */
 #include "ih264_typedefs.h"
+#include "ih264_defs.h"
 #include "iv2.h"
 #include "ive2.h"
 #include "ih264e.h"
@@ -1465,10 +1466,10 @@ void set_vui_params(app_ctxt_t *ps_app_ctxt)
     s_vui_params_ip.u2_sar_height = 0;
     s_vui_params_ip.u1_overscan_info_present_flag = 0;
     s_vui_params_ip.u1_overscan_appropriate_flag = 0;
-    s_vui_params_ip.u1_video_signal_type_present_flag = 0;
+    s_vui_params_ip.u1_video_signal_type_present_flag = 1;
     s_vui_params_ip.u1_video_format = 0;
     s_vui_params_ip.u1_video_full_range_flag = 0;
-    s_vui_params_ip.u1_colour_description_present_flag = 0;
+    s_vui_params_ip.u1_colour_description_present_flag = 1;
     s_vui_params_ip.u1_colour_primaries = 0;
     s_vui_params_ip.u1_transfer_characteristics = 0;
     s_vui_params_ip.u1_matrix_coefficients = 0;
@@ -1507,6 +1508,222 @@ void set_vui_params(app_ctxt_t *ps_app_ctxt)
     }
     return;
 }
+
+void set_sei_mdcv_params(app_ctxt_t *ps_app_ctxt,
+                         UWORD32 u4_timestamp_low,
+                         UWORD32 u4_timestamp_high)
+{
+    WORD32 i4_count;
+    IV_STATUS_T status;
+
+    ih264e_ctl_set_sei_mdcv_params_ip_t s_sei_mdcv_params_ip;
+    ih264e_ctl_set_sei_mdcv_params_op_t s_sei_mdcv_params_op;
+
+    s_sei_mdcv_params_ip.e_cmd = IVE_CMD_VIDEO_CTL;
+    s_sei_mdcv_params_ip.e_sub_cmd = IVE_CMD_CTL_SET_SEI_MDCV_PARAMS;
+
+    s_sei_mdcv_params_ip.u1_sei_mdcv_params_present_flag =
+                                (UWORD8)ps_app_ctxt->u4_sei_mdcv_params_present_flag;
+
+    for(i4_count = 0; i4_count < NUM_SEI_MDCV_PRIMARIES; i4_count++)
+    {
+        s_sei_mdcv_params_ip.au2_display_primaries_x[i4_count] =
+                                (UWORD16)ps_app_ctxt->au4_display_primaries_x[i4_count];
+        s_sei_mdcv_params_ip.au2_display_primaries_y[i4_count] =
+                                (UWORD16)ps_app_ctxt->au4_display_primaries_y[i4_count];
+    }
+
+    s_sei_mdcv_params_ip.u2_white_point_x = (UWORD16)ps_app_ctxt->u4_white_point_x;
+    s_sei_mdcv_params_ip.u2_white_point_y = (UWORD16)ps_app_ctxt->u4_white_point_y;
+    s_sei_mdcv_params_ip.u4_max_display_mastering_luminance =
+                                ps_app_ctxt->u4_max_display_mastering_luminance;
+    s_sei_mdcv_params_ip.u4_min_display_mastering_luminance =
+                                ps_app_ctxt->u4_min_display_mastering_luminance;
+
+    s_sei_mdcv_params_ip.u4_timestamp_high  =   u4_timestamp_high;
+    s_sei_mdcv_params_ip.u4_timestamp_low   =   u4_timestamp_low;
+
+    s_sei_mdcv_params_ip.u4_size = sizeof(ih264e_ctl_set_sei_mdcv_params_ip_t);
+    s_sei_mdcv_params_op.u4_size = sizeof(ih264e_ctl_set_sei_mdcv_params_op_t);
+
+    if((ps_app_ctxt->s_sei_mdcv_params.au2_display_primaries_x[0] !=
+                                s_sei_mdcv_params_ip.au2_display_primaries_x[0]) ||
+            (ps_app_ctxt->s_sei_mdcv_params.au2_display_primaries_x[1] !=
+                                s_sei_mdcv_params_ip.au2_display_primaries_x[1]) ||
+            (ps_app_ctxt->s_sei_mdcv_params.au2_display_primaries_x[2] !=
+                                s_sei_mdcv_params_ip.au2_display_primaries_x[2]) ||
+            (ps_app_ctxt->s_sei_mdcv_params.au2_display_primaries_y[0] !=
+                                s_sei_mdcv_params_ip.au2_display_primaries_y[0]) ||
+            (ps_app_ctxt->s_sei_mdcv_params.au2_display_primaries_y[1] !=
+                                s_sei_mdcv_params_ip.au2_display_primaries_y[1]) ||
+            (ps_app_ctxt->s_sei_mdcv_params.au2_display_primaries_y[2] !=
+                                s_sei_mdcv_params_ip.au2_display_primaries_y[2]) ||
+            (ps_app_ctxt->s_sei_mdcv_params.u2_white_point_x !=
+                                s_sei_mdcv_params_ip.u2_white_point_x) ||
+            (ps_app_ctxt->s_sei_mdcv_params.u2_white_point_y !=
+                                s_sei_mdcv_params_ip.u2_white_point_x) ||
+            (ps_app_ctxt->s_sei_mdcv_params.u4_max_display_mastering_luminance !=
+                                s_sei_mdcv_params_ip.u4_max_display_mastering_luminance) ||
+            (ps_app_ctxt->s_sei_mdcv_params.u4_min_display_mastering_luminance !=
+                                s_sei_mdcv_params_ip.u4_min_display_mastering_luminance))
+    {
+        status = ih264e_api_function(ps_app_ctxt->ps_enc, &s_sei_mdcv_params_ip,
+                                     &s_sei_mdcv_params_op);
+        if(status != IV_SUCCESS)
+        {
+            printf("Unable to set sei mdcv params = 0x%x\n",
+                    s_sei_mdcv_params_op.u4_error_code);
+        }
+        ps_app_ctxt->s_sei_mdcv_params = s_sei_mdcv_params_ip;
+    }
+    return;
+}
+
+void set_sei_cll_params(app_ctxt_t *ps_app_ctxt,
+                        UWORD32 u4_timestamp_low,
+                        UWORD32 u4_timestamp_high)
+{
+    IV_STATUS_T status;
+
+    ih264e_ctl_set_sei_cll_params_ip_t s_sei_cll_params_ip;
+    ih264e_ctl_set_sei_cll_params_op_t s_sei_cll_params_op;
+
+    s_sei_cll_params_ip.e_cmd = IVE_CMD_VIDEO_CTL;
+    s_sei_cll_params_ip.e_sub_cmd = IVE_CMD_CTL_SET_SEI_CLL_PARAMS;
+
+    s_sei_cll_params_ip.u1_sei_cll_params_present_flag =
+                                (UWORD8)ps_app_ctxt->u4_sei_cll_params_present_flag;
+
+    s_sei_cll_params_ip.u2_max_content_light_level =
+                                (UWORD16)ps_app_ctxt->u4_max_content_light_level;
+    s_sei_cll_params_ip.u2_max_pic_average_light_level =
+                                (UWORD16)ps_app_ctxt->u4_max_pic_average_light_level;
+
+    s_sei_cll_params_ip.u4_timestamp_high  = u4_timestamp_high;
+    s_sei_cll_params_ip.u4_timestamp_low   = u4_timestamp_low;
+
+    s_sei_cll_params_ip.u4_size = sizeof(ih264e_ctl_set_sei_cll_params_ip_t);
+    s_sei_cll_params_op.u4_size = sizeof(ih264e_ctl_set_sei_cll_params_op_t);
+
+    if((ps_app_ctxt->s_sei_cll_params.u2_max_content_light_level !=
+                                s_sei_cll_params_ip.u2_max_content_light_level) ||
+            (ps_app_ctxt->s_sei_cll_params.u2_max_pic_average_light_level !=
+                                s_sei_cll_params_ip.u2_max_pic_average_light_level))
+    {
+        status = ih264e_api_function(ps_app_ctxt->ps_enc, &s_sei_cll_params_ip,
+                                     &s_sei_cll_params_op);
+        if(status != IV_SUCCESS)
+        {
+            printf("Unable to set sei cll params = 0x%x\n",
+                    s_sei_cll_params_op.u4_error_code);
+        }
+        ps_app_ctxt->s_sei_cll_params = s_sei_cll_params_ip;
+    }
+    return;
+}
+
+void set_sei_ave_params(app_ctxt_t *ps_app_ctxt,
+                        UWORD32 u4_timestamp_low,
+                        UWORD32 u4_timestamp_high)
+{
+    IV_STATUS_T status;
+
+    ih264e_ctl_set_sei_ave_params_ip_t s_sei_ave_params_ip;
+    ih264e_ctl_set_sei_ave_params_op_t s_sei_ave_params_op;
+
+    s_sei_ave_params_ip.e_cmd = IVE_CMD_VIDEO_CTL;
+    s_sei_ave_params_ip.e_sub_cmd = IVE_CMD_CTL_SET_SEI_AVE_PARAMS;
+
+    s_sei_ave_params_ip.u1_sei_ave_params_present_flag =
+                                (UWORD8)ps_app_ctxt->u4_sei_ave_params_present_flag;
+
+    s_sei_ave_params_ip.u4_ambient_illuminance = ps_app_ctxt->u4_ambient_illuminance;
+    s_sei_ave_params_ip.u2_ambient_light_x = (UWORD16)ps_app_ctxt->u4_ambient_light_x;
+    s_sei_ave_params_ip.u2_ambient_light_y = (UWORD16)ps_app_ctxt->u4_ambient_light_y;
+
+    s_sei_ave_params_ip.u4_timestamp_high  =   u4_timestamp_high;
+    s_sei_ave_params_ip.u4_timestamp_low   =   u4_timestamp_low;
+
+    s_sei_ave_params_ip.u4_size = sizeof(ih264e_ctl_set_sei_ave_params_ip_t);
+    s_sei_ave_params_op.u4_size = sizeof(ih264e_ctl_set_sei_ave_params_op_t);
+
+    if((ps_app_ctxt->s_sei_ave_params.u4_ambient_illuminance !=
+                                s_sei_ave_params_ip.u4_ambient_illuminance) ||
+            (ps_app_ctxt->s_sei_ave_params.u2_ambient_light_x !=
+                                s_sei_ave_params_ip.u2_ambient_light_x) ||
+            (ps_app_ctxt->s_sei_ave_params.u2_ambient_light_y !=
+                                s_sei_ave_params_ip.u2_ambient_light_y))
+    {
+        status = ih264e_api_function(ps_app_ctxt->ps_enc, &s_sei_ave_params_ip,
+                                 &s_sei_ave_params_op);
+        if(status != IV_SUCCESS)
+        {
+            printf("Unable to set sei ave params = 0x%x\n",
+                    s_sei_ave_params_op.u4_error_code);
+        }
+        ps_app_ctxt->s_sei_ave_params = s_sei_ave_params_ip;
+    }
+    return;
+}
+
+void set_sei_ccv_params(app_ctxt_t *ps_app_ctxt,
+                        UWORD32 u4_timestamp_low,
+                        UWORD32 u4_timestamp_high)
+{
+    WORD32 i4_count;
+    IV_STATUS_T status;
+
+    ih264e_ctl_set_sei_ccv_params_ip_t s_sei_ccv_params_ip;
+    ih264e_ctl_set_sei_ccv_params_op_t s_sei_ccv_params_op;
+
+    s_sei_ccv_params_ip.e_cmd = IVE_CMD_VIDEO_CTL;
+    s_sei_ccv_params_ip.e_sub_cmd = IVE_CMD_CTL_SET_SEI_CCV_PARAMS;
+
+    s_sei_ccv_params_ip.u1_sei_ccv_params_present_flag =
+                            (UWORD8)ps_app_ctxt->u4_sei_ccv_params_present_flag;
+
+    s_sei_ccv_params_ip.u1_ccv_cancel_flag = (UWORD8)ps_app_ctxt->u4_ccv_cancel_flag;
+    s_sei_ccv_params_ip.u1_ccv_persistence_flag =
+                            (UWORD8)ps_app_ctxt->u4_ccv_persistence_flag;
+    s_sei_ccv_params_ip.u1_ccv_primaries_present_flag =
+                            (UWORD8)ps_app_ctxt->u4_ccv_primaries_present_flag;
+    s_sei_ccv_params_ip.u1_ccv_min_luminance_value_present_flag =
+                            (UWORD8)ps_app_ctxt->u4_ccv_min_luminance_value_present_flag;
+    s_sei_ccv_params_ip.u1_ccv_max_luminance_value_present_flag =
+                            (UWORD8)ps_app_ctxt->u4_ccv_max_luminance_value_present_flag;
+    s_sei_ccv_params_ip.u1_ccv_avg_luminance_value_present_flag =
+                            (UWORD8)ps_app_ctxt->u4_ccv_avg_luminance_value_present_flag;
+    s_sei_ccv_params_ip.u1_ccv_reserved_zero_2bits =
+                            (UWORD8)ps_app_ctxt->u4_ccv_reserved_zero_2bits;
+
+    for(i4_count = 0; i4_count < NUM_SEI_CCV_PRIMARIES; i4_count++)
+    {
+        s_sei_ccv_params_ip.ai4_ccv_primaries_x[i4_count] =
+                            ps_app_ctxt->ai4_ccv_primaries_x[i4_count];
+        s_sei_ccv_params_ip.ai4_ccv_primaries_y[i4_count] =
+                            ps_app_ctxt->ai4_ccv_primaries_y[i4_count];
+    }
+
+    s_sei_ccv_params_ip.u4_ccv_min_luminance_value = ps_app_ctxt->u4_ccv_min_luminance_value;
+    s_sei_ccv_params_ip.u4_ccv_max_luminance_value = ps_app_ctxt->u4_ccv_max_luminance_value;
+    s_sei_ccv_params_ip.u4_ccv_avg_luminance_value = ps_app_ctxt->u4_ccv_avg_luminance_value;
+
+    s_sei_ccv_params_ip.u4_timestamp_high  =   u4_timestamp_high;
+    s_sei_ccv_params_ip.u4_timestamp_low   =   u4_timestamp_low;
+
+    s_sei_ccv_params_ip.u4_size = sizeof(ih264e_ctl_set_sei_ccv_params_ip_t);
+    s_sei_ccv_params_op.u4_size = sizeof(ih264e_ctl_set_sei_ccv_params_op_t);
+
+    status = ih264e_api_function(ps_app_ctxt->ps_enc, &s_sei_ccv_params_ip,
+                                 &s_sei_ccv_params_op);
+    if(status != IV_SUCCESS)
+    {
+        printf("Unable to set sei ccv params = 0x%x\n",
+                s_sei_ccv_params_op.u4_error_code);
+    }
+    return;
+}
+
 #define PEAK_WINDOW_SIZE    8
 
 void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
@@ -1624,6 +1841,62 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
 
     while(1)
     {
+        IV_PICTURE_CODING_TYPE_T  e_frame_type;
+        WORD32 i4_count;
+
+        /* Default sei params values*/
+        ps_app_ctxt->u4_sei_mdcv_params_present_flag = 1;
+        if(1 == ps_app_ctxt->u4_sei_mdcv_params_present_flag)
+        {
+            for(i4_count = 0; i4_count < NUM_SEI_MDCV_PRIMARIES; i4_count++)
+            {
+                ps_app_ctxt->au4_display_primaries_x[i4_count] = 0;
+                ps_app_ctxt->au4_display_primaries_y[i4_count] = 0;
+            }
+            ps_app_ctxt->u4_white_point_x = 0;
+            ps_app_ctxt->u4_white_point_y = 0;
+            ps_app_ctxt->u4_max_display_mastering_luminance = DEFAULT_MAX_DISPLAY_MASTERING_LUMINANCE;
+            ps_app_ctxt->u4_min_display_mastering_luminance = DEFAULT_MIN_DISPLAY_MASTERING_LUMINANCE;
+            set_sei_mdcv_params(ps_app_ctxt, u4_timestamp_low, u4_timestamp_high);
+        }
+
+        ps_app_ctxt->u4_sei_cll_params_present_flag = 1;
+        if(1 == ps_app_ctxt->u4_sei_cll_params_present_flag)
+        {
+            ps_app_ctxt->u4_max_content_light_level = 0;
+            ps_app_ctxt->u4_max_pic_average_light_level = 0;
+            set_sei_cll_params(ps_app_ctxt, u4_timestamp_low, u4_timestamp_high);
+        }
+
+        ps_app_ctxt->u4_sei_ave_params_present_flag = 1;
+        if(1 == ps_app_ctxt->u4_sei_ave_params_present_flag)
+        {
+            ps_app_ctxt->u4_ambient_illuminance = 1;
+            ps_app_ctxt->u4_ambient_light_x = 0;
+            ps_app_ctxt->u4_ambient_light_y = 0;
+            set_sei_ave_params(ps_app_ctxt, u4_timestamp_low, u4_timestamp_high);
+        }
+
+        ps_app_ctxt->u4_sei_ccv_params_present_flag = 1;
+        if(1 == ps_app_ctxt->u4_sei_ccv_params_present_flag)
+        {
+            ps_app_ctxt->u4_ccv_cancel_flag = 0;
+            ps_app_ctxt->u4_ccv_persistence_flag = 1;
+            ps_app_ctxt->u4_ccv_primaries_present_flag = 1;
+            ps_app_ctxt->u4_ccv_min_luminance_value_present_flag = 1;
+            ps_app_ctxt->u4_ccv_max_luminance_value_present_flag = 1;
+            ps_app_ctxt->u4_ccv_avg_luminance_value_present_flag = 1;
+            ps_app_ctxt->u4_ccv_reserved_zero_2bits = 0;
+            for(i4_count = 0; i4_count < NUM_SEI_CCV_PRIMARIES; i4_count++)
+            {
+                ps_app_ctxt->ai4_ccv_primaries_x[i4_count] = 1;
+                ps_app_ctxt->ai4_ccv_primaries_y[i4_count] = 1;
+            }
+            ps_app_ctxt->u4_ccv_min_luminance_value = 1;
+            ps_app_ctxt->u4_ccv_max_luminance_value = 1;
+            ps_app_ctxt->u4_ccv_avg_luminance_value = 1;
+            set_sei_ccv_params(ps_app_ctxt, u4_timestamp_low, u4_timestamp_high);
+        }
 
         /******************************************************************************/
         /****************** Input Initialization **************************************/

@@ -96,6 +96,9 @@
 #include "ih264e_ittiam_logo.h"
 #endif
 
+
+#define SEI_BASED_FORCE_IDR 1
+
 /*****************************************************************************/
 /* Function Definitions                                                      */
 /*****************************************************************************/
@@ -284,7 +287,84 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
             }
         }
     }
+    /* Force IDR based on SEI params */
+#if SEI_BASED_FORCE_IDR
+    {
+        sei_mdcv_params_t *ps_sei_mdcv_params = &ps_codec->s_sei.s_sei_mdcv_params;
+        sei_mdcv_params_t *ps_cfg_sei_mdcv_params =
+                                &ps_codec->s_cfg.s_sei.s_sei_mdcv_params;
+        sei_cll_params_t *ps_sei_cll_params = &ps_codec->s_sei.s_sei_cll_params;
+        sei_cll_params_t *ps_cfg_sei_cll_params =
+                                &ps_codec->s_cfg.s_sei.s_sei_cll_params;
+        sei_ave_params_t *ps_sei_ave_params = &ps_codec->s_sei.s_sei_ave_params;
+        sei_ave_params_t *ps_cfg_sei_ave_params =
+                                &ps_codec->s_cfg.s_sei.s_sei_ave_params;
 
+        if((ps_sei_mdcv_params->au2_display_primaries_x[0]!=
+                                ps_cfg_sei_mdcv_params->au2_display_primaries_x[0]) ||
+            (ps_sei_mdcv_params->au2_display_primaries_x[1] !=
+                                ps_cfg_sei_mdcv_params->au2_display_primaries_x[1]) ||
+            (ps_sei_mdcv_params->au2_display_primaries_x[2] !=
+                                ps_cfg_sei_mdcv_params->au2_display_primaries_x[2]) ||
+            (ps_sei_mdcv_params->au2_display_primaries_y[0] !=
+                                ps_cfg_sei_mdcv_params->au2_display_primaries_y[0]) ||
+            (ps_sei_mdcv_params->au2_display_primaries_y[1] !=
+                                ps_cfg_sei_mdcv_params->au2_display_primaries_y[1]) ||
+            (ps_sei_mdcv_params->au2_display_primaries_y[2] !=
+                                ps_cfg_sei_mdcv_params->au2_display_primaries_y[2]) ||
+            (ps_sei_mdcv_params->u2_white_point_x !=
+                                ps_cfg_sei_mdcv_params->u2_white_point_x) ||
+            (ps_sei_mdcv_params->u2_white_point_y !=
+                                ps_cfg_sei_mdcv_params->u2_white_point_y) ||
+            (ps_sei_mdcv_params->u4_max_display_mastering_luminance !=
+                                ps_cfg_sei_mdcv_params->u4_max_display_mastering_luminance) ||
+            (ps_sei_mdcv_params->u4_min_display_mastering_luminance !=
+                                ps_cfg_sei_mdcv_params->u4_min_display_mastering_luminance))
+        {
+            ps_codec->s_sei.s_sei_mdcv_params = ps_codec->s_cfg.s_sei.s_sei_mdcv_params;
+            ps_codec->s_sei.u1_sei_mdcv_params_present_flag = 1;
+        }
+        else
+        {
+            ps_codec->s_sei.u1_sei_mdcv_params_present_flag = 0;
+        }
+
+        if((ps_sei_cll_params->u2_max_content_light_level !=
+                                ps_cfg_sei_cll_params->u2_max_content_light_level) ||
+                (ps_sei_cll_params->u2_max_pic_average_light_level !=
+                                ps_cfg_sei_cll_params->u2_max_pic_average_light_level))
+        {
+            ps_codec->s_sei.s_sei_cll_params = ps_codec->s_cfg.s_sei.s_sei_cll_params;
+            ps_codec->s_sei.u1_sei_cll_params_present_flag = 1;
+        }
+        else
+        {
+            ps_codec->s_sei.u1_sei_cll_params_present_flag = 0;
+        }
+
+        if((ps_sei_ave_params->u4_ambient_illuminance !=
+                                ps_cfg_sei_ave_params->u4_ambient_illuminance) ||
+                (ps_sei_ave_params->u2_ambient_light_x !=
+                                ps_cfg_sei_ave_params->u2_ambient_light_x) ||
+                (ps_sei_ave_params->u2_ambient_light_y !=
+                                ps_cfg_sei_ave_params->u2_ambient_light_y))
+        {
+            ps_codec->s_sei.s_sei_ave_params = ps_codec->s_cfg.s_sei.s_sei_ave_params;
+            ps_codec->s_sei.u1_sei_ave_params_present_flag = 1;
+        }
+        else
+        {
+            ps_codec->s_sei.u1_sei_ave_params_present_flag = 0;
+        }
+
+        if((1 == ps_codec->s_sei.u1_sei_mdcv_params_present_flag) ||
+                (1 == ps_codec->s_sei.u1_sei_cll_params_present_flag) ||
+                (1 == ps_codec->s_sei.u1_sei_ave_params_present_flag))
+        {
+            ps_codec->force_curr_frame_type = IV_IDR_FRAME;
+        }
+    }
+#endif
     /******************************************************************
      * INSERT LOGO
      *****************************************************************/

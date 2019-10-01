@@ -133,6 +133,31 @@ WORD32      ih264e_generate_pps
 /**
 ******************************************************************************
 *
+* @brief Generates SEI (Supplemental Enhancement Information)
+*
+* @par   Description
+*  This function generates Supplemental Enhancement Information header as per the spec
+*
+* @param[in]   ps_bitstrm
+*  pointer to bitstream context (handle)
+*
+* @param[in]   ps_sei
+*  pointer to structure containing SEI data
+*
+* @return      success or failure error code
+*
+******************************************************************************
+*/
+IH264E_ERROR_T      ih264e_generate_sei
+    (
+        bitstrm_t     *ps_bitstrm,
+        sei_params_t  *ps_sei,
+        UWORD32        u4_insert_per_idr
+    );
+
+/**
+******************************************************************************
+*
 * @brief Generates Slice Header
 *
 * @par   Description

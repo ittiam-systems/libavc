@@ -148,6 +148,7 @@ list(APPEND LIBAVCENC_SRCS
             "${AVC_ROOT}/encoder/ih264e_encode_header.c"
             "${AVC_ROOT}/encoder/ih264e_function_selector_generic.c"
             "${AVC_ROOT}/encoder/ih264e_fmt_conv.c"
+            "${AVC_ROOT}/encoder/ih264e_sei.c"
             "${AVC_ROOT}/encoder/irc_rate_control_api.c"
             "${AVC_ROOT}/encoder/irc_bit_allocation.c"
             "${AVC_ROOT}/encoder/irc_cbr_buffer_control.c"

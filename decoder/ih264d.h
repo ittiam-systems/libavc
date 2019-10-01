@@ -198,7 +198,20 @@ typedef enum {
     IH264D_CMD_CTL_GPU_ENABLE_DISABLE    = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x200,
 
     /** Set degrade level */
-    IH264D_CMD_CTL_DEGRADE               = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x300
+    IH264D_CMD_CTL_DEGRADE               = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x300,
+
+    /** Get SEI MDCV parameters */
+    IH264D_CMD_CTL_GET_SEI_MDCV_PARAMS   = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x301,
+
+    /** Get SEI CLL parameters */
+    IH264D_CMD_CTL_GET_SEI_CLL_PARAMS    = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x302,
+
+    /** Get SEI AVE parameters */
+    IH264D_CMD_CTL_GET_SEI_AVE_PARAMS    = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x303,
+
+    /** Get SEI CCV parameters */
+    IH264D_CMD_CTL_GET_SEI_CCV_PARAMS    = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x304
+
 }IH264D_CMD_CTL_SUB_CMDS;
 /*****************************************************************************/
 /*   Video control  Flush                                                    */
@@ -468,6 +481,252 @@ typedef struct
     UWORD32                                     u4_num_reorder_frames;
     UWORD32                                     u4_max_dec_frame_buffering;
 }ih264d_ctl_get_vui_params_op_t;
+
+
+typedef struct
+{
+    /**
+     * u4_size
+     */
+    UWORD32                                     u4_size;
+
+    /**
+     * cmd
+     */
+    IVD_API_COMMAND_TYPE_T                      e_cmd;
+
+    /**
+     * sub_cmd
+     */
+    IVD_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+}ih264d_ctl_get_sei_mdcv_params_ip_t;
+
+typedef struct
+{
+    /**
+     * u4_size
+     */
+    UWORD32                                     u4_size;
+
+    /**
+     * error_code
+     */
+    UWORD32                                     u4_error_code;
+
+    /**
+     * Array to store the display_primaries_x values
+     */
+    UWORD16                                     au2_display_primaries_x[NUM_SEI_MDCV_PRIMARIES];
+
+    /**
+     * Array to store the display_primaries_y values
+     */
+    UWORD16                                     au2_display_primaries_y[NUM_SEI_MDCV_PRIMARIES];
+
+    /**
+     * Variable to store the white point x value
+     */
+    UWORD16                                     u2_white_point_x;
+
+    /**
+     * Variable to store the white point y value
+     */
+    UWORD16                                     u2_white_point_y;
+
+    /**
+     * Variable to store the max display mastering luminance value
+     */
+    UWORD32                                     u4_max_display_mastering_luminance;
+
+    /**
+     * Variable to store the min display mastering luminance value
+     */
+    UWORD32                                     u4_min_display_mastering_luminance;
+}ih264d_ctl_get_sei_mdcv_params_op_t;
+
+typedef struct
+{
+    /**
+     * u4_size
+     */
+    UWORD32                                     u4_size;
+
+    /**
+     * cmd
+     */
+    IVD_API_COMMAND_TYPE_T                      e_cmd;
+
+    /**
+     * sub_cmd
+     */
+    IVD_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+}ih264d_ctl_get_sei_cll_params_ip_t;
+
+typedef struct
+{
+    /**
+     * u4_size
+     */
+    UWORD32                                     u4_size;
+
+    /**
+     * error_code
+     */
+    UWORD32                                     u4_error_code;
+
+    /**
+     * The maximum pixel intensity of all samples
+     */
+    UWORD16                                     u2_max_content_light_level;
+
+    /**
+     * The average pixel intensity of all samples
+     */
+    UWORD16                                     u2_max_pic_average_light_level;
+} ih264d_ctl_get_sei_cll_params_op_t;
+
+typedef struct
+{
+    /**
+     * u4_size
+     */
+    UWORD32                                     u4_size;
+
+    /**
+     * cmd
+     */
+    IVD_API_COMMAND_TYPE_T                      e_cmd;
+
+    /**
+     * sub_cmd
+     */
+    IVD_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+}ih264d_ctl_get_sei_ave_params_ip_t;
+
+typedef struct
+{
+    /**
+     * u4_size
+     */
+    UWORD32                                     u4_size;
+
+    /**
+     * error_code
+     */
+    UWORD32                                     u4_error_code;
+
+    /**
+     * specifies the environmental illluminance of the ambient viewing environment
+     */
+    UWORD32                                     u4_ambient_illuminance;
+
+    /*
+     * specify the normalized x chromaticity coordinates of the
+     * environmental ambient light in the nominal viewing environment
+     */
+    UWORD16                                     u2_ambient_light_x;
+
+    /*
+     * specify the normalized y chromaticity coordinates of the
+     * environmental ambient light in the nominal viewing environment
+     */
+    UWORD16                                     u2_ambient_light_y;
+} ih264d_ctl_get_sei_ave_params_op_t;
+
+typedef struct
+{
+    /**
+     * u4_size
+     */
+    UWORD32                                     u4_size;
+
+    /**
+     * cmd
+     */
+    IVD_API_COMMAND_TYPE_T                      e_cmd;
+
+    /**
+     * sub_cmd
+     */
+    IVD_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+}ih264d_ctl_get_sei_ccv_params_ip_t;
+
+typedef struct
+{
+    /**
+     * u4_size
+     */
+    UWORD32                                     u4_size;
+
+    /**
+     * error_code
+     */
+    UWORD32                                     u4_error_code;
+
+    /*
+     * Flag used to control persistence of CCV SEI messages
+     */
+    UWORD8                                      u1_ccv_cancel_flag;
+
+    /*
+     * specifies the persistence of the CCV SEI message for the current layer
+     */
+    UWORD8                                      u1_ccv_persistence_flag;
+
+    /*
+     * specifies the presence of syntax elements ccv_primaries_x and ccv_primaries_y
+     */
+    UWORD8                                      u1_ccv_primaries_present_flag;
+
+    /*
+     * specifies that the syntax element ccv_min_luminance_value is present
+     */
+    UWORD8                                      u1_ccv_min_luminance_value_present_flag;
+
+    /*
+     * specifies that the syntax element ccv_max_luminance_value is present
+     */
+    UWORD8                                      u1_ccv_max_luminance_value_present_flag;
+
+    /*
+     * specifies that the syntax element ccv_avg_luminance_value is present
+     */
+    UWORD8                                      u1_ccv_avg_luminance_value_present_flag;
+
+    /*
+     * shall be equal to 0 in bitstreams conforming to this version. Other values
+     * for reserved_zero_2bits are reserved for future use
+     */
+    UWORD8                                      u1_ccv_reserved_zero_2bits;
+
+    /*
+     * specify the normalized x chromaticity coordinates of the colour
+     * primary component c of the nominal content colour volume
+     */
+    WORD32                                      ai4_ccv_primaries_x[NUM_SEI_CCV_PRIMARIES];
+
+    /*
+     * specify the normalized y chromaticity coordinates of the colour
+     * primary component c of the nominal content colour volume
+     */
+    WORD32                                      ai4_ccv_primaries_y[NUM_SEI_CCV_PRIMARIES];
+
+    /*
+     * specifies the normalized minimum luminance value
+     */
+    UWORD32                                     u4_ccv_min_luminance_value;
+
+    /*
+     * specifies the normalized maximum luminance value
+     */
+    UWORD32                                     u4_ccv_max_luminance_value;
+
+    /*
+     * specifies the normalized average luminance value
+     */
+    UWORD32                                     u4_ccv_avg_luminance_value;
+} ih264d_ctl_get_sei_ccv_params_op_t;
+
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

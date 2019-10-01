@@ -302,6 +302,9 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
     /* output buff */
     out_buf_t s_out_buf;
 
+    /* sei params */
+    sei_params_t s_sei;
+
     /* proc map */
     UWORD8  *pu1_proc_map;
 
@@ -313,7 +316,7 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
 
     /* temp var */
     WORD32 i4_wd_mbs, i4_ht_mbs;
-    UWORD32 u4_mb_cnt, u4_mb_idx, u4_mb_end_idx;
+    UWORD32 u4_mb_cnt, u4_mb_idx, u4_mb_end_idx, u4_insert_per_idr;
     WORD32 bitstream_start_offset, bitstream_end_offset;
     /********************************************************************/
     /*                            BEGIN INIT                            */
@@ -383,6 +386,46 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
 
         /* populate slice header */
         ih264e_populate_slice_header(ps_proc, ps_slice_hdr, ps_pps, ps_sps);
+
+        /* generate sei */
+        u4_insert_per_idr = (NAL_SLICE_IDR == ps_slice_hdr->i1_nal_unit_type);
+
+        memset(&s_sei, 0, sizeof(sei_params_t));
+        s_sei.u1_sei_mdcv_params_present_flag =
+                    ps_codec->s_cfg.s_sei.u1_sei_mdcv_params_present_flag;
+        s_sei.s_sei_mdcv_params = ps_codec->s_cfg.s_sei.s_sei_mdcv_params;
+        s_sei.u1_sei_cll_params_present_flag =
+                    ps_codec->s_cfg.s_sei.u1_sei_cll_params_present_flag;
+        s_sei.s_sei_cll_params = ps_codec->s_cfg.s_sei.s_sei_cll_params;
+        s_sei.u1_sei_ave_params_present_flag =
+                    ps_codec->s_cfg.s_sei.u1_sei_ave_params_present_flag;
+        s_sei.s_sei_ave_params = ps_codec->s_cfg.s_sei.s_sei_ave_params;
+        s_sei.u1_sei_ccv_params_present_flag = 0;
+        s_sei.s_sei_ccv_params =
+                    ps_codec->as_inp_list[ps_codec->i4_poc % MAX_NUM_BFRAMES].s_sei_ccv;
+
+        if((1 == ps_sps->i1_vui_parameters_present_flag) &&
+           (1 == ps_codec->s_cfg.s_vui.u1_video_signal_type_present_flag) &&
+           (1 == ps_codec->s_cfg.s_vui.u1_colour_description_present_flag) &&
+           (2 != ps_codec->s_cfg.s_vui.u1_colour_primaries) &&
+           (2 != ps_codec->s_cfg.s_vui.u1_matrix_coefficients) &&
+           (2 != ps_codec->s_cfg.s_vui.u1_transfer_characteristics) &&
+           (4 != ps_codec->s_cfg.s_vui.u1_transfer_characteristics) &&
+           (5 != ps_codec->s_cfg.s_vui.u1_transfer_characteristics))
+        {
+            s_sei.u1_sei_ccv_params_present_flag =
+            ps_codec->as_inp_list[ps_codec->i4_poc % MAX_NUM_BFRAMES].u1_sei_ccv_params_present_flag;
+        }
+
+        if((1 == s_sei.u1_sei_mdcv_params_present_flag && u4_insert_per_idr) ||
+           (1 == s_sei.u1_sei_cll_params_present_flag && u4_insert_per_idr) ||
+           (1 == s_sei.u1_sei_ave_params_present_flag && u4_insert_per_idr) ||
+           (1 == s_sei.u1_sei_ccv_params_present_flag))
+        {
+            ps_entropy->i4_error_code |=
+                    ih264e_generate_sei(ps_bitstrm, &s_sei, u4_insert_per_idr);
+        }
+        ps_codec->as_inp_list[ps_codec->i4_poc % MAX_NUM_BFRAMES].u1_sei_ccv_params_present_flag = 0;
 
         /* generate slice header */
         ps_entropy->i4_error_code |= ih264e_generate_slice_header(ps_bitstrm, ps_slice_hdr,

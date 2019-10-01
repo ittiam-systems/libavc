@@ -1651,6 +1651,388 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                     break;
                 }
 
+                case IVE_CMD_CTL_SET_SEI_MDCV_PARAMS:
+                {
+                    ih264e_ctl_set_sei_mdcv_params_ip_t *ps_ip = pv_api_ip;
+                    ih264e_ctl_set_sei_mdcv_params_op_t *ps_op = pv_api_op;
+
+                    if(ps_ip->u4_size != sizeof(ih264e_ctl_set_sei_mdcv_params_ip_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                IVE_ERR_IP_CTL_SET_SEI_MDCV_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if(ps_op->u4_size != sizeof(ih264e_ctl_set_sei_mdcv_params_op_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                IVE_ERR_OP_CTL_SET_SEI_MDCV_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if((ps_ip->u1_sei_mdcv_params_present_flag != 0)
+                            && (ps_ip->u1_sei_mdcv_params_present_flag) != 1)
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                IH264E_INVALID_SEI_MDCV_PARAMS;
+                        return IV_FAIL;
+                    }
+
+                    if(1 == ps_ip->u1_sei_mdcv_params_present_flag)
+                    {
+                        /* Check values for u2_display_primaries_x and u2_display_primaries_y */
+                        for(i = 0; i < 3; i++)
+                        {
+                            if((ps_ip->au2_display_primaries_x[i] >
+                                                    DISPLAY_PRIMARIES_X_UPPER_LIMIT) ||
+                               (ps_ip->au2_display_primaries_x[i] <
+                                                    DISPLAY_PRIMARIES_X_LOWER_LIMIT) ||
+                               ((ps_ip->au2_display_primaries_x[i] %
+                                                    DISPLAY_PRIMARIES_X_DIVISION_FACTOR) != 0))
+                            {
+                                ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                ps_op->u4_error_code |=
+                                        IH264E_INVALID_SEI_MDCV_PARAMS;
+                                return IV_FAIL;
+                            }
+
+                            if((ps_ip->au2_display_primaries_y[i] >
+                                                    DISPLAY_PRIMARIES_Y_UPPER_LIMIT) ||
+                               (ps_ip->au2_display_primaries_y[i] <
+                                                    DISPLAY_PRIMARIES_Y_LOWER_LIMIT) ||
+                               ((ps_ip->au2_display_primaries_y[i] %
+                                                    DISPLAY_PRIMARIES_Y_DIVISION_FACTOR) != 0))
+                            {
+                                ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                ps_op->u4_error_code |=
+                                        IH264E_INVALID_SEI_MDCV_PARAMS;
+                                return IV_FAIL;
+                            }
+                        }
+
+                        if((ps_ip->u2_white_point_x > WHITE_POINT_X_UPPER_LIMIT) ||
+                           (ps_ip->u2_white_point_x < WHITE_POINT_X_LOWER_LIMIT) ||
+                           ((ps_ip->u2_white_point_x % WHITE_POINT_X_DIVISION_FACTOR) != 0))
+                        {
+                            ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                            ps_op->u4_error_code |=
+                                    IH264E_INVALID_SEI_MDCV_PARAMS;
+                            return IV_FAIL;
+                        }
+
+                        if((ps_ip->u2_white_point_y > WHITE_POINT_Y_UPPER_LIMIT) ||
+                           (ps_ip->u2_white_point_y < WHITE_POINT_Y_LOWER_LIMIT) ||
+                           ((ps_ip->u2_white_point_y % WHITE_POINT_Y_DIVISION_FACTOR) != 0))
+                        {
+                            ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                            ps_op->u4_error_code |=
+                                    IH264E_INVALID_SEI_MDCV_PARAMS;
+                            return IV_FAIL;
+                        }
+
+                        if((ps_ip->u4_max_display_mastering_luminance >
+                                        MAX_DISPLAY_MASTERING_LUMINANCE_UPPER_LIMIT) ||
+                           (ps_ip->u4_max_display_mastering_luminance <
+                                        MAX_DISPLAY_MASTERING_LUMINANCE_LOWER_LIMIT) ||
+                           ((ps_ip->u4_max_display_mastering_luminance %
+                                        MAX_DISPLAY_MASTERING_LUMINANCE_DIVISION_FACTOR) != 0))
+                        {
+                            ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                            ps_op->u4_error_code |=
+                                    IH264E_INVALID_SEI_MDCV_PARAMS;
+                            return IV_FAIL;
+                        }
+
+                        if((ps_ip->u4_min_display_mastering_luminance >
+                                        MIN_DISPLAY_MASTERING_LUMINANCE_UPPER_LIMIT ) ||
+                           (ps_ip->u4_min_display_mastering_luminance <
+                                        MIN_DISPLAY_MASTERING_LUMINANCE_LOWER_LIMIT))
+                        {
+                            ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                            ps_op->u4_error_code |=
+                                    IH264E_INVALID_SEI_MDCV_PARAMS;
+                            return IV_FAIL;
+                        }
+
+                        if(ps_ip->u4_max_display_mastering_luminance <=
+                                ps_ip->u4_min_display_mastering_luminance)
+                        {
+                            ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                            ps_op->u4_error_code |=
+                                    IH264E_INVALID_SEI_MDCV_PARAMS;
+                            return IV_FAIL;
+                        }
+                    }
+                    break;
+                }
+
+                case IVE_CMD_CTL_SET_SEI_CLL_PARAMS:
+                {
+                    ih264e_ctl_set_sei_cll_params_ip_t *ps_ip = pv_api_ip;
+                    ih264e_ctl_set_sei_cll_params_op_t *ps_op = pv_api_op;
+
+                    if(ps_ip->u4_size != sizeof(ih264e_ctl_set_sei_cll_params_ip_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                IVE_ERR_IP_CTL_SET_SEI_CLL_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if(ps_op->u4_size != sizeof(ih264e_ctl_set_sei_cll_params_op_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                IVE_ERR_OP_CTL_SET_SEI_CLL_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if((ps_ip->u1_sei_cll_params_present_flag != 0)
+                            && (ps_ip->u1_sei_cll_params_present_flag != 1))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                IH264E_INVALID_SEI_CLL_PARAMS;
+                        return IV_FAIL;
+                    }
+                    break;
+                }
+
+                case IVE_CMD_CTL_SET_SEI_AVE_PARAMS:
+                {
+                    ih264e_ctl_set_sei_ave_params_ip_t *ps_ip = pv_api_ip;
+                    ih264e_ctl_set_sei_ave_params_op_t *ps_op = pv_api_op;
+
+                    if(ps_ip->u4_size != sizeof(ih264e_ctl_set_sei_ave_params_ip_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                IVE_ERR_IP_CTL_SET_SEI_AVE_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if(ps_op->u4_size != sizeof(ih264e_ctl_set_sei_ave_params_op_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                IVE_ERR_OP_CTL_SET_SEI_AVE_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if((ps_ip->u1_sei_ave_params_present_flag != 0)
+                            && (ps_ip->u1_sei_ave_params_present_flag != 1))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                IH264E_INVALID_SEI_AVE_PARAMS;
+                        return IV_FAIL;
+                    }
+
+                    if(1 == ps_ip->u1_sei_ave_params_present_flag)
+                    {
+                        if((0 == ps_ip->u4_ambient_illuminance))
+                        {
+                            ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                            ps_op->u4_error_code |=
+                                    IH264E_INVALID_SEI_AVE_PARAMS;
+                            return IV_FAIL;
+                        }
+
+                        if(ps_ip->u2_ambient_light_x > AMBIENT_LIGHT_X_UPPER_LIMIT)
+                        {
+                            ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                            ps_op->u4_error_code |=
+                                    IH264E_INVALID_SEI_AVE_PARAMS;
+                            return IV_FAIL;
+                        }
+
+                        if(ps_ip->u2_ambient_light_y > AMBIENT_LIGHT_Y_UPPER_LIMIT)
+                        {
+                            ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                            ps_op->u4_error_code |=
+                                    IH264E_INVALID_SEI_AVE_PARAMS;
+                            return IV_FAIL;
+                        }
+                    }
+                    break;
+                }
+
+                case IVE_CMD_CTL_SET_SEI_CCV_PARAMS:
+                {
+                    ih264e_ctl_set_sei_ccv_params_ip_t *ps_ip = pv_api_ip;
+                    ih264e_ctl_set_sei_ccv_params_op_t *ps_op = pv_api_op;
+
+                    if(ps_ip->u4_size != sizeof(ih264e_ctl_set_sei_ccv_params_ip_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                IVE_ERR_IP_CTL_SET_SEI_CCV_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if(ps_op->u4_size != sizeof(ih264e_ctl_set_sei_ccv_params_op_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                IVE_ERR_OP_CTL_SET_SEI_CCV_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if((ps_ip->u1_sei_ccv_params_present_flag != 0)
+                            && (ps_ip->u1_sei_ccv_params_present_flag != 1))
+                    {
+                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                IH264E_INVALID_SEI_CCV_PARAMS;
+                        return IV_FAIL;
+                    }
+
+
+                    if(1 == ps_ip->u1_sei_ccv_params_present_flag)
+                    {
+                        if((ps_ip->u1_ccv_cancel_flag != 0)
+                                && (ps_ip->u1_ccv_cancel_flag != 1))
+                        {
+                            ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                            ps_op->u4_error_code |=
+                                    IH264E_INVALID_SEI_CCV_PARAMS;
+                            return IV_FAIL;
+                        }
+
+                        if(0 == ps_ip->u1_ccv_cancel_flag)
+                        {
+                            if((ps_ip->u1_ccv_persistence_flag != 0)
+                                    && (ps_ip->u1_ccv_persistence_flag != 1))
+                            {
+                                ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                ps_op->u4_error_code |=
+                                        IH264E_INVALID_SEI_CCV_PARAMS;
+                                return IV_FAIL;
+                            }
+                            if((ps_ip->u1_ccv_primaries_present_flag != 0)
+                                    && (ps_ip->u1_ccv_primaries_present_flag != 1))
+                            {
+                                ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                ps_op->u4_error_code |=
+                                        IH264E_INVALID_SEI_CCV_PARAMS;
+                                return IV_FAIL;
+                            }
+                            if((ps_ip->u1_ccv_min_luminance_value_present_flag != 0)
+                                    && (ps_ip->u1_ccv_min_luminance_value_present_flag != 1))
+                            {
+                                ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                ps_op->u4_error_code |=
+                                        IH264E_INVALID_SEI_CCV_PARAMS;
+                                return IV_FAIL;
+                            }
+                            if((ps_ip->u1_ccv_max_luminance_value_present_flag != 0)
+                                    && (ps_ip->u1_ccv_max_luminance_value_present_flag != 1))
+                            {
+                                ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                ps_op->u4_error_code |=
+                                        IH264E_INVALID_SEI_CCV_PARAMS;
+                                return IV_FAIL;
+                            }
+                            if((ps_ip->u1_ccv_avg_luminance_value_present_flag != 0)
+                                    && (ps_ip->u1_ccv_avg_luminance_value_present_flag != 1))
+                            {
+                                ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                ps_op->u4_error_code |=
+                                        IH264E_INVALID_SEI_CCV_PARAMS;
+                                return IV_FAIL;
+                            }
+                            if((ps_ip->u1_ccv_primaries_present_flag == 0)
+                                    && (ps_ip->u1_ccv_min_luminance_value_present_flag == 0)
+                                    && (ps_ip->u1_ccv_max_luminance_value_present_flag == 0)
+                                    && (ps_ip->u1_ccv_avg_luminance_value_present_flag == 0))
+                            {
+                                ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                ps_op->u4_error_code |=
+                                        IH264E_INVALID_SEI_CCV_PARAMS;
+                                return IV_FAIL;
+                            }
+
+                            if((ps_ip->u1_ccv_reserved_zero_2bits != 0))
+                            {
+                                ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                ps_op->u4_error_code |=
+                                        IH264E_INVALID_SEI_CCV_PARAMS;
+                                return IV_FAIL;
+                            }
+
+                            if(1 == ps_ip->u1_ccv_primaries_present_flag)
+                            {
+                                for(i = 0; i < 3; i++)
+                                {
+                                    if((ps_ip->ai4_ccv_primaries_x[i] >
+                                                        CCV_PRIMARIES_X_UPPER_LIMIT) ||
+                                       (ps_ip->ai4_ccv_primaries_x[i] <
+                                                        CCV_PRIMARIES_X_LOWER_LIMIT))
+                                    {
+                                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                        ps_op->u4_error_code |=
+                                                IH264E_INVALID_SEI_CCV_PARAMS;
+                                        return IV_FAIL;
+                                    }
+
+                                    if((ps_ip->ai4_ccv_primaries_y[i] >
+                                                        CCV_PRIMARIES_Y_UPPER_LIMIT) ||
+                                       (ps_ip->ai4_ccv_primaries_y[i] <
+                                                        CCV_PRIMARIES_Y_LOWER_LIMIT))
+                                    {
+                                        ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                        ps_op->u4_error_code |=
+                                                IH264E_INVALID_SEI_CCV_PARAMS;
+                                        return IV_FAIL;
+                                    }
+                                }
+                            }
+
+                            if((1 == ps_ip->u1_ccv_min_luminance_value_present_flag) &&
+                                    (1 == ps_ip->u1_ccv_avg_luminance_value_present_flag))
+                            {
+                                if((ps_ip->u4_ccv_avg_luminance_value <
+                                                    ps_ip->u4_ccv_min_luminance_value))
+                                {
+                                    ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                    ps_op->u4_error_code |=
+                                            IH264E_INVALID_SEI_CCV_PARAMS;
+                                    return IV_FAIL;
+                                }
+                            }
+
+                            if((1 == ps_ip->u1_ccv_min_luminance_value_present_flag) &&
+                                    (1 == ps_ip->u1_ccv_max_luminance_value_present_flag))
+                            {
+                                if((ps_ip->u4_ccv_max_luminance_value <
+                                                    ps_ip->u4_ccv_min_luminance_value))
+                                {
+                                    ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                    ps_op->u4_error_code |=
+                                            IH264E_INVALID_SEI_CCV_PARAMS;
+                                    return IV_FAIL;
+                                }
+                            }
+                            if((1 == ps_ip->u1_ccv_avg_luminance_value_present_flag) &&
+                                    (1 == ps_ip->u1_ccv_max_luminance_value_present_flag))
+                            {
+                                if((ps_ip->u4_ccv_max_luminance_value <
+                                                    ps_ip->u4_ccv_avg_luminance_value))
+                                {
+                                    ps_op->u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
+                                    ps_op->u4_error_code |=
+                                            IH264E_INVALID_SEI_CCV_PARAMS;
+                                    return IV_FAIL;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+
                 case IVE_CMD_CTL_SET_ENC_MODE:
                 {
                     ih264e_ctl_set_enc_mode_ip_t *ps_ip = pv_api_ip;
@@ -2256,6 +2638,32 @@ IH264E_ERROR_T ih264e_codec_update_config(codec_t *ps_codec,
     {
         ps_codec->s_cfg.s_vui = ps_cfg->s_vui;
     }
+
+    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_SEI_MDCV_PARAMS)
+    {
+        ps_codec->s_cfg.s_sei.u1_sei_mdcv_params_present_flag =
+                                                ps_cfg->s_sei.u1_sei_mdcv_params_present_flag;
+        ps_codec->s_cfg.s_sei.s_sei_mdcv_params = ps_cfg->s_sei.s_sei_mdcv_params;
+    }
+    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_SEI_CLL_PARAMS)
+    {
+        ps_codec->s_cfg.s_sei.u1_sei_cll_params_present_flag =
+                                                ps_cfg->s_sei.u1_sei_cll_params_present_flag;
+        ps_codec->s_cfg.s_sei.s_sei_cll_params = ps_cfg->s_sei.s_sei_cll_params;
+    }
+    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_SEI_AVE_PARAMS)
+    {
+        ps_codec->s_cfg.s_sei.u1_sei_ave_params_present_flag =
+                                                ps_cfg->s_sei.u1_sei_ave_params_present_flag;
+        ps_codec->s_cfg.s_sei.s_sei_ave_params = ps_cfg->s_sei.s_sei_ave_params;
+    }
+    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_SEI_CCV_PARAMS)
+    {
+        ps_codec->s_cfg.s_sei.u1_sei_ccv_params_present_flag =
+                                                ps_cfg->s_sei.u1_sei_ccv_params_present_flag;
+        ps_codec->s_cfg.s_sei.s_sei_ccv_params = ps_cfg->s_sei.s_sei_ccv_params;
+    }
+
     /* reset RC model */
     if (u4_init_rc)
     {
@@ -2425,6 +2833,8 @@ static WORD32 ih264e_set_default_params(cfg_params_t *ps_cfg)
     ps_cfg->u4_constrained_intra_pred = 0;
     ps_cfg->u4_pic_info_type = 0;
     ps_cfg->u4_mb_info_type = 0;
+    ps_cfg->s_vui.u1_video_signal_type_present_flag = 1;
+    ps_cfg->s_vui.u1_colour_description_present_flag = 1;
 
     return ret;
 }
@@ -5346,6 +5756,228 @@ static WORD32 ih264e_set_vui_params(void *pv_api_ip,
 
     return IV_SUCCESS;
 }
+
+/**
+ *******************************************************************************
+ *
+ * @brief
+ *  Sets Mastering display color volume sei params
+ *
+ * @par Description:
+ *  Supplemental enhancement information
+ *
+ * @param[in] pv_api_ip
+ *  Pointer to input argument structure
+ *
+ * @param[out] pv_api_op
+ *  Pointer to output argument structure
+ *
+ * @param[out] ps_cfg
+ *  Pointer to config structure to be updated
+ *
+ * @return error status
+ *
+ * @remarks none
+ *
+ *******************************************************************************
+ */
+static WORD32 ih264e_set_sei_mdcv_params(void *pv_api_ip,
+                                         void *pv_api_op,
+                                         cfg_params_t *ps_cfg)
+{
+    WORD32 i4_count;
+    /* ctrl call I/O structures */
+    ih264e_ctl_set_sei_mdcv_params_ip_t *ps_ip = pv_api_ip;
+    ih264e_ctl_set_sei_mdcv_params_op_t *ps_op = pv_api_op;
+    sei_params_t *ps_sei = &ps_cfg->s_sei;
+
+    ps_op->u4_error_code = 0;
+
+    ps_sei->u1_sei_mdcv_params_present_flag = ps_ip->u1_sei_mdcv_params_present_flag;
+    for(i4_count = 0; i4_count < NUM_SEI_MDCV_PRIMARIES; i4_count++)
+    {
+        ps_sei->s_sei_mdcv_params.au2_display_primaries_x[i4_count] =
+                                                ps_ip->au2_display_primaries_x[i4_count];
+        ps_sei->s_sei_mdcv_params.au2_display_primaries_y[i4_count] =
+                                                ps_ip->au2_display_primaries_y[i4_count];
+    }
+
+    ps_sei->s_sei_mdcv_params.u2_white_point_x = ps_ip->u2_white_point_x;
+    ps_sei->s_sei_mdcv_params.u2_white_point_y = ps_ip->u2_white_point_y;
+    ps_sei->s_sei_mdcv_params.u4_max_display_mastering_luminance =
+                                                ps_ip->u4_max_display_mastering_luminance;
+    ps_sei->s_sei_mdcv_params.u4_min_display_mastering_luminance =
+                                                ps_ip->u4_min_display_mastering_luminance;
+
+    ps_cfg->u4_timestamp_high = ps_ip->u4_timestamp_high;
+    ps_cfg->u4_timestamp_low = ps_ip->u4_timestamp_low;
+
+    return IV_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief
+ *  Sets content light level sei params
+ *
+ * @par Description:
+ *  Supplemental enhancement information
+ *
+ * @param[in] pv_api_ip
+ *  Pointer to input argument structure
+ *
+ * @param[out] pv_api_op
+ *  Pointer to output argument structure
+ *
+ * @param[out] ps_cfg
+ *  Pointer to config structure to be updated
+ *
+ * @return error status
+ *
+ * @remarks none
+ *
+ *******************************************************************************
+ */
+static WORD32 ih264e_set_sei_cll_params(void *pv_api_ip,
+                                        void *pv_api_op,
+                                        cfg_params_t *ps_cfg)
+{
+    /* ctrl call I/O structures */
+    ih264e_ctl_set_sei_cll_params_ip_t *ps_ip = pv_api_ip;
+    ih264e_ctl_set_sei_cll_params_op_t *ps_op = pv_api_op;
+    sei_params_t *ps_sei = &ps_cfg->s_sei;
+
+    ps_op->u4_error_code = 0;
+
+    ps_sei->u1_sei_cll_params_present_flag = ps_ip->u1_sei_cll_params_present_flag;
+
+    ps_sei->s_sei_cll_params.u2_max_content_light_level = ps_ip->u2_max_content_light_level;
+    ps_sei->s_sei_cll_params.u2_max_pic_average_light_level =
+                                                ps_ip->u2_max_pic_average_light_level;
+
+    ps_cfg->u4_timestamp_high = ps_ip->u4_timestamp_high;
+    ps_cfg->u4_timestamp_low = ps_ip->u4_timestamp_low;
+
+    return IV_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief
+ *  Sets ambient viewing environment sei params
+ *
+ * @par Description:
+ *  Supplemental enhancement information
+ *
+ * @param[in] pv_api_ip
+ *  Pointer to input argument structure
+ *
+ * @param[out] pv_api_op
+ *  Pointer to output argument structure
+ *
+ * @param[out] ps_cfg
+ *  Pointer to config structure to be updated
+ *
+ * @return error status
+ *
+ * @remarks none
+ *
+ *******************************************************************************
+ */
+static WORD32 ih264e_set_sei_ave_params(void *pv_api_ip,
+                                        void *pv_api_op,
+                                        cfg_params_t *ps_cfg)
+{
+    /* ctrl call I/O structures */
+    ih264e_ctl_set_sei_ave_params_ip_t *ps_ip = pv_api_ip;
+    ih264e_ctl_set_sei_ave_params_op_t *ps_op = pv_api_op;
+    sei_params_t *ps_sei = &ps_cfg->s_sei;
+
+    ps_op->u4_error_code = 0;
+
+    ps_sei->u1_sei_ave_params_present_flag = ps_ip->u1_sei_ave_params_present_flag;
+
+    ps_sei->s_sei_ave_params.u4_ambient_illuminance = ps_ip->u4_ambient_illuminance;
+    ps_sei->s_sei_ave_params.u2_ambient_light_x = ps_ip->u2_ambient_light_x;
+    ps_sei->s_sei_ave_params.u2_ambient_light_y = ps_ip->u2_ambient_light_y;
+
+    ps_cfg->u4_timestamp_high = ps_ip->u4_timestamp_high;
+    ps_cfg->u4_timestamp_low = ps_ip->u4_timestamp_low;
+
+    return IV_SUCCESS;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @brief
+ *  Sets content color volume sei params
+ *
+ * @par Description:
+ *  Supplemental enhancement information
+ *
+ * @param[in] pv_api_ip
+ *  Pointer to input argument structure
+ *
+ * @param[out] pv_api_op
+ *  Pointer to output argument structure
+ *
+ * @param[out] ps_cfg
+ *  Pointer to config structure to be updated
+ *
+ * @return error status
+ *
+ * @remarks none
+ *
+ *******************************************************************************
+ */
+static WORD32 ih264e_set_sei_ccv_params(void *pv_api_ip,
+                                        void *pv_api_op,
+                                        cfg_params_t *ps_cfg)
+{
+    WORD32 i4_count;
+    /* ctrl call I/O structures */
+    ih264e_ctl_set_sei_ccv_params_ip_t *ps_ip = pv_api_ip;
+    ih264e_ctl_set_sei_ccv_params_op_t *ps_op = pv_api_op;
+    sei_params_t *ps_sei = &ps_cfg->s_sei;
+
+    ps_op->u4_error_code = 0;
+
+    ps_sei->u1_sei_ccv_params_present_flag = ps_ip->u1_sei_ccv_params_present_flag;
+
+    ps_sei->s_sei_ccv_params.u1_ccv_cancel_flag = ps_ip->u1_ccv_cancel_flag;
+    ps_sei->s_sei_ccv_params.u1_ccv_persistence_flag = ps_ip->u1_ccv_persistence_flag;
+    ps_sei->s_sei_ccv_params.u1_ccv_primaries_present_flag =
+                                                ps_ip->u1_ccv_primaries_present_flag;
+    ps_sei->s_sei_ccv_params.u1_ccv_min_luminance_value_present_flag =
+                                                ps_ip->u1_ccv_min_luminance_value_present_flag;
+    ps_sei->s_sei_ccv_params.u1_ccv_max_luminance_value_present_flag =
+                                                ps_ip->u1_ccv_max_luminance_value_present_flag;
+    ps_sei->s_sei_ccv_params.u1_ccv_avg_luminance_value_present_flag =
+                                                ps_ip->u1_ccv_avg_luminance_value_present_flag;
+    ps_sei->s_sei_ccv_params.u1_ccv_reserved_zero_2bits =
+                                                ps_ip->u1_ccv_reserved_zero_2bits;
+
+    for(i4_count = 0; i4_count < NUM_SEI_CCV_PRIMARIES; i4_count++)
+    {
+        ps_sei->s_sei_ccv_params.ai4_ccv_primaries_x[i4_count] =
+                                                ps_ip->ai4_ccv_primaries_x[i4_count];
+        ps_sei->s_sei_ccv_params.ai4_ccv_primaries_y[i4_count] =
+                                                ps_ip->ai4_ccv_primaries_y[i4_count];
+    }
+
+    ps_sei->s_sei_ccv_params.u4_ccv_min_luminance_value = ps_ip->u4_ccv_min_luminance_value;
+    ps_sei->s_sei_ccv_params.u4_ccv_max_luminance_value = ps_ip->u4_ccv_max_luminance_value;
+    ps_sei->s_sei_ccv_params.u4_ccv_avg_luminance_value = ps_ip->u4_ccv_avg_luminance_value;
+
+    ps_cfg->u4_timestamp_high = ps_ip->u4_timestamp_high;
+    ps_cfg->u4_timestamp_low = ps_ip->u4_timestamp_low;
+
+    return IV_SUCCESS;
+}
+
 /**
 *******************************************************************************
 *
@@ -5571,6 +6203,22 @@ static WORD32 ih264e_ctl(iv_obj_t *ps_codec_obj,
 
         case IVE_CMD_CTL_SET_VUI_PARAMS:
             ret = ih264e_set_vui_params(pv_api_ip, pv_api_op, ps_cfg);
+            break;
+
+        case IVE_CMD_CTL_SET_SEI_MDCV_PARAMS:
+            ret = ih264e_set_sei_mdcv_params(pv_api_ip, pv_api_op, ps_cfg);
+            break;
+
+        case IVE_CMD_CTL_SET_SEI_CLL_PARAMS:
+            ret = ih264e_set_sei_cll_params(pv_api_ip, pv_api_op, ps_cfg);
+            break;
+
+        case IVE_CMD_CTL_SET_SEI_AVE_PARAMS:
+            ret = ih264e_set_sei_ave_params(pv_api_ip, pv_api_op, ps_cfg);
+            break;
+
+        case IVE_CMD_CTL_SET_SEI_CCV_PARAMS:
+            ret = ih264e_set_sei_ccv_params(pv_api_ip, pv_api_op, ps_cfg);
             break;
 
         case IVE_CMD_CTL_RESET:
