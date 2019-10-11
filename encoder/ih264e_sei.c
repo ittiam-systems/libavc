@@ -414,22 +414,22 @@ IH264E_ERROR_T ih264e_put_sei_msg(IH264_SEI_TYPE e_payload_type,
     switch(e_payload_type)
     {
     case IH264_SEI_MASTERING_DISP_COL_VOL :
-        return_status |= ih264e_put_sei_mdcv_params(&(ps_sei_params->s_sei_mdcv_params),
+        return_status = ih264e_put_sei_mdcv_params(&(ps_sei_params->s_sei_mdcv_params),
                                                     ps_bitstrm);
         break;
 
     case IH264_SEI_CONTENT_LIGHT_LEVEL_DATA :
-        return_status |= ih264e_put_sei_cll_params(&(ps_sei_params->s_sei_cll_params),
+        return_status = ih264e_put_sei_cll_params(&(ps_sei_params->s_sei_cll_params),
                                                     ps_bitstrm);
         break;
 
     case IH264_SEI_AMBIENT_VIEWING_ENVIRONMENT :
-        return_status |= ih264e_put_sei_ave_params(&(ps_sei_params->s_sei_ave_params),
+        return_status = ih264e_put_sei_ave_params(&(ps_sei_params->s_sei_ave_params),
                                                     ps_bitstrm);
         break;
 
     case IH264_SEI_CONTENT_COLOR_VOLUME :
-         return_status |= ih264e_put_sei_ccv_params(&(ps_sei_params->s_sei_ccv_params),
+         return_status = ih264e_put_sei_ccv_params(&(ps_sei_params->s_sei_ccv_params),
                                                     ps_bitstrm);
          break;
 
@@ -439,7 +439,7 @@ IH264E_ERROR_T ih264e_put_sei_msg(IH264_SEI_TYPE e_payload_type,
 
     /* rbsp trailing bits */
     if((IH264E_SUCCESS == return_status) && (ps_bitstrm->i4_bits_left_in_cw & 0x7))
-        ih264e_put_rbsp_trailing_bits(ps_bitstrm);
+        return_status = ih264e_put_rbsp_trailing_bits(ps_bitstrm);
 
     return(return_status);
 }

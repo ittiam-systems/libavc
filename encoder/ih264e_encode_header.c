@@ -445,11 +445,17 @@ WORD32 ih264e_generate_sps(bitstrm_t *ps_bitstrm, sps_t *ps_sps, vui_t *ps_vui)
     WORD8  i1_nal_ref_idc = 3;
 
     /* Insert Start Code */
-    return_status |= ih264e_put_nal_start_code_prefix(ps_bitstrm, 1);
-
+    return_status = ih264e_put_nal_start_code_prefix(ps_bitstrm, 1);
+    if(return_status != IH264E_SUCCESS)
+    {
+        return return_status;
+    }
     /* Insert Nal Unit Header */
-    return_status |= ih264e_generate_nal_unit_header(ps_bitstrm, i1_nal_unit_type, i1_nal_ref_idc);
-
+    return_status = ih264e_generate_nal_unit_header(ps_bitstrm, i1_nal_unit_type, i1_nal_ref_idc);
+    if(return_status != IH264E_SUCCESS)
+    {
+        return return_status;
+    }
     /* profile_idc */
     PUT_BITS(ps_bitstrm, ps_sps->u1_profile_idc, 8, return_status, "profile_idc");
 
@@ -579,11 +585,15 @@ WORD32 ih264e_generate_sps(bitstrm_t *ps_bitstrm, sps_t *ps_sps, vui_t *ps_vui)
     if (ps_sps->i1_vui_parameters_present_flag)
     {
         /* Add vui parameters to the bitstream */;
-        return_status |= ih264e_generate_vui(ps_bitstrm, ps_vui);
+        return_status = ih264e_generate_vui(ps_bitstrm, ps_vui);
+        if(return_status != IH264E_SUCCESS)
+        {
+            return return_status;
+        }
     }
 
     /* rbsp trailing bits */
-    return_status |= ih264e_put_rbsp_trailing_bits(ps_bitstrm);
+    return_status = ih264e_put_rbsp_trailing_bits(ps_bitstrm);
 
     return return_status;
 }
@@ -611,7 +621,11 @@ WORD32 ih264e_generate_pps(bitstrm_t *ps_bitstrm, pps_t *ps_pps, sps_t *ps_sps)
     WORD32 return_status = IH264E_SUCCESS;
 
     /* Insert the NAL start code */
-    return_status |= ih264e_put_nal_start_code_prefix(ps_bitstrm, 1);
+    return_status = ih264e_put_nal_start_code_prefix(ps_bitstrm, 1);
+    if(return_status != IH264E_SUCCESS)
+    {
+        return return_status;
+    }
 
     /* Insert Nal Unit Header */
     PUT_BITS(ps_bitstrm, NAL_PPS_FIRST_BYTE, 8, return_status, "pps_header");
@@ -684,7 +698,7 @@ WORD32 ih264e_generate_pps(bitstrm_t *ps_bitstrm, pps_t *ps_pps, sps_t *ps_sps)
         PUT_BITS_SEV(ps_bitstrm, ps_pps->i1_second_chroma_qp_index_offset, return_status, "Second chroma QP offset");
     }
 
-    return_status |= ih264e_put_rbsp_trailing_bits(ps_bitstrm);
+    return_status = ih264e_put_rbsp_trailing_bits(ps_bitstrm);
 
     return return_status;
 }
@@ -707,49 +721,73 @@ WORD32 ih264e_generate_pps(bitstrm_t *ps_bitstrm, pps_t *ps_pps, sps_t *ps_sps)
 *
 ******************************************************************************
 */
-IH264E_ERROR_T ih264e_generate_sei(bitstrm_t *ps_bitstrm, sei_params_t *ps_sei, UWORD32 u4_insert_per_idr)
+IH264E_ERROR_T ih264e_generate_sei(bitstrm_t *ps_bitstrm, sei_params_t *ps_sei,
+                                                        UWORD32 u4_insert_per_idr)
 {
     WORD32 return_status = IH264E_SUCCESS;
     WORD8  i1_nal_unit_type = NAL_SEI;
     WORD8  i1_nal_ref_idc = 0;
 
     /* Insert Start Code */
-    return_status |= ih264e_put_nal_start_code_prefix(ps_bitstrm, 1);
+    return_status = ih264e_put_nal_start_code_prefix(ps_bitstrm, 1);
+    if(return_status != IH264E_SUCCESS)
+    {
+        return return_status;
+    }
 
     /* Insert Nal Unit Header */
-    return_status |= ih264e_generate_nal_unit_header(ps_bitstrm,
+    return_status = ih264e_generate_nal_unit_header(ps_bitstrm,
                                                     i1_nal_unit_type, i1_nal_ref_idc);
-
+    if(return_status != IH264E_SUCCESS)
+    {
+        return return_status;
+    }
     /* Mastering Display Color SEI */
     if(1 == ps_sei->u1_sei_mdcv_params_present_flag && u4_insert_per_idr)
     {
-        return_status |= ih264e_put_sei_msg(IH264_SEI_MASTERING_DISP_COL_VOL,
+        return_status = ih264e_put_sei_msg(IH264_SEI_MASTERING_DISP_COL_VOL,
                                             ps_sei, ps_bitstrm);
+        if(return_status != IH264E_SUCCESS)
+        {
+            return return_status;
+        }
     }
 
     /* Content Light Level Information*/
     if(1 == ps_sei->u1_sei_cll_params_present_flag && u4_insert_per_idr)
     {
-        return_status |= ih264e_put_sei_msg(IH264_SEI_CONTENT_LIGHT_LEVEL_DATA,
+        return_status = ih264e_put_sei_msg(IH264_SEI_CONTENT_LIGHT_LEVEL_DATA,
                                             ps_sei, ps_bitstrm);
+        if(return_status != IH264E_SUCCESS)
+        {
+            return return_status;
+        }
     }
 
     /* Ambient viewing environment SEI */
     if(1 == ps_sei->u1_sei_ave_params_present_flag && u4_insert_per_idr)
     {
-        return_status |= ih264e_put_sei_msg(IH264_SEI_AMBIENT_VIEWING_ENVIRONMENT,
+        return_status = ih264e_put_sei_msg(IH264_SEI_AMBIENT_VIEWING_ENVIRONMENT,
                                             ps_sei, ps_bitstrm);
+        if(return_status != IH264E_SUCCESS)
+        {
+            return return_status;
+        }
     }
 
     /* Content color volume Information*/
     if(1 == ps_sei->u1_sei_ccv_params_present_flag)
     {
-        return_status |= ih264e_put_sei_msg(IH264_SEI_CONTENT_COLOR_VOLUME,
+        return_status = ih264e_put_sei_msg(IH264_SEI_CONTENT_COLOR_VOLUME,
                                             ps_sei, ps_bitstrm);
+        if(return_status != IH264E_SUCCESS)
+        {
+            return return_status;
+        }
     }
 
     /* rbsp trailing bits */
-    return_status |= ih264e_put_rbsp_trailing_bits(ps_bitstrm);
+    return_status = ih264e_put_rbsp_trailing_bits(ps_bitstrm);
 
     return return_status;
 }
@@ -793,11 +831,17 @@ WORD32 ih264e_generate_slice_header(bitstrm_t *ps_bitstrm,
     WORD32 return_status = IH264E_SUCCESS;
 
     /* Insert start code */
-    return_status |= ih264e_put_nal_start_code_prefix(ps_bitstrm, 1);
-
+    return_status = ih264e_put_nal_start_code_prefix(ps_bitstrm, 1);
+    if(return_status != IH264E_SUCCESS)
+    {
+        return return_status;
+    }
     /* Insert Nal Unit Header */
-    return_status |= ih264e_generate_nal_unit_header(ps_bitstrm, ps_slice_hdr->i1_nal_unit_type, ps_slice_hdr->i1_nal_unit_idc);
-
+    return_status = ih264e_generate_nal_unit_header(ps_bitstrm, ps_slice_hdr->i1_nal_unit_type, ps_slice_hdr->i1_nal_unit_idc);
+    if(return_status != IH264E_SUCCESS)
+    {
+        return return_status;
+    }
     /* first_mb_in_slice */
     PUT_BITS_UEV(ps_bitstrm, ps_slice_hdr->u2_first_mb_in_slice, return_status, "first_mb_in_slice");
 
@@ -1574,7 +1618,11 @@ IH264E_ERROR_T ih264e_add_filler_nal_unit(bitstrm_t *ps_bitstrm,
     IH264E_ERROR_T return_status = IH264E_SUCCESS;
 
     /* Insert the NAL start code */
-    return_status |= ih264e_put_nal_start_code_prefix(ps_bitstrm, 1);
+    return_status = ih264e_put_nal_start_code_prefix(ps_bitstrm, 1);
+    if(return_status != IH264E_SUCCESS)
+    {
+        return return_status;
+    }
 
     if (ps_bitstrm->u4_strm_buf_offset + insert_fill_bytes >= ps_bitstrm->u4_max_strm_size)
     {
@@ -1610,7 +1658,7 @@ IH264E_ERROR_T ih264e_add_filler_nal_unit(bitstrm_t *ps_bitstrm,
         i4_num_words_to_fill-- ;
     }
 
-    return_status |= ih264e_put_rbsp_trailing_bits(ps_bitstrm);
+    return_status = ih264e_put_rbsp_trailing_bits(ps_bitstrm);
 
     return return_status;
 }

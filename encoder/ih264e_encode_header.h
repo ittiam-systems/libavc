@@ -49,9 +49,15 @@
  *           bitstream
 ******************************************************************************
  */
-#define PUT_BITS(ps_bitstrm, code_val, code_len, ret_val, syntax_string) \
-         ENTROPY_TRACE(syntax_string, code_val);\
-        ret_val |= ih264e_put_bits((ps_bitstrm), (code_val), (code_len))
+#define PUT_BITS(ps_bitstrm, code_val, code_len, ret_val, syntax_string)     \
+        {                                                                    \
+            ENTROPY_TRACE(syntax_string, code_val);                          \
+            ret_val = ih264e_put_bits((ps_bitstrm), (code_val), (code_len)); \
+            if(ret_val != IH264E_SUCCESS)                                    \
+            {                                                                \
+                return ret_val;                                              \
+            }                                                                \
+        }
 
 /**
 ******************************************************************************
@@ -60,10 +66,15 @@
  *           signed numbers
 ******************************************************************************
  */
-#define PUT_BITS_UEV(ps_bitstrm, code_val, ret_val, syntax_string) \
-        ENTROPY_TRACE(syntax_string, code_val);\
-        ret_val |= ih264e_put_uev((ps_bitstrm), (code_val))
-
+#define PUT_BITS_UEV(ps_bitstrm, code_val, ret_val, syntax_string)           \
+        {                                                                    \
+            ENTROPY_TRACE(syntax_string, code_val);                          \
+            ret_val = ih264e_put_uev((ps_bitstrm), (code_val));              \
+            if(ret_val != IH264E_SUCCESS)                                    \
+            {                                                                \
+                return ret_val;                                              \
+            }                                                                \
+        }
 /**
 ******************************************************************************
  *  @brief   Macro to put a code with specified number of bits into the
@@ -71,10 +82,15 @@
  *           signed numbers
 ******************************************************************************
  */
-#define PUT_BITS_SEV(ps_bitstrm, code_val, ret_val, syntax_string) \
-        ENTROPY_TRACE(syntax_string, code_val);\
-        ret_val |= ih264e_put_sev((ps_bitstrm), (code_val))
-
+#define PUT_BITS_SEV(ps_bitstrm, code_val, ret_val, syntax_string)           \
+        {                                                                    \
+            ENTROPY_TRACE(syntax_string, code_val);                          \
+            ret_val = ih264e_put_sev((ps_bitstrm), (code_val));              \
+            if(ret_val != IH264E_SUCCESS)                                    \
+            {                                                                \
+                return ret_val;                                              \
+            }                                                                \
+        }
 
 /*****************************************************************************/
 /* Extern Function Declarations                                              */

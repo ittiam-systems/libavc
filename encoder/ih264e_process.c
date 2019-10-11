@@ -181,11 +181,14 @@ IH264E_ERROR_T ih264e_generate_sps_pps(codec_t *ps_codec)
     ps_entropy->i4_error_code = IH264E_SUCCESS;
 
     /* generate sps */
-    ps_entropy->i4_error_code |= ih264e_generate_sps(ps_bitstrm, ps_sps,
+    ps_entropy->i4_error_code = ih264e_generate_sps(ps_bitstrm, ps_sps,
                                                      &ps_codec->s_cfg.s_vui);
-
+    if(ps_entropy->i4_error_code != IH264E_SUCCESS)
+    {
+        return ps_entropy->i4_error_code;
+    }
     /* generate pps */
-    ps_entropy->i4_error_code |= ih264e_generate_pps(ps_bitstrm, ps_pps, ps_sps);
+    ps_entropy->i4_error_code = ih264e_generate_pps(ps_bitstrm, ps_pps, ps_sps);
 
     /* queue output buffer */
     ps_out_buf->s_bits_buf.u4_bytes = ps_bitstrm->u4_strm_buf_offset;
@@ -375,11 +378,18 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
         if (1 == ps_entropy->i4_gen_header)
         {
             /* generate sps */
-            ps_entropy->i4_error_code |= ih264e_generate_sps(ps_bitstrm, ps_sps,
+            ps_entropy->i4_error_code = ih264e_generate_sps(ps_bitstrm, ps_sps,
                                                              &ps_codec->s_cfg.s_vui);
+            if(ps_entropy->i4_error_code != IH264E_SUCCESS)
+            {
+                return ps_entropy->i4_error_code;
+            }
             /* generate pps */
-            ps_entropy->i4_error_code |= ih264e_generate_pps(ps_bitstrm, ps_pps, ps_sps);
-
+            ps_entropy->i4_error_code = ih264e_generate_pps(ps_bitstrm, ps_pps, ps_sps);
+            if(ps_entropy->i4_error_code != IH264E_SUCCESS)
+            {
+                return ps_entropy->i4_error_code;
+            }
             /* reset i4_gen_header */
             ps_entropy->i4_gen_header = 0;
         }
@@ -422,15 +432,22 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
            (1 == s_sei.u1_sei_ave_params_present_flag && u4_insert_per_idr) ||
            (1 == s_sei.u1_sei_ccv_params_present_flag))
         {
-            ps_entropy->i4_error_code |=
+            ps_entropy->i4_error_code =
                     ih264e_generate_sei(ps_bitstrm, &s_sei, u4_insert_per_idr);
+            if(ps_entropy->i4_error_code != IH264E_SUCCESS)
+            {
+                return ps_entropy->i4_error_code;
+            }
         }
         ps_codec->as_inp_list[ps_codec->i4_poc % MAX_NUM_BFRAMES].u1_sei_ccv_params_present_flag = 0;
 
         /* generate slice header */
-        ps_entropy->i4_error_code |= ih264e_generate_slice_header(ps_bitstrm, ps_slice_hdr,
+        ps_entropy->i4_error_code = ih264e_generate_slice_header(ps_bitstrm, ps_slice_hdr,
                                                                   ps_pps, ps_sps);
-
+        if(ps_entropy->i4_error_code != IH264E_SUCCESS)
+        {
+            return ps_entropy->i4_error_code;
+        }
         /* once start of frame / slice is done, you can reset it */
         /* it is the responsibility of the caller to set this flag */
         ps_entropy->i4_sof = 0;
@@ -488,7 +505,13 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
 
 
         /* write mb layer */
-        ps_entropy->i4_error_code |= ps_codec->pf_write_mb_syntax_layer[ps_entropy->u1_entropy_coding_mode_flag][i4_slice_type](ps_entropy);
+        ps_entropy->i4_error_code = ps_codec->pf_write_mb_syntax_layer
+                        [ps_entropy->u1_entropy_coding_mode_flag][i4_slice_type](ps_entropy);
+        if(ps_entropy->i4_error_code != IH264E_SUCCESS)
+        {
+            return ps_entropy->i4_error_code;
+        }
+
         /* Starting bitstream offset for header in bits */
         bitstream_start_offset = GET_NUM_BITS(ps_bitstrm);
 
@@ -535,7 +558,11 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
                             }
                         }
                         /* put rbsp trailing bits for the previous slice */
-                                 ps_entropy->i4_error_code |= ih264e_put_rbsp_trailing_bits(ps_bitstrm);
+                                ps_entropy->i4_error_code = ih264e_put_rbsp_trailing_bits(ps_bitstrm);
+                                if(ps_entropy->i4_error_code != IH264E_SUCCESS)
+                                {
+                                    return ps_entropy->i4_error_code;
+                                }
                     }
                     else
                     {
@@ -553,8 +580,12 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
                                                  ps_sps);
 
                     /* generate slice header */
-                    ps_entropy->i4_error_code |= ih264e_generate_slice_header(
+                    ps_entropy->i4_error_code = ih264e_generate_slice_header(
                                     ps_bitstrm, ps_slice_hdr, ps_pps, ps_sps);
+                    if(ps_entropy->i4_error_code != IH264E_SUCCESS)
+                    {
+                        return ps_entropy->i4_error_code;
+                    }
                     if (CABAC == ps_entropy->u1_entropy_coding_mode_flag)
                     {
                         BITSTREAM_BYTE_ALIGN(ps_bitstrm);
@@ -612,7 +643,11 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
                 }
             }
             /* put rbsp trailing bits */
-             ps_entropy->i4_error_code |= ih264e_put_rbsp_trailing_bits(ps_bitstrm);
+             ps_entropy->i4_error_code = ih264e_put_rbsp_trailing_bits(ps_bitstrm);
+             if(ps_entropy->i4_error_code != IH264E_SUCCESS)
+             {
+                 return ps_entropy->i4_error_code;
+             }
         }
         else
         {
@@ -632,12 +667,16 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
             /* cbr rc - house keeping */
             if (ps_codec->s_rate_control.post_encode_skip[ctxt_sel])
             {
-                ps_entropy->ps_bitstrm->u4_strm_buf_offset = 0;
+                 ps_entropy->ps_bitstrm->u4_strm_buf_offset = 0;
             }
             else if (i4_stuff_bytes)
             {
                 /* add filler nal units */
-                ps_entropy->i4_error_code |= ih264e_add_filler_nal_unit(ps_bitstrm, i4_stuff_bytes);
+                 ps_entropy->i4_error_code = ih264e_add_filler_nal_unit(ps_bitstrm, i4_stuff_bytes);
+                 if(ps_entropy->i4_error_code != IH264E_SUCCESS)
+                 {
+                     return ps_entropy->i4_error_code;
+                 }
             }
         }
 
@@ -1091,8 +1130,11 @@ WORD32 ih264e_update_proc_ctxt(process_ctxt_t *ps_proc)
         s_job.i2_proc_base_idx = (ps_codec->i4_encode_api_call_cnt % MAX_CTXT_SETS) ? (MAX_PROCESS_CTXT / 2) : 0;
 
         /* queue the job */
-        error_status |= ih264_list_queue(ps_proc->pv_entropy_jobq, &s_job, 1);
-
+        error_status = ih264_list_queue(ps_proc->pv_entropy_jobq, &s_job, 1);
+        if(error_status != IH264_SUCCESS)
+        {
+            return error_status;
+        }
         if(ps_proc->i4_mb_y == (i4_ht_mbs - 1))
             ih264_list_terminate(ps_codec->pv_entropy_jobq);
     }
@@ -2292,8 +2334,11 @@ UPDATE_MB_INFO:
         }
 
         /* update the context after for coding next mb */
-        error_status |= ih264e_update_proc_ctxt(ps_proc);
-
+        error_status = ih264e_update_proc_ctxt(ps_proc);
+        if(error_status != IH264E_SUCCESS)
+        {
+            return error_status;
+        }
         /* Once the last row is processed, mark the buffer status appropriately */
         if (ps_proc->i4_ht_mbs == ps_proc->i4_mb_y)
         {
@@ -2316,10 +2361,18 @@ UPDATE_MB_INFO:
             /* hence the slice map should be of no significance to perform debloc */
             /* king                                                               */
             /**********************************************************************/
-            error_status |= ih264_buf_mgr_release(ps_codec->pv_mv_buf_mgr, ps_cur_mv_buf->i4_buf_id , BUF_MGR_CODEC);
-
-            error_status |= ih264_buf_mgr_release(ps_codec->pv_ref_buf_mgr, ps_cur_pic->i4_buf_id , BUF_MGR_CODEC);
-
+            error_status = ih264_buf_mgr_release(ps_codec->pv_mv_buf_mgr,
+                                                ps_cur_mv_buf->i4_buf_id , BUF_MGR_CODEC);
+            if(error_status != IH264E_SUCCESS)
+            {
+                return error_status;
+            }
+            error_status = ih264_buf_mgr_release(ps_codec->pv_ref_buf_mgr,
+                                                ps_cur_pic->i4_buf_id , BUF_MGR_CODEC);
+            if(error_status != IH264E_SUCCESS)
+            {
+                return error_status;
+            }
             if (ps_codec->s_cfg.u4_enable_recon)
             {
                 /* pic cnt */
@@ -2502,6 +2555,7 @@ WORD32 ih264e_process_thread(void *pv_proc)
     /* set affinity */
     ithread_set_affinity(ps_proc->i4_id);
 
+    ps_proc->i4_error_code = IH264_SUCCESS;
     while(1)
     {
         /* dequeue a job from the entropy queue */
@@ -2564,7 +2618,12 @@ WORKER:
                 ih264e_init_proc_ctxt(ps_proc);
 
                 /* core code all mbs enlisted under the current job */
-                error_status |= ih264e_process(ps_proc);
+                error_status = ih264e_process(ps_proc);
+                if(error_status !=IH264_SUCCESS)
+                {
+                    ps_proc->i4_error_code = error_status;
+                    return ret;
+                }
                 break;
 
             case CMD_ENTROPY:
@@ -2576,16 +2635,19 @@ WORKER:
                 ih264e_init_entropy_ctxt(ps_proc);
 
                 /* entropy code all mbs enlisted under the current job */
-                error_status |= ih264e_entropy(ps_proc);
+                error_status = ih264e_entropy(ps_proc);
+                if(error_status !=IH264_SUCCESS)
+                {
+                    ps_proc->i4_error_code = error_status;
+                    return ret;
+                }
                 break;
 
             default:
-                error_status |= IH264_FAIL;
-                break;
+                ps_proc->i4_error_code = IH264_FAIL;
+                return ret;
         }
     }
 
-    /* send error code */
-    ps_proc->i4_error_code = error_status;
     return ret;
 }

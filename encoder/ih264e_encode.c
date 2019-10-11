@@ -232,7 +232,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     /* Check for output memory allocation size */
     if (ps_video_encode_ip->s_ive_ip.s_out_buf.u4_bufsize < MIN_STREAM_SIZE)
     {
-        error_status |= IH264E_INSUFFICIENT_OUTPUT_BUFFER;
+        error_status = IH264E_INSUFFICIENT_OUTPUT_BUFFER;
         SET_ERROR_ON_RETURN(error_status,
                             IVE_UNSUPPORTEDPARAM,
                             ps_video_encode_op->s_ive_op.u4_error_code,
@@ -277,7 +277,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
                             ((WORD32)ps_cfg->u4_timestamp_high == -1) ||
                             ((WORD32)ps_cfg->u4_timestamp_low == -1) )
             {
-                error_status |= ih264e_codec_update_config(ps_codec, ps_cfg);
+                error_status = ih264e_codec_update_config(ps_codec, ps_cfg);
                 SET_ERROR_ON_RETURN(error_status,
                                     IVE_UNSUPPORTEDPARAM,
                                     ps_video_encode_op->s_ive_op.u4_error_code,
@@ -401,14 +401,14 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
         /********************************************************************/
 
         /* initialize mv bank buffer manager */
-        error_status |= ih264e_mv_buf_mgr_add_bufs(ps_codec);
+        error_status = ih264e_mv_buf_mgr_add_bufs(ps_codec);
         SET_ERROR_ON_RETURN(error_status,
                             IVE_FATALERROR,
                             ps_video_encode_op->s_ive_op.u4_error_code,
                             IV_FAIL);
 
         /* initialize ref bank buffer manager */
-        error_status |= ih264e_pic_buf_mgr_add_bufs(ps_codec);
+        error_status = ih264e_pic_buf_mgr_add_bufs(ps_codec);
         SET_ERROR_ON_RETURN(error_status,
                             IVE_FATALERROR,
                             ps_video_encode_op->s_ive_op.u4_error_code,
@@ -431,14 +431,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
         ps_codec->force_curr_frame_type = IV_IDR_FRAME;
 
         /* generate header */
-        error_status |= ih264e_generate_sps_pps(ps_codec);
-
-        /* api call cnt */
-        ps_codec->i4_encode_api_call_cnt --;
-
-        /* header mode tag is not sticky */
-        ps_codec->i4_header_mode = 0;
-        ps_codec->i4_gen_header = 0;
+        error_status = ih264e_generate_sps_pps(ps_codec);
 
         /* send the input to app */
         ps_video_encode_op->s_ive_op.s_inp_buf = ps_video_encode_ip->s_ive_ip.s_inp_buf;
@@ -460,6 +453,13 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
         /* indicates that header has been generated previously */
         ps_codec->u4_header_generated = 1;
+
+        /* api call cnt */
+        ps_codec->i4_encode_api_call_cnt --;
+
+        /* header mode tag is not sticky */
+        ps_codec->i4_header_mode = 0;
+        ps_codec->i4_gen_header = 0;
 
         return IV_SUCCESS;
     }
@@ -492,7 +492,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
         ps_codec->ai4_pic_cnt[ctxt_sel] = ps_codec->i4_pic_cnt;
 
         /* initialize all relevant process ctxts */
-        error_status |= ih264e_pic_init(ps_codec, &s_inp_buf);
+        error_status = ih264e_pic_init(ps_codec, &s_inp_buf);
         SET_ERROR_ON_RETURN(error_status,
                             IVE_FATALERROR,
                             ps_video_encode_op->s_ive_op.u4_error_code,
@@ -765,12 +765,12 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
         for (i = 0; i < (WORD32)ps_codec->s_cfg.u4_num_cores; i++)
         {
-            error_status |= ps_codec->as_process[ctxt_sel + i].i4_error_code;
+            error_status = ps_codec->as_process[ctxt_sel + i].i4_error_code;
+            SET_ERROR_ON_RETURN(error_status,
+                                IVE_FATALERROR,
+                                ps_video_encode_op->s_ive_op.u4_error_code,
+                                IV_FAIL);
         }
-        SET_ERROR_ON_RETURN(error_status,
-                            IVE_FATALERROR,
-                            ps_video_encode_op->s_ive_op.u4_error_code,
-                            IV_FAIL);
     }
     else
     {
