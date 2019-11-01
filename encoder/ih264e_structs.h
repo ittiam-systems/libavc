@@ -306,6 +306,12 @@ typedef struct
     /** Buffer containing pic info if mb_info_type is non-zero           */
     void                                    *pv_pic_info;
 
+    /** SEI CCV params flag                                              */
+    UWORD8                                  u1_sei_ccv_params_present_flag;
+
+    /** SEI CCV params info                                              */
+    sei_ccv_params_t                        s_sei_ccv;
+
 }inp_buf_t;
 
 typedef struct
@@ -565,6 +571,9 @@ typedef struct
 
     /** VUI structure                                                         */
     vui_t                                       s_vui;
+
+    /** SEI structure                                                         */
+    sei_params_t                                s_sei;
 
 }cfg_params_t;
 
@@ -2768,13 +2777,13 @@ struct _codec_t
     pf_sixtap_filter_2dvh_vert pf_ih264e_sixtap_filter_2dvh_vert;
 
     /**
-     * color space conversion form YUV 420P to YUV 420Sp
+     * color space conversion from YUV 420P to YUV 420Sp
      */
     pf_fmt_conv_420p_to_420sp pf_ih264e_conv_420p_to_420sp;
 
 
     /**
-     * color space conversion form YUV 420P to YUV 420Sp
+     * color space conversion from YUV 420P to YUV 420Sp
      */
     pf_fmt_conv_422ile_to_420sp pf_ih264e_fmt_conv_422i_to_420sp;
 
@@ -2808,10 +2817,15 @@ struct _codec_t
      */
     WORD32 i4_pending_idr_flag;
 
-    /*
+    /**
     *Flag to indicate if we have recived the last input frame
     */
     WORD32 i4_last_inp_buff_received;
+
+    /**
+     * backup sei params for comparison
+     */
+    sei_params_t s_sei;
 
 };
 

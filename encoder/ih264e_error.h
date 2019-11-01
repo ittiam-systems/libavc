@@ -229,6 +229,18 @@ typedef enum
     /**Invalid Constrained Intra prediction mode */
     IH264E_INVALID_CONSTRAINED_INTRA_PREDICTION_MODE                = IH264E_CODEC_ERROR_START + 0x32,
 
+    /**Invalid mastering display color volume sei params */
+    IH264E_INVALID_SEI_MDCV_PARAMS                                  = IH264E_CODEC_ERROR_START + 0x33,
+
+    /**Invalid content light level sei params */
+    IH264E_INVALID_SEI_CLL_PARAMS                                   = IH264E_CODEC_ERROR_START + 0x34,
+
+    /**Invalid ambient viewing environment sei params */
+    IH264E_INVALID_SEI_AVE_PARAMS                                   = IH264E_CODEC_ERROR_START + 0x35,
+
+    /**Invalid content color volume sei params */
+    IH264E_INVALID_SEI_CCV_PARAMS                                   = IH264E_CODEC_ERROR_START + 0x36,
+
     /**max failure error code to ensure enum is 32 bits wide */
     IH264E_FAIL                                                     = -1,
 
