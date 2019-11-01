@@ -62,6 +62,83 @@
 
 /*****************************************************************************/
 /*                                                                           */
+/*  Function Name : ih264d_get_pre_sei_params                                */
+/*                                                                           */
+/*  Description   : Gets valid pre-sei params in decoder struct from parse   */
+/*                  struct.                                                  */
+/*  Inputs        : u1_nal_unit_type slice type                              */
+/*                  ps_dec    Decoder parameters                             */
+/*  Globals       : None                                                     */
+/*  Outputs       : None                                                     */
+/*  Returns       : None                                                     */
+/*                                                                           */
+/*  Issues        : None                                                     */
+/*                                                                           */
+/*  Revision History:                                                        */
+/*                                                                           */
+/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
+/*                                          Draft                            */
+/*                                                                           */
+/*****************************************************************************/
+
+void ih264d_get_pre_sei_params(dec_struct_t *ps_dec, UWORD8 u1_nal_unit_type)
+{
+    if((NULL != ps_dec->ps_sei) &&
+        ((0 == ps_dec->ps_sei->s_sei_ccv_params.u1_ccv_cancel_flag) &&
+        (0 == ps_dec->ps_sei->s_sei_ccv_params.u1_ccv_persistence_flag)))
+    {
+        ps_dec->ps_sei->u1_sei_ccv_params_present_flag = 0;
+        memset(&ps_dec->ps_sei->s_sei_ccv_params, 0, sizeof(sei_ccv_params_t));
+    }
+
+    if((NULL != ps_dec->ps_cur_sps) &&
+        ((1 == ps_dec->ps_cur_sps->u1_vui_parameters_present_flag) &&
+        ((2 != ps_dec->ps_cur_sps->s_vui.u1_colour_primaries) &&
+        (2 != ps_dec->ps_cur_sps->s_vui.u1_matrix_coeffs) &&
+        (2 != ps_dec->ps_cur_sps->s_vui.u1_tfr_chars) &&
+        (4 != ps_dec->ps_cur_sps->s_vui.u1_tfr_chars) &&
+        (5 != ps_dec->ps_cur_sps->s_vui.u1_tfr_chars))))
+    {
+        if((1 == ps_dec->ps_sei_parse->u1_sei_ccv_params_present_flag) ||
+            (IDR_SLICE_NAL == u1_nal_unit_type))
+        {
+            ps_dec->ps_sei->u1_sei_ccv_params_present_flag =
+                        ps_dec->ps_sei_parse->u1_sei_ccv_params_present_flag;
+            ps_dec->ps_sei->s_sei_ccv_params = ps_dec->ps_sei_parse->s_sei_ccv_params;
+        }
+    }
+    else
+    {
+        ps_dec->ps_sei->u1_sei_ccv_params_present_flag = 0;
+        memset(&ps_dec->ps_sei->s_sei_ccv_params, 0, sizeof(sei_ccv_params_t));
+    }
+
+    if(IDR_SLICE_NAL == u1_nal_unit_type)
+    {
+        ps_dec->ps_sei->u1_sei_mdcv_params_present_flag =
+                        ps_dec->ps_sei_parse->u1_sei_mdcv_params_present_flag;
+        ps_dec->ps_sei->s_sei_mdcv_params = ps_dec->ps_sei_parse->s_sei_mdcv_params;
+        ps_dec->ps_sei->u1_sei_cll_params_present_flag =
+                        ps_dec->ps_sei_parse->u1_sei_cll_params_present_flag;
+        ps_dec->ps_sei->s_sei_cll_params = ps_dec->ps_sei_parse->s_sei_cll_params;
+        ps_dec->ps_sei->u1_sei_ave_params_present_flag =
+                        ps_dec->ps_sei_parse->u1_sei_ave_params_present_flag;
+        ps_dec->ps_sei->s_sei_ave_params = ps_dec->ps_sei_parse->s_sei_ave_params;
+    }
+
+    ps_dec->ps_sei_parse->u1_sei_mdcv_params_present_flag = 0;
+    memset(&ps_dec->ps_sei_parse->s_sei_mdcv_params, 0, sizeof(sei_mdcv_params_t));
+    ps_dec->ps_sei_parse->u1_sei_cll_params_present_flag = 0;
+    memset(&ps_dec->ps_sei_parse->s_sei_cll_params, 0, sizeof(sei_cll_params_t));
+    ps_dec->ps_sei_parse->u1_sei_ave_params_present_flag = 0;
+    memset(&ps_dec->ps_sei_parse->s_sei_ave_params, 0, sizeof(sei_ave_params_t));
+    ps_dec->ps_sei_parse->u1_sei_ccv_params_present_flag = 0;
+    memset(&ps_dec->ps_sei_parse->s_sei_ccv_params, 0, sizeof(sei_ccv_params_t));
+
+}
+
+/*****************************************************************************/
+/*                                                                           */
 /*  Function Name : ih264d_parse_slice_partition                                     */
 /*                                                                           */
 /*  Description   : This function is intended to parse and decode slice part */
@@ -1179,6 +1256,7 @@ WORD32 ih264d_parse_nal_unit(iv_obj_t *dec_hdl,
                     {
                         if(ps_dec->i4_header_decoded == 3)
                         {
+                            ih264d_get_pre_sei_params(ps_dec, u1_nal_unit_type);
                             /* ! */
                             ps_dec->u4_slice_start_code_found = 1;
 

@@ -700,4 +700,50 @@ typedef enum
 #define TOP_MB_AVAILABLE_MASK       0x04
 #define TOP_RIGHT_MB_AVAILABLE_MASK 0x08
 
+/**
+******************************************************************************
+ *  @brief  SEI macros
+******************************************************************************
+ */
+/*
+ * @brief  specifies the number of colour primary components of the mastering display
+ */
+#define NUM_SEI_MDCV_PRIMARIES      3
+
+/*
+ * @brief  specifies the number of colour primary components of the nominal content colour volume
+ */
+#define NUM_SEI_CCV_PRIMARIES       3
+
+#define DISPLAY_PRIMARIES_X_UPPER_LIMIT                37000
+#define DISPLAY_PRIMARIES_X_LOWER_LIMIT                5
+#define DISPLAY_PRIMARIES_X_DIVISION_FACTOR            5
+
+#define DISPLAY_PRIMARIES_Y_UPPER_LIMIT                42000
+#define DISPLAY_PRIMARIES_Y_LOWER_LIMIT                5
+#define DISPLAY_PRIMARIES_Y_DIVISION_FACTOR            5
+
+#define WHITE_POINT_X_UPPER_LIMIT                      37000
+#define WHITE_POINT_X_LOWER_LIMIT                      5
+#define WHITE_POINT_X_DIVISION_FACTOR                  5
+
+#define WHITE_POINT_Y_UPPER_LIMIT                      42000
+#define WHITE_POINT_Y_LOWER_LIMIT                      5
+#define WHITE_POINT_Y_DIVISION_FACTOR                  5
+
+#define MAX_DISPLAY_MASTERING_LUMINANCE_UPPER_LIMIT        100000000
+#define MAX_DISPLAY_MASTERING_LUMINANCE_LOWER_LIMIT        50000
+#define MAX_DISPLAY_MASTERING_LUMINANCE_DIVISION_FACTOR    10000
+
+#define MIN_DISPLAY_MASTERING_LUMINANCE_UPPER_LIMIT        50000
+#define MIN_DISPLAY_MASTERING_LUMINANCE_LOWER_LIMIT        1
+
+#define AMBIENT_LIGHT_X_UPPER_LIMIT        50000
+#define AMBIENT_LIGHT_Y_UPPER_LIMIT        50000
+
+#define CCV_PRIMARIES_X_UPPER_LIMIT        5000000
+#define CCV_PRIMARIES_X_LOWER_LIMIT        -5000000
+#define CCV_PRIMARIES_Y_UPPER_LIMIT        5000000
+#define CCV_PRIMARIES_Y_LOWER_LIMIT        -5000000
+
 #endif /* IH264_DEFS_H_ */

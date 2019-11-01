@@ -431,7 +431,7 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
         ps_dec->ps_cur_pic = ps_cur_pic;
         ps_dec->u1_pic_buf_id = cur_pic_buf_id;
         ps_cur_pic->u4_ts = ps_dec->u4_ts;
-
+        memcpy(&ps_cur_pic->s_sei_pic, ps_dec->ps_sei, sizeof(sei));
 
         ps_cur_pic->u1_mv_buf_id = cur_mv_buf_id;
         ps_dec->au1_pic_buf_id_mv_buf_id_map[cur_pic_buf_id] = cur_mv_buf_id;
