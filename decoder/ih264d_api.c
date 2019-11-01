@@ -139,6 +139,22 @@ WORD32 ih264d_get_vui_params(iv_obj_t *dec_hdl,
                              void *pv_api_ip,
                              void *pv_api_op);
 
+WORD32 ih264d_get_sei_mdcv_params(iv_obj_t *dec_hdl,
+                                  void *pv_api_ip,
+                                  void *pv_api_op);
+
+WORD32 ih264d_get_sei_cll_params(iv_obj_t *dec_hdl,
+                                 void *pv_api_ip,
+                                 void *pv_api_op);
+
+WORD32 ih264d_get_sei_ave_params(iv_obj_t *dec_hdl,
+                                 void *pv_api_ip,
+                                 void *pv_api_op);
+
+WORD32 ih264d_get_sei_ccv_params(iv_obj_t *dec_hdl,
+                                 void *pv_api_ip,
+                                 void *pv_api_op);
+
 WORD32 ih264d_set_num_cores(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op);
 
 WORD32 ih264d_deblock_display(dec_struct_t *ps_dec);
@@ -154,6 +170,31 @@ WORD32 ih264d_set_degrade(iv_obj_t *ps_codec_obj,
 
 void ih264d_fill_output_struct_from_context(dec_struct_t *ps_dec,
                                             ivd_video_decode_op_t *ps_dec_op);
+
+/*!
+ **************************************************************************
+ * \if Function name : ih264d_export_sei_params \endif
+ *
+ * \brief
+ *    Exports sei params from decoder to application.
+ *
+ * \return
+ *    0 on Success and error code otherwise
+ **************************************************************************
+ */
+
+void ih264d_export_sei_params(ivd_sei_decode_op_t *ps_sei_decode_op, dec_struct_t *ps_dec)
+{
+    WORD32 i4_status = IV_SUCCESS;
+    sei *ps_sei = (sei *)ps_dec->pv_disp_sei_params;
+
+    i4_status = ih264d_export_sei_mdcv_params(ps_sei_decode_op, ps_sei, &ps_dec->s_sei_export);
+    i4_status = ih264d_export_sei_cll_params(ps_sei_decode_op, ps_sei, &ps_dec->s_sei_export);
+    i4_status = ih264d_export_sei_ave_params(ps_sei_decode_op, ps_sei, &ps_dec->s_sei_export);
+    i4_status = ih264d_export_sei_ccv_params(ps_sei_decode_op, ps_sei, &ps_dec->s_sei_export);
+
+    UNUSED(i4_status);
+}
 
 static IV_API_CALL_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                                                     void *pv_api_ip,
@@ -777,6 +818,114 @@ static IV_API_CALL_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
 
                     break;
                 }
+                case IH264D_CMD_CTL_GET_SEI_MDCV_PARAMS:
+                {
+                    ih264d_ctl_get_sei_mdcv_params_ip_t *ps_ip;
+                    ih264d_ctl_get_sei_mdcv_params_op_t *ps_op;
+
+                    ps_ip = (ih264d_ctl_get_sei_mdcv_params_ip_t *)pv_api_ip;
+                    ps_op = (ih264d_ctl_get_sei_mdcv_params_op_t *)pv_api_op;
+
+                    if(ps_ip->u4_size != sizeof(ih264d_ctl_get_sei_mdcv_params_ip_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVD_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                        IVD_IP_API_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if(ps_op->u4_size != sizeof(ih264d_ctl_get_sei_mdcv_params_op_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVD_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                        IVD_OP_API_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    break;
+                }
+
+                case IH264D_CMD_CTL_GET_SEI_CLL_PARAMS:
+                {
+                    ih264d_ctl_get_sei_cll_params_ip_t *ps_ip;
+                    ih264d_ctl_get_sei_cll_params_op_t *ps_op;
+
+                    ps_ip = (ih264d_ctl_get_sei_cll_params_ip_t *)pv_api_ip;
+                    ps_op = (ih264d_ctl_get_sei_cll_params_op_t *)pv_api_op;
+
+                    if(ps_ip->u4_size != sizeof(ih264d_ctl_get_sei_cll_params_ip_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVD_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                        IVD_IP_API_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if(ps_op->u4_size != sizeof(ih264d_ctl_get_sei_cll_params_op_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVD_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                        IVD_OP_API_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    break;
+                }
+
+                case IH264D_CMD_CTL_GET_SEI_AVE_PARAMS:
+                {
+                    ih264d_ctl_get_sei_ave_params_ip_t *ps_ip;
+                    ih264d_ctl_get_sei_ave_params_op_t *ps_op;
+
+                    ps_ip = (ih264d_ctl_get_sei_ave_params_ip_t *)pv_api_ip;
+                    ps_op = (ih264d_ctl_get_sei_ave_params_op_t *)pv_api_op;
+
+                    if(ps_ip->u4_size != sizeof(ih264d_ctl_get_sei_ave_params_ip_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVD_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                        IVD_IP_API_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if(ps_op->u4_size != sizeof(ih264d_ctl_get_sei_ave_params_op_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVD_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                        IVD_OP_API_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    break;
+                }
+
+                case IH264D_CMD_CTL_GET_SEI_CCV_PARAMS:
+                {
+                    ih264d_ctl_get_sei_ccv_params_ip_t *ps_ip;
+                    ih264d_ctl_get_sei_ccv_params_op_t *ps_op;
+
+                    ps_ip = (ih264d_ctl_get_sei_ccv_params_ip_t *)pv_api_ip;
+                    ps_op = (ih264d_ctl_get_sei_ccv_params_op_t *)pv_api_op;
+
+                    if(ps_ip->u4_size != sizeof(ih264d_ctl_get_sei_ccv_params_ip_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVD_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                        IVD_IP_API_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    if(ps_op->u4_size != sizeof(ih264d_ctl_get_sei_ccv_params_op_t))
+                    {
+                        ps_op->u4_error_code |= 1 << IVD_UNSUPPORTEDPARAM;
+                        ps_op->u4_error_code |=
+                                        IVD_OP_API_STRUCT_SIZE_INCORRECT;
+                        return IV_FAIL;
+                    }
+
+                    break;
+                }
+
                 case IH264D_CMD_CTL_SET_NUM_CORES:
                 {
                     ih264d_ctl_set_num_cores_ip_t *ps_ip;
@@ -938,6 +1087,9 @@ void ih264d_init_decoder(void * ps_dec_params)
 
     size = sizeof(sei);
     memset(ps_dec->ps_sei, 0, size);
+
+    size = sizeof(sei);
+    memset(ps_dec->ps_sei_parse, 0, size);
 
     size = sizeof(dpb_commands_t);
     memset(ps_dec->ps_dpb_cmds, 0, size);
@@ -1163,6 +1315,7 @@ WORD32 ih264d_free_static_bufs(iv_obj_t *dec_hdl)
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_pic_buf_base);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_dec_err_status);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_sei);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_sei_parse);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_dpb_cmds);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_bitstrm);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_cur_slice);
@@ -1333,6 +1486,12 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     memset(pv_buf, 0, size);
     ps_dec->ps_sei = (sei *)pv_buf;
+
+    size = sizeof(sei);
+    pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
+    RETURN_IF((NULL == pv_buf), IV_FAIL);
+    memset(pv_buf, 0, size);
+    ps_dec->ps_sei_parse = (sei *)pv_buf;
 
     size = sizeof(dpb_commands_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
@@ -1639,6 +1798,10 @@ UWORD32 ih264d_map_error(UWORD32 i4_err_status)
         case ERROR_INV_RANGE_QP_T:
         case ERROR_INV_SPS_PPS_T:
         case ERROR_INV_SLICE_HDR_T:
+        case ERROR_INV_SEI_MDCV_PARAMS:
+        case ERROR_INV_SEI_CLL_PARAMS:
+        case ERROR_INV_SEI_AVE_PARAMS:
+        case ERROR_INV_SEI_CCV_PARAMS:
             temp = 1 << IVD_CORRUPTEDHEADER;
             break;
 
@@ -2037,6 +2200,8 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             ps_dec->u4_output_present = 1;
 
         }
+        ih264d_export_sei_params(&ps_dec_op->s_sei_decode_op, ps_dec);
+
         ih264d_release_display_field(ps_dec, &(ps_dec->s_disp_op));
 
         ps_dec_op->u4_pic_wd = (UWORD32)ps_dec->u2_disp_width;
@@ -3341,7 +3506,22 @@ WORD32 ih264d_ctl(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             ret = ih264d_get_vui_params(dec_hdl, (void *)pv_api_ip,
                                         (void *)pv_api_op);
             break;
-
+        case IH264D_CMD_CTL_GET_SEI_MDCV_PARAMS:
+            ret = ih264d_get_sei_mdcv_params(dec_hdl, (void *)pv_api_ip,
+                                             (void *)pv_api_op);
+            break;
+        case IH264D_CMD_CTL_GET_SEI_CLL_PARAMS:
+            ret = ih264d_get_sei_cll_params(dec_hdl, (void *)pv_api_ip,
+                                            (void *)pv_api_op);
+            break;
+        case IH264D_CMD_CTL_GET_SEI_AVE_PARAMS:
+            ret = ih264d_get_sei_ave_params(dec_hdl, (void *)pv_api_ip,
+                                            (void *)pv_api_op);
+            break;
+        case IH264D_CMD_CTL_GET_SEI_CCV_PARAMS:
+            ret = ih264d_get_sei_ccv_params(dec_hdl, (void *)pv_api_ip,
+                                            (void *)pv_api_op);
+            break;
         case IH264D_CMD_CTL_SET_PROCESSOR:
             ret = ih264d_set_processor(dec_hdl, (void *)pv_api_ip,
                                        (void *)pv_api_op);
@@ -3634,6 +3814,238 @@ WORD32 ih264d_get_vui_params(iv_obj_t *dec_hdl,
 
     return IV_SUCCESS;
 }
+/*****************************************************************************/
+/*                                                                           */
+/*  Function Name : ih264d_get_sei_mdcv_params                               */
+/*                                                                           */
+/*  Description   : This function populates SEI mdcv message in              */
+/*                     output structure                                      */
+/*  Inputs        : iv_obj_t decoder handle                                  */
+/*                : pv_api_ip pointer to input structure                     */
+/*                : pv_api_op pointer to output structure                    */
+/*  Outputs       :                                                          */
+/*  Returns       : returns 0; 1 with error code when MDCV is not present    */
+/*                                                                           */
+/*  Issues        : none                                                     */
+/*                                                                           */
+/*  Revision History:                                                        */
+/*                                                                           */
+/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
+/*                                                                           */
+/*                                                                           */
+/*****************************************************************************/
+WORD32 ih264d_get_sei_mdcv_params(iv_obj_t *dec_hdl,
+                                  void *pv_api_ip,
+                                  void *pv_api_op)
+{
+    ih264d_ctl_get_sei_mdcv_params_ip_t *ps_ip;
+    ih264d_ctl_get_sei_mdcv_params_op_t *ps_op;
+    dec_struct_t *ps_dec = dec_hdl->pv_codec_handle;
+    sei_mdcv_params_t *ps_sei_mdcv;
+    WORD32 i4_count;
+
+    ps_ip = (ih264d_ctl_get_sei_mdcv_params_ip_t *)pv_api_ip;
+    ps_op = (ih264d_ctl_get_sei_mdcv_params_op_t *)pv_api_op;
+    UNUSED(ps_ip);
+
+    if(0 == ps_dec->s_sei_export.u1_sei_mdcv_params_present_flag)
+    {
+        ps_op->u4_error_code = ERROR_SEI_MDCV_PARAMS_NOT_FOUND;
+        return IV_FAIL;
+    }
+
+    ps_sei_mdcv = &ps_dec->s_sei_export.s_sei_mdcv_params;
+
+    for(i4_count = 0; i4_count < NUM_SEI_MDCV_PRIMARIES; i4_count++)
+    {
+        ps_op->au2_display_primaries_x[i4_count] = ps_sei_mdcv->au2_display_primaries_x[i4_count];
+        ps_op->au2_display_primaries_y[i4_count] = ps_sei_mdcv->au2_display_primaries_y[i4_count];
+    }
+
+    ps_op->u2_white_point_x = ps_sei_mdcv->u2_white_point_x;
+    ps_op->u2_white_point_y = ps_sei_mdcv->u2_white_point_y;
+    ps_op->u4_max_display_mastering_luminance = ps_sei_mdcv->u4_max_display_mastering_luminance;
+    ps_op->u4_min_display_mastering_luminance = ps_sei_mdcv->u4_min_display_mastering_luminance;
+
+    return IV_SUCCESS;
+}
+
+/*****************************************************************************/
+/*                                                                           */
+/*  Function Name : ih264d_get_sei_cll_params                                */
+/*                                                                           */
+/*  Description   : This function populates SEI cll message in               */
+/*                     output structure                                      */
+/*  Inputs        : iv_obj_t decoder handle                                  */
+/*                : pv_api_ip pointer to input structure                     */
+/*                : pv_api_op pointer to output structure                    */
+/*  Outputs       :                                                          */
+/*  Returns       : returns 0; 1 with error code when CLL is not present     */
+/*                                                                           */
+/*  Issues        : none                                                     */
+/*                                                                           */
+/*  Revision History:                                                        */
+/*                                                                           */
+/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
+/*                                                                           */
+/*                                                                           */
+/*****************************************************************************/
+WORD32 ih264d_get_sei_cll_params(iv_obj_t *dec_hdl,
+                                 void *pv_api_ip,
+                                 void *pv_api_op)
+{
+    ih264d_ctl_get_sei_cll_params_ip_t *ps_ip;
+    ih264d_ctl_get_sei_cll_params_op_t *ps_op;
+    dec_struct_t *ps_dec = dec_hdl->pv_codec_handle;
+    sei_cll_params_t *ps_sei_cll;
+
+    ps_ip = (ih264d_ctl_get_sei_cll_params_ip_t *)pv_api_ip;
+    ps_op = (ih264d_ctl_get_sei_cll_params_op_t *)pv_api_op;
+    UNUSED(ps_ip);
+
+    if(0 == ps_dec->s_sei_export.u1_sei_cll_params_present_flag)
+    {
+        ps_op->u4_error_code = ERROR_SEI_CLL_PARAMS_NOT_FOUND;
+        return IV_FAIL;
+    }
+
+    ps_sei_cll = &ps_dec->s_sei_export.s_sei_cll_params;
+
+    ps_op->u2_max_content_light_level = ps_sei_cll->u2_max_content_light_level;
+    ps_op->u2_max_pic_average_light_level = ps_sei_cll->u2_max_pic_average_light_level;
+
+    return IV_SUCCESS;
+}
+
+/*****************************************************************************/
+/*                                                                           */
+/*  Function Name : ih264d_get_sei_ave_params                                */
+/*                                                                           */
+/*  Description   : This function populates SEI ave message in               */
+/*                     output structure                                      */
+/*  Inputs        : iv_obj_t decoder handle                                  */
+/*                : pv_api_ip pointer to input structure                     */
+/*                : pv_api_op pointer to output structure                    */
+/*  Outputs       :                                                          */
+/*  Returns       : returns 0; 1 with error code when AVE is not present     */
+/*                                                                           */
+/*  Issues        : none                                                     */
+/*                                                                           */
+/*  Revision History:                                                        */
+/*                                                                           */
+/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
+/*                                                                           */
+/*                                                                           */
+/*****************************************************************************/
+WORD32 ih264d_get_sei_ave_params(iv_obj_t *dec_hdl,
+                                 void *pv_api_ip,
+                                 void *pv_api_op)
+{
+    ih264d_ctl_get_sei_ave_params_ip_t *ps_ip;
+    ih264d_ctl_get_sei_ave_params_op_t *ps_op;
+    dec_struct_t *ps_dec = dec_hdl->pv_codec_handle;
+    sei_ave_params_t *ps_sei_ave;
+
+    ps_ip = (ih264d_ctl_get_sei_ave_params_ip_t *)pv_api_ip;
+    ps_op = (ih264d_ctl_get_sei_ave_params_op_t *)pv_api_op;
+    UNUSED(ps_ip);
+
+    if(0 == ps_dec->s_sei_export.u1_sei_ave_params_present_flag)
+    {
+        ps_op->u4_error_code = ERROR_SEI_AVE_PARAMS_NOT_FOUND;
+        return IV_FAIL;
+    }
+
+    ps_sei_ave = &ps_dec->s_sei_export.s_sei_ave_params;
+
+    ps_op->u4_ambient_illuminance = ps_sei_ave->u4_ambient_illuminance;
+    ps_op->u2_ambient_light_x = ps_sei_ave->u2_ambient_light_x;
+    ps_op->u2_ambient_light_y = ps_sei_ave->u2_ambient_light_y;
+
+    return IV_SUCCESS;
+}
+
+/*****************************************************************************/
+/*                                                                           */
+/*  Function Name : ih264d_get_sei_ccv_params                                */
+/*                                                                           */
+/*  Description   : This function populates SEI mdcv message in              */
+/*                     output structure                                      */
+/*  Inputs        : iv_obj_t decoder handle                                  */
+/*                : pv_api_ip pointer to input structure                     */
+/*                : pv_api_op pointer to output structure                    */
+/*  Outputs       :                                                          */
+/*  Returns       : returns 0; 1 with error code when CCV is not present    */
+/*                                                                           */
+/*  Issues        : none                                                     */
+/*                                                                           */
+/*  Revision History:                                                        */
+/*                                                                           */
+/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
+/*                                                                           */
+/*                                                                           */
+/*****************************************************************************/
+WORD32 ih264d_get_sei_ccv_params(iv_obj_t *dec_hdl,
+                                 void *pv_api_ip,
+                                 void *pv_api_op)
+{
+    ih264d_ctl_get_sei_ccv_params_ip_t *ps_ip;
+    ih264d_ctl_get_sei_ccv_params_op_t *ps_op;
+    dec_struct_t *ps_dec = dec_hdl->pv_codec_handle;
+    sei_ccv_params_t *ps_sei_ccv;
+    WORD32 i4_count;
+
+    ps_ip = (ih264d_ctl_get_sei_ccv_params_ip_t *)pv_api_ip;
+    ps_op = (ih264d_ctl_get_sei_ccv_params_op_t *)pv_api_op;
+    UNUSED(ps_ip);
+
+    if(0 == ps_dec->s_sei_export.u1_sei_ccv_params_present_flag)
+    {
+        ps_op->u4_error_code = ERROR_SEI_CCV_PARAMS_NOT_FOUND;
+        return IV_FAIL;
+    }
+
+    ps_sei_ccv = &ps_dec->s_sei_export.s_sei_ccv_params;
+
+    ps_op->u1_ccv_cancel_flag = ps_sei_ccv->u1_ccv_cancel_flag;
+
+    if(0 == ps_op->u1_ccv_cancel_flag)
+    {
+        ps_op->u1_ccv_persistence_flag = ps_sei_ccv->u1_ccv_persistence_flag;
+        ps_op->u1_ccv_primaries_present_flag = ps_sei_ccv->u1_ccv_primaries_present_flag;
+        ps_op->u1_ccv_min_luminance_value_present_flag =
+                    ps_sei_ccv->u1_ccv_min_luminance_value_present_flag;
+        ps_op->u1_ccv_max_luminance_value_present_flag =
+                    ps_sei_ccv->u1_ccv_max_luminance_value_present_flag;
+        ps_op->u1_ccv_avg_luminance_value_present_flag =
+                    ps_sei_ccv->u1_ccv_avg_luminance_value_present_flag;
+        ps_op->u1_ccv_reserved_zero_2bits = ps_sei_ccv->u1_ccv_reserved_zero_2bits;
+
+        if(1 == ps_sei_ccv->u1_ccv_primaries_present_flag)
+        {
+            for(i4_count = 0; i4_count < NUM_SEI_CCV_PRIMARIES; i4_count++)
+            {
+                ps_op->ai4_ccv_primaries_x[i4_count] = ps_sei_ccv->ai4_ccv_primaries_x[i4_count];
+                ps_op->ai4_ccv_primaries_y[i4_count] = ps_sei_ccv->ai4_ccv_primaries_y[i4_count];
+            }
+        }
+
+        if(1 == ps_sei_ccv->u1_ccv_min_luminance_value_present_flag)
+        {
+            ps_op->u4_ccv_min_luminance_value = ps_sei_ccv->u4_ccv_min_luminance_value;
+        }
+        if(1 == ps_sei_ccv->u1_ccv_max_luminance_value_present_flag)
+        {
+            ps_op->u4_ccv_max_luminance_value = ps_sei_ccv->u4_ccv_max_luminance_value;
+        }
+        if(1 == ps_sei_ccv->u1_ccv_avg_luminance_value_present_flag)
+        {
+            ps_op->u4_ccv_avg_luminance_value = ps_sei_ccv->u4_ccv_avg_luminance_value;
+        }
+    }
+
+    return IV_SUCCESS;
+}
 
 WORD32 ih264d_set_num_cores(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 {
@@ -3691,6 +4103,8 @@ void ih264d_fill_output_struct_from_context(dec_struct_t *ps_dec,
     ps_dec_op->e4_fld_type = ps_dec->s_disp_op.e4_fld_type;
     ps_dec_op->u4_ts = ps_dec->s_disp_op.u4_ts;
     ps_dec_op->u4_disp_buf_id = ps_dec->s_disp_op.u4_disp_buf_id;
+
+    ih264d_export_sei_params(&ps_dec_op->s_sei_decode_op, ps_dec);
 }
 
 /*****************************************************************************/
