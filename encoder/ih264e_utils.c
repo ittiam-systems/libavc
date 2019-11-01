@@ -247,6 +247,10 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
     ps_inp_buf->pv_pic_info = ps_ive_ip->pv_pic_info;
     ps_inp_buf->u4_pic_info_type = ps_ive_ip->u4_pic_info_type;
 
+    ps_inp_buf->u1_sei_ccv_params_present_flag =
+                ps_codec->s_cfg.s_sei.u1_sei_ccv_params_present_flag;
+    ps_inp_buf->s_sei_ccv = ps_codec->s_cfg.s_sei.s_sei_ccv_params;
+
     /***************************************************************************
      * Now we should add the picture to RC stack here
      **************************************************************************/
@@ -353,6 +357,9 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
     ps_enc_buff->u4_mb_info_type = ps_inp_buf->u4_mb_info_type;
     ps_enc_buff->pv_pic_info = ps_inp_buf->pv_pic_info;
     ps_enc_buff->u4_pic_info_type = ps_inp_buf->u4_pic_info_type;
+
+    ps_enc_buff->u1_sei_ccv_params_present_flag = ps_inp_buf->u1_sei_ccv_params_present_flag;
+    ps_enc_buff->s_sei_ccv = ps_inp_buf->s_sei_ccv;
 
     /* Special case for encoding trailing B frames
      *

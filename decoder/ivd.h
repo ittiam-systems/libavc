@@ -43,6 +43,18 @@
 /* Constant Macros                                                           */
 /*****************************************************************************/
 #define IVD_VIDDEC_MAX_IO_BUFFERS 64
+
+/** SEI macros */
+/*
+ * @brief  specifies the number of colour primary components of the mastering display
+ */
+#define NUM_SEI_MDCV_PRIMARIES        3
+
+/*
+ * @brief  specifies the number of colour primary components of the nominal content colour volume
+ */
+#define NUM_SEI_CCV_PRIMARIES         3
+
 /*****************************************************************************/
 /* Typedefs                                                                  */
 /*****************************************************************************/
@@ -368,6 +380,17 @@ typedef struct{
 /*   Video Decode                                                            */
 /*****************************************************************************/
 
+/* SEI params deocde */
+typedef struct {
+    UWORD8                                         u1_sei_mdcv_params_present_flag;
+
+    UWORD8                                         u1_sei_cll_params_present_flag;
+
+    UWORD8                                         u1_sei_ave_params_present_flag;
+
+    UWORD8                                         u1_sei_ccv_params_present_flag;
+
+}ivd_sei_decode_op_t;
 
 /* IVD_API_COMMAND_TYPE_T::e_cmd = IVD_CMD_VIDEO_DECODE                      */
 
@@ -471,6 +494,11 @@ typedef struct{
      * disp_frm_buf
      */
     iv_yuv_buf_t                            s_disp_frm_buf;
+
+    /**
+     * sei params o/p struct
+     */
+    ivd_sei_decode_op_t                     s_sei_decode_op;
 
     /**
      * fld_type

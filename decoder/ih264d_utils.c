@@ -949,6 +949,7 @@ WORD32 ih264d_get_next_display_field(dec_struct_t * ps_dec,
     ps_dec->i4_display_index  = DEFAULT_POC;
     if(pic_buf != NULL)
     {
+        ps_dec->pv_disp_sei_params = &pic_buf->s_sei_pic;
         pv_disp_op->e4_fld_type = 0;
         pv_disp_op->u4_disp_buf_id = i4_disp_buf_id;
 

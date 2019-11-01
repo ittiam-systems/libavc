@@ -133,6 +133,9 @@
 #define DEFAULT_SLICE_PARAM         256
 #define DEFAULT_ENTROPY_CODING_MODE 0
 
+#define DEFAULT_MAX_DISPLAY_MASTERING_LUMINANCE 50000
+#define DEFAULT_MIN_DISPLAY_MASTERING_LUMINANCE 1
+
 #define STRLENGTH               500
 
 
@@ -320,6 +323,40 @@ typedef struct
     TIMER   enc_last_time;
     WORD32  avg_time;
 
+    UWORD32 u4_sei_mdcv_params_present_flag;
+    UWORD32 au4_display_primaries_x[NUM_SEI_MDCV_PRIMARIES];
+    UWORD32 au4_display_primaries_y[NUM_SEI_MDCV_PRIMARIES];
+    UWORD32 u4_white_point_x;
+    UWORD32 u4_white_point_y;
+    UWORD32 u4_max_display_mastering_luminance;
+    UWORD32 u4_min_display_mastering_luminance;
+
+    UWORD32 u4_sei_cll_params_present_flag;
+    UWORD32 u4_max_content_light_level;
+    UWORD32 u4_max_pic_average_light_level;
+
+    UWORD32 u4_sei_ave_params_present_flag;
+    UWORD32 u4_ambient_illuminance;
+    UWORD32 u4_ambient_light_x;
+    UWORD32 u4_ambient_light_y;
+
+    UWORD32 u4_sei_ccv_params_present_flag;
+    UWORD32 u4_ccv_cancel_flag;
+    UWORD32 u4_ccv_persistence_flag;
+    UWORD32 u4_ccv_primaries_present_flag;
+    UWORD32 u4_ccv_min_luminance_value_present_flag;
+    UWORD32 u4_ccv_max_luminance_value_present_flag;
+    UWORD32 u4_ccv_avg_luminance_value_present_flag;
+    UWORD32 u4_ccv_reserved_zero_2bits;
+    WORD32  ai4_ccv_primaries_x[NUM_SEI_CCV_PRIMARIES];
+    WORD32  ai4_ccv_primaries_y[NUM_SEI_CCV_PRIMARIES];
+    UWORD32 u4_ccv_min_luminance_value;
+    UWORD32 u4_ccv_max_luminance_value;
+    UWORD32 u4_ccv_avg_luminance_value;
+
+    ih264e_ctl_set_sei_mdcv_params_ip_t s_sei_mdcv_params;
+    ih264e_ctl_set_sei_cll_params_ip_t s_sei_cll_params;
+    ih264e_ctl_set_sei_ave_params_ip_t s_sei_ave_params;
 
 } app_ctxt_t;
 
