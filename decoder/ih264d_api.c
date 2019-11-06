@@ -963,6 +963,30 @@ void ih264d_init_decoder(void * ps_dec_params)
     /* Free any dynamic buffers that are allocated */
     ih264d_free_dynamic_bufs(ps_dec);
 
+    {
+        UWORD8 i;
+        struct pic_buffer_t *ps_init_dpb;
+        ps_init_dpb = ps_dec->ps_dpb_mgr->ps_init_dpb[0][0];
+        for(i = 0; i < 2 * MAX_REF_BUFS; i++)
+        {
+            ps_init_dpb->pu1_buf1 = NULL;
+            ps_init_dpb->u1_long_term_frm_idx = MAX_REF_BUFS + 1;
+            ps_dec->ps_dpb_mgr->ps_init_dpb[0][i] = ps_init_dpb;
+            ps_dec->ps_dpb_mgr->ps_mod_dpb[0][i] = ps_init_dpb;
+            ps_init_dpb++;
+        }
+
+        ps_init_dpb = ps_dec->ps_dpb_mgr->ps_init_dpb[1][0];
+        for(i = 0; i < 2 * MAX_REF_BUFS; i++)
+        {
+            ps_init_dpb->pu1_buf1 = NULL;
+            ps_init_dpb->u1_long_term_frm_idx = MAX_REF_BUFS + 1;
+            ps_dec->ps_dpb_mgr->ps_init_dpb[1][i] = ps_init_dpb;
+            ps_dec->ps_dpb_mgr->ps_mod_dpb[1][i] = ps_init_dpb;
+            ps_init_dpb++;
+        }
+    }
+
     ps_cur_slice = ps_dec->ps_cur_slice;
     ps_dec->init_done = 0;
 
@@ -1439,29 +1463,6 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     ps_dec->ps_col_mv_base = pv_buf;
     memset(ps_dec->ps_col_mv_base, 0, size);
 
-    {
-        UWORD8 i;
-        struct pic_buffer_t *ps_init_dpb;
-        ps_init_dpb = ps_dec->ps_dpb_mgr->ps_init_dpb[0][0];
-        for(i = 0; i < 2 * MAX_REF_BUFS; i++)
-        {
-            ps_init_dpb->pu1_buf1 = NULL;
-            ps_init_dpb->u1_long_term_frm_idx = MAX_REF_BUFS + 1;
-            ps_dec->ps_dpb_mgr->ps_init_dpb[0][i] = ps_init_dpb;
-            ps_dec->ps_dpb_mgr->ps_mod_dpb[0][i] = ps_init_dpb;
-            ps_init_dpb++;
-        }
-
-        ps_init_dpb = ps_dec->ps_dpb_mgr->ps_init_dpb[1][0];
-        for(i = 0; i < 2 * MAX_REF_BUFS; i++)
-        {
-            ps_init_dpb->pu1_buf1 = NULL;
-            ps_init_dpb->u1_long_term_frm_idx = MAX_REF_BUFS + 1;
-            ps_dec->ps_dpb_mgr->ps_init_dpb[1][i] = ps_init_dpb;
-            ps_dec->ps_dpb_mgr->ps_mod_dpb[1][i] = ps_init_dpb;
-            ps_init_dpb++;
-        }
-    }
     ih264d_init_decoder(ps_dec);
 
     return IV_SUCCESS;
