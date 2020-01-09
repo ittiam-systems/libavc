@@ -1227,7 +1227,9 @@ WORD32 ih264d_assign_display_seq(dec_struct_t *ps_dec)
                             && (DO_NOT_DISP
                                             != ps_dpb_mgr->ai4_poc_buf_id_map[i][0]))
             {
-                if(i4_poc_buf_id_map[i][1] < i4_min_poc)
+                /* Checking for <= is necessary to handle cases where there is one
+                   valid buffer with poc set to 0x7FFFFFFF. */
+                if(i4_poc_buf_id_map[i][1] <= i4_min_poc)
                 {
                     i4_min_poc = i4_poc_buf_id_map[i][1];
                     i4_min_poc_buf_id = i4_poc_buf_id_map[i][0];
@@ -1290,8 +1292,8 @@ void ih264d_release_display_bufs(dec_struct_t *ps_dec)
     WORD32 (*i4_poc_buf_id_map)[3] = ps_dpb_mgr->ai4_poc_buf_id_map;
 
     i4_min_poc = 0x7fffffff;
-    i4_min_poc_buf_id = -1;
-    i4_min_index = -1;
+    i4_min_poc_buf_id = 0;
+    i4_min_index = 0;
 
     ih264d_delete_nonref_nondisplay_pics(ps_dpb_mgr);
 
@@ -1302,7 +1304,9 @@ void ih264d_release_display_bufs(dec_struct_t *ps_dec)
         {
             if(i4_poc_buf_id_map[i][0] != -1)
             {
-                if(i4_poc_buf_id_map[i][1] < i4_min_poc)
+                /* Checking for <= is necessary to handle cases where there is one
+                   valid buffer with poc set to 0x7FFFFFFF. */
+                if(i4_poc_buf_id_map[i][1] <= i4_min_poc)
                 {
                     i4_min_poc = i4_poc_buf_id_map[i][1];
                     i4_min_poc_buf_id = i4_poc_buf_id_map[i][0];
