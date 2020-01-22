@@ -92,6 +92,20 @@
             }                                                                \
         }
 
+/**
+******************************************************************************
+ *  @brief   Macro to set active entropy threads to zero and return
+ *           in case of errors
+******************************************************************************
+ */
+#define RETURN_ENTROPY_IF_ERROR(ps_codec, ps_entropy, ctxt_sel)              \
+        if(ps_entropy->i4_error_code != IH264E_SUCCESS)                      \
+        {                                                                    \
+            DATA_SYNC();                                                     \
+            ps_codec->au4_entropy_thread_active[ctxt_sel] = 0;               \
+            return ps_entropy->i4_error_code;                                \
+        }
+
 /*****************************************************************************/
 /* Extern Function Declarations                                              */
 /*****************************************************************************/
