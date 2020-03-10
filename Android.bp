@@ -159,18 +159,6 @@ cc_library_static {
             ],
         },
 
-        mips: {
-            local_include_dirs: ["common/mips"],
-
-            srcs: ["decoder/mips/ih264d_function_selector.c"],
-        },
-
-        mips64: {
-            local_include_dirs: ["common/mips"],
-
-            srcs: ["decoder/mips/ih264d_function_selector.c"],
-        },
-
         x86: {
             cflags: [
                 "-DX86",
@@ -414,24 +402,6 @@ cc_library_static {
                 "encoder/armv8/ih264e_half_pel_av8.s",
                 "encoder/armv8/ime_distortion_metrics_av8.s",
             ],
-        },
-
-        mips: {
-            local_include_dirs: [
-                "common/mips",
-                "encoder/mips",
-            ],
-
-            srcs: ["encoder/mips/ih264e_function_selector.c"],
-        },
-
-        mips64: {
-            local_include_dirs: [
-                "common/mips",
-                "encoder/mips",
-            ],
-
-            srcs: ["encoder/mips/ih264e_function_selector.c"],
         },
 
         x86: {
