@@ -1029,7 +1029,6 @@ WORD32 ih264d_fix_error_in_dpb(dec_struct_t *ps_dec)
                         ps_st_next_dpb->ps_prev_short = ps_st_curr_dpb->ps_prev_short;
                     }
                     ps_dec->ps_dpb_mgr->u1_num_st_ref_bufs--;
-                    ps_dec->ps_dpb_mgr->u1_num_lt_ref_bufs++;
                     no_of_nodes_deleted++;
                     break;
                 }
