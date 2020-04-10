@@ -1037,7 +1037,6 @@ WORD32 ih264d_fix_error_in_dpb(dec_struct_t *ps_dec)
                         ps_st_next_dpb->ps_prev_short = ps_st_curr_dpb->ps_prev_short;
                     }
                     ps_dec->ps_dpb_mgr->u1_num_st_ref_bufs--;
-                    ps_dec->ps_dpb_mgr->u1_num_lt_ref_bufs++;
                     no_of_nodes_deleted++;
                     break;
                 }
@@ -1315,7 +1314,12 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
 
     if(i1_is_end_of_poc || ps_dec->u1_first_slice_in_stream)
     {
-        if(u2_frame_num != ps_dec->u2_prv_frame_num
+        /* If the current slice is not a field or frame number of the current
+         * slice doesn't match with previous slice, and decoder is expecting
+         * to decode a field i.e. ps_dec->u1_top_bottom_decoded is not 0 and
+         * is not (TOP_FIELD_ONLY | BOT_FIELD_ONLY), treat it as a dangling
+         * field */
+        if((u1_field_pic_flag == 0 || u2_frame_num != ps_dec->u2_prv_frame_num)
                && ps_dec->u1_top_bottom_decoded != 0
                    && ps_dec->u1_top_bottom_decoded
                        != (TOP_FIELD_ONLY | BOT_FIELD_ONLY))
