@@ -233,6 +233,7 @@ cc_library_static {
         blacklist: "libavc_blacklist.txt",
     },
     apex_available: [
+        "//apex_available:platform", // used by libstagefright_soft_avcdec
         "com.android.media.swcodec",
     ],
     min_sdk_version: "29",
@@ -493,6 +494,7 @@ cc_library_static {
         blacklist: "libavc_blacklist.txt",
     },
     apex_available: [
+        "//apex_available:platform", //due to libstagefright_soft_avcenc
         "com.android.media.swcodec",
     ],
     min_sdk_version: "29",
