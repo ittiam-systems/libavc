@@ -759,8 +759,12 @@ WORD32 ih264d_parse_sei_message(dec_struct_t *ps_dec,
     {
         ui4_payload_type = 0;
 
+        if(!CHECK_BITS_SUFFICIENT(ps_bitstrm, 8))
+        {
+            return ERROR_EOB_GETBITS_T;
+        }
         u4_bits = ih264d_get_bits_h264(ps_bitstrm, 8);
-        while(0xff == u4_bits && !EXCEED_OFFSET(ps_bitstrm))
+        while(0xff == u4_bits && CHECK_BITS_SUFFICIENT(ps_bitstrm, 8))
         {
             u4_bits = ih264d_get_bits_h264(ps_bitstrm, 8);
             ui4_payload_type += 255;
@@ -768,14 +772,22 @@ WORD32 ih264d_parse_sei_message(dec_struct_t *ps_dec,
         ui4_payload_type += u4_bits;
 
         ui4_payload_size = 0;
+        if(!CHECK_BITS_SUFFICIENT(ps_bitstrm, 8))
+        {
+            return ERROR_EOB_GETBITS_T;
+        }
         u4_bits = ih264d_get_bits_h264(ps_bitstrm, 8);
-        while(0xff == u4_bits && !EXCEED_OFFSET(ps_bitstrm))
+        while(0xff == u4_bits && CHECK_BITS_SUFFICIENT(ps_bitstrm, 8))
         {
             u4_bits = ih264d_get_bits_h264(ps_bitstrm, 8);
             ui4_payload_size += 255;
         }
         ui4_payload_size += u4_bits;
 
+        if(!CHECK_BITS_SUFFICIENT(ps_bitstrm, (ui4_payload_size << 3)))
+        {
+            return ERROR_EOB_GETBITS_T;
+        }
         i4_status = ih264d_parse_sei_payload(ps_bitstrm, ui4_payload_type,
                                              ui4_payload_size, ps_dec);
         if(i4_status != OK)
@@ -789,7 +801,7 @@ WORD32 ih264d_parse_sei_message(dec_struct_t *ps_dec,
                 H264_DEC_DEBUG_PRINT("\nError in parsing SEI message");
             }
             while(0 == ih264d_check_byte_aligned(ps_bitstrm)
-                            && !EXCEED_OFFSET(ps_bitstrm))
+                            && CHECK_BITS_SUFFICIENT(ps_bitstrm, 1))
             {
                 u4_bits = ih264d_get_bit_h264(ps_bitstrm);
                 if(u4_bits)
@@ -799,7 +811,7 @@ WORD32 ih264d_parse_sei_message(dec_struct_t *ps_dec,
             }
         }
     }
-    while(ps_bitstrm->u4_ofst < ps_bitstrm->u4_max_ofst);
+    while(MORE_RBSP_DATA(ps_bitstrm));
     return (i4_status);
 }
 
