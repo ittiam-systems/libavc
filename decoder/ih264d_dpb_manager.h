@@ -50,6 +50,7 @@
 #define RESET_NONREF_PICTURES       7
 #define RESET_ALL_PICTURES          8
 
+#define NO_LONG_TERM_INDICIES      255
 struct field_t
 {
     /* picNum of tbe reference field              */
@@ -93,7 +94,7 @@ typedef struct
   struct dpb_info_t as_dpb_info[MAX_REF_BUFS];       /** Physical storage for dpbInfo for ref bufs */
   UWORD8 u1_num_st_ref_bufs;        /** Number of short term ref. buffers */
   UWORD8 u1_num_lt_ref_bufs;        /** Number of long term ref. buffer */
-  UWORD8 u1_max_lt_pic_idx_plus1;       /** Maximum long term pictures - 0 to max_long_term_pic_idx */
+  UWORD8 u1_max_lt_frame_idx;       /** Maximum long term frame index */
   UWORD8 u1_num_gaps;       /** Total number of outstanding gaps */
   void * pv_codec_handle;             /* For Error Handling */
   WORD32 i4_max_frm_num;        /** Max frame number */
