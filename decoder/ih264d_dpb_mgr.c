@@ -851,6 +851,8 @@ WORD32 ih264d_ref_idx_reordering(dec_struct_t *ps_dec, UWORD8 uc_lx)
  */
 WORD32 ih264d_read_mmco_commands(struct _DecStruct * ps_dec)
 {
+    dec_pic_params_t *ps_pps = ps_dec->ps_cur_pps;
+    dec_seq_params_t *ps_sps = ps_pps->ps_sps;
     dec_bit_stream_t *ps_bitstrm = ps_dec->ps_bitstrm;
     dpb_commands_t *ps_dpb_cmds = &(ps_dec->s_dpb_cmds_scratch);
     dec_slice_params_t * ps_slice = ps_dec->ps_cur_slice;
@@ -890,7 +892,7 @@ WORD32 ih264d_read_mmco_commands(struct _DecStruct * ps_dec)
             {
                 UWORD32 u4_mmco;
                 UWORD32 u4_diff_pic_num;
-                UWORD32 u4_lt_idx, u4_max_lt_idx;
+                UWORD32 u4_lt_idx, u4_max_lt_idx_plus1;
 
                 u4_mmco = ih264d_uev(pu4_bitstrm_ofst,
                                      pu4_bitstrm_buf);
@@ -933,9 +935,14 @@ WORD32 ih264d_read_mmco_commands(struct _DecStruct * ps_dec)
 
                         case SET_MAX_LT_INDEX:
                         {
-                            u4_max_lt_idx = ih264d_uev(pu4_bitstrm_ofst,
-                                                       pu4_bitstrm_buf);
-                            ps_mmc_params->u4_max_lt_idx_plus1 = u4_max_lt_idx;
+                            u4_max_lt_idx_plus1 = ih264d_uev(pu4_bitstrm_ofst,
+                                                             pu4_bitstrm_buf);
+                            if (u4_max_lt_idx_plus1 > ps_sps->u1_num_ref_frames)
+                            {
+                                /* Invalid max LT ref index */
+                                return -1;
+                            }
+                            ps_mmc_params->u4_max_lt_idx_plus1 = u4_max_lt_idx_plus1;
                             break;
                         }
                         case RESET_REF_PICTURES:
@@ -959,7 +966,6 @@ WORD32 ih264d_read_mmco_commands(struct _DecStruct * ps_dec)
                     j++;
                 }
                 ps_dpb_cmds->u1_num_of_commands = j;
-
             }
         }
         ps_dpb_cmds->u1_dpb_commands_read = 1;
@@ -1243,6 +1249,13 @@ WORD32 ih264d_do_mmco_buffer(dpb_commands_t *ps_dpb_cmds,
                     }
 
                     u4_lt_idx = ps_mmc_params->u4_lt_idx; //Get long term index
+
+                    if((ps_dpb_mgr->u1_max_lt_frame_idx == NO_LONG_TERM_INDICIES) ||
+                        (u4_lt_idx > ps_dpb_mgr->u1_max_lt_frame_idx))
+                    {
+                        return ERROR_DBP_MANAGER_T;
+                    }
+
                     if(ps_dpb_mgr->u1_num_st_ref_bufs > 0)
                     {
                         ret = ih264d_delete_st_node_or_make_lt(ps_dpb_mgr,
@@ -1257,7 +1270,7 @@ WORD32 ih264d_do_mmco_buffer(dpb_commands_t *ps_dpb_cmds,
                 {
                     UWORD8 uc_numLT = ps_dpb_mgr->u1_num_lt_ref_bufs;
                     u4_lt_idx = ps_mmc_params->u4_max_lt_idx_plus1; //Get Max_long_term_index_plus1
-                    if(u4_lt_idx < ps_dpb_mgr->u1_max_lt_pic_idx_plus1
+                    if(u4_lt_idx <= ps_dpb_mgr->u1_max_lt_frame_idx
                                     && uc_numLT > 0)
                     {
                         struct dpb_info_t *ps_nxtDPB;
@@ -1302,13 +1315,25 @@ WORD32 ih264d_do_mmco_buffer(dpb_commands_t *ps_dpb_cmds,
                             ps_nxtDPB->ps_prev_long = NULL;
                         }
                     }
-                    ps_dpb_mgr->u1_max_lt_pic_idx_plus1 = u4_lt_idx;
+                    if(u4_lt_idx == 0)
+                    {
+                        ps_dpb_mgr->u1_max_lt_frame_idx = NO_LONG_TERM_INDICIES;
+                    }
+                    else
+                    {
+                        ps_dpb_mgr->u1_max_lt_frame_idx = u4_lt_idx - 1;
+                    }
 
                     break;
                 }
                 case SET_LT_INDEX:
                 {
                     u4_lt_idx = ps_mmc_params->u4_lt_idx; //Get long term index
+                    if((ps_dpb_mgr->u1_max_lt_frame_idx == NO_LONG_TERM_INDICIES) ||
+                        (u4_lt_idx > ps_dpb_mgr->u1_max_lt_frame_idx))
+                    {
+                        return ERROR_DBP_MANAGER_T;
+                    }
                     ret = ih264d_insert_st_node(ps_dpb_mgr, ps_pic_buf, u1_buf_id,
                                           u4_cur_pic_num);
                     if(ret != OK)
