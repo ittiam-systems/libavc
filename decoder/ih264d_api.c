@@ -3253,7 +3253,7 @@ WORD32 ih264d_set_params(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         ret = IV_FAIL;
     }
 
-    if(ps_ctl_ip->u4_disp_wd >= ps_dec->u2_pic_wd)
+    if(ps_ctl_ip->u4_disp_wd >= ps_dec->u2_disp_width)
     {
         ps_dec->u4_app_disp_width = ps_ctl_ip->u4_disp_wd;
     }
