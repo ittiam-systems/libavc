@@ -123,6 +123,16 @@ typedef enum
     COEFF_ABS_LEVEL_CAT_5_OFFSET = 0
 } cabac_blk_cat_offset_t;
 
+#ifdef KEEP_THREADS_ACTIVE
+typedef enum
+{
+    PROC_INIT,
+    PROC_START,
+    PROC_IN_PROGRESS,
+    PROC_DONE,
+} proc_state_t;
+#endif
+
 /** Structure for the MV bank */
 typedef struct _mv_pred_t
 {
@@ -1277,6 +1287,44 @@ typedef struct _DecStruct
     UWORD8 u1_separate_parse;
     UWORD32 u4_dec_thread_created;
     void *pv_dec_thread_handle;
+
+#ifdef KEEP_THREADS_ACTIVE
+    /**
+     * Condition variable to signal process start - One for each thread
+     */
+    void *apv_proc_start_condition[2];
+
+    /**
+     * Mutex used to keep the functions thread-safe - One for each thread
+     */
+    void *apv_proc_start_mutex[2];
+
+    /**
+     * Condition variable to signal process done - One for each thread
+     */
+    void *apv_proc_done_condition[2];
+
+    /**
+     * Mutex used to keep the functions thread-safe - One for each thread
+     */
+    void *apv_proc_done_mutex[2];
+
+    /**
+     * Process state start - One for each thread
+     */
+    proc_state_t ai4_process_start[2];
+
+    /**
+     * Process state end - One for each thread
+     */
+    proc_state_t ai4_process_done[2];
+
+    /**
+     * Flag to signal processing thread to exit
+     */
+    WORD32 i4_break_threads;
+#endif
+
     volatile UWORD8 *pu1_dec_mb_map;
     volatile UWORD8 *pu1_recon_mb_map;
     volatile UWORD16 *pu2_slice_num_map;
