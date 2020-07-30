@@ -230,7 +230,7 @@ cc_library_static {
         misc_undefined: ["bounds"],
         // Enable CFI if this becomes a shared library.
         // cfi: true,
-        blacklist: "libavc_blacklist.txt",
+        blocklist: "libavc_blocklist.txt",
     },
     apex_available: [
         "//apex_available:platform", // used by libstagefright_soft_avcdec
@@ -491,7 +491,7 @@ cc_library_static {
         misc_undefined: ["bounds"],
         // Enable CFI if this becomes a shared library.
         // cfi: true,
-        blacklist: "libavc_blacklist.txt",
+        blocklist: "libavc_blocklist.txt",
     },
     apex_available: [
         "//apex_available:platform", //due to libstagefright_soft_avcenc
