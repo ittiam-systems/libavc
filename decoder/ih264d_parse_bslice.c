@@ -1197,8 +1197,8 @@ void ih264d_get_implicit_weights(dec_struct_t *ps_dec)
     UWORD8 i, j;
     struct pic_buffer_t *ps_pic_buff0, *ps_pic_buff1;
     WORD16 i2_dist_scale_factor;
-    WORD16 i16_tb, i16_td, i16_tx;
-    WORD32 i4_tb, i4_td;
+    WORD16 i2_tb, i2_td, i2_tx;
+    WORD64 i8_tb, i8_td;
     WORD32 i4_poc0, i4_poc1;
     UWORD32 ui_temp0, ui_temp1;
     UWORD8 uc_num_ref_idx_l0_active, uc_num_ref_idx_l1_active;
@@ -1220,13 +1220,13 @@ void ih264d_get_implicit_weights(dec_struct_t *ps_dec)
 
             if(i4_poc1 != i4_poc0)
             {
-                i4_tb = ps_dec->ps_cur_pic->i4_poc - i4_poc0;
-                i16_tb = CLIP_S8(i4_tb);
-                i4_td = i4_poc1 - i4_poc0;
-                i16_td = CLIP_S8(i4_td);
-                i16_tx = (16384 + ABS(SIGN_POW2_DIV(i16_td, 1))) / i16_td;
+                i8_tb = (WORD64)ps_dec->ps_cur_pic->i4_poc - i4_poc0;
+                i2_tb = CLIP_S8(i8_tb);
+                i8_td = (WORD64)i4_poc1 - i4_poc0;
+                i2_td = CLIP_S8(i8_td);
+                i2_tx = (16384 + ABS(SIGN_POW2_DIV(i2_td, 1))) / i2_td;
                 i2_dist_scale_factor = CLIP_S11(
-                                            (((i16_tb * i16_tx) + 32) >> 6));
+                                            (((i2_tb * i2_tx) + 32) >> 6));
 
                 if(/*((u4_poc1 - u4_poc0) == 0) ||*/
                 (!(ps_pic_buff1->u1_is_short && ps_pic_buff0->u1_is_short))
@@ -1290,14 +1290,14 @@ void ih264d_get_implicit_weights(dec_struct_t *ps_dec)
                     i4_poc1 = ps_pic_buff1->i4_poc;
                     if(i4_poc1 != i4_poc0)
                     {
-                        i4_tb = i4_cur_poc - i4_poc0;
-                        i16_tb = CLIP_S8(i4_tb);
-                        i4_td = i4_poc1 - i4_poc0;
-                        i16_td = CLIP_S8(i4_td);
-                        i16_tx = (16384 + ABS(SIGN_POW2_DIV(i16_td, 1)))
-                                        / i16_td;
+                        i8_tb = (WORD64)i4_cur_poc - i4_poc0;
+                        i2_tb = CLIP_S8(i8_tb);
+                        i8_td = (WORD64)i4_poc1 - i4_poc0;
+                        i2_td = CLIP_S8(i8_td);
+                        i2_tx = (16384 + ABS(SIGN_POW2_DIV(i2_td, 1)))
+                                        / i2_td;
                         i2_dist_scale_factor = CLIP_S11(
-                                                    (((i16_tb * i16_tx) + 32) >> 6));
+                                                    (((i2_tb * i2_tx) + 32) >> 6));
 
                         if(/*((u4_poc1 - u4_poc0) == 0) ||*/
                         (!(ps_pic_buff1->u1_is_short && ps_pic_buff0->u1_is_short))
