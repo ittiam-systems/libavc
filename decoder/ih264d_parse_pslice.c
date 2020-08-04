@@ -1494,7 +1494,11 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
             ps_dec->p_motion_compensate = ih264d_motion_compensate_bp;
 
             if(ps_dec->ps_cur_pic != NULL)
-                poc = ps_dec->ps_cur_pic->i4_poc + 2;
+            {
+                poc = ps_dec->ps_cur_pic->i4_poc;
+                if (poc <= INT32_MAX - 2)
+                    poc += 2;
+            }
 
             j = -1;
             for(i = 0; i < MAX_NUM_PIC_PARAMS; i++)
