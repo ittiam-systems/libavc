@@ -45,6 +45,11 @@
 
 #define FMT_CONV_NUM_ROWS       16
 
+/** Decoder currently has an additional latency of 2 pictures when
+  * returning output for display
+  */
+#define DISPLAY_LATENCY         2
+
 /** Bit manipulation macros */
 #define CHECKBIT(a,i) ((a) &  (1 << i))
 #define CLEARBIT(a,i) ((a) &= ~(1 << i))
