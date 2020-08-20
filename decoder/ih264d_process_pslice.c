@@ -829,7 +829,7 @@ WORD32 ih264d_parse_pred_weight_table(dec_slice_params_t * ps_cur_slice,
     WORD32 i_temp;
 
     u4_temp = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
-    if(u4_temp & MASK_LOG2_WEIGHT_DENOM)
+    if(u4_temp > MAX_LOG2_WEIGHT_DENOM)
     {
         return ERROR_PRED_WEIGHT_TABLE_T;
     }
@@ -838,7 +838,7 @@ WORD32 ih264d_parse_pred_weight_table(dec_slice_params_t * ps_cur_slice,
     ui32_y_def_weight_ofst = (1 << uc_luma_log2_weight_denom);
 
     u4_temp = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
-    if(u4_temp & MASK_LOG2_WEIGHT_DENOM)
+    if(u4_temp > MAX_LOG2_WEIGHT_DENOM)
     {
         return ERROR_PRED_WEIGHT_TABLE_T;
     }
@@ -864,14 +864,14 @@ WORD32 ih264d_parse_pred_weight_table(dec_slice_params_t * ps_cur_slice,
             {
                 i_temp = ih264d_sev(pu4_bitstrm_ofst,
                                     pu4_bitstrm_buf);
-                if((i_temp + 128) & MASK_PRED_WEIGHT_OFFSET)
+                if((i_temp < PRED_WEIGHT_MIN) || (i_temp > PRED_WEIGHT_MAX))
                     return ERROR_PRED_WEIGHT_TABLE_T;
                 c_weight = i_temp;
                 COPYTHECONTEXT("SH: luma_weight_l0",c_weight);
 
                 i_temp = ih264d_sev(pu4_bitstrm_ofst,
                                     pu4_bitstrm_buf);
-                if((i_temp + 128) & MASK_PRED_WEIGHT_OFFSET)
+                if((i_temp < PRED_WEIGHT_MIN) || (i_temp > PRED_WEIGHT_MAX))
                     return ERROR_PRED_WEIGHT_TABLE_T;
                 c_offset = i_temp;
                 COPYTHECONTEXT("SH: luma_offset_l0",c_offset);
@@ -894,14 +894,14 @@ WORD32 ih264d_parse_pred_weight_table(dec_slice_params_t * ps_cur_slice,
                 {
                     i_temp = ih264d_sev(pu4_bitstrm_ofst,
                                         pu4_bitstrm_buf);
-                    if((i_temp + 128) & MASK_PRED_WEIGHT_OFFSET)
+                    if((i_temp < PRED_WEIGHT_MIN) || (i_temp > PRED_WEIGHT_MAX))
                         return ERROR_PRED_WEIGHT_TABLE_T;
                     c_weightCb = i_temp;
                     COPYTHECONTEXT("SH: chroma_weight_l0",c_weightCb);
 
                     i_temp = ih264d_sev(pu4_bitstrm_ofst,
                                         pu4_bitstrm_buf);
-                    if((i_temp + 128) & MASK_PRED_WEIGHT_OFFSET)
+                    if((i_temp < PRED_WEIGHT_MIN) || (i_temp > PRED_WEIGHT_MAX))
                         return ERROR_PRED_WEIGHT_TABLE_T;
                     c_offsetCb = i_temp;
                     COPYTHECONTEXT("SH: chroma_weight_l0",c_offsetCb);
@@ -911,14 +911,14 @@ WORD32 ih264d_parse_pred_weight_table(dec_slice_params_t * ps_cur_slice,
 
                     i_temp = ih264d_sev(pu4_bitstrm_ofst,
                                         pu4_bitstrm_buf);
-                    if((i_temp + 128) & MASK_PRED_WEIGHT_OFFSET)
+                    if((i_temp < PRED_WEIGHT_MIN) || (i_temp > PRED_WEIGHT_MAX))
                         return ERROR_PRED_WEIGHT_TABLE_T;
                     c_weightCr = i_temp;
                     COPYTHECONTEXT("SH: chroma_weight_l0",c_weightCr);
 
                     i_temp = ih264d_sev(pu4_bitstrm_ofst,
                                         pu4_bitstrm_buf);
-                    if((i_temp + 128) & MASK_PRED_WEIGHT_OFFSET)
+                    if((i_temp < PRED_WEIGHT_MIN) || (i_temp > PRED_WEIGHT_MAX))
                         return ERROR_PRED_WEIGHT_TABLE_T;
                     c_offsetCr = i_temp;
                     COPYTHECONTEXT("SH: chroma_weight_l0",c_offsetCr);
