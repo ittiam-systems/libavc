@@ -602,8 +602,9 @@ enum
 #define DISP_BOT_FLD_FIRST   2
 
 /** Misc error resilience requirements*/
-#define MASK_LOG2_WEIGHT_DENOM      0xFFFFFFF8
-#define MASK_PRED_WEIGHT_OFFSET     0xFFFFFF00
+#define MAX_LOG2_WEIGHT_DENOM       7
+#define PRED_WEIGHT_MIN             (-128)
+#define PRED_WEIGHT_MAX             127
 #define MAX_REDUNDANT_PIC_CNT       127
 
 
