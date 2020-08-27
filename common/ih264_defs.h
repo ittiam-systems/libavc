@@ -611,6 +611,16 @@ typedef enum
 #define MAX_H264_QP 51
 
 /**
+ * @brief  Minimum delta scale supported in H264 spec
+ */
+#define MIN_H264_DELTA_SCALE (-128)
+
+/**
+ * @brief  Maximum delta scale supported in H264 spec
+ */
+#define MAX_H264_DELTA_SCALE 127
+
+/**
  * @breif  Total number of transform sizes
  * used for sizeID while getting scale matrix
  */
