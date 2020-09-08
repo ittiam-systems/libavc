@@ -20,6 +20,7 @@
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
 #include "ih264_platform_macros.h"
+#include "ih264_defs.h"
 #include "ih264d_bitstrm.h"
 #include "ih264d_structs.h"
 #include "ih264d_parse_cavlc.h"
@@ -44,7 +45,7 @@
 
 #define IDCT_BLOCK_WIDTH8X8  8
 
-void ih264d_scaling_list(WORD16 *pi2_scaling_list,
+WORD32 ih264d_scaling_list(WORD16 *pi2_scaling_list,
                          WORD32 i4_size_of_scalinglist,
                          UWORD8 *pu1_use_default_scaling_matrix_flag,
                          dec_bit_stream_t *ps_bitstrm)
@@ -62,6 +63,11 @@ void ih264d_scaling_list(WORD16 *pi2_scaling_list,
             i4_delta_scale = ih264d_sev(pu4_bitstrm_ofst,
                                         pu4_bitstrm_buf);
 
+            if(i4_delta_scale < MIN_H264_DELTA_SCALE ||
+                        i4_delta_scale > MAX_H264_DELTA_SCALE)
+            {
+                return ERROR_INV_RANGE_QP_T;
+            }
             i4_nextScale = ((i4_lastScale + i4_delta_scale + 256) & 0xff);
 
             *pu1_use_default_scaling_matrix_flag = ((i4_j == 0)
@@ -72,6 +78,7 @@ void ih264d_scaling_list(WORD16 *pi2_scaling_list,
                         (i4_nextScale == 0) ? (i4_lastScale) : (i4_nextScale);
         i4_lastScale = pi2_scaling_list[i4_j];
     }
+    return OK;
 }
 
 WORD32 ih264d_form_default_scaling_matrix(dec_struct_t *ps_dec)
