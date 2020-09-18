@@ -69,7 +69,7 @@ WORD32 ih264d_init_cabac_dec_envirnoment(decoding_envirnoment_t * ps_cab_env,
              32);
     FLUSHBITS(ps_bitstrm->u4_ofst, 9)
 
-    if(ps_bitstrm->u4_ofst > ps_bitstrm->u4_max_ofst)
+    if(EXCEED_OFFSET(ps_bitstrm))
         return ERROR_EOB_FLUSHBITS_T;
 
     ps_cab_env->u4_code_int_val_ofst = u4_code_int_val_ofst;
