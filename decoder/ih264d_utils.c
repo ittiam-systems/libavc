@@ -501,6 +501,7 @@ WORD32 ih264d_end_of_pic_processing(dec_struct_t *ps_dec)
     {
         if(ps_cur_slice->u1_nal_unit_type == IDR_SLICE_NAL)
         {
+            ps_dec->ps_dpb_mgr->u1_mmco_error_in_seq = 0;
             if(ps_dec->ps_dpb_cmds->u1_long_term_reference_flag == 0)
             {
                 ih264d_reset_ref_bufs(ps_dec->ps_dpb_mgr);
@@ -538,16 +539,17 @@ WORD32 ih264d_end_of_pic_processing(dec_struct_t *ps_dec)
             {
                 UWORD16 u2_pic_num = ps_cur_slice->u2_frame_num;
 
-                /* ignore DPB errors */
-                ih264d_do_mmco_buffer(ps_dec->ps_dpb_cmds, ps_dec->ps_dpb_mgr,
-                              ps_dec->ps_cur_sps->u1_num_ref_frames, u2_pic_num,
-                              (ps_dec->ps_cur_sps->u2_u4_max_pic_num_minus1),
-                              ps_dec->u1_nal_unit_type, ps_dec->ps_cur_pic,
-                              ps_dec->u1_pic_buf_id,
-                              ps_cur_slice->u1_field_pic_flag,
-                              ps_dec->e_dec_status);
-
-
+                if(!ps_dec->ps_dpb_mgr->u1_mmco_error_in_seq)
+                {
+                    WORD32 ret = ih264d_do_mmco_buffer(ps_dec->ps_dpb_cmds, ps_dec->ps_dpb_mgr,
+                                               ps_dec->ps_cur_sps->u1_num_ref_frames, u2_pic_num,
+                                               (ps_dec->ps_cur_sps->u2_u4_max_pic_num_minus1),
+                                               ps_dec->u1_nal_unit_type, ps_dec->ps_cur_pic,
+                                               ps_dec->u1_pic_buf_id,
+                                               ps_cur_slice->u1_field_pic_flag,
+                                               ps_dec->e_dec_status);
+                    ps_dec->ps_dpb_mgr->u1_mmco_error_in_seq = ret != OK;
+                }
             }
         }
         ih264d_update_default_index_list(ps_dec->ps_dpb_mgr);
