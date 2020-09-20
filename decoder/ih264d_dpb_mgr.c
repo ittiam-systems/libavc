@@ -88,6 +88,7 @@ void ih264d_init_ref_bufs(dpb_manager_t *ps_dpb_mgr)
     ps_dpb_mgr->ps_dpb_ht_head = NULL;
     ps_dpb_mgr->i1_gaps_deleted = 0;
     ps_dpb_mgr->i1_poc_buf_id_entries = 0;
+    ps_dpb_mgr->u1_mmco_error_in_seq = 0;
 
     ps_dpb_mgr->u1_num_gaps = 0;
     for(i = 0; i < MAX_FRAMES; i++)
@@ -647,6 +648,7 @@ void ih264d_reset_ref_bufs(dpb_manager_t *ps_dpb_mgr)
     ps_dpb_mgr->u1_num_st_ref_bufs = ps_dpb_mgr->u1_num_lt_ref_bufs = 0;
     ps_dpb_mgr->ps_dpb_st_head = NULL;
     ps_dpb_mgr->ps_dpb_ht_head = NULL;
+    ps_dpb_mgr->u1_mmco_error_in_seq = 0;
 
     /* release all gaps */
     ps_dpb_mgr->u1_num_gaps = 0;
