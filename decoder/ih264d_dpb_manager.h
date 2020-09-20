@@ -106,6 +106,7 @@ typedef struct
   WORD8 i1_gaps_deleted;
   UWORD16 u2_pic_wd;
   UWORD16 u2_pic_ht;
+  UWORD8 u1_mmco_error_in_seq;
 }dpb_manager_t;
 
 /** Structure store the MMC Commands */
