@@ -57,7 +57,7 @@ typedef struct
 {
     UWORD32 u4_ofst; /* Offset in the buffer for the current bit */
     UWORD32 *pu4_buffer; /* Bitstream Buffer  */
-    UWORD32 u4_max_ofst; /* Position of the last bit read in the current buffer */
+    UWORD32 u4_max_ofst; /* points to first bit beyond the buffer */
     void * pv_codec_handle; /* For Error Handling */
 } dec_bit_stream_t;
 
@@ -88,10 +88,13 @@ WORD32 ih264d_flush_bits_h264(dec_bit_stream_t *, WORD32);
  **************************************************************************
  */
 
-#define MORE_RBSP_DATA(ps_bitstrm) \
-  (ps_bitstrm->u4_ofst < ps_bitstrm->u4_max_ofst)
+
 #define EXCEED_OFFSET(ps_bitstrm) \
   (ps_bitstrm->u4_ofst > ps_bitstrm->u4_max_ofst)
+#define CHECK_BITS_SUFFICIENT(ps_bitstrm, bits_to_read) \
+  (ps_bitstrm->u4_ofst + bits_to_read <= ps_bitstrm->u4_max_ofst)
+#define MORE_RBSP_DATA(ps_bitstrm) \
+    CHECK_BITS_SUFFICIENT(ps_bitstrm, 1)
 
 void GoToByteBoundary(dec_bit_stream_t * ps_bitstrm);
 UWORD8 ih264d_check_byte_aligned(dec_bit_stream_t * ps_bitstrm);
