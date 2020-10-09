@@ -1927,6 +1927,7 @@ WORD32 ih264d_parse_pslice(dec_struct_t *ps_dec, UWORD16 u2_first_mb_in_slice)
     UWORD8 u1_mbaff = ps_dec->ps_cur_slice->u1_mbaff_frame_flag; //ps_dec->ps_cur_sps->u1_mb_aff_flag;
     UWORD8 u1_field_pic_flag = ps_cur_slice->u1_field_pic_flag;
 
+    UWORD64 u8_ref_idx_l0;
     UWORD32 u4_temp;
     WORD32 i_temp;
     WORD32 ret;
@@ -1955,22 +1956,19 @@ WORD32 ih264d_parse_pslice(dec_struct_t *ps_dec, UWORD16 u2_first_mb_in_slice)
     COPYTHECONTEXT("SH: num_ref_idx_override_flag",
                     ps_cur_slice->u1_num_ref_idx_active_override_flag);
 
-    u4_temp = ps_dec->ps_cur_pps->u1_num_ref_idx_lx_active[0];
+    u8_ref_idx_l0 = ps_dec->ps_cur_pps->u1_num_ref_idx_lx_active[0];
     if(ps_cur_slice->u1_num_ref_idx_active_override_flag)
     {
-        u4_temp = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf) + 1;
+        u8_ref_idx_l0 = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf) + (UWORD64)1;
     }
 
     {
-
-
-
-        UWORD8 u1_max_ref_idx = MAX_FRAMES << u1_field_pic_flag;
-        if(u4_temp > u1_max_ref_idx || u4_temp < 1)
+        UWORD8 u1_max_ref_idx = H264_MAX_REF_PICS << u1_field_pic_flag;
+        if(u8_ref_idx_l0 > u1_max_ref_idx)
         {
             return ERROR_NUM_REF;
         }
-        ps_cur_slice->u1_num_ref_idx_lx_active[0] = u4_temp;
+        ps_cur_slice->u1_num_ref_idx_lx_active[0] = u8_ref_idx_l0;
         COPYTHECONTEXT("SH: num_ref_idx_l0_active_minus1",
                         ps_cur_slice->u1_num_ref_idx_lx_active[0] - 1);
 

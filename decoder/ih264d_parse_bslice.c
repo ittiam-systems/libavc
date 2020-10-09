@@ -1355,6 +1355,7 @@ WORD32 ih264d_parse_bslice(dec_struct_t * ps_dec, UWORD16 u2_first_mb_in_slice)
     UWORD32 *pu4_bitstrm_buf = ps_bitstrm->pu4_buffer;
     UWORD32 *pu4_bitstrm_ofst = &ps_bitstrm->u4_ofst;
 
+    UWORD64 u8_ref_idx_l0, u8_ref_idx_l1;
     UWORD32 u4_temp, ui_temp1;
     WORD32 i_temp;
     WORD32 ret;
@@ -1381,31 +1382,31 @@ WORD32 ih264d_parse_bslice(dec_struct_t * ps_dec, UWORD16 u2_first_mb_in_slice)
     COPYTHECONTEXT("SH: num_ref_idx_override_flag",
                     ps_slice->u1_num_ref_idx_active_override_flag);
 
-    u4_temp = ps_dec->ps_cur_pps->u1_num_ref_idx_lx_active[0];
-    ui_temp1 = ps_dec->ps_cur_pps->u1_num_ref_idx_lx_active[1];
+    u8_ref_idx_l0 = ps_dec->ps_cur_pps->u1_num_ref_idx_lx_active[0];
+    u8_ref_idx_l1 = ps_dec->ps_cur_pps->u1_num_ref_idx_lx_active[1];
     if(ps_slice->u1_num_ref_idx_active_override_flag)
     {
-        u4_temp = 1 + ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+        u8_ref_idx_l0 = (UWORD64)1 + ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
         COPYTHECONTEXT("SH: num_ref_idx_l0_active_minus1",
-                        u4_temp - 1);
-        ui_temp1 = 1 + ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+                        u8_ref_idx_l0 - 1);
+
+        u8_ref_idx_l1 = (UWORD64)1 + ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
         COPYTHECONTEXT("SH: num_ref_idx_l1_active_minus1",
-                        ui_temp1 - 1);
+                        u8_ref_idx_l1 - 1);
     }
 
     {
-        UWORD8 u1_max_ref_idx = MAX_FRAMES;
+        UWORD8 u1_max_ref_idx = H264_MAX_REF_PICS;
         if(ps_slice->u1_field_pic_flag)
         {
-            u1_max_ref_idx = MAX_FRAMES << 1;
+            u1_max_ref_idx = H264_MAX_REF_PICS << 1;
         }
-        if((u4_temp > u1_max_ref_idx) || (ui_temp1 > u1_max_ref_idx)
-                        || (u4_temp < 1) || (ui_temp1 < 1))
+        if((u8_ref_idx_l0 > u1_max_ref_idx) || (u8_ref_idx_l1 > u1_max_ref_idx))
         {
             return ERROR_NUM_REF;
         }
-        ps_slice->u1_num_ref_idx_lx_active[0] = u4_temp;
-        ps_slice->u1_num_ref_idx_lx_active[1] = ui_temp1;
+        ps_slice->u1_num_ref_idx_lx_active[0] = u8_ref_idx_l0;
+        ps_slice->u1_num_ref_idx_lx_active[1] = u8_ref_idx_l1;
     }
 
 
