@@ -756,7 +756,7 @@ WORD32 ih264d_decode_temporal_direct(dec_struct_t * ps_dec,
         }
         {
             WORD16 i16_td;
-            WORD32 diff;
+            WORD64 diff;
             if(c_refFrm0 >= 0)
             {
                 i2_mv_x0 = ps_mv->i2_mv[0];
@@ -782,7 +782,7 @@ WORD32 ih264d_decode_temporal_direct(dec_struct_t * ps_dec,
                 i2_mv_y0 *= 2;
             }
 
-            diff = pic1_poc - pic0_poc;
+            diff = (WORD64)pic1_poc - pic0_poc;
             i16_td = CLIP_S8(diff);
             if((ps_pic_buff0->u1_is_short == 0) || (i16_td == 0))
             {
@@ -791,21 +791,21 @@ WORD32 ih264d_decode_temporal_direct(dec_struct_t * ps_dec,
             }
             else
             {
-                WORD16 i16_tb, i16_tx, i2_dist_scale_factor, i16_temp;
+                WORD16 i2_tb, i2_tx, i2_dist_scale_factor, i2_temp;
 
-                diff = cur_poc - pic0_poc;
-                i16_tb = CLIP_S8(diff);
+                diff = (WORD64)cur_poc - pic0_poc;
+                i2_tb = CLIP_S8(diff);
 
-                i16_tx = (16384 + ABS(SIGN_POW2_DIV(i16_td, 1))) / i16_td;
+                i2_tx = (16384 + ABS(SIGN_POW2_DIV(i16_td, 1))) / i16_td;
                 i2_dist_scale_factor = CLIP_S11(
-                                            (((i16_tb * i16_tx) + 32) >> 6));
-                i16_temp = (i2_mv_x0 * i2_dist_scale_factor + 128) >> 8;
-                i2_mv_x1 = i16_temp - i2_mv_x0;
-                i2_mv_x0 = i16_temp;
+                                            (((i2_tb * i2_tx) + 32) >> 6));
+                i2_temp = (i2_mv_x0 * i2_dist_scale_factor + 128) >> 8;
+                i2_mv_x1 = i2_temp - i2_mv_x0;
+                i2_mv_x0 = i2_temp;
 
-                i16_temp = (i2_mv_y0 * i2_dist_scale_factor + 128) >> 8;
-                i2_mv_y1 = i16_temp - i2_mv_y0;
-                i2_mv_y0 = i16_temp;
+                i2_temp = (i2_mv_y0 * i2_dist_scale_factor + 128) >> 8;
+                i2_mv_y1 = i2_temp - i2_mv_y0;
+                i2_mv_y0 = i2_temp;
             }
             {
                 mv_pred_t *ps_mv;
@@ -2304,8 +2304,9 @@ void ih264d_fld_to_mbaff(dec_struct_t *ps_dec,
         {
 
             if(ABS(ps_col_pic->i4_top_field_order_cnt
-                            - ps_dec->ps_cur_pic->i4_poc) >=
-                            ABS(ps_dec->ps_cur_pic->i4_poc - ps_col_pic->i4_bottom_field_order_cnt))
+                            - (WORD64)ps_dec->ps_cur_pic->i4_poc) >=
+                            ABS((WORD64)ps_dec->ps_cur_pic->i4_poc
+                                                - ps_col_pic->i4_bottom_field_order_cnt))
             {
                 ps_col_pic = ps_dec->ps_ref_pic_buf_lx[1][MAX_REF_BUFS];
             }
@@ -2336,8 +2337,9 @@ void ih264d_fld_to_mbaff(dec_struct_t *ps_dec,
             if(u1_is_cur_mb_fld == 0)
             {
                 if(ABS(ps_col_pic->i4_top_field_order_cnt
-                                - ps_dec->ps_cur_pic->i4_poc) >=
-                                ABS(ps_dec->ps_cur_pic->i4_poc - ps_col_pic->i4_bottom_field_order_cnt))
+                                - (WORD64)ps_dec->ps_cur_pic->i4_poc) >=
+                                ABS((WORD64)ps_dec->ps_cur_pic->i4_poc
+                                                    - ps_col_pic->i4_bottom_field_order_cnt))
                 {
                     u2_sub_mb_ofst += 0x10;
                 }
