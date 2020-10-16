@@ -276,6 +276,14 @@ typedef enum
     MAX_MBTYPES,
 }MBTYPES_T;
 
+/* Pred Modes */
+enum
+{
+    BLOCK_TYPE_INTER_MB = 0,
+    BLOCK_TYPE_INTRA_MB = 1,
+    BLOCK_TYPE_SKIP_MB  = 2
+};
+
 /* Prediction list */
 /* Do not change enum values */
 enum

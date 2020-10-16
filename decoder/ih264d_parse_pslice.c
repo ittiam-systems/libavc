@@ -1003,6 +1003,12 @@ WORD32 ih264d_parse_inter_slice_data_cabac(dec_struct_t * ps_dec,
 
         }
 
+        if(ps_dec->u1_enable_mb_info)
+        {
+            ih264d_populate_mb_info_map(ps_dec, ps_cur_mb_info, ps_cur_mb_info->u2_mbx << 1,
+                                        ps_cur_mb_info->u2_mby << 1, ps_cur_deblk_mb->u1_mb_qp);
+        }
+
         if(u1_mbaff)
         {
             ih264d_update_mbaff_left_nnz(ps_dec, ps_cur_mb_info);
@@ -1353,6 +1359,12 @@ WORD32 ih264d_parse_inter_slice_data_cavlc(dec_struct_t * ps_dec,
             uc_more_data_flag = MORE_RBSP_DATA(ps_bitstrm);
         }
         ps_cur_deblk_mb->u1_mb_qp = ps_dec->u1_qp;
+
+        if(ps_dec->u1_enable_mb_info)
+        {
+            ih264d_populate_mb_info_map(ps_dec, ps_cur_mb_info, ps_cur_mb_info->u2_mbx << 1,
+                                        ps_cur_mb_info->u2_mby << 1, ps_cur_deblk_mb->u1_mb_qp);
+        }
 
         if(u1_mbaff)
         {

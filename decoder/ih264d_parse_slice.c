@@ -320,7 +320,7 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
                                   j,
                                   BUF_MGR_REF);
             ih264_buf_mgr_release((buf_mgr_t *)ps_dec->pv_mv_buf_mgr,
-                                  ps_dec->au1_pic_buf_id_mv_buf_id_map[j],
+                                  ps_dec->as_buf_id_info_map[j].mv_buf_id,
                                   BUF_MGR_REF);
             ih264_buf_mgr_release((buf_mgr_t *)ps_dec->pv_pic_buf_mgr,
                                   j,
@@ -434,7 +434,17 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
         memcpy(&ps_cur_pic->s_sei_pic, ps_dec->ps_sei, sizeof(sei));
 
         ps_cur_pic->u1_mv_buf_id = cur_mv_buf_id;
-        ps_dec->au1_pic_buf_id_mv_buf_id_map[cur_pic_buf_id] = cur_mv_buf_id;
+        ps_dec->as_buf_id_info_map[cur_pic_buf_id].mv_buf_id = cur_mv_buf_id;
+        if(ps_dec->u1_enable_mb_info)
+        {
+            UWORD32 mb_info_map_size = ps_dec->u4_total_mbs << 2;
+            ps_dec->as_buf_id_info_map[cur_pic_buf_id].pu1_qp_map
+                = ps_dec->pu1_qp_map_base + cur_pic_buf_id * mb_info_map_size;
+            ps_dec->as_buf_id_info_map[cur_pic_buf_id].pu1_mb_type_map
+                = ps_dec->pu1_mb_type_map_base + cur_pic_buf_id * mb_info_map_size;
+            memset(ps_dec->as_buf_id_info_map[cur_pic_buf_id].pu1_qp_map, 0, mb_info_map_size);
+            memset(ps_dec->as_buf_id_info_map[cur_pic_buf_id].pu1_mb_type_map, 0, mb_info_map_size);
+        }
 
         ps_cur_pic->pu1_col_zero_flag = (UWORD8 *)ps_col_mv->pv_col_zero_flag;
         ps_cur_pic->ps_mv = (mv_pred_t *)ps_col_mv->pv_mv;
@@ -471,7 +481,7 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
                                       j,
                                       BUF_MGR_REF);
                 ih264_buf_mgr_release((buf_mgr_t *)ps_dec->pv_mv_buf_mgr,
-                                      ps_dec->au1_pic_buf_id_mv_buf_id_map[j],
+                                      ps_dec->as_buf_id_info_map[j].mv_buf_id,
                                       BUF_MGR_REF);
                 ih264_buf_mgr_release((buf_mgr_t *)ps_dec->pv_pic_buf_mgr,
                                       j,
@@ -505,7 +515,7 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
             ps_dec->apv_buf_id_pic_buf_map[cur_pic_buf_id] = (void *)ps_cur_pic;
 
             ps_cur_pic->u1_mv_buf_id = cur_mv_buf_id;
-            ps_dec->au1_pic_buf_id_mv_buf_id_map[cur_pic_buf_id] = cur_mv_buf_id;
+            ps_dec->as_buf_id_info_map[cur_pic_buf_id].mv_buf_id = cur_mv_buf_id;
 
             ps_cur_pic->pu1_col_zero_flag = (UWORD8 *)ps_col_mv->pv_col_zero_flag;
             ps_cur_pic->ps_mv = (mv_pred_t *)ps_col_mv->pv_mv;
@@ -793,7 +803,7 @@ WORD32 ih264d_end_of_pic_dispbuf_mgr(dec_struct_t * ps_dec)
                                      BUF_MGR_REF);
             /* Mark mv buf as needed for reference */
             ih264_buf_mgr_set_status((buf_mgr_t *)ps_dec->pv_mv_buf_mgr,
-                                     ps_dec->au1_pic_buf_id_mv_buf_id_map[ps_dec->u1_pic_buf_id],
+                                     ps_dec->as_buf_id_info_map[ps_dec->u1_pic_buf_id].mv_buf_id,
                                      BUF_MGR_REF);
             ps_dec->au1_pic_buf_ref_flag[ps_dec->u1_pic_buf_id] = 1;
         }
@@ -852,7 +862,7 @@ WORD32 ih264d_end_of_pic_dispbuf_mgr(dec_struct_t * ps_dec)
             if(ps_dec->au1_pic_buf_ref_flag[ps_dec->u1_pic_buf_id] == 0)
             {
                 ih264_buf_mgr_release((buf_mgr_t *)ps_dec->pv_mv_buf_mgr,
-                                      ps_dec->au1_pic_buf_id_mv_buf_id_map[ps_dec->u1_pic_buf_id],
+                                      ps_dec->as_buf_id_info_map[ps_dec->u1_pic_buf_id].mv_buf_id,
                                       BUF_MGR_REF);
                 ps_dec->au1_pic_buf_ref_flag[ps_dec->u1_pic_buf_id] = 0;
 
@@ -893,7 +903,7 @@ void ih264d_err_pic_dispbuf_mgr(dec_struct_t *ps_dec)
                           ps_dec->u1_pic_buf_id,
                           BUF_MGR_REF);
     ih264_buf_mgr_release((buf_mgr_t *)ps_dec->pv_mv_buf_mgr,
-                          ps_dec->au1_pic_buf_id_mv_buf_id_map[ps_dec->u1_pic_buf_id],
+                          ps_dec->as_buf_id_info_map[ps_dec->u1_pic_buf_id].mv_buf_id,
                           BUF_MGR_REF);
     ih264_buf_mgr_release((buf_mgr_t *)ps_dec->pv_pic_buf_mgr,
                           ps_dec->u1_pic_buf_id,

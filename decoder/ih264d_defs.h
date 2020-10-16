@@ -122,6 +122,9 @@
  *  greater than the allocated buffer size*/
 #define EXTRA_BS_OFFSET 16*16*2
 
+#define DECODED_SPS_MASK 1
+#define DECODED_PPS_MASK 2
+
 /**
  ***************************************************************************
  * Enum to hold various mem records being request

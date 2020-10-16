@@ -118,7 +118,7 @@ void ih264d_free_ref_pic_mv_bufs(void* pv_dec, UWORD8 pic_buf_id)
                           pic_buf_id,
                           BUF_MGR_REF);
     ih264_buf_mgr_release((buf_mgr_t *)ps_dec->pv_mv_buf_mgr,
-                          ps_dec->au1_pic_buf_id_mv_buf_id_map[pic_buf_id],
+                          ps_dec->as_buf_id_info_map[pic_buf_id].mv_buf_id,
                           BUF_MGR_REF);
 }
 /*!
@@ -1413,7 +1413,7 @@ void ih264d_release_pics_in_dpb(void *pv_dec,
                               i,
                               BUF_MGR_REF);
         ih264_buf_mgr_release((buf_mgr_t *)ps_dec->pv_mv_buf_mgr,
-                              ps_dec->au1_pic_buf_id_mv_buf_id_map[i],
+                              ps_dec->as_buf_id_info_map[i].mv_buf_id,
                               BUF_MGR_REF);
     }
 }
