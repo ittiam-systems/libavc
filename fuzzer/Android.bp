@@ -20,3 +20,25 @@ cc_fuzz {
         componentid: 155276,
     },
 }
+
+cc_fuzz {
+    name: "avc_enc_fuzzer",
+    host_supported: true,
+    srcs: [
+        "avc_enc_fuzzer.cpp",
+    ],
+    static_libs: [
+        "libavcenc",
+        "liblog",
+    ],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+    fuzz_config: {
+        cc: [
+            "android-media-fuzzing-reports@google.com",
+        ],
+        componentid: 155276,
+    },
+}
