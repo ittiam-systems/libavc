@@ -545,16 +545,16 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
    *    We need to return a recon when ever we consume an input buffer. This
    *    comsumption include a pre or post enc skip. Thus dump recon is set for
    *    all cases except when
-   *    1) We are waiting -> ps_codec->i4_frame_num > 1
-   *    2) When the input buffer is null [ ie we are not consuming any inp]
+   *    1) We are waiting -> ps_codec->i4_pic_cnt > ps_codec->s_cfg.u4_num_bframe
    *        An exception need to be made for the case when we have the last buffer
    *        since we need to flush out the on remainig recon.
    ****************************************************************************/
 
     ps_video_encode_op->s_ive_op.dump_recon = 0;
 
-    if (ps_codec->s_cfg.u4_enable_recon && (ps_codec->i4_frame_num > 1 || s_inp_buf.u4_is_last)
-                    && (s_inp_buf.s_raw_buf.apv_bufs[0] || s_inp_buf.u4_is_last))
+    if (ps_codec->s_cfg.u4_enable_recon
+                    && (ps_codec->i4_pic_cnt > (WORD32)ps_codec->s_cfg.u4_num_bframes ||
+                        s_inp_buf.u4_is_last))
     {
         /* error status */
         IH264_ERROR_T ret = IH264_SUCCESS;
