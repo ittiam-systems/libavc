@@ -161,7 +161,7 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
                                    UWORD8 u1_field_pic_flag,
                                    WORD32 *pi4_poc)
 {
-    WORD16 i1_pic_msb;
+    WORD64 i8_pic_msb;
     WORD32 i4_top_field_order_cnt = 0, i4_bottom_field_order_cnt = 0;
     dec_seq_params_t *ps_seq = ps_pps->ps_sps;
     WORD32 i4_prev_frame_num_ofst;
@@ -197,7 +197,7 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
                                             >= (ps_seq->i4_max_pic_order_cntLsb
                                                             >> 1)))
             {
-                i1_pic_msb = ps_prev_poc->i4_pic_order_cnt_msb
+                i8_pic_msb = (WORD64)ps_prev_poc->i4_pic_order_cnt_msb
                                 + ps_seq->i4_max_pic_order_cntLsb;
             }
             else if((ps_cur_poc->i4_pic_order_cnt_lsb
@@ -207,29 +207,49 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
                                             >= (ps_seq->i4_max_pic_order_cntLsb
                                                             >> 1)))
             {
-                i1_pic_msb = ps_prev_poc->i4_pic_order_cnt_msb
+                i8_pic_msb = (WORD64)ps_prev_poc->i4_pic_order_cnt_msb
                                 - ps_seq->i4_max_pic_order_cntLsb;
             }
             else
             {
-                i1_pic_msb = ps_prev_poc->i4_pic_order_cnt_msb;
+                i8_pic_msb = ps_prev_poc->i4_pic_order_cnt_msb;
             }
 
             if(!u1_field_pic_flag || !u1_bottom_field_flag)
-                i4_top_field_order_cnt = i1_pic_msb
-                                + ps_cur_poc->i4_pic_order_cnt_lsb;
+            {
+                WORD64 i8_result = i8_pic_msb + ps_cur_poc->i4_pic_order_cnt_lsb;
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                {
+                    return ERROR_INV_POC;
+                }
+                i4_top_field_order_cnt = i8_result;
+            }
 
             if(!u1_field_pic_flag)
             {
-                i4_bottom_field_order_cnt = i4_top_field_order_cnt
-                                + ps_cur_poc->i4_delta_pic_order_cnt_bottom;
+                WORD64 i8_result = (WORD64)i4_top_field_order_cnt
+                                     + ps_cur_poc->i4_delta_pic_order_cnt_bottom;
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                {
+                    return ERROR_INV_POC;
+                }
+                i4_bottom_field_order_cnt = i8_result;
             }
             else if(u1_bottom_field_flag)
             {
-                i4_bottom_field_order_cnt = i1_pic_msb
-                                + ps_cur_poc->i4_pic_order_cnt_lsb;
+                WORD64 i8_result = i8_pic_msb + ps_cur_poc->i4_pic_order_cnt_lsb;
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                {
+                    return ERROR_INV_POC;
+                }
+                i4_bottom_field_order_cnt = i8_result;
             }
-            ps_cur_poc->i4_pic_order_cnt_msb = i1_pic_msb;
+
+            if(IS_OUT_OF_RANGE_S32(i8_pic_msb))
+            {
+                return ERROR_INV_POC;
+            }
+            ps_cur_poc->i4_pic_order_cnt_msb = i8_pic_msb;
             break;
 
         case 1:
@@ -269,15 +289,27 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             }
             else if(prev_frame_num > ((WORD32)u2_frame_num))
             {
-                frame_num_ofst = i4_prev_frame_num_ofst
-                                + (WORD32)ps_seq->u2_u4_max_pic_num_minus1 + 1;
+                WORD64 i8_result = i4_prev_frame_num_ofst
+                                + (WORD64)ps_seq->u2_u4_max_pic_num_minus1 + 1;
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                {
+                    return ERROR_INV_FRAME_NUM;
+                }
+                frame_num_ofst = i8_result;
             }
             else
                 frame_num_ofst = i4_prev_frame_num_ofst;
 
             /* 2. Derivation for absFrameNum */
             if(0 != ps_seq->u1_num_ref_frames_in_pic_order_cnt_cycle)
-                abs_frm_num = frame_num_ofst + (WORD32)u2_frame_num;
+            {
+                WORD64 i8_result = frame_num_ofst + (WORD64)u2_frame_num;
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                {
+                    return ERROR_INV_FRAME_NUM;
+                }
+                abs_frm_num = i8_result;
+            }
             else
                 abs_frm_num = 0;
             if((u1_nal_ref_idc == 0) && (abs_frm_num > 0))
@@ -405,8 +437,13 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             }
             else if(prev_frame_num > ((WORD32)u2_frame_num))
             {
-                frame_num_ofst = i4_prev_frame_num_ofst
-                                + (WORD32)ps_seq->u2_u4_max_pic_num_minus1 + 1;
+                WORD64 i8_result = i4_prev_frame_num_ofst
+                                + (WORD64)ps_seq->u2_u4_max_pic_num_minus1 + 1;
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                {
+                    return ERROR_INV_FRAME_NUM;
+                }
+                frame_num_ofst = i8_result;
             }
             else
                 frame_num_ofst = i4_prev_frame_num_ofst;
@@ -415,10 +452,23 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             if(u1_is_idr_slice)
                 tmp_poc = 0;
             else if(u1_nal_ref_idc == 0)
-                tmp_poc = ((frame_num_ofst + (WORD32)u2_frame_num) << 1)
-                                - 1;
+            {
+                WORD64 i8_result = ((frame_num_ofst + (WORD64)u2_frame_num) << 1) - 1;
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                {
+                    return ERROR_INV_POC;
+                }
+                tmp_poc = i8_result;
+            }
             else
-                tmp_poc = ((frame_num_ofst + (WORD32)u2_frame_num) << 1);
+            {
+                WORD64 i8_result = (frame_num_ofst + (WORD64)u2_frame_num) << 1;
+                if(IS_OUT_OF_RANGE_S32(i8_result))
+                {
+                    return ERROR_INV_POC;
+                }
+                tmp_poc = i8_result;
+            }
 
             /* 6. TopFieldOrderCnt or BottomFieldOrderCnt are derived as */
             if(!u1_field_pic_flag)
