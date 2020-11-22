@@ -1472,10 +1472,20 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         else
             i4_temp_poc = ps_dec->ps_cur_pic->i4_bottom_field_order_cnt;
 
-        ps_dec->ps_cur_pic->i4_top_field_order_cnt = i4_temp_poc
+        WORD64 i8_result = (WORD64)i4_temp_poc
                         - ps_dec->ps_cur_pic->i4_top_field_order_cnt;
-        ps_dec->ps_cur_pic->i4_bottom_field_order_cnt = i4_temp_poc
+        if(IS_OUT_OF_RANGE_S32(i8_result))
+        {
+            return ERROR_INV_POC;
+        }
+        ps_dec->ps_cur_pic->i4_top_field_order_cnt = i8_result;
+        i8_result = (WORD64)i4_temp_poc
                         - ps_dec->ps_cur_pic->i4_bottom_field_order_cnt;
+        if(IS_OUT_OF_RANGE_S32(i8_result))
+        {
+            return ERROR_INV_POC;
+        }
+        ps_dec->ps_cur_pic->i4_bottom_field_order_cnt = i8_result;
         ps_dec->ps_cur_pic->i4_poc = i4_temp_poc;
         ps_dec->ps_cur_pic->i4_avg_poc = i4_temp_poc;
     }
