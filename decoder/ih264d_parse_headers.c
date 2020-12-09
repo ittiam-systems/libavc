@@ -464,7 +464,7 @@ WORD32 ih264d_parse_pps(dec_struct_t * ps_dec, dec_bit_stream_t * ps_bitstrm)
 
     /* In case bitstream read has exceeded the filled size, then
        return an error */
-    if(ps_bitstrm->u4_ofst > ps_bitstrm->u4_max_ofst + 8)
+    if(EXCEED_OFFSET(ps_bitstrm))
     {
         return ERROR_INV_SPS_PPS_T;
     }
@@ -1098,7 +1098,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
 
     /* In case bitstream read has exceeded the filled size, then
      return an error */
-    if (ps_bitstrm->u4_ofst > ps_bitstrm->u4_max_ofst)
+    if (EXCEED_OFFSET(ps_bitstrm))
     {
         return ERROR_INV_SPS_PPS_T;
     }
