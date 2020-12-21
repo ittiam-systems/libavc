@@ -142,101 +142,6 @@ WORD32 ih264e_get_rate_control_mem_tab(void *pv_rate_control,
 *******************************************************************************
 *
 * @brief
-*  Used to test validity of input dimensions
-*
-* @par Description:
-*  Dimensions of the input buffer passed to encode call are validated
-*
-* @param[in] ps_codec
-*  Codec context
-*
-* @param[in] ps_ip
-*  Pointer to input structure
-*
-* @param[out] ps_op
-*  Pointer to output structure
-*
-* @returns error status
-*
-* @remarks none
-*
-*******************************************************************************
-*/
-static IV_STATUS_T api_check_input_dimensions(codec_t *ps_codec,
-                                              ih264e_video_encode_ip_t *ps_ip,
-                                              ih264e_video_encode_op_t *ps_op)
-{
-    UWORD32 u4_wd, u4_ht;
-    cfg_params_t *ps_curr_cfg = &ps_codec->s_cfg;
-    iv_raw_buf_t *ps_inp_buf = &ps_ip->s_ive_ip.s_inp_buf;
-
-    u4_wd = ps_inp_buf->au4_wd[0];
-    u4_ht = ps_inp_buf->au4_ht[0];
-    switch (ps_inp_buf->e_color_fmt)
-    {
-        case IV_YUV_420P:
-            if (((ps_inp_buf->au4_wd[0] / 2) != ps_inp_buf->au4_wd[1]) ||
-                            ((ps_inp_buf->au4_wd[0] / 2) != ps_inp_buf->au4_wd[2]) ||
-                            (ps_inp_buf->au4_wd[1] != ps_inp_buf->au4_wd[2]))
-            {
-                ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
-                ps_op->s_ive_op.u4_error_code |= IH264E_WIDTH_NOT_SUPPORTED;
-                return (IV_FAIL);
-            }
-            if (((ps_inp_buf->au4_ht[0] / 2) != ps_inp_buf->au4_ht[1]) ||
-                            ((ps_inp_buf->au4_ht[0] / 2) != ps_inp_buf->au4_ht[2]) ||
-                            (ps_inp_buf->au4_ht[1] != ps_inp_buf->au4_ht[2]))
-            {
-                ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
-                ps_op->s_ive_op.u4_error_code |= IH264E_HEIGHT_NOT_SUPPORTED;
-                return (IV_FAIL);
-            }
-            break;
-        case IV_YUV_420SP_UV:
-        case IV_YUV_420SP_VU:
-            if ((ps_inp_buf->au4_wd[0] / 2) != ps_inp_buf->au4_wd[1])
-            {
-                ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
-                ps_op->s_ive_op.u4_error_code |= IH264E_WIDTH_NOT_SUPPORTED;
-                return (IV_FAIL);
-            }
-            if ((ps_inp_buf->au4_ht[0] / 2) != ps_inp_buf->au4_ht[1])
-            {
-                ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
-                ps_op->s_ive_op.u4_error_code |= IH264E_HEIGHT_NOT_SUPPORTED;
-                return (IV_FAIL);
-            }
-            break;
-        case IV_YUV_422ILE:
-            u4_wd = ps_inp_buf->au4_wd[0] / 2;
-            break;
-        default:
-            ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
-            ps_op->s_ive_op.u4_error_code |= IH264E_INPUT_CHROMA_FORMAT_NOT_SUPPORTED;
-            return (IV_FAIL);
-    }
-
-    if (u4_wd != ps_curr_cfg->u4_disp_wd)
-    {
-        ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
-        ps_op->s_ive_op.u4_error_code |= IH264E_WIDTH_NOT_SUPPORTED;
-        return (IV_FAIL);
-    }
-
-    if (u4_ht != ps_curr_cfg->u4_disp_ht)
-    {
-        ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
-        ps_op->s_ive_op.u4_error_code |= IH264E_HEIGHT_NOT_SUPPORTED;
-        return (IV_FAIL);
-    }
-
-    return IV_SUCCESS;
-}
-
-/**
-*******************************************************************************
-*
-* @brief
 *  Used to test arguments for corresponding API call
 *
 * @par Description:
@@ -913,7 +818,6 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
 
         case IVE_CMD_VIDEO_ENCODE:
         {
-            codec_t *ps_codec = (codec_t *) (ps_handle->pv_codec_handle);
             ih264e_video_encode_ip_t *ps_ip = pv_api_ip;
             ih264e_video_encode_op_t *ps_op = pv_api_op;
 
@@ -930,15 +834,6 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                 ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
                 ps_op->s_ive_op.u4_error_code |=
                                 IVE_ERR_OP_ENCODE_API_STRUCT_SIZE_INCORRECT;
-                return (IV_FAIL);
-            }
-
-            if (NULL != ps_ip->s_ive_ip.s_inp_buf.apv_bufs[0] &&
-                            ps_codec->i4_header_mode != 1 &&
-                            IV_SUCCESS != api_check_input_dimensions(ps_codec, ps_ip, ps_op))
-            {
-                ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
-                ps_op->s_ive_op.u4_error_code |= IVE_ERR_OP_ENCODE_API_STRUCT_SIZE_INCORRECT;
                 return (IV_FAIL);
             }
             break;
@@ -4164,11 +4059,6 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
     /* Update config params as per input */
     ps_cfg->u4_max_wd = ALIGN16(ps_ip->s_ive_ip.u4_max_wd);
     ps_cfg->u4_max_ht = ALIGN16(ps_ip->s_ive_ip.u4_max_ht);
-
-    /* Initialize dimensions to max dimensions during init */
-    ps_cfg->u4_wd = ps_cfg->u4_disp_wd = ps_cfg->u4_max_wd;
-    ps_cfg->u4_ht = ps_cfg->u4_disp_ht = ps_cfg->u4_max_ht;
-
     ps_cfg->i4_wd_mbs = ps_cfg->u4_max_wd >> 4;
     ps_cfg->i4_ht_mbs = ps_cfg->u4_max_ht >> 4;
     ps_cfg->u4_max_ref_cnt = ps_ip->s_ive_ip.u4_max_ref_cnt;
