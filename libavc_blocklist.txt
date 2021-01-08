@@ -1,5 +1,4 @@
 [cfi]
-src:*external/libavc/*
 
 [integer]
 # decoder/ih264d_dpb_mgr.c:1174: 2 - 3 cannot be represented in type 'unsigned int'
