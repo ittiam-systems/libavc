@@ -225,16 +225,6 @@ cc_library_static {
         },
     },
 
-    target: {
-        android: {
-            sanitize: {
-                diag: {
-                    cfi: true,
-                },
-            },
-        },
-    },
-
     sanitize: {
         integer_overflow: true,
         misc_undefined: ["bounds"],
@@ -495,16 +485,6 @@ cc_library_static {
                 "encoder/x86/ih264e_intra_modes_eval_ssse3.c",
                 "encoder/x86/ime_distortion_metrics_sse42.c",
             ],
-        },
-    },
-
-    target: {
-        android: {
-            sanitize: {
-                diag: {
-                    cfi: true,
-                },
-            },
         },
     },
 
