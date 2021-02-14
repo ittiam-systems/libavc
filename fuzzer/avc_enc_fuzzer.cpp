@@ -19,13 +19,16 @@
  */
 #include <malloc.h>
 #include <algorithm>
+#include <vector>
 
 #include "ih264_defs.h"
 #include "ih264_typedefs.h"
 #include "ih264e.h"
 #include "ih264e_error.h"
 #define ive_api_function ih264e_api_function
+typedef std::tuple<uint8_t *, uint8_t *, uint8_t *> bufferPtrs;
 
+constexpr static int kMaxNumEncodeCalls = 100;
 constexpr uint32_t kHeaderLength = 0x800;
 constexpr int16_t kCompressionRatio = 1;
 
@@ -93,6 +96,7 @@ enum {
     IDX_FORCE_IDR_INTERVAL,
     IDX_DYNAMIC_BITRATE_INTERVAL,
     IDX_DYNAMIC_FRAME_RATE_INTERVAL,
+    IDX_SEND_EOS_WITH_LAST_FRAME,
     IDX_LAST
 };
 
@@ -105,7 +109,7 @@ class Codec {
     void deInitEncoder();
 
    private:
-    void setEncParams(iv_raw_buf_t *psInpRawBuf, const uint8_t *data);
+    bufferPtrs setEncParams(iv_raw_buf_t *psInpRawBuf, const uint8_t *data, size_t frameSize);
     void setFrameType(IV_PICTURE_CODING_TYPE_T eFrameType);
     void setQp();
     void setEncMode(IVE_ENC_MODE_T eEncMode);
@@ -144,6 +148,7 @@ class Codec {
     bool mIsForceIdrEnabled = false;
     bool mIsDynamicBitRateChangeEnabled = false;
     bool mIsDynamicFrameRateChangeEnabled = false;
+    bool mSendEosWithLastFrame = false;
     uint32_t mWidth = 2560;
     uint32_t mHeight = 2560;
     uint32_t mAvcEncLevel = 41;
@@ -218,6 +223,7 @@ bool Codec::initEncoder(const uint8_t **pdata, size_t *psize) {
     mIsForceIdrEnabled = data[IDX_ENABLE_FORCE_IDR] & 0x01;
     mIsDynamicBitRateChangeEnabled = data[IDX_ENABLE_DYNAMIC_BITRATE] & 0x01;
     mIsDynamicFrameRateChangeEnabled = data[IDX_ENABLE_DYNAMIC_FRAME_RATE] & 0x01;
+    mSendEosWithLastFrame = data[IDX_SEND_EOS_WITH_LAST_FRAME] & 0x01;
     mForceIdrInterval = data[IDX_FORCE_IDR_INTERVAL] & 0x07;
     mDynamicBitRateInterval = data[IDX_DYNAMIC_BITRATE_INTERVAL] & 0x07;
     mDynamicFrameRateInterval = data[IDX_DYNAMIC_FRAME_RATE_INTERVAL] & 0x07;
@@ -840,6 +846,7 @@ void Codec::encodeFrames(const uint8_t *data, size_t size) {
     ive_video_encode_ip_t sEncodeIp{};
     ive_video_encode_op_t sEncodeOp{};
     uint8_t header[kHeaderLength];
+    int32_t numEncodeCalls = 0;
     iv_raw_buf_t *psInpRawBuf = &sEncodeIp.s_inp_buf;
     sEncodeIp.s_out_buf.pv_buf = header;
     sEncodeIp.s_out_buf.u4_bytes = 0;
@@ -853,7 +860,6 @@ void Codec::encodeFrames(const uint8_t *data, size_t size) {
     sEncodeIp.pv_pic_info = nullptr;
     sEncodeIp.u4_mb_info_type = 0;
     sEncodeIp.u4_pic_info_type = 0;
-    sEncodeIp.u4_is_last = 0;
     sEncodeOp.s_out_buf.pv_buf = nullptr;
 
     /* Initialize color formats */
@@ -863,59 +869,103 @@ void Codec::encodeFrames(const uint8_t *data, size_t size) {
 
     ive_api_function(mCodecCtx, &sEncodeIp, &sEncodeOp);
     size_t numFrame = 0;
-    while (size > 0) {
-        uint8_t *tmpData = (uint8_t *)malloc(frameSize);
-        size_t bytesConsumed = std::min(size, frameSize);
-        if (bytesConsumed < frameSize) {
-            memset(&tmpData[bytesConsumed], data[0], frameSize - bytesConsumed);
-        }
-        memcpy(tmpData, data, bytesConsumed);
-        setEncParams(psInpRawBuf, tmpData);
-        uint64_t OutputBufferSize = (frameSize / kCompressionRatio);
-        uint8_t *OutputBuffer = (uint8_t *)malloc(OutputBufferSize);
-        sEncodeIp.s_out_buf.pv_buf = OutputBuffer;
-        sEncodeIp.s_out_buf.u4_bufsize = OutputBufferSize;
-        if (mIsForceIdrEnabled) {
-            if (numFrame == mForceIdrInterval) {
-                setFrameType(IV_IDR_FRAME);
+    std::vector<bufferPtrs> inBuffers;
+    uint64_t outputBufferSize = (frameSize / kCompressionRatio);
+    while (!sEncodeOp.u4_is_last && numEncodeCalls < kMaxNumEncodeCalls) {
+        uint8_t *outputBuffer = (uint8_t *)malloc(outputBufferSize);
+        sEncodeIp.s_out_buf.pv_buf = outputBuffer;
+        sEncodeIp.s_out_buf.u4_bufsize = outputBufferSize;
+        if (size > 0) {
+            uint8_t *tmpData = (uint8_t *)malloc(frameSize);
+            size_t bytesConsumed = std::min(size, frameSize);
+            if (bytesConsumed < frameSize) {
+                memset(&tmpData[bytesConsumed], data[0], frameSize - bytesConsumed);
             }
-        }
-        if (mIsDynamicBitRateChangeEnabled) {
-            if (numFrame == mDynamicBitRateInterval) {
-                if (data[0] & 0x01) {
-                    mBitrate *= 2;
-                } else {
-                    mBitrate /= 2;
+            memcpy(tmpData, data, bytesConsumed);
+            bufferPtrs inBuffer = setEncParams(psInpRawBuf, tmpData, frameSize);
+            inBuffers.push_back(inBuffer);
+            free(tmpData);
+            sEncodeIp.u4_is_last = 0;
+            if (mSendEosWithLastFrame && size == bytesConsumed) {
+                sEncodeIp.u4_is_last = 1;
+            }
+            if (mIsForceIdrEnabled) {
+                if (numFrame == mForceIdrInterval) {
+                    setFrameType(IV_IDR_FRAME);
                 }
-                setBitRate();
             }
-        }
-        if (mIsDynamicFrameRateChangeEnabled) {
-            if (numFrame == mDynamicFrameRateInterval) {
-                if (size > 1 && data[1] & 0x01) {
-                    mFrameRate *= 2;
-                } else {
-                    mFrameRate /= 2;
+            if (mIsDynamicBitRateChangeEnabled) {
+                if (numFrame == mDynamicBitRateInterval) {
+                    if (data[0] & 0x01) {
+                        mBitrate *= 2;
+                    } else {
+                        mBitrate /= 2;
+                    }
+                    setBitRate();
                 }
-                setFrameRate();
             }
+            if (mIsDynamicFrameRateChangeEnabled) {
+                if (numFrame == mDynamicFrameRateInterval) {
+                    if (size > 1 && data[1] & 0x01) {
+                        mFrameRate *= 2;
+                    } else {
+                        mFrameRate /= 2;
+                    }
+                    setFrameRate();
+                }
+            }
+            ++numFrame;
+            data += bytesConsumed;
+            size -= bytesConsumed;
+        } else {
+            sEncodeIp.u4_is_last = 1;
+            psInpRawBuf->apv_bufs[0] = nullptr;
+            psInpRawBuf->apv_bufs[1] = nullptr;
+            psInpRawBuf->apv_bufs[2] = nullptr;
         }
         ive_api_function(mCodecCtx, &sEncodeIp, &sEncodeOp);
-        ++numFrame;
-        data += bytesConsumed;
-        size -= bytesConsumed;
-        free(tmpData);
-        free(OutputBuffer);
+        if (sEncodeOp.s_inp_buf.apv_bufs[0]) {
+            std::vector<bufferPtrs>::iterator iter;
+            uint8_t *inputbuf = (uint8_t *)sEncodeOp.s_inp_buf.apv_bufs[0];
+            iter = std::find_if(
+                inBuffers.begin(), inBuffers.end(),
+                [=, &inputbuf](const bufferPtrs &buf) { return std::get<0>(buf) == inputbuf; });
+            if (iter != inBuffers.end()) {
+                inBuffers.erase(iter);
+                free(sEncodeOp.s_inp_buf.apv_bufs[0]);
+                if (sEncodeOp.s_inp_buf.apv_bufs[1]) {
+                    free(sEncodeOp.s_inp_buf.apv_bufs[1]);
+                }
+                if (sEncodeOp.s_inp_buf.apv_bufs[2]) {
+                    free(sEncodeOp.s_inp_buf.apv_bufs[2]);
+                }
+            }
+        }
+        ++numEncodeCalls;
+        free(outputBuffer);
     }
+    for (const auto &buffer : inBuffers) {
+        free(std::get<0>(buffer));
+        if (std::get<1>(buffer)) {
+            free(std::get<1>(buffer));
+        }
+        if (std::get<2>(buffer)) {
+            free(std::get<2>(buffer));
+        }
+    }
+    inBuffers.clear();
 }
 
-void Codec::setEncParams(iv_raw_buf_t *psInpRawBuf, const uint8_t *data) {
+bufferPtrs Codec::setEncParams(iv_raw_buf_t *psInpRawBuf, const uint8_t *data, size_t frameSize) {
+    bufferPtrs inBuffer;
     switch (mIvVideoColorFormat) {
         case IV_YUV_420SP_UV:
             [[fallthrough]];
         case IV_YUV_420SP_VU: {
-            uint8_t *yPlane = const_cast<uint8_t *>(data);
-            uint8_t *uPlane = const_cast<uint8_t *>(data + (mWidth * mHeight));
+            uint8_t *yPlane = (uint8_t *)malloc(mWidth * mHeight);
+            uint8_t *uPlane = (uint8_t *)malloc(frameSize - (mWidth * mHeight));
+            memcpy(yPlane, data, mWidth * mHeight);
+            memcpy(uPlane, data + (mWidth * mHeight), frameSize - (mWidth * mHeight));
             int32_t yStride = mWidth;
             int32_t uStride = mWidth / 2;
             psInpRawBuf->apv_bufs[0] = yPlane;
@@ -929,10 +979,12 @@ void Codec::setEncParams(iv_raw_buf_t *psInpRawBuf, const uint8_t *data) {
 
             psInpRawBuf->au4_strd[0] = yStride;
             psInpRawBuf->au4_strd[1] = uStride;
+            inBuffer = std::make_tuple(yPlane, uPlane, nullptr);
             break;
         }
         case IV_YUV_422ILE: {
-            uint8_t *yPlane = const_cast<uint8_t *>(data);
+            uint8_t *yPlane = (uint8_t *)malloc(frameSize);
+            memcpy(yPlane, data, frameSize);
             psInpRawBuf->apv_bufs[0] = yPlane;
 
             psInpRawBuf->au4_wd[0] = mWidth * 2;
@@ -940,14 +992,19 @@ void Codec::setEncParams(iv_raw_buf_t *psInpRawBuf, const uint8_t *data) {
             psInpRawBuf->au4_ht[0] = mHeight;
 
             psInpRawBuf->au4_strd[0] = mWidth * 2;
+            inBuffer = std::make_tuple(yPlane, nullptr, nullptr);
             break;
         }
         case IV_YUV_420P:
             [[fallthrough]];
         default: {
-            uint8_t *yPlane = const_cast<uint8_t *>(data);
-            uint8_t *uPlane = const_cast<uint8_t *>(data + (mWidth * mHeight));
-            uint8_t *vPlane = const_cast<uint8_t *>(data + ((mWidth * mHeight) * 5) / 4);
+            uint8_t *yPlane = (uint8_t *)malloc(mWidth * mHeight);
+            uint8_t *uPlane = (uint8_t *)malloc((mWidth * mHeight) / 4);
+            uint8_t *vPlane = (uint8_t *)malloc(frameSize - ((mWidth * mHeight) * 5) / 4);
+            memcpy(yPlane, data, mWidth * mHeight);
+            memcpy(uPlane, data + (mWidth * mHeight), (mWidth * mHeight) / 4);
+            memcpy(vPlane, data + ((mWidth * mHeight) * 5) / 4,
+                   frameSize - ((mWidth * mHeight) * 5) / 4);
             int32_t yStride = mWidth;
             int32_t uStride = mWidth / 2;
             int32_t vStride = mWidth / 2;
@@ -967,10 +1024,11 @@ void Codec::setEncParams(iv_raw_buf_t *psInpRawBuf, const uint8_t *data) {
             psInpRawBuf->au4_strd[0] = yStride;
             psInpRawBuf->au4_strd[1] = uStride;
             psInpRawBuf->au4_strd[2] = vStride;
+            inBuffer = std::make_tuple(yPlane, uPlane, vPlane);
             break;
         }
     }
-    return;
+    return inBuffer;
 }
 
 void Codec::deInitEncoder() {
