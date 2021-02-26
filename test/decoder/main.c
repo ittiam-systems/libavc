@@ -553,22 +553,24 @@ IV_API_CALL_STATUS_T set_degrade(void *codec_obj, UWORD32 type, WORD32 pics)
 IV_API_CALL_STATUS_T enable_skipb_frames(void *codec_obj,
                                          vid_dec_ctx_t *ps_app_ctx)
 {
-    ivd_ctl_set_config_ip_t s_ctl_ip;
-    ivd_ctl_set_config_op_t s_ctl_op;
+    ih264d_ctl_set_config_ip_t s_h264d_ctl_ip = {};
+    ih264d_ctl_set_config_op_t s_h264d_ctl_op = {};
+    ivd_ctl_set_config_ip_t *ps_ctl_ip = &s_h264d_ctl_ip.s_ivd_ctl_set_config_ip_t;
+    ivd_ctl_set_config_op_t *ps_ctl_op = &s_h264d_ctl_op.s_ivd_ctl_set_config_op_t;
     IV_API_CALL_STATUS_T e_dec_status;
 
-    s_ctl_ip.u4_disp_wd = ps_app_ctx->u4_strd;
-    s_ctl_ip.e_frm_skip_mode = IVD_SKIP_B;
+    ps_ctl_ip->u4_disp_wd = ps_app_ctx->u4_strd;
+    ps_ctl_ip->e_frm_skip_mode = IVD_SKIP_B;
 
-    s_ctl_ip.e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
-    s_ctl_ip.e_vid_dec_mode = IVD_DECODE_FRAME;
-    s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
-    s_ctl_ip.e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
-    s_ctl_ip.u4_size = sizeof(ivd_ctl_set_config_ip_t);
-    s_ctl_op.u4_size = sizeof(ivd_ctl_set_config_op_t);
+    ps_ctl_ip->e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
+    ps_ctl_ip->e_vid_dec_mode = IVD_DECODE_FRAME;
+    ps_ctl_ip->e_cmd = IVD_CMD_VIDEO_CTL;
+    ps_ctl_ip->e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
+    ps_ctl_ip->u4_size = sizeof(ih264d_ctl_set_config_ip_t);
+    ps_ctl_op->u4_size = sizeof(ih264d_ctl_set_config_op_t);
 
-    e_dec_status = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_ctl_ip,
-                                        (void *)&s_ctl_op);
+    e_dec_status = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_h264d_ctl_ip,
+                                        (void *)&s_h264d_ctl_op);
 
     if(IV_SUCCESS != e_dec_status)
     {
@@ -603,22 +605,24 @@ IV_API_CALL_STATUS_T enable_skipb_frames(void *codec_obj,
 IV_API_CALL_STATUS_T disable_skipb_frames(void *codec_obj,
                                           vid_dec_ctx_t *ps_app_ctx)
 {
-    ivd_ctl_set_config_ip_t s_ctl_ip;
-    ivd_ctl_set_config_op_t s_ctl_op;
+    ih264d_ctl_set_config_ip_t s_h264d_ctl_ip = {};
+    ih264d_ctl_set_config_op_t s_h264d_ctl_op = {};
+    ivd_ctl_set_config_ip_t *ps_ctl_ip = &s_h264d_ctl_ip.s_ivd_ctl_set_config_ip_t;
+    ivd_ctl_set_config_op_t *ps_ctl_op = &s_h264d_ctl_op.s_ivd_ctl_set_config_op_t;
     IV_API_CALL_STATUS_T e_dec_status;
 
-    s_ctl_ip.u4_disp_wd = ps_app_ctx->u4_strd;
-    s_ctl_ip.e_frm_skip_mode = IVD_SKIP_NONE;
+    ps_ctl_ip->u4_disp_wd = ps_app_ctx->u4_strd;
+    ps_ctl_ip->e_frm_skip_mode = IVD_SKIP_NONE;
 
-    s_ctl_ip.e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
-    s_ctl_ip.e_vid_dec_mode = IVD_DECODE_FRAME;
-    s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
-    s_ctl_ip.e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
-    s_ctl_ip.u4_size = sizeof(ivd_ctl_set_config_ip_t);
-    s_ctl_op.u4_size = sizeof(ivd_ctl_set_config_op_t);
+    ps_ctl_ip->e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
+    ps_ctl_ip->e_vid_dec_mode = IVD_DECODE_FRAME;
+    ps_ctl_ip->e_cmd = IVD_CMD_VIDEO_CTL;
+    ps_ctl_ip->e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
+    ps_ctl_ip->u4_size = sizeof(ih264d_ctl_set_config_ip_t);
+    ps_ctl_op->u4_size = sizeof(ih264d_ctl_set_config_op_t);
 
-    e_dec_status = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_ctl_ip,
-                                        (void *)&s_ctl_op);
+    e_dec_status = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_h264d_ctl_ip,
+                                        (void *)&s_h264d_ctl_op);
 
     if(IV_SUCCESS != e_dec_status)
     {
@@ -654,22 +658,24 @@ IV_API_CALL_STATUS_T disable_skipb_frames(void *codec_obj,
 IV_API_CALL_STATUS_T enable_skippb_frames(void *codec_obj,
                                           vid_dec_ctx_t *ps_app_ctx)
 {
-    ivd_ctl_set_config_ip_t s_ctl_ip;
-    ivd_ctl_set_config_op_t s_ctl_op;
+    ih264d_ctl_set_config_ip_t s_h264d_ctl_ip = {};
+    ih264d_ctl_set_config_op_t s_h264d_ctl_op = {};
+    ivd_ctl_set_config_ip_t *ps_ctl_ip = &s_h264d_ctl_ip.s_ivd_ctl_set_config_ip_t;
+    ivd_ctl_set_config_op_t *ps_ctl_op = &s_h264d_ctl_op.s_ivd_ctl_set_config_op_t;
     IV_API_CALL_STATUS_T e_dec_status;
 
-    s_ctl_ip.u4_disp_wd = ps_app_ctx->u4_strd;
-    s_ctl_ip.e_frm_skip_mode = IVD_SKIP_PB;
+    ps_ctl_ip->u4_disp_wd = ps_app_ctx->u4_strd;
+    ps_ctl_ip->e_frm_skip_mode = IVD_SKIP_PB;
 
-    s_ctl_ip.e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
-    s_ctl_ip.e_vid_dec_mode = IVD_DECODE_FRAME;
-    s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
-    s_ctl_ip.e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
-    s_ctl_ip.u4_size = sizeof(ivd_ctl_set_config_ip_t);
-    s_ctl_op.u4_size = sizeof(ivd_ctl_set_config_op_t);
+    ps_ctl_ip->e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
+    ps_ctl_ip->e_vid_dec_mode = IVD_DECODE_FRAME;
+    ps_ctl_ip->e_cmd = IVD_CMD_VIDEO_CTL;
+    ps_ctl_ip->e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
+    ps_ctl_ip->u4_size = sizeof(ih264d_ctl_set_config_ip_t);
+    ps_ctl_op->u4_size = sizeof(ih264d_ctl_set_config_op_t);
 
-    e_dec_status = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_ctl_ip,
-                                        (void *)&s_ctl_op);
+    e_dec_status = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_h264d_ctl_ip,
+                                        (void *)&s_h264d_ctl_op);
     if(IV_SUCCESS != e_dec_status)
     {
         printf("Error in Enable SkipPB frames\n");
@@ -704,22 +710,24 @@ IV_API_CALL_STATUS_T enable_skippb_frames(void *codec_obj,
 IV_API_CALL_STATUS_T disable_skippb_frames(void *codec_obj,
                                            vid_dec_ctx_t *ps_app_ctx)
 {
-    ivd_ctl_set_config_ip_t s_ctl_ip;
-    ivd_ctl_set_config_op_t s_ctl_op;
+    ih264d_ctl_set_config_ip_t s_h264d_ctl_ip = {};
+    ih264d_ctl_set_config_op_t s_h264d_ctl_op = {};
+    ivd_ctl_set_config_ip_t *ps_ctl_ip = &s_h264d_ctl_ip.s_ivd_ctl_set_config_ip_t;
+    ivd_ctl_set_config_op_t *ps_ctl_op = &s_h264d_ctl_op.s_ivd_ctl_set_config_op_t;
     IV_API_CALL_STATUS_T e_dec_status;
 
-    s_ctl_ip.u4_disp_wd = ps_app_ctx->u4_strd;
-    s_ctl_ip.e_frm_skip_mode = IVD_SKIP_NONE;
+    ps_ctl_ip->u4_disp_wd = ps_app_ctx->u4_strd;
+    ps_ctl_ip->e_frm_skip_mode = IVD_SKIP_NONE;
 
-    s_ctl_ip.e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
-    s_ctl_ip.e_vid_dec_mode = IVD_DECODE_FRAME;
-    s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
-    s_ctl_ip.e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
-    s_ctl_ip.u4_size = sizeof(ivd_ctl_set_config_ip_t);
-    s_ctl_op.u4_size = sizeof(ivd_ctl_set_config_op_t);
+    ps_ctl_ip->e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
+    ps_ctl_ip->e_vid_dec_mode = IVD_DECODE_FRAME;
+    ps_ctl_ip->e_cmd = IVD_CMD_VIDEO_CTL;
+    ps_ctl_ip->e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
+    ps_ctl_ip->u4_size = sizeof(ih264d_ctl_set_config_ip_t);
+    ps_ctl_op->u4_size = sizeof(ih264d_ctl_set_config_op_t);
 
-    e_dec_status = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_ctl_ip,
-                                        (void *)&s_ctl_op);
+    e_dec_status = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_h264d_ctl_ip,
+                                        (void *)&s_h264d_ctl_op);
     if(IV_SUCCESS != e_dec_status)
     {
         printf("Error in Disable SkipPB frames\n");
@@ -1657,39 +1665,41 @@ void flush_output(iv_obj_t *codec_obj,
 
         if(IV_SUCCESS == ret)
         {
-            ivd_video_decode_ip_t s_video_decode_ip;
-            ivd_video_decode_op_t s_video_decode_op;
+            ih264d_video_decode_ip_t s_h264d_decode_ip = {};
+            ih264d_video_decode_op_t s_h264d_decode_op = {};
+            ivd_video_decode_ip_t *ps_video_decode_ip = &s_h264d_decode_ip.s_ivd_video_decode_ip_t;
+            ivd_video_decode_op_t *ps_video_decode_op = &s_h264d_decode_op.s_ivd_video_decode_op_t;
 
-            s_video_decode_ip.e_cmd = IVD_CMD_VIDEO_DECODE;
-            s_video_decode_ip.u4_ts = u4_ip_frm_ts;
-            s_video_decode_ip.pv_stream_buffer = pu1_bs_buf;
-            s_video_decode_ip.u4_num_Bytes = u4_bytes_remaining;
-            s_video_decode_ip.u4_size = sizeof(ivd_video_decode_ip_t);
-            s_video_decode_ip.s_out_buffer.u4_min_out_buf_size[0] =
+            ps_video_decode_ip->e_cmd = IVD_CMD_VIDEO_DECODE;
+            ps_video_decode_ip->u4_ts = u4_ip_frm_ts;
+            ps_video_decode_ip->pv_stream_buffer = pu1_bs_buf;
+            ps_video_decode_ip->u4_num_Bytes = u4_bytes_remaining;
+            ps_video_decode_ip->u4_size = sizeof(ih264d_video_decode_ip_t);
+            ps_video_decode_ip->s_out_buffer.u4_min_out_buf_size[0] =
                             ps_out_buf->u4_min_out_buf_size[0];
-            s_video_decode_ip.s_out_buffer.u4_min_out_buf_size[1] =
+            ps_video_decode_ip->s_out_buffer.u4_min_out_buf_size[1] =
                             ps_out_buf->u4_min_out_buf_size[1];
-            s_video_decode_ip.s_out_buffer.u4_min_out_buf_size[2] =
+            ps_video_decode_ip->s_out_buffer.u4_min_out_buf_size[2] =
                             ps_out_buf->u4_min_out_buf_size[2];
 
-            s_video_decode_ip.s_out_buffer.pu1_bufs[0] =
+            ps_video_decode_ip->s_out_buffer.pu1_bufs[0] =
                             ps_out_buf->pu1_bufs[0];
-            s_video_decode_ip.s_out_buffer.pu1_bufs[1] =
+            ps_video_decode_ip->s_out_buffer.pu1_bufs[1] =
                             ps_out_buf->pu1_bufs[1];
-            s_video_decode_ip.s_out_buffer.pu1_bufs[2] =
+            ps_video_decode_ip->s_out_buffer.pu1_bufs[2] =
                             ps_out_buf->pu1_bufs[2];
-            s_video_decode_ip.s_out_buffer.u4_num_bufs =
+            ps_video_decode_ip->s_out_buffer.u4_num_bufs =
                             ps_out_buf->u4_num_bufs;
 
-            s_video_decode_op.u4_size = sizeof(ivd_video_decode_op_t);
+            ps_video_decode_op->u4_size = sizeof(ih264d_video_decode_op_t);
 
             /*****************************************************************************/
             /*   API Call: Video Decode                                                  */
             /*****************************************************************************/
-            ret = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_video_decode_ip,
-                                       (void *)&s_video_decode_op);
+            ret = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_h264d_decode_ip,
+                                       (void *)&s_h264d_decode_op);
 
-            if(1 == s_video_decode_op.u4_output_present)
+            if(1 == ps_video_decode_op->u4_output_present)
             {
                 CHAR cur_fname[1000];
                 CHAR *extn = NULL;
@@ -1701,7 +1711,7 @@ void flush_output(iv_obj_t *codec_obj,
                 /*************************************************************************/
                 /* Get SEI MDCV parameters                                               */
                 /*************************************************************************/
-                if(1 == s_video_decode_op.s_sei_decode_op.u1_sei_mdcv_params_present_flag)
+                if(1 == ps_video_decode_op->s_sei_decode_op.u1_sei_mdcv_params_present_flag)
                 {
                     ih264d_ctl_get_sei_mdcv_params_ip_t s_ctl_get_sei_mdcv_params_ip;
                     ih264d_ctl_get_sei_mdcv_params_op_t s_ctl_get_sei_mdcv_params_op;
@@ -1732,7 +1742,7 @@ void flush_output(iv_obj_t *codec_obj,
                 /*************************************************************************/
                 /* Get SEI CLL parameters                                                */
                 /*************************************************************************/
-                if(1 == s_video_decode_op.s_sei_decode_op.u1_sei_cll_params_present_flag)
+                if(1 == ps_video_decode_op->s_sei_decode_op.u1_sei_cll_params_present_flag)
                 {
                     ih264d_ctl_get_sei_cll_params_ip_t s_ctl_get_sei_cll_params_ip;
                     ih264d_ctl_get_sei_cll_params_op_t s_ctl_get_sei_cll_params_op;
@@ -1763,7 +1773,7 @@ void flush_output(iv_obj_t *codec_obj,
                 /*************************************************************************/
                 /* Get SEI AVE parameters                                                */
                 /*************************************************************************/
-                if(1 == s_video_decode_op.s_sei_decode_op.u1_sei_ave_params_present_flag)
+                if(1 == ps_video_decode_op->s_sei_decode_op.u1_sei_ave_params_present_flag)
                 {
                     ih264d_ctl_get_sei_ave_params_ip_t s_ctl_get_sei_ave_params_ip;
                     ih264d_ctl_get_sei_ave_params_op_t s_ctl_get_sei_ave_params_op;
@@ -1794,7 +1804,7 @@ void flush_output(iv_obj_t *codec_obj,
                 /*************************************************************************/
                 /* Get SEI CCV parameters                                                */
                 /*************************************************************************/
-                if(1 == s_video_decode_op.s_sei_decode_op.u1_sei_ccv_params_present_flag)
+                if(1 == ps_video_decode_op->s_sei_decode_op.u1_sei_ccv_params_present_flag)
                 {
                     ih264d_ctl_get_sei_ccv_params_ip_t s_ctl_get_sei_ccv_params_ip;
                     ih264d_ctl_get_sei_ccv_params_op_t s_ctl_get_sei_ccv_params_op;
@@ -1845,8 +1855,8 @@ void flush_output(iv_obj_t *codec_obj,
                     }
                 }
 
-                dump_output(ps_app_ctx, &(s_video_decode_op.s_disp_frm_buf),
-                            s_video_decode_op.u4_disp_buf_id, ps_op_file,
+                dump_output(ps_app_ctx, &(ps_video_decode_op->s_disp_frm_buf),
+                            ps_video_decode_op->u4_disp_buf_id, ps_op_file,
                             ps_op_chksum_file,
                             *pu4_op_frm_ts, ps_app_ctx->u4_file_save_flag,
                             ps_app_ctx->u4_chksum_save_flag);
@@ -2275,24 +2285,26 @@ int main(WORD32 argc, CHAR *argv[])
             /*  set stride                                                               */
             /*****************************************************************************/
             {
-                ivd_ctl_set_config_ip_t s_ctl_ip;
-                ivd_ctl_set_config_op_t s_ctl_op;
+                ih264d_ctl_set_config_ip_t s_h264d_ctl_ip = {};
+                ih264d_ctl_set_config_op_t s_h264d_ctl_op = {};
+                ivd_ctl_set_config_ip_t *ps_ctl_ip = &s_h264d_ctl_ip.s_ivd_ctl_set_config_ip_t;
+                ivd_ctl_set_config_op_t *ps_ctl_op = &s_h264d_ctl_op.s_ivd_ctl_set_config_op_t;
 
 
-                s_ctl_ip.u4_disp_wd = STRIDE;
+                ps_ctl_ip->u4_disp_wd = STRIDE;
                 if(1 == s_app_ctx.display)
-                    s_ctl_ip.u4_disp_wd = s_app_ctx.get_stride();
+                    ps_ctl_ip->u4_disp_wd = s_app_ctx.get_stride();
 
-                s_ctl_ip.e_frm_skip_mode = IVD_SKIP_NONE;
-                s_ctl_ip.e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
-                s_ctl_ip.e_vid_dec_mode = IVD_DECODE_HEADER;
-                s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
-                s_ctl_ip.e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
-                s_ctl_ip.u4_size = sizeof(ivd_ctl_set_config_ip_t);
-                s_ctl_op.u4_size = sizeof(ivd_ctl_set_config_op_t);
+                ps_ctl_ip->e_frm_skip_mode = IVD_SKIP_NONE;
+                ps_ctl_ip->e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
+                ps_ctl_ip->e_vid_dec_mode = IVD_DECODE_HEADER;
+                ps_ctl_ip->e_cmd = IVD_CMD_VIDEO_CTL;
+                ps_ctl_ip->e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
+                ps_ctl_ip->u4_size = sizeof(ih264d_ctl_set_config_ip_t);
+                ps_ctl_op->u4_size = sizeof(ih264d_ctl_set_config_op_t);
 
-                ret = ivd_api_function((iv_obj_t*)codec_obj, (void *)&s_ctl_ip,
-                                           (void *)&s_ctl_op);
+                ret = ivd_api_function((iv_obj_t*)codec_obj, (void *)&s_h264d_ctl_ip,
+                                           (void *)&s_h264d_ctl_op);
                 if(ret != IV_SUCCESS)
                 {
                     sprintf(ac_error_str,
@@ -2366,30 +2378,34 @@ int main(WORD32 argc, CHAR *argv[])
     /*   Decode header to get width and height and buffer sizes                  */
     /*****************************************************************************/
     {
-        ivd_video_decode_ip_t s_video_decode_ip;
-        ivd_video_decode_op_t s_video_decode_op;
+        ih264d_video_decode_ip_t s_h264d_decode_ip = {};
+        ih264d_video_decode_op_t s_h264d_decode_op = {};
+        ivd_video_decode_ip_t *ps_video_decode_ip = &s_h264d_decode_ip.s_ivd_video_decode_ip_t;
+        ivd_video_decode_op_t *ps_video_decode_op = &s_h264d_decode_op.s_ivd_video_decode_op_t;
 
 
 
         {
-            ivd_ctl_set_config_ip_t s_ctl_ip;
-            ivd_ctl_set_config_op_t s_ctl_op;
+            ih264d_ctl_set_config_ip_t s_h264d_ctl_ip = {};
+            ih264d_ctl_set_config_op_t s_h264d_ctl_op = {};
+            ivd_ctl_set_config_ip_t *ps_ctl_ip = &s_h264d_ctl_ip.s_ivd_ctl_set_config_ip_t;
+            ivd_ctl_set_config_op_t *ps_ctl_op = &s_h264d_ctl_op.s_ivd_ctl_set_config_op_t;
 
 
-            s_ctl_ip.u4_disp_wd = STRIDE;
+            ps_ctl_ip->u4_disp_wd = STRIDE;
             if(1 == s_app_ctx.display)
-                s_ctl_ip.u4_disp_wd = s_app_ctx.get_stride();
+                ps_ctl_ip->u4_disp_wd = s_app_ctx.get_stride();
 
-            s_ctl_ip.e_frm_skip_mode = IVD_SKIP_NONE;
-            s_ctl_ip.e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
-            s_ctl_ip.e_vid_dec_mode = IVD_DECODE_HEADER;
-            s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
-            s_ctl_ip.e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
-            s_ctl_ip.u4_size = sizeof(ivd_ctl_set_config_ip_t);
-            s_ctl_op.u4_size = sizeof(ivd_ctl_set_config_op_t);
+            ps_ctl_ip->e_frm_skip_mode = IVD_SKIP_NONE;
+            ps_ctl_ip->e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
+            ps_ctl_ip->e_vid_dec_mode = IVD_DECODE_HEADER;
+            ps_ctl_ip->e_cmd = IVD_CMD_VIDEO_CTL;
+            ps_ctl_ip->e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
+            ps_ctl_ip->u4_size = sizeof(ih264d_ctl_set_config_ip_t);
+            ps_ctl_op->u4_size = sizeof(ih264d_ctl_set_config_op_t);
 
-            ret = ivd_api_function((iv_obj_t*)codec_obj, (void *)&s_ctl_ip,
-                                       (void *)&s_ctl_op);
+            ret = ivd_api_function((iv_obj_t*)codec_obj, (void *)&s_h264d_ctl_ip,
+                                       (void *)&s_h264d_ctl_op);
             if(ret != IV_SUCCESS)
             {
                 sprintf(ac_error_str,
@@ -2436,36 +2452,36 @@ int main(WORD32 argc, CHAR *argv[])
                 codec_exit(ac_error_str);
             }
 
-            s_video_decode_ip.e_cmd = IVD_CMD_VIDEO_DECODE;
-            s_video_decode_ip.u4_ts = u4_ip_frm_ts;
-            s_video_decode_ip.pv_stream_buffer = pu1_bs_buf;
-            s_video_decode_ip.u4_num_Bytes = u4_bytes_remaining;
-            s_video_decode_ip.u4_size = sizeof(ivd_video_decode_ip_t);
-            s_video_decode_op.u4_size = sizeof(ivd_video_decode_op_t);
+            ps_video_decode_ip->e_cmd = IVD_CMD_VIDEO_DECODE;
+            ps_video_decode_ip->u4_ts = u4_ip_frm_ts;
+            ps_video_decode_ip->pv_stream_buffer = pu1_bs_buf;
+            ps_video_decode_ip->u4_num_Bytes = u4_bytes_remaining;
+            ps_video_decode_ip->u4_size = sizeof(ih264d_video_decode_ip_t);
+            ps_video_decode_op->u4_size = sizeof(ih264d_video_decode_op_t);
 
             /*****************************************************************************/
             /*   API Call: Header Decode                                                  */
             /*****************************************************************************/
-            ret = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_video_decode_ip,
-                                       (void *)&s_video_decode_op);
+            ret = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_h264d_decode_ip,
+                                       (void *)&s_h264d_decode_op);
 
             if(ret != IV_SUCCESS)
             {
-                printf("Error in header decode 0x%x\n",  s_video_decode_op.u4_error_code);
+                printf("Error in header decode 0x%x\n",  ps_video_decode_op->u4_error_code);
                 // codec_exit(ac_error_str);
             }
 
-            u4_num_bytes_dec = s_video_decode_op.u4_num_bytes_consumed;
+            u4_num_bytes_dec = ps_video_decode_op->u4_num_bytes_consumed;
 #ifndef PROFILE_ENABLE
-            printf("%d\n",s_video_decode_op.u4_num_bytes_consumed);
+            printf("%d\n",ps_video_decode_op->u4_num_bytes_consumed);
 #endif
             file_pos += u4_num_bytes_dec;
             total_bytes_comsumed += u4_num_bytes_dec;
         }while(ret != IV_SUCCESS);
 
         /* copy pic_wd and pic_ht to initialize buffers */
-        s_app_ctx.u4_pic_wd = s_video_decode_op.u4_pic_wd;
-        s_app_ctx.u4_pic_ht = s_video_decode_op.u4_pic_ht;
+        s_app_ctx.u4_pic_wd = ps_video_decode_op->u4_pic_wd;
+        s_app_ctx.u4_pic_ht = ps_video_decode_op->u4_pic_ht;
 
         free(pu1_bs_buf);
 
@@ -2767,23 +2783,26 @@ int main(WORD32 argc, CHAR *argv[])
     /*************************************************************************/
     {
 
-        ivd_ctl_set_config_ip_t s_ctl_ip;
-        ivd_ctl_set_config_op_t s_ctl_op;
+        ih264d_ctl_set_config_ip_t s_h264d_ctl_ip = {};
+        ih264d_ctl_set_config_op_t s_h264d_ctl_op = {};
+        ivd_ctl_set_config_ip_t *ps_ctl_ip = &s_h264d_ctl_ip.s_ivd_ctl_set_config_ip_t;
+        ivd_ctl_set_config_op_t *ps_ctl_op = &s_h264d_ctl_op.s_ivd_ctl_set_config_op_t;
 
-        s_ctl_ip.u4_disp_wd = STRIDE;
+        ps_ctl_ip->u4_disp_wd = STRIDE;
         if(1 == s_app_ctx.display)
-            s_ctl_ip.u4_disp_wd = s_app_ctx.get_stride();
-        s_ctl_ip.e_frm_skip_mode = IVD_SKIP_NONE;
+            ps_ctl_ip->u4_disp_wd = s_app_ctx.get_stride();
+        ps_ctl_ip->e_frm_skip_mode = IVD_SKIP_NONE;
 
-        s_ctl_ip.e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
-        s_ctl_ip.e_vid_dec_mode = IVD_DECODE_FRAME;
-        s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
-        s_ctl_ip.e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
-        s_ctl_ip.u4_size = sizeof(ivd_ctl_set_config_ip_t);
+        ps_ctl_ip->e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
+        ps_ctl_ip->e_vid_dec_mode = IVD_DECODE_FRAME;
+        ps_ctl_ip->e_cmd = IVD_CMD_VIDEO_CTL;
+        ps_ctl_ip->e_sub_cmd = IVD_CMD_CTL_SETPARAMS;
+        ps_ctl_ip->u4_size = sizeof(ih264d_ctl_set_config_ip_t);
 
-        s_ctl_op.u4_size = sizeof(ivd_ctl_set_config_op_t);
+        ps_ctl_op->u4_size = sizeof(ih264d_ctl_set_config_op_t);
 
-        ret = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_ctl_ip, (void *)&s_ctl_op);
+        ret = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_h264d_ctl_ip,
+                               (void *)&s_h264d_ctl_op);
 
         if(IV_SUCCESS != ret)
         {
@@ -2947,8 +2966,10 @@ int main(WORD32 argc, CHAR *argv[])
 
 
         {
-            ivd_video_decode_ip_t s_video_decode_ip;
-            ivd_video_decode_op_t s_video_decode_op;
+            ih264d_video_decode_ip_t s_h264d_decode_ip = {};
+            ih264d_video_decode_op_t s_h264d_decode_op = {};
+            ivd_video_decode_ip_t *ps_video_decode_ip = &s_h264d_decode_ip.s_ivd_video_decode_ip_t;
+            ivd_video_decode_op_t *ps_video_decode_op = &s_h264d_decode_op.s_ivd_video_decode_op_t;
 #ifdef PROFILE_ENABLE
             UWORD32 s_elapsed_time;
             TIMER s_start_timer;
@@ -2956,27 +2977,27 @@ int main(WORD32 argc, CHAR *argv[])
 #endif
 
 
-            s_video_decode_ip.e_cmd = IVD_CMD_VIDEO_DECODE;
-            s_video_decode_ip.u4_ts = u4_ip_frm_ts;
-            s_video_decode_ip.pv_stream_buffer = pu1_bs_buf;
-            s_video_decode_ip.u4_num_Bytes = u4_bytes_remaining;
-            s_video_decode_ip.u4_size = sizeof(ivd_video_decode_ip_t);
-            s_video_decode_ip.s_out_buffer.u4_min_out_buf_size[0] =
+            ps_video_decode_ip->e_cmd = IVD_CMD_VIDEO_DECODE;
+            ps_video_decode_ip->u4_ts = u4_ip_frm_ts;
+            ps_video_decode_ip->pv_stream_buffer = pu1_bs_buf;
+            ps_video_decode_ip->u4_num_Bytes = u4_bytes_remaining;
+            ps_video_decode_ip->u4_size = sizeof(ih264d_video_decode_ip_t);
+            ps_video_decode_ip->s_out_buffer.u4_min_out_buf_size[0] =
                             ps_out_buf->u4_min_out_buf_size[0];
-            s_video_decode_ip.s_out_buffer.u4_min_out_buf_size[1] =
+            ps_video_decode_ip->s_out_buffer.u4_min_out_buf_size[1] =
                             ps_out_buf->u4_min_out_buf_size[1];
-            s_video_decode_ip.s_out_buffer.u4_min_out_buf_size[2] =
+            ps_video_decode_ip->s_out_buffer.u4_min_out_buf_size[2] =
                             ps_out_buf->u4_min_out_buf_size[2];
 
-            s_video_decode_ip.s_out_buffer.pu1_bufs[0] =
+            ps_video_decode_ip->s_out_buffer.pu1_bufs[0] =
                             ps_out_buf->pu1_bufs[0];
-            s_video_decode_ip.s_out_buffer.pu1_bufs[1] =
+            ps_video_decode_ip->s_out_buffer.pu1_bufs[1] =
                             ps_out_buf->pu1_bufs[1];
-            s_video_decode_ip.s_out_buffer.pu1_bufs[2] =
+            ps_video_decode_ip->s_out_buffer.pu1_bufs[2] =
                             ps_out_buf->pu1_bufs[2];
-            s_video_decode_ip.s_out_buffer.u4_num_bufs =
+            ps_video_decode_ip->s_out_buffer.u4_num_bufs =
                             ps_out_buf->u4_num_bufs;
-            s_video_decode_op.u4_size = sizeof(ivd_video_decode_op_t);
+            ps_video_decode_op->u4_size = sizeof(ih264d_video_decode_op_t);
 
             /* Get display buffer pointers */
             if(1 == s_app_ctx.display)
@@ -2989,9 +3010,9 @@ int main(WORD32 argc, CHAR *argv[])
                     break;
 
                 s_app_ctx.set_disp_buffers(s_app_ctx.pv_disp_ctx, wr_idx,
-                                     &s_video_decode_ip.s_out_buffer.pu1_bufs[0],
-                                     &s_video_decode_ip.s_out_buffer.pu1_bufs[1],
-                                     &s_video_decode_ip.s_out_buffer.pu1_bufs[2]);
+                                     &ps_video_decode_ip->s_out_buffer.pu1_bufs[0],
+                                     &ps_video_decode_ip->s_out_buffer.pu1_bufs[1],
+                                     &ps_video_decode_ip->s_out_buffer.pu1_bufs[2]);
             }
 
             /*****************************************************************************/
@@ -3000,8 +3021,8 @@ int main(WORD32 argc, CHAR *argv[])
 
             GETTIME(&s_start_timer);
 
-            ret = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_video_decode_ip,
-                                       (void *)&s_video_decode_op);
+            ret = ivd_api_function((iv_obj_t *)codec_obj, (void *)&s_h264d_decode_ip,
+                                       (void *)&s_h264d_decode_op);
 
 
             GETTIME(&s_end_timer);
@@ -3024,12 +3045,12 @@ int main(WORD32 argc, CHAR *argv[])
                     frm_cnt++;
 
                     printf("FrameNum: %4d TimeTaken(microsec): %6d AvgTime: %6d PeakAvgTimeMax: %6d Output: %2d NumBytes: %6d \n",
-                                    frm_cnt, s_elapsed_time, u4_tot_cycles / frm_cnt, peak_avg_max, s_video_decode_op.u4_output_present, s_video_decode_op.u4_num_bytes_consumed);
+                                    frm_cnt, s_elapsed_time, u4_tot_cycles / frm_cnt, peak_avg_max, ps_video_decode_op->u4_output_present, ps_video_decode_op->u4_num_bytes_consumed);
 
             }
 #ifdef INTEL_CE5300
         time_consumed += s_elapsed_time;
-        bytes_consumed += s_video_decode_op.u4_num_bytes_consumed;
+        bytes_consumed += ps_video_decode_op->u4_num_bytes_consumed;
         if (!(frm_cnt % (s_app_ctx.fps)))
         {
             time_consumed = time_consumed/s_app_ctx.fps;
@@ -3041,17 +3062,17 @@ int main(WORD32 argc, CHAR *argv[])
         }
 #endif
 #else
-        printf("%d\n",s_video_decode_op.u4_num_bytes_consumed);
+        printf("%d\n",ps_video_decode_op->u4_num_bytes_consumed);
 #endif
 
             if(ret != IV_SUCCESS)
             {
                 printf("Error in video Frame decode : ret %x Error %x\n", ret,
-                       s_video_decode_op.u4_error_code);
+                       ps_video_decode_op->u4_error_code);
             }
 
             if((IV_SUCCESS != ret) &&
-                            ((s_video_decode_op.u4_error_code & 0xFF) == IVD_RES_CHANGED))
+                            ((ps_video_decode_op->u4_error_code & 0xFF) == IVD_RES_CHANGED))
             {
                 ivd_ctl_reset_ip_t s_ctl_ip;
                 ivd_ctl_reset_op_t s_ctl_op;
@@ -3129,7 +3150,7 @@ int main(WORD32 argc, CHAR *argv[])
             /*************************************************************************/
             /* Get SEI MDCV parameters                                               */
             /*************************************************************************/
-            if(1 == s_video_decode_op.s_sei_decode_op.u1_sei_mdcv_params_present_flag)
+            if(1 == ps_video_decode_op->s_sei_decode_op.u1_sei_mdcv_params_present_flag)
             {
                 ih264d_ctl_get_sei_mdcv_params_ip_t s_ctl_get_sei_mdcv_params_ip;
                 ih264d_ctl_get_sei_mdcv_params_op_t s_ctl_get_sei_mdcv_params_op;
@@ -3160,7 +3181,7 @@ int main(WORD32 argc, CHAR *argv[])
             /*************************************************************************/
             /* Get SEI CLL parameters                                                */
             /*************************************************************************/
-            if(1 == s_video_decode_op.s_sei_decode_op.u1_sei_cll_params_present_flag)
+            if(1 == ps_video_decode_op->s_sei_decode_op.u1_sei_cll_params_present_flag)
             {
 
                 ih264d_ctl_get_sei_cll_params_ip_t s_ctl_get_sei_cll_params_ip;
@@ -3192,7 +3213,7 @@ int main(WORD32 argc, CHAR *argv[])
             /*************************************************************************/
             /* Get SEI AVE parameters                                                */
             /*************************************************************************/
-            if(1 == s_video_decode_op.s_sei_decode_op.u1_sei_ave_params_present_flag)
+            if(1 == ps_video_decode_op->s_sei_decode_op.u1_sei_ave_params_present_flag)
             {
                 ih264d_ctl_get_sei_ave_params_ip_t s_ctl_get_sei_ave_params_ip;
                 ih264d_ctl_get_sei_ave_params_op_t s_ctl_get_sei_ave_params_op;
@@ -3223,7 +3244,7 @@ int main(WORD32 argc, CHAR *argv[])
             /*************************************************************************/
             /* Get SEI CCV parameters                                                */
             /*************************************************************************/
-            if(1 == s_video_decode_op.s_sei_decode_op.u1_sei_ccv_params_present_flag)
+            if(1 == ps_video_decode_op->s_sei_decode_op.u1_sei_ccv_params_present_flag)
             {
                 ih264d_ctl_get_sei_ccv_params_ip_t s_ctl_get_sei_ccv_params_ip;
                 ih264d_ctl_get_sei_ccv_params_op_t s_ctl_get_sei_ccv_params_op;
@@ -3253,22 +3274,22 @@ int main(WORD32 argc, CHAR *argv[])
             }
 
             if((1 == s_app_ctx.display) &&
-                            (1 == s_video_decode_op.u4_output_present))
+                            (1 == ps_video_decode_op->u4_output_present))
             {
                 dispq_producer_queue(&s_app_ctx);
             }
 
-            if(IV_B_FRAME == s_video_decode_op.e_pic_type)
+            if(IV_B_FRAME == ps_video_decode_op->e_pic_type)
                 s_app_ctx.b_pic_present |= 1;
 
-            u4_num_bytes_dec = s_video_decode_op.u4_num_bytes_consumed;
+            u4_num_bytes_dec = ps_video_decode_op->u4_num_bytes_consumed;
 
             file_pos += u4_num_bytes_dec;
             total_bytes_comsumed += u4_num_bytes_dec;
             u4_ip_frm_ts++;
 
 
-            if(1 == s_video_decode_op.u4_output_present)
+            if(1 == ps_video_decode_op->u4_output_present)
             {
 
                 CHAR cur_fname[1000];
@@ -3298,10 +3319,10 @@ int main(WORD32 argc, CHAR *argv[])
                     }
                 }
 
-                width = s_video_decode_op.s_disp_frm_buf.u4_y_wd;
-                height = s_video_decode_op.s_disp_frm_buf.u4_y_ht;
-                dump_output(&s_app_ctx, &(s_video_decode_op.s_disp_frm_buf),
-                            s_video_decode_op.u4_disp_buf_id, ps_op_file,
+                width = ps_video_decode_op->s_disp_frm_buf.u4_y_wd;
+                height = ps_video_decode_op->s_disp_frm_buf.u4_y_ht;
+                dump_output(&s_app_ctx, &(ps_video_decode_op->s_disp_frm_buf),
+                            ps_video_decode_op->u4_disp_buf_id, ps_op_file,
                             ps_op_chksum_file,
                             u4_op_frm_ts, s_app_ctx.u4_file_save_flag,
                             s_app_ctx.u4_chksum_save_flag);
@@ -3313,7 +3334,7 @@ int main(WORD32 argc, CHAR *argv[])
             }
             else
             {
-                if((s_video_decode_op.u4_error_code >> IVD_FATALERROR) & 1)
+                if((ps_video_decode_op->u4_error_code >> IVD_FATALERROR) & 1)
                 {
                     printf("Fatal error\n");
                     break;

@@ -1972,18 +1972,22 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     WORD32 ret = 0,api_ret_value = IV_SUCCESS;
     WORD32 header_data_left = 0,frame_data_left = 0;
     UWORD8 *pu1_bitstrm_buf;
+    ih264d_video_decode_ip_t *ps_h264d_dec_ip;
+    ih264d_video_decode_op_t *ps_h264d_dec_op;
     ivd_video_decode_ip_t *ps_dec_ip;
     ivd_video_decode_op_t *ps_dec_op;
 
     ithread_set_name((void*)"Parse_thread");
 
-    ps_dec_ip = (ivd_video_decode_ip_t *)pv_api_ip;
-    ps_dec_op = (ivd_video_decode_op_t *)pv_api_op;
+    ps_h264d_dec_ip = (ih264d_video_decode_ip_t *)pv_api_ip;
+    ps_h264d_dec_op = (ih264d_video_decode_op_t *)pv_api_op;
+    ps_dec_ip = &ps_h264d_dec_ip->s_ivd_video_decode_ip_t;
+    ps_dec_op = &ps_h264d_dec_op->s_ivd_video_decode_op_t;
 
     {
         UWORD32 u4_size;
         u4_size = ps_dec_op->u4_size;
-        memset(ps_dec_op, 0, sizeof(ivd_video_decode_op_t));
+        memset(ps_h264d_dec_op, 0, sizeof(ih264d_video_decode_op_t));
         ps_dec_op->u4_size = u4_size;
     }
 
@@ -3236,10 +3240,14 @@ WORD32 ih264d_set_params(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     dec_struct_t * ps_dec;
     WORD32 ret = IV_SUCCESS;
 
+    ih264d_ctl_set_config_ip_t *ps_h264d_ctl_ip =
+                    (ih264d_ctl_set_config_ip_t *)pv_api_ip;
+    ih264d_ctl_set_config_op_t *ps_h264d_ctl_op =
+                    (ih264d_ctl_set_config_op_t *)pv_api_op;;
     ivd_ctl_set_config_ip_t *ps_ctl_ip =
-                    (ivd_ctl_set_config_ip_t *)pv_api_ip;
+                    &ps_h264d_ctl_ip->s_ivd_ctl_set_config_ip_t;
     ivd_ctl_set_config_op_t *ps_ctl_op =
-                    (ivd_ctl_set_config_op_t *)pv_api_op;
+                    &ps_h264d_ctl_op->s_ivd_ctl_set_config_op_t;
 
     ps_dec = (dec_struct_t *)(dec_hdl->pv_codec_handle);
 
