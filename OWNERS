@@ -1,4 +1,4 @@
 # owners for external/libavc
-include platform/frameworks/av:/media/janitors/OWNERS-codecs
+include platform/frameworks/av:/media/janitors/codec_OWNERS
 essick@google.com
 hkuang@google.com
