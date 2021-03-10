@@ -169,29 +169,7 @@
    {                                                                        \
        const WORD32 len = (WORD32)((ps_bitstrm->i4_bits_left_in_cw) & 0x07);\
        ih264e_put_bits(ps_bitstrm, (UWORD32)((1 << len) - 1), len);         \
-   }
-
-
-/**
-******************************************************************************
-* flush the bits in cur word byte by byte  and copy to stream                *
-* (current word is assumed to be byte aligned)                               *
-******************************************************************************
-*/
-#define  BITSTREAM_FLUSH(ps_bitstrm)                                           \
-{                                                                              \
-    WORD32 i;                                                                  \
-    for (i = WORD_SIZE; i > ps_bitstrm->i4_bits_left_in_cw; i -= 8)            \
-    {                                                                          \
-       UWORD8 u1_next_byte = (ps_bitstrm->u4_cur_word >> (i - 8)) & 0xFF;      \
-       PUTBYTE_EPB(ps_bitstrm->pu1_strm_buffer, ps_bitstrm->u4_strm_buf_offset,\
-                   u1_next_byte, ps_bitstrm->i4_zero_bytes_run);               \
-    }                                                                          \
-    ps_bitstrm->u4_cur_word = 0;                                               \
-    ps_bitstrm->i4_bits_left_in_cw = WORD_SIZE;                                \
-}                                                                              \
-
-
+   }                                                                        \
 
 
 /*****************************************************************************/
@@ -243,6 +221,54 @@ typedef struct bitstrm
     WORD32  i4_zero_bytes_run;
 
 } bitstrm_t;
+
+
+/**
+******************************************************************************
+*  @brief  Inserts 1 byte and Emulation Prevention Byte(if any) into bitstream
+*          Increments the stream offset and zero run correspondingly
+******************************************************************************
+*/
+static inline IH264E_ERROR_T ih264e_put_byte_epb(bitstrm_t *ps_bitstrm, UWORD8 byte)
+{
+    if (INSERT_EPB(ps_bitstrm->i4_zero_bytes_run, byte))
+    {
+        if ((ps_bitstrm->u4_strm_buf_offset + 1) >= ps_bitstrm->u4_max_strm_size)
+        {
+            return IH264E_BITSTREAM_BUFFER_OVERFLOW;
+        }
+        ps_bitstrm->pu1_strm_buffer[ps_bitstrm->u4_strm_buf_offset++] = EPB_BYTE;
+        ps_bitstrm->i4_zero_bytes_run = 0;
+    }
+
+    if ((ps_bitstrm->u4_strm_buf_offset + 1) >= ps_bitstrm->u4_max_strm_size)
+    {
+        return IH264E_BITSTREAM_BUFFER_OVERFLOW;
+    }
+    ps_bitstrm->pu1_strm_buffer[ps_bitstrm->u4_strm_buf_offset++] = byte;
+    ps_bitstrm->i4_zero_bytes_run = byte ? 0 : ps_bitstrm->i4_zero_bytes_run + 1;
+
+    return IH264E_SUCCESS;
+}
+
+/**
+******************************************************************************
+* flush the bits in cur word byte by byte  and copy to stream                *
+* (current word is assumed to be byte aligned)                               *
+******************************************************************************
+*/
+#define  BITSTREAM_FLUSH(ps_bitstrm, err)                                      \
+{                                                                              \
+    WORD32 i;                                                                  \
+    for (i = WORD_SIZE; i > ps_bitstrm->i4_bits_left_in_cw; i -= 8)            \
+    {                                                                          \
+       UWORD8 u1_next_byte = (ps_bitstrm->u4_cur_word >> (i - 8)) & 0xFF;      \
+       err |= ih264e_put_byte_epb(ps_bitstrm, u1_next_byte);                   \
+    }                                                                          \
+    ps_bitstrm->u4_cur_word = 0;                                               \
+    ps_bitstrm->i4_bits_left_in_cw = WORD_SIZE;                                \
+}                                                                              \
+
 
 
 /*****************************************************************************/
