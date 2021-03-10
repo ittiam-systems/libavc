@@ -182,26 +182,8 @@ IH264E_ERROR_T ih264e_put_bits(bitstrm_t *ps_bitstrm,
         /* 4. insert remaining bits of code starting from msb of cur word   */
         /* 5. update bitsleft in current word and stream buffer offset      */
         /********************************************************************/
-        UWORD32 u4_strm_buf_offset  = ps_bitstrm->u4_strm_buf_offset;
-
-        UWORD32 u4_max_strm_size    = ps_bitstrm->u4_max_strm_size;
-
-        WORD32  zero_run            = ps_bitstrm->i4_zero_bytes_run;
-
-        UWORD8* pu1_strm_buf        = ps_bitstrm->pu1_strm_buffer;
-
+        IH264E_ERROR_T status = IH264E_SUCCESS;
         WORD32  i, rem_bits = (code_len - bits_left_in_cw);
-
-
-        /*********************************************************************/
-        /* Bitstream overflow check                                          */
-        /* NOTE: corner case of epb bytes (max 2 for 32bit word) not handled */
-        /*********************************************************************/
-        if((u4_strm_buf_offset + (WORD_SIZE>>3)) >= u4_max_strm_size)
-        {
-            /* return without corrupting the buffer beyond its size */
-            return(IH264E_BITSTREAM_BUFFER_OVERFLOW);
-        }
 
         /* insert parital code corresponding to bits left in cur word */
         u4_cur_word |= u4_code_val >> rem_bits;
@@ -211,7 +193,7 @@ IH264E_ERROR_T ih264e_put_bits(bitstrm_t *ps_bitstrm,
             /* flush the bits in cur word byte by byte and copy to stream */
             UWORD8   u1_next_byte = (u4_cur_word >> (i-8)) & 0xFF;
 
-            PUTBYTE_EPB(pu1_strm_buf, u4_strm_buf_offset, u1_next_byte, zero_run);
+            status |= ih264e_put_byte_epb(ps_bitstrm, u1_next_byte);
         }
 
         /* insert the remaining bits from code val into current word */
@@ -220,9 +202,8 @@ IH264E_ERROR_T ih264e_put_bits(bitstrm_t *ps_bitstrm,
         /* update the state variables and return success */
         ps_bitstrm->u4_cur_word         = u4_cur_word;
         ps_bitstrm->i4_bits_left_in_cw  = WORD_SIZE - rem_bits;
-        ps_bitstrm->i4_zero_bytes_run   = zero_run;
-        ps_bitstrm->u4_strm_buf_offset  = u4_strm_buf_offset;
-        return (IH264E_SUCCESS);
+        return (status);
+
     }
 }
 
@@ -281,22 +262,7 @@ IH264E_ERROR_T ih264e_put_rbsp_trailing_bits(bitstrm_t *ps_bitstrm)
     UWORD32 u4_cur_word = ps_bitstrm->u4_cur_word;
     WORD32  bits_left_in_cw = ps_bitstrm->i4_bits_left_in_cw;
     WORD32  bytes_left_in_cw = (bits_left_in_cw - 1) >> 3;
-
-    UWORD32 u4_strm_buf_offset  = ps_bitstrm->u4_strm_buf_offset;
-    UWORD32 u4_max_strm_size    = ps_bitstrm->u4_max_strm_size;
-    WORD32  zero_run            = ps_bitstrm->i4_zero_bytes_run;
-    UWORD8* pu1_strm_buf        = ps_bitstrm->pu1_strm_buffer;
-
-    /*********************************************************************/
-    /* Bitstream overflow check                                          */
-    /* NOTE: corner case of epb bytes (max 2 for 32bit word) not handled */
-    /*********************************************************************/
-    if((u4_strm_buf_offset + (WORD_SIZE>>3) - bytes_left_in_cw) >=
-        u4_max_strm_size)
-    {
-        /* return without corrupting the buffer beyond its size */
-        return(IH264E_BITSTREAM_BUFFER_OVERFLOW);
-    }
+    IH264E_ERROR_T status = IH264E_SUCCESS;
 
     /* insert a 1 at the end of current word and flush all the bits */
     u4_cur_word |= (1 << (bits_left_in_cw - 1));
@@ -309,18 +275,15 @@ IH264E_ERROR_T ih264e_put_rbsp_trailing_bits(bitstrm_t *ps_bitstrm)
         /* flush the bits in cur word byte by byte  and copy to stream */
         UWORD8   u1_next_byte = (u4_cur_word >> (i-8)) & 0xFF;
 
-        PUTBYTE_EPB(pu1_strm_buf, u4_strm_buf_offset, u1_next_byte, zero_run);
+        status |= ih264e_put_byte_epb(ps_bitstrm, u1_next_byte);
     }
-
-    /* update the stream offset */
-    ps_bitstrm->u4_strm_buf_offset  = u4_strm_buf_offset;
 
     /* Default init values for scratch variables of bitstream context */
     ps_bitstrm->u4_cur_word         = 0;
     ps_bitstrm->i4_bits_left_in_cw  = WORD_SIZE;
     ps_bitstrm->i4_zero_bytes_run   = 0;
 
-    return (IH264E_SUCCESS);
+    return (status);
 }
 
 /**
