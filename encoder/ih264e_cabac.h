@@ -190,7 +190,7 @@ void ih264e_get_cabac_context(entropy_ctxt_t *ps_ent_ctxt, WORD32 u4_mb_type);
  *
  *******************************************************************************
  */
-void ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt);
+IH264E_ERROR_T ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt);
 
 
 /**
@@ -215,7 +215,7 @@ void ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt);
  *
  ******************************************************************************
  */
-void ih264e_cabac_put_byte(cabac_ctxt_t *ps_cabac_ctxt);
+IH264E_ERROR_T ih264e_cabac_put_byte(cabac_ctxt_t *ps_cabac_ctxt);
 
 
 /**
