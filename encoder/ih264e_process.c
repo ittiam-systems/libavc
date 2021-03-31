@@ -395,7 +395,7 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
         if (CABAC == ps_entropy->u1_entropy_coding_mode_flag)
         {
             BITSTREAM_BYTE_ALIGN(ps_bitstrm);
-            BITSTREAM_FLUSH(ps_bitstrm);
+            BITSTREAM_FLUSH(ps_bitstrm, ps_entropy->i4_error_code);
             ih264e_init_cabac_ctxt(ps_entropy);
         }
     }
@@ -515,7 +515,7 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
                     if (CABAC == ps_entropy->u1_entropy_coding_mode_flag)
                     {
                         BITSTREAM_BYTE_ALIGN(ps_bitstrm);
-                        BITSTREAM_FLUSH(ps_bitstrm);
+                        BITSTREAM_FLUSH(ps_bitstrm, ps_entropy->i4_error_code);
                         ih264e_init_cabac_ctxt(ps_entropy);
                     }
                 }
