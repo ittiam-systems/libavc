@@ -242,18 +242,16 @@ void ih264e_get_cabac_context(entropy_ctxt_t *ps_ent_ctxt, WORD32 u4_mb_type)
  *
  *******************************************************************************
  */
-void ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
+IH264E_ERROR_T ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
 {
-
     /* bit stream ptr */
     bitstrm_t *ps_stream = ps_cabac_ctxt->ps_bitstrm;
     encoding_envirnoment_t *ps_cab_enc_env = &(ps_cabac_ctxt->s_cab_enc_env);
     UWORD32 u4_low = ps_cab_enc_env->u4_code_int_low;
     UWORD32 u4_bits_gen = ps_cab_enc_env->u4_bits_gen;
     UWORD8 *pu1_strm_buf = ps_stream->pu1_strm_buffer;
-    UWORD32 u4_strm_buf_offset = ps_stream->u4_strm_buf_offset;
-    WORD32 zero_run = ps_stream->i4_zero_bytes_run;
     UWORD32 u4_out_standing_bytes = ps_cab_enc_env->u4_out_standing_bytes;
+    IH264E_ERROR_T status = IH264E_SUCCESS;
 
     /************************************************************************/
     /* Insert the carry (propogated in previous byte) along with            */
@@ -274,17 +272,17 @@ void ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
              as per standard */
             /* so check for previous four bytes and if it is equal to 0x00000303
              then subtract u4_strm_buf_offset by 1 */
-            if (pu1_strm_buf[u4_strm_buf_offset - 1] == 0x03
-                            && pu1_strm_buf[u4_strm_buf_offset - 2] == 0x03
-                            && pu1_strm_buf[u4_strm_buf_offset - 3] == 0x00
-                            && pu1_strm_buf[u4_strm_buf_offset - 4] == 0x00)
+            if (pu1_strm_buf[ps_stream->u4_strm_buf_offset - 1] == 0x03
+                            && pu1_strm_buf[ps_stream->u4_strm_buf_offset - 2] == 0x03
+                            && pu1_strm_buf[ps_stream->u4_strm_buf_offset - 3] == 0x00
+                            && pu1_strm_buf[ps_stream->u4_strm_buf_offset - 4] == 0x00)
             {
-                u4_strm_buf_offset -= 1;
+                ps_stream->u4_strm_buf_offset -= 1;
             }
             /* previous byte carry add will not result in overflow to        */
             /* u4_strm_buf_offset - 2 as we track 0xff as outstanding bytes  */
-            pu1_strm_buf[u4_strm_buf_offset - 1] += carry;
-            zero_run = 0;
+            pu1_strm_buf[ps_stream->u4_strm_buf_offset - 1] += carry;
+            ps_stream->i4_zero_bytes_run = 0;
         }
 
         /*        Insert outstanding bytes (if any)         */
@@ -292,7 +290,7 @@ void ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
         {
             UWORD8 u1_0_or_ff = carry ? 0 : 0xFF;
 
-            PUTBYTE_EPB(pu1_strm_buf, u4_strm_buf_offset, u1_0_or_ff, zero_run);
+            status |= ih264e_put_byte_epb(ps_stream, u1_0_or_ff);
             u4_out_standing_bytes--;
         }
 
@@ -307,7 +305,7 @@ void ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
         if (bits_left >= 8)
         {
             last_byte = (rem_bits >> (bits_left - 8)) & 0xFF;
-            PUTBYTE_EPB(pu1_strm_buf, u4_strm_buf_offset, last_byte, zero_run);
+            status |= ih264e_put_byte_epb(ps_stream, last_byte);
             bits_left -= 8;
         }
 
@@ -315,16 +313,16 @@ void ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
         last_byte = (rem_bits << (8 - bits_left))
                         | (1 << (7 - bits_left) | (1 << (7 - bits_left - 1)));
         last_byte &= 0xFF;
-        PUTBYTE_EPB(pu1_strm_buf, u4_strm_buf_offset, last_byte, zero_run);
+        status |= ih264e_put_byte_epb(ps_stream, last_byte);
 
         /* update the state variables and return success */
-        ps_stream->u4_strm_buf_offset = u4_strm_buf_offset;
         ps_stream->i4_zero_bytes_run = 0;
         /* Default init values for scratch variables of bitstream context */
         ps_stream->u4_cur_word = 0;
         ps_stream->i4_bits_left_in_cw = WORD_SIZE;
 
     }
+    return status;
 }
 
 /**
@@ -349,15 +347,16 @@ void ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
  *
  ******************************************************************************
  */
-void ih264e_cabac_put_byte(cabac_ctxt_t *ps_cabac_ctxt)
+IH264E_ERROR_T ih264e_cabac_put_byte(cabac_ctxt_t *ps_cabac_ctxt)
 {
-
     /* bit stream ptr */
     bitstrm_t *ps_stream = ps_cabac_ctxt->ps_bitstrm;
     encoding_envirnoment_t *ps_cab_enc_env = &(ps_cabac_ctxt->s_cab_enc_env);
     UWORD32 u4_low = ps_cab_enc_env->u4_code_int_low;
     UWORD32 u4_bits_gen = ps_cab_enc_env->u4_bits_gen;
+    UWORD8 *pu1_strm_buf = ps_stream->pu1_strm_buffer;
     WORD32 lead_byte = u4_low >> (u4_bits_gen + CABAC_BITS - 8);
+    IH264E_ERROR_T status = IH264E_SUCCESS;
 
     /* Sanity checks */
     ASSERT((ps_cab_enc_env->u4_code_int_range >= 256)
@@ -381,15 +380,11 @@ void ih264e_cabac_put_byte(cabac_ctxt_t *ps_cabac_ctxt)
     {
         /* actual bits depend on carry propogration     */
         ps_cab_enc_env->u4_out_standing_bytes++;
-        return ;
     }
     else
     {
         /* carry = 1 => putbit(1); carry propogated due to L renorm */
         WORD32 carry = (lead_byte >> 8) & 0x1;
-        UWORD8 *pu1_strm_buf = ps_stream->pu1_strm_buffer;
-        UWORD32 u4_strm_buf_offset = ps_stream->u4_strm_buf_offset;
-        WORD32 zero_run = ps_stream->i4_zero_bytes_run;
         UWORD32 u4_out_standing_bytes = ps_cab_enc_env->u4_out_standing_bytes;
 
 
@@ -407,17 +402,17 @@ void ih264e_cabac_put_byte(cabac_ctxt_t *ps_cabac_ctxt)
              as per standard */
             /* so check for previous four bytes and if it is equal to 0x00000303
              then subtract u4_strm_buf_offset by 1 */
-            if (pu1_strm_buf[u4_strm_buf_offset - 1] == 0x03
-                            && pu1_strm_buf[u4_strm_buf_offset - 2] == 0x03
-                            && pu1_strm_buf[u4_strm_buf_offset - 3] == 0x00
-                            && pu1_strm_buf[u4_strm_buf_offset - 4] == 0x00)
+            if (pu1_strm_buf[ps_stream->u4_strm_buf_offset - 1] == 0x03
+                            && pu1_strm_buf[ps_stream->u4_strm_buf_offset - 2] == 0x03
+                            && pu1_strm_buf[ps_stream->u4_strm_buf_offset - 3] == 0x00
+                            && pu1_strm_buf[ps_stream->u4_strm_buf_offset - 4] == 0x00)
             {
-                u4_strm_buf_offset -= 1;
+                ps_stream->u4_strm_buf_offset -= 1;
             }
             /* previous byte carry add will not result in overflow to        */
             /* u4_strm_buf_offset - 2 as we track 0xff as outstanding bytes  */
-            pu1_strm_buf[u4_strm_buf_offset - 1] += carry;
-            zero_run = 0;
+            pu1_strm_buf[ps_stream->u4_strm_buf_offset - 1] += carry;
+            ps_stream->i4_zero_bytes_run = 0;
         }
 
         /*        Insert outstanding bytes (if any)         */
@@ -425,7 +420,7 @@ void ih264e_cabac_put_byte(cabac_ctxt_t *ps_cabac_ctxt)
         {
             UWORD8 u1_0_or_ff = carry ? 0 : 0xFF;
 
-            PUTBYTE_EPB(pu1_strm_buf, u4_strm_buf_offset, u1_0_or_ff, zero_run);
+            status |= ih264e_put_byte_epb(ps_stream, u1_0_or_ff);
 
             u4_out_standing_bytes--;
         }
@@ -433,13 +428,9 @@ void ih264e_cabac_put_byte(cabac_ctxt_t *ps_cabac_ctxt)
 
         /*        Insert the leading byte                   */
         lead_byte &= 0xFF;
-        PUTBYTE_EPB(pu1_strm_buf, u4_strm_buf_offset, lead_byte, zero_run);
-
-        /* update the state variables and return success */
-        ps_stream->u4_strm_buf_offset = u4_strm_buf_offset;
-        ps_stream->i4_zero_bytes_run = zero_run;
-
+        status |= ih264e_put_byte_epb(ps_stream, lead_byte);
     }
+    return status;
 }
 
 
