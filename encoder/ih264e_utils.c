@@ -445,11 +445,6 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
         }
     }
 
-    if (ps_enc_buff->u4_is_last)
-    {
-        ps_codec->pic_type = PIC_NA;
-    }
-
     /* The buffer in the queue is set to NULL to specify that encoding is done for that frame */
     for(i = 0; i < 3; i++)
     {
