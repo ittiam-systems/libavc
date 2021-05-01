@@ -1259,7 +1259,8 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
     /* init buffer pointers */
     convert_uv_only = 1;
     if (u4_pad_bottom_sz || u4_pad_right_sz ||
-        ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_422ILE)
+        ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_422ILE ||
+        ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1))
     {
         if (ps_proc->i4_mb_y == ps_proc->i4_ht_mbs - 1)
             u2_num_rows = (UWORD16) MB_SIZE - u4_pad_bottom_sz;
@@ -1311,7 +1312,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
         case IV_YUV_420SP_UV:
         case IV_YUV_420SP_VU:
             /* In case of 420 semi-planar input, copy last few rows to intermediate
-               buffer as chroma trans functions access one extra byte due to interleaved input.
+               buffer as few SIMD functions access upto 16 more bytes.
                This data will be padded if required */
             if (ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1) || u4_pad_bottom_sz || u4_pad_right_sz)
             {
@@ -1324,16 +1325,13 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
 
                 pu1_dst = ps_proc->pu1_src_buf_luma;
 
-                /* If padding is required, we always copy luma, if padding isn't required we never copy luma. */
-                if (u4_pad_bottom_sz || u4_pad_right_sz) {
-                    if (ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1))
-                        num_rows = MB_SIZE - u4_pad_bottom_sz;
-                    for (i = 0; i < num_rows; i++)
-                    {
-                        memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_wd);
-                        pu1_src += ps_proc->s_inp_buf.s_raw_buf.au4_strd[0];
-                        pu1_dst += ps_proc->i4_src_strd;
-                    }
+                if (ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1))
+                    num_rows = MB_SIZE - u4_pad_bottom_sz;
+                for (i = 0; i < num_rows; i++)
+                {
+                    memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_wd);
+                    pu1_src += ps_proc->s_inp_buf.s_raw_buf.au4_strd[0];
+                    pu1_dst += ps_proc->i4_src_strd;
                 }
                 pu1_src = (UWORD8 *)ps_proc->s_inp_buf.s_raw_buf.apv_bufs[1] + (i4_mb_x * BLK8x8SIZE) +
                           ps_proc->s_inp_buf.s_raw_buf.au4_strd[1] * (i4_mb_y * BLK8x8SIZE);
@@ -1412,6 +1410,18 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
         ih264_pad_right_chroma(
                         ps_proc->pu1_src_buf_chroma + ps_codec->s_cfg.u4_disp_wd,
                         ps_proc->i4_src_chroma_strd, u4_pad_ht / 2, u4_pad_wd);
+    }
+
+    if (ps_proc->i4_mb_y && ps_proc->i4_mb_y == ps_proc->i4_ht_mbs - 1) {
+        UWORD8 *pu1_src = (UWORD8 *)ps_proc->s_inp_buf.s_raw_buf.apv_bufs[0] +
+                        ps_proc->s_inp_buf.s_raw_buf.au4_strd[0] * (i4_mb_y * MB_SIZE) -
+                        ps_proc->s_inp_buf.s_raw_buf.au4_strd[0];
+        UWORD8 *pu1_dst = ps_proc->pu1_src_buf_luma - ps_proc->i4_src_strd;
+        memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_wd);
+        if (u4_pad_right_sz && (ps_proc->i4_mb_x == 0)) {
+            pu1_dst += ps_codec->s_cfg.u4_disp_wd;
+            memset(pu1_dst, pu1_dst[-1], u4_pad_right_sz);
+        }
     }
 
     /* pad bottom edge */
