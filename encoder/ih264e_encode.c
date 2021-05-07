@@ -225,6 +225,9 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     ps_video_encode_op->s_ive_op.output_present  = 0;
     ps_video_encode_op->s_ive_op.dump_recon = 0;
     ps_video_encode_op->s_ive_op.u4_encoded_frame_type = IV_NA_FRAME;
+    /* By default set the current input buffer as the buffer to be freed */
+    /* This will later be updated to the actual input that gets encoded */
+    ps_video_encode_op->s_ive_op.s_inp_buf = ps_video_encode_ip->s_ive_ip.s_inp_buf;
 
     /* Check for output memory allocation size */
     if (ps_video_encode_ip->s_ive_ip.s_out_buf.u4_bufsize < MIN_STREAM_SIZE)
@@ -393,6 +396,9 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
     s_out_buf.u4_is_last = s_inp_buf.u4_is_last;
     ps_video_encode_op->s_ive_op.u4_is_last = s_inp_buf.u4_is_last;
+
+    /* Send the input to application so that it can free it */
+    ps_video_encode_op->s_ive_op.s_inp_buf = s_inp_buf.s_raw_buf;
 
     /* Only encode if the current frame is not pre-encode skip */
     if (!i4_rc_pre_enc_skip && s_inp_buf.s_raw_buf.apv_bufs[0])
@@ -694,12 +700,6 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     }
     else
     {
-        /* proc ctxt base idx */
-        WORD32 proc_ctxt_select = ctxt_sel * MAX_PROCESS_THREADS;
-
-        /* proc ctxt */
-        process_ctxt_t *ps_proc = &ps_codec->as_process[proc_ctxt_select];
-
         /* receive output back from codec */
         s_out_buf = ps_codec->as_out_buf[ctxt_sel];
 
@@ -710,18 +710,11 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
         ps_video_encode_op->s_ive_op.u4_timestamp_low = 0;
         ps_video_encode_op->s_ive_op.u4_timestamp_high = 0;
 
-        /* receive input back from codec and send it to app */
-        s_inp_buf = ps_proc->s_inp_buf;
-        ps_video_encode_op->s_ive_op.s_inp_buf = s_inp_buf.s_raw_buf;
-
         ps_video_encode_op->s_ive_op.u4_encoded_frame_type =  IV_NA_FRAME;
 
     }
 
-    /* Send the input to encoder so that it can free it if possible */
     ps_video_encode_op->s_ive_op.s_out_buf = s_out_buf.s_bits_buf;
-    ps_video_encode_op->s_ive_op.s_inp_buf = s_inp_buf.s_raw_buf;
-
 
     if (1 == s_inp_buf.u4_is_last)
     {
