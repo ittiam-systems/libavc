@@ -233,12 +233,30 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     /* This will later be updated to the actual input that gets encoded */
     ps_video_encode_op->s_ive_op.s_inp_buf = ps_video_encode_ip->s_ive_ip.s_inp_buf;
 
+    if (ps_codec->i4_error_code & (1 << IVE_FATALERROR))
+    {
+        error_status = ps_codec->i4_error_code & 0xFF;
+        SET_ERROR_ON_RETURN(error_status,
+                            IVE_FATALERROR,
+                            ps_video_encode_op->s_ive_op.u4_error_code,
+                            IV_FAIL);
+    }
+
     /* Check for output memory allocation size */
     if (ps_video_encode_ip->s_ive_ip.s_out_buf.u4_bufsize < MIN_STREAM_SIZE)
     {
         error_status = IH264E_INSUFFICIENT_OUTPUT_BUFFER;
         SET_ERROR_ON_RETURN(error_status,
                             IVE_UNSUPPORTEDPARAM,
+                            ps_video_encode_op->s_ive_op.u4_error_code,
+                            IV_FAIL);
+    }
+
+    if (ps_codec->i4_init_done != 1)
+    {
+        error_status = IH264E_INIT_NOT_DONE;
+        SET_ERROR_ON_RETURN(error_status,
+                            IVE_FATALERROR,
                             ps_video_encode_op->s_ive_op.u4_error_code,
                             IV_FAIL);
     }
@@ -283,7 +301,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
             {
                 error_status = ih264e_codec_update_config(ps_codec, ps_cfg);
                 SET_ERROR_ON_RETURN(error_status,
-                                    IVE_UNSUPPORTEDPARAM,
+                                    IVE_FATALERROR,
                                     ps_video_encode_op->s_ive_op.u4_error_code,
                                     IV_FAIL);
 
@@ -486,7 +504,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
         /* error status */
         SET_ERROR_ON_RETURN(error_status,
-                            IVE_FATALERROR,
+                            IVE_UNSUPPORTEDPARAM,
                             ps_video_encode_op->s_ive_op.u4_error_code,
                             IV_FAIL);
 
@@ -825,12 +843,12 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
         for (i = 0; i < (WORD32)ps_codec->s_cfg.u4_num_cores; i++)
         {
-            error_status = ps_codec->as_process[ctxt_sel + i].i4_error_code;
-            SET_ERROR_ON_RETURN(error_status,
-                                IVE_FATALERROR,
-                                ps_video_encode_op->s_ive_op.u4_error_code,
-                                IV_FAIL);
+            error_status |= ps_codec->as_process[ctxt_sel + i].i4_error_code;
         }
+        SET_ERROR_ON_RETURN(error_status,
+                            ((error_status == IH264E_BITSTREAM_BUFFER_OVERFLOW) ?
+                                            IVE_UNSUPPORTEDPARAM : IVE_FATALERROR),
+                            ps_video_encode_op->s_ive_op.u4_error_code, IV_FAIL);
     }
     else
     {

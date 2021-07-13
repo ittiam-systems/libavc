@@ -102,7 +102,6 @@
         if(ps_entropy->i4_error_code != IH264E_SUCCESS)                      \
         {                                                                    \
             DATA_SYNC();                                                     \
-            ps_codec->au4_entropy_thread_active[ctxt_sel] = 0;               \
             return ps_entropy->i4_error_code;                                \
         }
 

@@ -47,6 +47,7 @@
     if (error != IH264E_SUCCESS) \
     {\
         out_status = ((1 << severity) | error);\
+        ps_codec->i4_error_code = out_status;\
         return (ret_code);\
     }
 
