@@ -831,7 +831,6 @@ IH264E_ERROR_T ih264e_pic_buf_mgr_add_bufs(codec_t *ps_codec)
 
             if (pic_buf_size_allocated < 0)
             {
-                ps_codec->i4_error_code = IH264E_INSUFFICIENT_MEM_PICBUF;
                 return IH264E_INSUFFICIENT_MEM_PICBUF;
             }
 
@@ -848,7 +847,6 @@ IH264E_ERROR_T ih264e_pic_buf_mgr_add_bufs(codec_t *ps_codec)
 
             if (0 != buf_ret)
             {
-                ps_codec->i4_error_code = IH264E_BUF_MGR_ERROR;
                 return IH264E_BUF_MGR_ERROR;
             }
             pu1_buf += (HPEL_PLANES_CNT - 1) * (chroma_samples + luma_samples);
@@ -934,11 +932,7 @@ IH264E_ERROR_T ih264e_mv_buf_mgr_add_bufs(codec_t *ps_codec)
 
         if (mv_bank_size_allocated < 0)
         {
-            ps_codec->i4_error_code = IH264E_INSUFFICIENT_MEM_MVBANK;
-
-            error_status = IH264E_INSUFFICIENT_MEM_MVBANK;
-
-            return error_status;
+            return IH264E_INSUFFICIENT_MEM_MVBANK;
         }
 
         ps_mv_buf->pu4_mb_pu_cnt = (UWORD32 *) pu1_buf;
@@ -955,9 +949,7 @@ IH264E_ERROR_T ih264e_mv_buf_mgr_add_bufs(codec_t *ps_codec)
 
         if (IH264_SUCCESS != ret)
         {
-            ps_codec->i4_error_code = IH264E_BUF_MGR_ERROR;
-            error_status = IH264E_BUF_MGR_ERROR;
-            return error_status;
+            return IH264E_BUF_MGR_ERROR;
         }
 
         ps_mv_buf++;
@@ -1719,7 +1711,6 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
 
         if (NULL == ps_mv_buf)
         {
-            ps_codec->i4_error_code = IH264E_NO_FREE_MVBANK;
             return IH264E_NO_FREE_MVBANK;
         }
 
@@ -1751,7 +1742,6 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
 
         if (NULL == ps_cur_pic)
         {
-            ps_codec->i4_error_code = IH264E_NO_FREE_PICBUF;
             return IH264E_NO_FREE_PICBUF;
         }
 
@@ -2198,7 +2188,6 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
             ret = ih264_list_queue(ps_codec->pv_proc_jobq, &s_job, 1);
             if (ret != IH264_SUCCESS)
             {
-                ps_codec->i4_error_code = ret;
                 return IH264E_FAIL;
             }
         }
