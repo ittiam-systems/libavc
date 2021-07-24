@@ -796,11 +796,5 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
     ps_video_encode_op->s_ive_op.s_out_buf = s_out_buf.s_bits_buf;
 
-    if (1 == s_inp_buf.u4_is_last)
-    {
-        ps_video_encode_op->s_ive_op.output_present = 0;
-        ps_video_encode_op->s_ive_op.dump_recon = 0;
-    }
-
     return IV_SUCCESS;
 }
