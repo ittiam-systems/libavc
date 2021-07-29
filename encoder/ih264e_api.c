@@ -4132,6 +4132,13 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
 
     /* mem records */
     ps_mem_rec_base = ps_ip->s_ive_ip.ps_mem_rec;
+    /* memset all allocated memory, except the first one. First buffer (i.e. i == MEM_REC_IV_OBJ)
+       is initialized by application before calling this init function */
+    for (i = MEM_REC_CODEC; i < MEM_REC_CNT; i++)
+    {
+        ps_mem_rec = &ps_mem_rec_base[i];
+        memset(ps_mem_rec->pv_base, 0, ps_mem_rec->u4_mem_size);
+    }
 
     /* Init mem records */
     ps_mem_rec = &ps_mem_rec_base[MEM_REC_CODEC];
