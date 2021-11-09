@@ -41,6 +41,20 @@
 #include <stdint.h>
 #include <immintrin.h>
 
+#ifndef __ANDROID__
+static __inline__ __m128i
+loadu_32(void const *__a)
+{
+  struct __loadu_si32 {
+    int __v;
+  } __attribute__((__packed__, __may_alias__));
+  int __u = ((struct __loadu_si32*)__a)->__v;
+  return __extension__ (__m128i)(__v4si){__u, 0, 0, 0};
+}
+#else
+static __inline__ __m128i loadu_32(void const *__a) { return _mm_loadu_si32(__a); };
+#endif
+
 #define CLIP_U8(x) CLIP3(0, UINT8_MAX, (x))
 #define CLIP_S8(x) CLIP3(INT8_MIN, INT8_MAX, (x))
 

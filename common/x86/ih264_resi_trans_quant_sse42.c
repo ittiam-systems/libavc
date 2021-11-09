@@ -46,6 +46,7 @@
 #include "ih264_defs.h"
 #include "ih264_size_defs.h"
 #include "ih264_macros.h"
+#include "ih264_platform_macros.h"
 #include "ih264_trans_macros.h"
 #include "ih264_trans_data.h"
 #include "ih264_structs.h"
@@ -136,10 +137,10 @@ void ih264_resi_trans_quant_4x4_sse42(UWORD8 *pu1_src, UWORD8 *pu1_pred,
     src_r2 = _mm_cvtepu8_epi16(src_r2);
     src_r3 = _mm_cvtepu8_epi16(src_r3);
 
-    pred_r0 = _mm_loadl_epi64((__m128i *) (&pu1_pred[0])); //p00 p01 p02 p03 0 0 0 0 0 0 0 0 -- all 8 bits
-    pred_r1 = _mm_loadl_epi64((__m128i *) (&pu1_pred[pred_strd])); //p10 p11 p12 p13 0 0 0 0 0 0 0 0 -- all 8 bits
-    pred_r2 = _mm_loadl_epi64((__m128i *) (&pu1_pred[2 * pred_strd])); //p20 p21 p22 p23 0 0 0 0 0 0 0 0 -- all 8 bits
-    pred_r3 = _mm_loadl_epi64((__m128i *) (&pu1_pred[3 * pred_strd])); //p30 p31 p32 p33 0 0 0 0 0 0 0 0 -- all 8 bits
+    pred_r0 = loadu_32(&pu1_pred[0]); //p00 p01 p02 p03 -- all 8 bits
+    pred_r1 = loadu_32(&pu1_pred[pred_strd]); //p10 p11 p12 p13 -- all 8 bits
+    pred_r2 = loadu_32(&pu1_pred[2 * pred_strd]); //p20 p21 p22 p23 -- all 8 bits
+    pred_r3 = loadu_32(&pu1_pred[3 * pred_strd]); //p30 p31 p32 p33 -- all 8 bits
 
     pred_r0 = _mm_cvtepu8_epi16(pred_r0); //p00 p01 p02 p03 -- all 16 bits
     pred_r1 = _mm_cvtepu8_epi16(pred_r1); //p10 p11 p12 p13 -- all 16 bits
