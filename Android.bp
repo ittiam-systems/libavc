@@ -15,6 +15,24 @@ license {
     ],
 }
 
+cc_library_headers {
+    name: "libavcdec_headers",
+    export_include_dirs: [
+        "common",
+        "decoder",
+    ],
+    min_sdk_version: "29",
+}
+
+cc_library_headers {
+    name: "libavcenc_headers",
+    export_include_dirs: [
+        "common",
+        "encoder",
+    ],
+    min_sdk_version: "29",
+}
+
 cc_library_static {
     name: "libavcdec",
     vendor_available: true,
@@ -36,8 +54,8 @@ cc_library_static {
     ],
 
     export_include_dirs: [
-        "decoder",
         "common",
+        "decoder",
     ],
 
     srcs: [
@@ -282,8 +300,8 @@ cc_library_static {
     ],
 
     export_include_dirs: [
-        "encoder",
         "common",
+        "encoder",
     ],
 
     srcs: [ //Rate Control
