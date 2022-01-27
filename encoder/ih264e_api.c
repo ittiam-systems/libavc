@@ -2938,8 +2938,8 @@ static WORD32 ih264e_set_default_params(cfg_params_t *ps_cfg)
     ps_cfg->u4_constrained_intra_pred = 0;
     ps_cfg->u4_pic_info_type = 0;
     ps_cfg->u4_mb_info_type = 0;
-    ps_cfg->s_vui.u1_video_signal_type_present_flag = 1;
-    ps_cfg->s_vui.u1_colour_description_present_flag = 1;
+    ps_cfg->s_vui.u1_video_signal_type_present_flag = 0;
+    ps_cfg->s_vui.u1_colour_description_present_flag = 0;
 
     return ret;
 }
