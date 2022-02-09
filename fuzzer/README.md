@@ -1,11 +1,11 @@
-# Fuzzer for libavc decoder
+# Fuzzer for libavc decoder and encoder
 
-This describes steps to build avc_dec_fuzzer binary.
+This describes steps to build avc_dec_fuzzer and avc_enc_fuzzer.
 
 ## Linux x86/x64
 
 ###  Requirements
-- cmake (3.5 or above)
+- cmake (3.9.1 or above)
 - make
 - clang (6.0 or above)
   needs to support -fsanitize=fuzzer, -fsanitize=fuzzer-no-link
@@ -21,51 +21,62 @@ Create a directory inside libavc and change directory
  $ mkdir build
  $ cd build
 ```
-Build libavc using cmake
+Build fuzzer with required sanitizers (-DSANITIZE=fuzzer-no-link is mandatory
+  to enable fuzzers)
 ```
- $ CC=clang CXX=clang++ cmake ../ \
-   -DSANITIZE=fuzzer-no-link,address,signed-integer-overflow
+ $ cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+   -DCMAKE_BUILD_TYPE=Debug -DSANITIZE=fuzzer-no-link,address
  $ make
  ```
-Build the fuzzer
-```
- $ clang++ -std=c++11 -fsanitize=fuzzer,address -I.  -I../  -I../common \
-   -I../decoder -Wl,--start-group ../fuzzer/avc_dec_fuzzer.cpp \
-   -o ./avc_dec_fuzzer ./libavcdec.a -Wl,--end-group
-```
 
 ### Steps to run
-Create a directory CORPUS_DIR and copy some elementary h264 files to that folder
-To run the fuzzer
+Create a directory CORPUS_DIR and copy some elementary h264 files
+(for avc_dec_fuzzer) or yuv files (for avc_enc_fuzzer) to that directory
+
+To run the fuzzers
 ```
 $ ./avc_dec_fuzzer CORPUS_DIR
+$ ./avc_enc_fuzzer CORPUS_DIR
 ```
 
 ## Android
 
 ### Steps to build
-Build the fuzzer
+Build the fuzzers
 ```
-  $ SANITIZE_TARGET=address SANITIZE_HOST=address mmma -j$(nproc) \
-    external/libavc/fuzzer
+  $ mm -j$(nproc) avc_dec_fuzzer
+  $ mm -j$(nproc) avc_enc_fuzzer
 ```
 
 ### Steps to run
-Create a directory CORPUS_DIR and copy some elementary h264 files to that folder
-Push this directory to device.
+Create a directory CORPUS_DIR and copy some elementary h264 files
+(for avc_dec_fuzzer) or yuv files (for avc_enc_fuzzer) to that folder
+Push this directory to device
 
-To run on device
+To run avc_dec_fuzzer on device
 ```
   $ adb sync data
-  $ adb shell /data/fuzz/avc_dec_fuzzer CORPUS_DIR
+  $ adb shell /data/fuzz/arm64/avc_dec_fuzzer/avc_dec_fuzzer CORPUS_DIR
 ```
-To run on host
+To run avc_enc_fuzzer on device
 ```
-  $ $ANDROID_HOST_OUT/fuzz/avc_dec_fuzzer CORPUS_DIR
+  $ adb sync data
+  $ adb shell /data/fuzz/arm64/avc_enc_fuzzer/avc_enc_fuzzer CORPUS_DIR
+```
+
+To run avc_dec_fuzzer on host
+```
+  $ $ANDROID_HOST_OUT/fuzz/x86_64/avc_dec_fuzzer/avc_dec_fuzzer CORPUS_DIR
+```
+
+To run avc_enc_fuzzer on host
+```
+  $ $ANDROID_HOST_OUT/fuzz/x86_64/avc_enc_fuzzer/avc_enc_fuzzer CORPUS_DIR
 ```
 
 
-# Fuzzer for libavc encoder
+# Appendix
+## libavc encoder fuzzer
 
 ## Plugin Design Considerations
 The fuzzer plugin for AVC is designed based on the understanding of the
@@ -170,31 +181,6 @@ This ensures that the plugin tolerates any kind of input (empty, huge,
 malformed, etc) and doesnt `exit()` on any input and thereby increasing the
 chance of identifying vulnerabilities.
 
-## Build
-
-This describes steps to build avc_enc_fuzzer binary.
-
-### Android
-
-#### Steps to build
-Build the fuzzer
-```
-  $ mm -j$(nproc) avc_enc_fuzzer
-```
-
-#### Steps to run
-Create a directory CORPUS_DIR and copy some yuv files to that folder
-Push this directory to device.
-
-To run on device
-```
-  $ adb sync data
-  $ adb shell /data/fuzz/arm64/avc_enc_fuzzer/avc_enc_fuzzer CORPUS_DIR
-```
-To run on host
-```
-  $ $ANDROID_HOST_OUT/fuzz/x86_64/avc_enc_fuzzer/avc_enc_fuzzer CORPUS_DIR
-```
 
 ## References:
  * http://llvm.org/docs/LibFuzzer.html
