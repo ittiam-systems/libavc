@@ -1,0 +1,113 @@
+# src files
+list(
+  APPEND
+  LIBAVC_COMMON_SRCS
+  "${AVC_ROOT}/common/ih264_buf_mgr.c"
+  "${AVC_ROOT}/common/ih264_cabac_tables.c"
+  "${AVC_ROOT}/common/ih264_cavlc_tables.c"
+  "${AVC_ROOT}/common/ih264_chroma_intra_pred_filters.c"
+  "${AVC_ROOT}/common/ih264_common_tables.c"
+  "${AVC_ROOT}/common/ih264_deblk_edge_filters.c"
+  "${AVC_ROOT}/common/ih264_deblk_tables.c"
+  "${AVC_ROOT}/common/ih264_disp_mgr.c"
+  "${AVC_ROOT}/common/ih264_dpb_mgr.c"
+  "${AVC_ROOT}/common/ih264_ihadamard_scaling.c"
+  "${AVC_ROOT}/common/ih264_inter_pred_filters.c"
+  "${AVC_ROOT}/common/ih264_iquant_itrans_recon.c"
+  "${AVC_ROOT}/common/ih264_list.c"
+  "${AVC_ROOT}/common/ih264_luma_intra_pred_filters.c"
+  "${AVC_ROOT}/common/ih264_mem_fns.c"
+  "${AVC_ROOT}/common/ih264_padding.c"
+  "${AVC_ROOT}/common/ih264_resi_trans_quant.c"
+  "${AVC_ROOT}/common/ih264_trans_data.c"
+  "${AVC_ROOT}/common/ih264_weighted_pred.c"
+  "${AVC_ROOT}/common/ithread.c")
+
+include_directories(${AVC_ROOT}/common)
+
+# arm/x86 sources
+if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+  list(
+    APPEND
+    LIBAVC_COMMON_ASMS
+    "${AVC_ROOT}/common/armv8/ih264_deblk_chroma_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_deblk_luma_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_default_weighted_pred_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_ihadamard_scaling_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_inter_pred_chroma_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_inter_pred_filters_luma_horz_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_inter_pred_filters_luma_vert_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_inter_pred_luma_copy_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_inter_pred_luma_horz_hpel_vert_hpel_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_inter_pred_luma_horz_hpel_vert_qpel_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_inter_pred_luma_horz_qpel_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_inter_pred_luma_horz_qpel_vert_hpel_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_inter_pred_luma_horz_qpel_vert_qpel_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_inter_pred_luma_vert_qpel_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_intra_pred_chroma_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_intra_pred_luma_16x16_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_intra_pred_luma_4x4_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_intra_pred_luma_8x8_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_iquant_itrans_recon_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_iquant_itrans_recon_dc_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_mem_fns_neon_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_padding_neon_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_resi_trans_quant_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_weighted_bi_pred_av8.s"
+    "${AVC_ROOT}/common/armv8/ih264_weighted_pred_av8.s")
+
+  include_directories(${AVC_ROOT}/common/arm)
+  include_directories(${AVC_ROOT}/common/armv8)
+elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch32")
+  list(
+    APPEND
+    LIBAVC_COMMON_ASMS
+    "${AVC_ROOT}/common/arm/ih264_deblk_chroma_a9.s"
+    "${AVC_ROOT}/common/arm/ih264_deblk_luma_a9.s"
+    "${AVC_ROOT}/common/arm/ih264_default_weighted_pred_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_ihadamard_scaling_a9.s"
+    "${AVC_ROOT}/common/arm/ih264_inter_pred_chroma_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_inter_pred_filters_luma_horz_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_inter_pred_filters_luma_vert_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_inter_pred_luma_bilinear_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_inter_pred_luma_copy_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_inter_pred_luma_horz_hpel_vert_hpel_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_inter_pred_luma_horz_hpel_vert_qpel_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_inter_pred_luma_horz_qpel_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_inter_pred_luma_horz_qpel_vert_hpel_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_inter_pred_luma_horz_qpel_vert_qpel_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_inter_pred_luma_vert_qpel_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_intra_pred_chroma_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_intra_pred_luma_16x16_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_intra_pred_luma_4x4_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_intra_pred_luma_8x8_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_iquant_itrans_recon_a9.s"
+    "${AVC_ROOT}/common/arm/ih264_iquant_itrans_recon_dc_a9.s"
+    "${AVC_ROOT}/common/arm/ih264_mem_fns_neon.s"
+    "${AVC_ROOT}/common/arm/ih264_padding_neon.s"
+    "${AVC_ROOT}/common/arm/ih264_resi_trans_quant_a9.s"
+    "${AVC_ROOT}/common/arm/ih264_weighted_bi_pred_a9q.s"
+    "${AVC_ROOT}/common/arm/ih264_weighted_pred_a9q.s")
+
+  include_directories(${AVC_ROOT}/common/arm)
+else()
+  list(
+    APPEND
+    LIBAVC_COMMON_SRCS
+    "${AVC_ROOT}/common/x86/ih264_chroma_intra_pred_filters_ssse3.c"
+    "${AVC_ROOT}/common/x86/ih264_deblk_chroma_ssse3.c"
+    "${AVC_ROOT}/common/x86/ih264_deblk_luma_ssse3.c"
+    "${AVC_ROOT}/common/x86/ih264_ihadamard_scaling_sse42.c"
+    "${AVC_ROOT}/common/x86/ih264_ihadamard_scaling_ssse3.c"
+    "${AVC_ROOT}/common/x86/ih264_inter_pred_filters_ssse3.c"
+    "${AVC_ROOT}/common/x86/ih264_iquant_itrans_recon_dc_ssse3.c"
+    "${AVC_ROOT}/common/x86/ih264_iquant_itrans_recon_sse42.c"
+    "${AVC_ROOT}/common/x86/ih264_iquant_itrans_recon_ssse3.c"
+    "${AVC_ROOT}/common/x86/ih264_luma_intra_pred_filters_ssse3.c"
+    "${AVC_ROOT}/common/x86/ih264_mem_fns_ssse3.c"
+    "${AVC_ROOT}/common/x86/ih264_padding_ssse3.c"
+    "${AVC_ROOT}/common/x86/ih264_resi_trans_quant_sse42.c"
+    "${AVC_ROOT}/common/x86/ih264_weighted_pred_sse42.c")
+
+  include_directories(${AVC_ROOT}/common/x86)
+endif()
