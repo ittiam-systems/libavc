@@ -22,23 +22,12 @@ test "${OUT}" != "" || exit 1
 build_dir=$WORK/build
 rm -rf ${build_dir}
 mkdir -p ${build_dir}
+
 pushd ${build_dir}
-
-cmake $SRC/libavc
-make -j$(nproc)
+cmake ${SRC}/libavc
+make -j$(nproc) avc_dec_fuzzer
+cp ${build_dir}/avc_dec_fuzzer $OUT/avc_dec_fuzzer
 popd
-
-# build fuzzers
-$CXX $CXXFLAGS -std=c++11 \
-    -I$SRC/libavc \
-    -I$SRC/libavc/common \
-    -I$SRC/libavc/decoder \
-    -I${build_dir} \
-    -Wl,--start-group \
-    $LIB_FUZZING_ENGINE \
-    $SRC/libavc/fuzzer/avc_dec_fuzzer.cpp -o $OUT/avc_dec_fuzzer \
-    ${build_dir}/libavcdec.a \
-    -Wl,--end-group
 
 cp $SRC/avc_dec_fuzzer_seed_corpus.zip $OUT/avc_dec_fuzzer_seed_corpus.zip
 cp $SRC/libavc/fuzzer/avc_dec_fuzzer.dict $OUT/avcdec_fuzzer.dict
