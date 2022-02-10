@@ -86,7 +86,10 @@ function(libavc_add_executable NAME LIB)
   if(ARG_FUZZER)
     target_compile_options(${NAME}
                            PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
-    if(DEFINED SANITIZE)
+    if(DEFINED ENV{LIB_FUZZING_ENGINE})
+      set_target_properties(${NAME} PROPERTIES LINK_FLAGS
+                                               $ENV{LIB_FUZZING_ENGINE})
+    elseif(DEFINED SANITIZE)
       set_target_properties(${NAME} PROPERTIES LINK_FLAGS
                                                -fsanitize=fuzzer,${SANITIZE})
     else()
