@@ -697,41 +697,73 @@ void ih264d_recon_deblk_thread(dec_struct_t *ps_dec)
 
     while(1)
     {
+#ifdef KEEP_THREADS_ACTIVE
+        UWORD32 ret = ithread_mutex_lock(ps_dec->apv_proc_start_mutex[1]);
+        if(OK != ret)
+            break;
 
-        DEBUG_THREADS_PRINTF(" Entering compute bs slice\n");
-        ih264d_recon_deblk_slice(ps_dec, ps_tfr_cxt);
-
-        DEBUG_THREADS_PRINTF(" Exit  compute bs slice \n");
-
-        if(ps_dec->cur_recon_mb_num > ps_dec->ps_cur_sps->u2_max_mb_addr)
+        while(ps_dec->ai4_process_start[1] != PROC_START)
         {
-                break;
+            ithread_cond_wait(ps_dec->apv_proc_start_condition[1],
+                              ps_dec->apv_proc_start_mutex[1]);
         }
-        else
+        ps_dec->ai4_process_start[1] = PROC_IN_PROGRESS;
+
+        ret = ithread_mutex_unlock(ps_dec->apv_proc_start_mutex[1]);
+        if(OK != ret || ps_dec->i4_break_threads == 1)
+            break;
+#endif
+
+        while(1)
         {
-            ps_dec->ps_computebs_cur_slice++;
-            ps_dec->u2_cur_slice_num_bs++;
+
+            DEBUG_THREADS_PRINTF(" Entering compute bs slice\n");
+            ih264d_recon_deblk_slice(ps_dec, ps_tfr_cxt);
+
+            DEBUG_THREADS_PRINTF(" Exit  compute bs slice \n");
+
+            if(ps_dec->cur_recon_mb_num > ps_dec->ps_cur_sps->u2_max_mb_addr)
+            {
+                    break;
+            }
+            else
+            {
+                ps_dec->ps_computebs_cur_slice++;
+                ps_dec->u2_cur_slice_num_bs++;
+            }
+            DEBUG_THREADS_PRINTF("CBS thread:Got next slice/end of frame signal \n ");
+
         }
-        DEBUG_THREADS_PRINTF("CBS thread:Got next slice/end of frame signal \n ");
 
+        if(ps_dec->u4_output_present &&
+            (3 == ps_dec->u4_num_cores) &&
+            (ps_dec->u4_fmt_conv_cur_row < ps_dec->s_disp_frame_info.u4_y_ht))
+        {
+            ps_dec->u4_fmt_conv_num_rows =
+                            (ps_dec->s_disp_frame_info.u4_y_ht
+                                            - ps_dec->u4_fmt_conv_cur_row);
+            ih264d_format_convert(ps_dec, &(ps_dec->s_disp_op),
+                                ps_dec->u4_fmt_conv_cur_row,
+                                ps_dec->u4_fmt_conv_num_rows);
+            ps_dec->u4_fmt_conv_cur_row += ps_dec->u4_fmt_conv_num_rows;
+
+        }
+
+#ifdef KEEP_THREADS_ACTIVE
+        ret = ithread_mutex_lock(ps_dec->apv_proc_done_mutex[1]);
+        if(OK != ret)
+            break;
+
+        ps_dec->ai4_process_done[1] = PROC_DONE;
+        ithread_cond_signal(ps_dec->apv_proc_done_condition[1]);
+
+        ret = ithread_mutex_unlock(ps_dec->apv_proc_done_mutex[1]);
+        if(OK != ret)
+            break;
+#else
+        break;
+#endif
     }
-
-    if(ps_dec->u4_output_present &&
-       (3 == ps_dec->u4_num_cores) &&
-       (ps_dec->u4_fmt_conv_cur_row < ps_dec->s_disp_frame_info.u4_y_ht))
-    {
-        ps_dec->u4_fmt_conv_num_rows =
-                        (ps_dec->s_disp_frame_info.u4_y_ht
-                                        - ps_dec->u4_fmt_conv_cur_row);
-        ih264d_format_convert(ps_dec, &(ps_dec->s_disp_op),
-                              ps_dec->u4_fmt_conv_cur_row,
-                              ps_dec->u4_fmt_conv_num_rows);
-        ps_dec->u4_fmt_conv_cur_row += ps_dec->u4_fmt_conv_num_rows;
-
-    }
-
-
-
 }
 
 

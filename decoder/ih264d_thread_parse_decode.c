@@ -593,39 +593,74 @@ WORD32 ih264d_decode_slice_thread(dec_struct_t *ps_dec)
 void ih264d_decode_picture_thread(dec_struct_t *ps_dec )
 {
     ithread_set_name("ih264d_decode_picture_thread");
+
     while(1)
     {
-        /*Complete all writes before processing next slice*/
-
-        DEBUG_THREADS_PRINTF(" Entering decode slice\n");
-
-        ih264d_decode_slice_thread(ps_dec);
-        DEBUG_THREADS_PRINTF(" Exit  ih264d_decode_slice_thread \n");
-
-
-        if(ps_dec->cur_dec_mb_num
-                        > ps_dec->ps_cur_sps->u2_max_mb_addr)
-        {
-            /*Last slice in frame*/
+#ifdef KEEP_THREADS_ACTIVE
+        WORD32 ret = ithread_mutex_lock(ps_dec->apv_proc_start_mutex[0]);
+        if(OK != ret)
             break;
-        }
-        else
+
+        while(ps_dec->ai4_process_start[0] != PROC_START)
         {
-            ps_dec->ps_decode_cur_slice++;
-            ps_dec->u2_cur_slice_num_dec_thread++;
+            ithread_cond_wait(ps_dec->apv_proc_start_condition[0],
+                              ps_dec->apv_proc_start_mutex[0]);
+        }
+        ps_dec->ai4_process_start[0] = PROC_IN_PROGRESS;
+
+        ret = ithread_mutex_unlock(ps_dec->apv_proc_start_mutex[0]);
+        if(OK != ret || ps_dec->i4_break_threads == 1)
+            break;
+#endif
+        while(1)
+        {
+            /*Complete all writes before processing next slice*/
+
+            DEBUG_THREADS_PRINTF(" Entering decode slice\n");
+
+            ih264d_decode_slice_thread(ps_dec);
+            DEBUG_THREADS_PRINTF(" Exit  ih264d_decode_slice_thread \n");
+
+
+            if(ps_dec->cur_dec_mb_num
+                            > ps_dec->ps_cur_sps->u2_max_mb_addr)
+            {
+                /*Last slice in frame*/
+                break;
+            }
+            else
+            {
+                ps_dec->ps_decode_cur_slice++;
+                ps_dec->u2_cur_slice_num_dec_thread++;
+            }
+
+        }
+        if(ps_dec->u4_output_present && (2 == ps_dec->u4_num_cores) &&
+            (ps_dec->u4_fmt_conv_cur_row < ps_dec->s_disp_frame_info.u4_y_ht))
+        {
+            ps_dec->u4_fmt_conv_num_rows =
+                            (ps_dec->s_disp_frame_info.u4_y_ht
+                                            - ps_dec->u4_fmt_conv_cur_row);
+            ih264d_format_convert(ps_dec, &(ps_dec->s_disp_op),
+                                ps_dec->u4_fmt_conv_cur_row,
+                                ps_dec->u4_fmt_conv_num_rows);
+            ps_dec->u4_fmt_conv_cur_row += ps_dec->u4_fmt_conv_num_rows;
         }
 
-    }
-    if(ps_dec->u4_output_present && (2 == ps_dec->u4_num_cores) &&
-       (ps_dec->u4_fmt_conv_cur_row < ps_dec->s_disp_frame_info.u4_y_ht))
-    {
-        ps_dec->u4_fmt_conv_num_rows =
-                        (ps_dec->s_disp_frame_info.u4_y_ht
-                                        - ps_dec->u4_fmt_conv_cur_row);
-        ih264d_format_convert(ps_dec, &(ps_dec->s_disp_op),
-                              ps_dec->u4_fmt_conv_cur_row,
-                              ps_dec->u4_fmt_conv_num_rows);
-        ps_dec->u4_fmt_conv_cur_row += ps_dec->u4_fmt_conv_num_rows;
+#ifdef KEEP_THREADS_ACTIVE
+        ret = ithread_mutex_lock(ps_dec->apv_proc_done_mutex[0]);
+        if(OK != ret)
+            break;
+
+        ps_dec->ai4_process_done[0] = PROC_DONE;
+        ithread_cond_signal(ps_dec->apv_proc_done_condition[0]);
+
+        ret = ithread_mutex_unlock(ps_dec->apv_proc_done_mutex[0]);
+        if(OK != ret)
+            break;
+#else
+        break;
+#endif
     }
 }
 
@@ -633,16 +668,58 @@ void ih264d_signal_decode_thread(dec_struct_t *ps_dec)
 {
     if(ps_dec->u4_dec_thread_created == 1)
     {
+#ifdef KEEP_THREADS_ACTIVE
+        proc_state_t i4_process_state;
+        ithread_mutex_lock(ps_dec->apv_proc_start_mutex[0]);
+        i4_process_state = ps_dec->ai4_process_start[0];
+        ithread_mutex_unlock(ps_dec->apv_proc_start_mutex[0]);
+
+        // only wait if the thread has started decoding
+        if(i4_process_state != PROC_INIT)
+        {
+            ithread_mutex_lock(ps_dec->apv_proc_done_mutex[0]);
+
+            while(ps_dec->ai4_process_done[0] != PROC_DONE)
+            {
+                ithread_cond_wait(ps_dec->apv_proc_done_condition[0],
+                                    ps_dec->apv_proc_done_mutex[0]);
+            }
+            ps_dec->ai4_process_done[0] = PROC_INIT;
+            ithread_mutex_unlock(ps_dec->apv_proc_done_mutex[0]);
+        }
+#else
         ithread_join(ps_dec->pv_dec_thread_handle, NULL);
         ps_dec->u4_dec_thread_created = 0;
+#endif
     }
 }
 void ih264d_signal_bs_deblk_thread(dec_struct_t *ps_dec)
 {
     if(ps_dec->u4_bs_deblk_thread_created)
     {
+#ifdef KEEP_THREADS_ACTIVE
+        proc_state_t i4_process_state;
+        ithread_mutex_lock(ps_dec->apv_proc_start_mutex[1]);
+        i4_process_state = ps_dec->ai4_process_start[1];
+        ithread_mutex_unlock(ps_dec->apv_proc_start_mutex[1]);
+
+        // only wait if the thread has started deblking
+        if(i4_process_state != PROC_INIT)
+        {
+            ithread_mutex_lock(ps_dec->apv_proc_done_mutex[1]);
+
+            while(ps_dec->ai4_process_done[1] != PROC_DONE)
+            {
+                ithread_cond_wait(ps_dec->apv_proc_done_condition[1],
+                                    ps_dec->apv_proc_done_mutex[1]);
+            }
+            ps_dec->ai4_process_done[1] = PROC_INIT;
+            ithread_mutex_unlock(ps_dec->apv_proc_done_mutex[1]);
+        }
+#else
         ithread_join(ps_dec->pv_bs_deblk_thread_handle, NULL);
         ps_dec->u4_bs_deblk_thread_created = 0;
+#endif
     }
 
 }
