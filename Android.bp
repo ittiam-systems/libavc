@@ -49,6 +49,8 @@ cc_library_static {
         "-Werror",
         "-Wno-unused-variable",
         "-Wno-null-pointer-arithmetic",
+        // #KEEP_THREAD_ACTIVE is experimental
+        "-UKEEP_THREADS_ACTIVE",
     ],
 
     export_include_dirs: [
