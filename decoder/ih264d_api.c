@@ -1328,6 +1328,57 @@ WORD32 ih264d_free_static_bufs(iv_obj_t *dec_hdl)
     pf_aligned_free = ps_dec->pf_aligned_free;
     pv_mem_ctxt = ps_dec->pv_mem_ctxt;
 
+#ifdef KEEP_THREADS_ACTIVE
+    /* Wait for threads */
+    ps_dec->i4_break_threads = 1;
+    if(ps_dec->u4_dec_thread_created)
+    {
+        ithread_mutex_lock(ps_dec->apv_proc_start_mutex[0]);
+
+        ps_dec->ai4_process_start[0] = PROC_START;
+
+        ithread_cond_signal(ps_dec->apv_proc_start_condition[0]);
+
+        ithread_mutex_unlock(ps_dec->apv_proc_start_mutex[0]);
+
+        ithread_join(ps_dec->pv_dec_thread_handle, NULL);
+
+        ps_dec->u4_dec_thread_created = 0;
+    }
+
+    if(ps_dec->u4_bs_deblk_thread_created)
+    {
+        ithread_mutex_lock(ps_dec->apv_proc_start_mutex[1]);
+
+        ps_dec->ai4_process_start[1] = PROC_START;
+
+        ithread_cond_signal(ps_dec->apv_proc_start_condition[1]);
+
+        ithread_mutex_unlock(ps_dec->apv_proc_start_mutex[1]);
+
+        ithread_join(ps_dec->pv_bs_deblk_thread_handle, NULL);
+
+        ps_dec->u4_bs_deblk_thread_created = 0;
+    }
+
+    // destroy mutex and condition variable for both the threads
+    // 1. ih264d_decode_picture_thread
+    // 2. ih264d_recon_deblk_thread
+    {
+        UWORD32 i;
+        for(i = 0; i < 2; i++)
+        {
+            ithread_cond_destroy(ps_dec->apv_proc_start_condition[i]);
+            ithread_cond_destroy(ps_dec->apv_proc_done_condition[i]);
+
+            ithread_mutex_destroy(ps_dec->apv_proc_start_mutex[i]);
+            ithread_mutex_destroy(ps_dec->apv_proc_done_mutex[i]);
+        }
+    }
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->apv_proc_start_mutex[0]);
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->apv_proc_start_condition[0]);
+#endif
+
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_sps);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_pps);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pv_dec_thread_handle);
@@ -1468,6 +1519,59 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     memset(pv_buf, 0, size);
     ps_dec->pv_bs_deblk_thread_handle = pv_buf;
+
+#ifdef KEEP_THREADS_ACTIVE
+    {
+        UWORD32 i;
+        /* Request memory to hold mutex (start/done) for both threads */
+        size = ithread_get_mutex_lock_size() << 2;
+        pv_buf = pf_aligned_alloc(pv_mem_ctxt, 8, size);
+        RETURN_IF((NULL == pv_buf), IV_FAIL);
+        memset(pv_buf, 0, size);
+
+        // init mutex variable for both the threads
+        // 1. ih264d_decode_picture_thread
+        // 2. ih264d_recon_deblk_thread
+        for(i = 0; i < 2; i++)
+        {
+            WORD32 ret;
+            WORD32 mutex_size = ithread_get_mutex_lock_size();
+
+            ps_dec->apv_proc_start_mutex[i] =
+                            (UWORD8 *)pv_buf + (2 * i * mutex_size);
+            ps_dec->apv_proc_done_mutex[i] =
+                            (UWORD8 *)pv_buf + ((2 * i + 1) * mutex_size);
+
+            ret = ithread_mutex_init(ps_dec->apv_proc_start_mutex[0]);
+            RETURN_IF((ret != IV_SUCCESS), ret);
+
+            ret = ithread_mutex_init(ps_dec->apv_proc_done_mutex[i]);
+            RETURN_IF((ret != IV_SUCCESS), ret);
+        }
+
+        size = ithread_get_cond_struct_size() << 2;
+        pv_buf = pf_aligned_alloc(pv_mem_ctxt, 8, size);
+        RETURN_IF((NULL == pv_buf), IV_FAIL);
+        memset(pv_buf, 0, size);
+
+        // init condition variable for both the threads
+        for(i = 0; i < 2; i++)
+        {
+            WORD32 ret;
+            WORD32 cond_size = ithread_get_cond_struct_size();
+            ps_dec->apv_proc_start_condition[i] =
+                            (UWORD8 *)pv_buf + (2 * i * cond_size);
+            ps_dec->apv_proc_done_condition[i] =
+                            (UWORD8 *)pv_buf + ((2 * i + 1) * cond_size);
+
+            ret = ithread_cond_init(ps_dec->apv_proc_start_condition[i]);
+            RETURN_IF((ret != IV_SUCCESS), ret);
+
+            ret = ithread_cond_init(ps_dec->apv_proc_done_condition[i]);
+            RETURN_IF((ret != IV_SUCCESS), ret);
+        }
+    }
+#endif
 
     size = sizeof(dpb_manager_t);
     pv_buf = pf_aligned_alloc(pv_mem_ctxt, 128, size);
@@ -2018,6 +2122,26 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     }
     ps_dec->u1_pic_decode_done = 0;
 
+#ifdef KEEP_THREADS_ACTIVE
+    {
+        UWORD32 i;
+        ps_dec->i4_break_threads = 0;
+        for (i = 0; i < 2; i++)
+        {
+            ret = ithread_mutex_lock(ps_dec->apv_proc_start_mutex[i]);
+            RETURN_IF((ret != IV_SUCCESS), ret);
+
+            ps_dec->ai4_process_start[i] = PROC_INIT;
+
+            ret = ithread_mutex_unlock(ps_dec->apv_proc_start_mutex[i]);
+            RETURN_IF((ret != IV_SUCCESS), ret);
+        }
+    }
+#else
+    ps_dec->u4_dec_thread_created = 0;
+    ps_dec->u4_bs_deblk_thread_created = 0;
+#endif
+
     ps_dec_op->u4_num_bytes_consumed = 0;
     ps_dec_op->i4_reorder_depth = -1;
     ps_dec_op->i4_display_index = DEFAULT_POC;
@@ -2123,7 +2247,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
             if(ps_pic_buf == NULL)
             {
-                UWORD32 i, display_queued = 0;
+                UWORD32 display_queued = 0;
 
                 /* check if any buffer was given for display which is not returned yet */
                 for(i = 0; i < (MAX_DISP_BUFS_NEW); i++)
@@ -2253,9 +2377,6 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ps_dec->u4_first_slice_in_pic = 1;
     ps_dec->u1_slice_header_done = 0;
     ps_dec->u1_dangling_field = 0;
-
-    ps_dec->u4_dec_thread_created = 0;
-    ps_dec->u4_bs_deblk_thread_created = 0;
     ps_dec->u4_cur_bs_mb_num = 0;
     ps_dec->u4_start_recon_deblk  = 0;
     ps_dec->u4_sps_cnt_in_process = 0;
@@ -2612,10 +2733,12 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     }
 
     /* close deblock thread if it is not closed yet*/
+#ifndef KEEP_THREADS_ACTIVE
     if(ps_dec->u4_num_cores == 3)
     {
         ih264d_signal_bs_deblk_thread(ps_dec);
     }
+#endif
 
 
     {
