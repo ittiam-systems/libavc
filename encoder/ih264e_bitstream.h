@@ -82,7 +82,7 @@
  *  @brief   Macro to check if emulation prevention byte insertion is required
 ******************************************************************************
  */
-#define INSERT_EPB(zero_run, next_byte)                                       \
+#define SHOULD_INSERT_EPB(zero_run, next_byte)                                \
     ((zero_run) == EPB_ZERO_BYTES) && (0 == ((next_byte) & 0xFC))
 
 /**
@@ -129,7 +129,7 @@
  */
 #define PUTBYTE_EPB(ptr,off,byte,zero_run)                      \
 {                                                               \
-    if( INSERT_EPB(zero_run, byte) )                            \
+    if( SHOULD_INSERT_EPB(zero_run, byte) )                     \
     {                                                           \
         ptr[off] = EPB_BYTE;                                    \
         off++;                                                  \
@@ -231,7 +231,7 @@ typedef struct bitstrm
 */
 static inline IH264E_ERROR_T ih264e_put_byte_epb(bitstrm_t *ps_bitstrm, UWORD8 byte)
 {
-    if (INSERT_EPB(ps_bitstrm->i4_zero_bytes_run, byte))
+    if (SHOULD_INSERT_EPB(ps_bitstrm->i4_zero_bytes_run, byte))
     {
         if ((ps_bitstrm->u4_strm_buf_offset + 1) >= ps_bitstrm->u4_max_strm_size)
         {
