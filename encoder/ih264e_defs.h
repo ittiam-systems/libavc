@@ -205,6 +205,7 @@
 /* Generic declarations */
 #define DEFAULT_MAX_LEVEL               40
 #define DEFAULT_RECON_ENABLE            0
+#define DEFAULT_QUALITY_METRICS_ENABLE  0
 #define DEFAULT_RC                      IVE_RC_STORAGE
 #define DEFAULT_MAX_FRAMERATE           120000
 #define DEFAULT_MAX_BITRATE             240000000
@@ -267,6 +268,8 @@
 /** Number of buffers Needed for SUBPEL and BIPRED computation */
 #define SUBPEL_BUFF_CNT                 4
 
+/** Mask value for PSNR. Needed when quality metrics is enabled */
+#define QUALITY_MASK_PSNR               0x1
 /**
  *****************************************************************************
  * Macro to compute total size required to hold on set of scaling matrices
