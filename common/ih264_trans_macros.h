@@ -51,8 +51,10 @@
  *  h264 specification
 ******************************************************************************
  */
-#define FWD_QUANT(i4_value, u4_abs_value, i4_sign, threshold, scale, rndfactor, qbits, u4_nnz)      \
+#define FWD_QUANT(i4_value, threshold, scale, rndfactor, qbits, u4_nnz)      \
                 {\
+                        WORD32 i4_sign;\
+                        UWORD32 u4_abs_value;\
                         if (i4_value < 0)\
                         {\
                             u4_abs_value = -i4_value;\
@@ -72,7 +74,8 @@
                             u4_abs_value *= scale;\
                             u4_abs_value += rndfactor;\
                             u4_abs_value >>= qbits;\
-                            i4_value = u4_abs_value * i4_sign;\
+                            i4_value = u4_abs_value;\
+                            if (i4_sign == -1) i4_value = -i4_value;\
                             if (i4_value)\
                             {\
                                 u4_nnz++;\

@@ -123,8 +123,7 @@ void ih264_resi_trans_quant_4x4(UWORD8 *pu1_src,
 {
     UWORD32 i;
     WORD32  x0, x1, x2, x3, x4, x5, x6, x7;
-    WORD32  i4_value, i4_sign;
-    UWORD32 u4_abs_value;
+    WORD32  i4_value;
     WORD16  *pi2_out_tmp = pi2_out;
     UWORD32 u4_nonzero_coeff = 0;
 
@@ -178,22 +177,22 @@ void ih264_resi_trans_quant_4x4(UWORD8 *pu1_src,
           (*pi2_alt_dc_addr) = i4_value;
         }
 
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[0], pu2_scale_matrix[0], u4_round_factor, u4_qbits, u4_nonzero_coeff);
+        FWD_QUANT(i4_value, pu2_threshold_matrix[0], pu2_scale_matrix[0], u4_round_factor, u4_qbits, u4_nonzero_coeff);
         pi2_out_tmp[0] = i4_value;
 
 
         i4_value = (x3 << 1) + x2;
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[4], pu2_scale_matrix[4], u4_round_factor, u4_qbits, u4_nonzero_coeff);
+        FWD_QUANT(i4_value, pu2_threshold_matrix[4], pu2_scale_matrix[4], u4_round_factor, u4_qbits, u4_nonzero_coeff);
         pi2_out_tmp[4] = i4_value;
 
 
         i4_value = x0 - x1;
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[8], pu2_scale_matrix[8], u4_round_factor, u4_qbits, u4_nonzero_coeff);
+        FWD_QUANT(i4_value, pu2_threshold_matrix[8], pu2_scale_matrix[8], u4_round_factor, u4_qbits, u4_nonzero_coeff);
         pi2_out_tmp[8] = i4_value;
 
 
         i4_value = x3 - (x2 << 1);
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[12], pu2_scale_matrix[12], u4_round_factor, u4_qbits, u4_nonzero_coeff);
+        FWD_QUANT(i4_value, pu2_threshold_matrix[12], pu2_scale_matrix[12], u4_round_factor, u4_qbits, u4_nonzero_coeff);
         pi2_out_tmp[12] = i4_value;
 
         pi2_out_tmp ++;
@@ -271,8 +270,7 @@ void ih264_resi_trans_quant_chroma_4x4(UWORD8 *pu1_src,
 {
     UWORD32 i;
     WORD32  x0, x1, x2, x3, x4, x5, x6, x7;
-    WORD32  i4_value, i4_sign;
-    UWORD32 u4_abs_value;
+    WORD32  i4_value;
     WORD16  *pi2_out_tmp = pi2_out;
     UWORD32 u4_nonzero_coeff = 0;
 
@@ -326,25 +324,25 @@ void ih264_resi_trans_quant_chroma_4x4(UWORD8 *pu1_src,
           *pu1_dc_alt_addr = i4_value;
         }
 
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[0],
+        FWD_QUANT(i4_value, pu2_threshold_matrix[0],
                   pu2_scale_matrix[0], u4_round_factor, u4_qbits,
                   u4_nonzero_coeff);
         pi2_out_tmp[0] = i4_value;
 
         i4_value = (x3 << 1) + x2;
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[4],
+        FWD_QUANT(i4_value, pu2_threshold_matrix[4],
                   pu2_scale_matrix[4], u4_round_factor, u4_qbits,
                   u4_nonzero_coeff);
         pi2_out_tmp[4] = i4_value;
 
         i4_value = x0 - x1;
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[8],
+        FWD_QUANT(i4_value, pu2_threshold_matrix[8],
                   pu2_scale_matrix[8], u4_round_factor, u4_qbits,
                   u4_nonzero_coeff);
         pi2_out_tmp[8] = i4_value;
 
         i4_value = x3 - (x2 << 1);
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[12],
+        FWD_QUANT(i4_value, pu2_threshold_matrix[12],
                   pu2_scale_matrix[12], u4_round_factor, u4_qbits,
                   u4_nonzero_coeff);
         pi2_out_tmp[12] = i4_value;
@@ -420,8 +418,6 @@ void ih264_hadamard_quant_4x4(WORD16 *pi2_src,
 {
   WORD32 i;
   WORD32 x0,x1,x2,x3,x4,x5,x6,x7,i4_value;
-  UWORD32 u4_abs_value;
-  WORD32 i4_sign;
 
   *pu1_nnz = 0;
 
@@ -463,22 +459,22 @@ void ih264_hadamard_quant_4x4(WORD16 *pi2_src,
 
 
         i4_value = (x0 + x1) >> 1;
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[0],
+        FWD_QUANT(i4_value, pu2_threshold_matrix[0],
                   pu2_scale_matrix[0], u4_round_factor, u4_qbits, pu1_nnz[0]);
         pi2_dst[0] = i4_value;
 
         i4_value = (x3 + x2) >> 1;
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[0],
+        FWD_QUANT(i4_value, pu2_threshold_matrix[0],
                   pu2_scale_matrix[0], u4_round_factor, u4_qbits, pu1_nnz[0]);
         pi2_dst[4] = i4_value;
 
         i4_value = (x0 - x1) >> 1;
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[0],
+        FWD_QUANT(i4_value, pu2_threshold_matrix[0],
                   pu2_scale_matrix[0], u4_round_factor, u4_qbits, pu1_nnz[0]);
         pi2_dst[8] = i4_value;
 
         i4_value = (x3 - x2) >> 1;
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[0],
+        FWD_QUANT(i4_value, pu2_threshold_matrix[0],
                   pu2_scale_matrix[0], u4_round_factor, u4_qbits, pu1_nnz[0]);
         pi2_dst[12] = i4_value;
 
@@ -548,8 +544,7 @@ void ih264_hadamard_quant_2x2_uv(WORD16 *pi2_src,
                                  UWORD8 *pu1_nnz)
 {
     WORD32 x0, x1, x2, x3, x4, x5, x6, x7;
-    WORD32 i4_value, i4_sign, plane;
-    UWORD32 u4_abs_value;
+    WORD32 i4_value, plane;
 
     for(plane = 0; plane < 2; plane++)
     {
@@ -568,25 +563,25 @@ void ih264_hadamard_quant_2x2_uv(WORD16 *pi2_src,
 
         /* Vertical transform and quantization */
         i4_value = (x0 + x2);
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[0],
+        FWD_QUANT(i4_value, pu2_threshold_matrix[0],
                   pu2_scale_matrix[0], u4_round_factor, u4_qbits,
                   pu1_nnz[plane]);
         pi2_dst[0] = i4_value;
 
         i4_value = (x0 - x2);
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[0],
+        FWD_QUANT(i4_value, pu2_threshold_matrix[0],
                   pu2_scale_matrix[0], u4_round_factor, u4_qbits,
                   pu1_nnz[plane]);
         pi2_dst[2] = i4_value;
 
         i4_value = (x1 - x3);
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[0],
+        FWD_QUANT(i4_value, pu2_threshold_matrix[0],
                   pu2_scale_matrix[0], u4_round_factor, u4_qbits,
                   pu1_nnz[plane]);
         pi2_dst[3] = i4_value;
 
         i4_value = (x1 + x3);
-        FWD_QUANT(i4_value, u4_abs_value, i4_sign, pu2_threshold_matrix[0],
+        FWD_QUANT(i4_value, pu2_threshold_matrix[0],
                   pu2_scale_matrix[0], u4_round_factor, u4_qbits,
                   pu1_nnz[plane]);
         pi2_dst[1] = i4_value;
@@ -660,8 +655,6 @@ void ih264_resi_trans_quant_8x8(UWORD8 *pu1_src,
     UWORD32 i;
     WORD32 a0, a1, a2, a3, a4, a5, a6, a7;
     WORD32 r0, r1, r2, r3, r4, r5, r6, r7;
-    WORD32 i4_sign;
-    UWORD32 u4_abs_value;
     UWORD32 u4_nonzero_coeff = 0;
 
     UNUSED(pu1_dc_alt_addr);
@@ -765,42 +758,42 @@ void ih264_resi_trans_quant_8x8(UWORD8 *pu1_src,
         r5 = a6 - (a5>>2);
         r7 = (a4>>2) - a7;
 
-        FWD_QUANT(r0, u4_abs_value, i4_sign, pu2_threshold_matrix[0],
+        FWD_QUANT(r0, pu2_threshold_matrix[0],
                   pu2_scale_matrix[0], u4_round_factor, u4_qbits,
                   u4_nonzero_coeff);
         pi2_out_tmp[0] = r0;
 
-        FWD_QUANT(r1, u4_abs_value, i4_sign, pu2_threshold_matrix[8],
+        FWD_QUANT(r1, pu2_threshold_matrix[8],
                   pu2_scale_matrix[8], u4_round_factor, u4_qbits,
                   u4_nonzero_coeff);
         pi2_out_tmp[8] = r1;
 
-        FWD_QUANT(r2, u4_abs_value, i4_sign, pu2_threshold_matrix[16],
+        FWD_QUANT(r2, pu2_threshold_matrix[16],
                   pu2_scale_matrix[16], u4_round_factor, u4_qbits,
                   u4_nonzero_coeff);
         pi2_out_tmp[16] = r2;
 
-        FWD_QUANT(r3, u4_abs_value, i4_sign, pu2_threshold_matrix[24],
+        FWD_QUANT(r3, pu2_threshold_matrix[24],
                   pu2_scale_matrix[24], u4_round_factor, u4_qbits,
                   u4_nonzero_coeff);
         pi2_out_tmp[24] = r3;
 
-        FWD_QUANT(r4, u4_abs_value, i4_sign, pu2_threshold_matrix[32],
+        FWD_QUANT(r4, pu2_threshold_matrix[32],
                   pu2_scale_matrix[32], u4_round_factor, u4_qbits,
                   u4_nonzero_coeff);
         pi2_out_tmp[32] = r4;
 
-        FWD_QUANT(r5, u4_abs_value, i4_sign, pu2_threshold_matrix[40],
+        FWD_QUANT(r5, pu2_threshold_matrix[40],
                   pu2_scale_matrix[40], u4_round_factor, u4_qbits,
                   u4_nonzero_coeff);
         pi2_out_tmp[40] = r5;
 
-        FWD_QUANT(r6, u4_abs_value, i4_sign, pu2_threshold_matrix[48],
+        FWD_QUANT(r6, pu2_threshold_matrix[48],
                   pu2_scale_matrix[48], u4_round_factor, u4_qbits,
                   u4_nonzero_coeff);
         pi2_out_tmp[48] = r6;
 
-        FWD_QUANT(r7, u4_abs_value, i4_sign, pu2_threshold_matrix[56],
+        FWD_QUANT(r7, pu2_threshold_matrix[56],
                   pu2_scale_matrix[56], u4_round_factor, u4_qbits,
                   u4_nonzero_coeff);
         pi2_out_tmp[56] = r7;
