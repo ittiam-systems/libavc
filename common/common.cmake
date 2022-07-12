@@ -24,6 +24,7 @@ list(
   "${AVC_ROOT}/common/ithread.c")
 
 include_directories(${AVC_ROOT}/common)
+include_directories(${AVC_ROOT}/common/mvc)
 
 # arm/x86 sources
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
