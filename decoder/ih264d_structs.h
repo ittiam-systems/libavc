@@ -714,6 +714,28 @@ typedef struct
     WORD16  ai2_level[64];
 }tu_blk8x8_coeff_data_t;
 
+/**
+ * Reference mapping from pic_buf_id to mv_buf_id and pointers to corresponding qp_map and
+ * mb_type_map
+ */
+typedef struct
+{
+    /**
+     * mv buf id
+     */
+    WORD32 mv_buf_id;
+
+    /**
+     * qp_map buffer
+     */
+    UWORD8 *pu1_qp_map;
+
+    /**
+     * mbtype buffer
+     */
+    UWORD8 *pu1_mb_type_map;
+}ref_map_t;
+
 /** Aggregating structure that is globally available */
 typedef struct _DecStruct
 {
@@ -751,6 +773,7 @@ typedef struct _DecStruct
 
     UWORD16 u2_pic_wd; /** Width of the picture being decoded */
     UWORD16 u2_pic_ht; /** Height of the picture being decoded */
+    UWORD32 u4_total_mbs; /** Total MBs in the picture being decoded */
 
     UWORD8 u1_first_slice_in_stream;
     UWORD8 u1_mb_ngbr_availablity;
@@ -761,6 +784,10 @@ typedef struct _DecStruct
     UWORD8 u1_qp_y_rem6;
     UWORD8 u1_qp_u_rem6;
 
+    /** mb_info variables - qp_map, mb_type_map */
+    UWORD8 u1_enable_mb_info;
+    UWORD8 *pu1_qp_map_base;
+    UWORD8 *pu1_mb_type_map_base;
     /*********************************/
     /* configurable mb-group numbers */
     /* very critical to the decoder  */
@@ -1390,7 +1417,7 @@ typedef struct _DecStruct
 
     void *apv_buf_id_pic_buf_map[MAX_DISP_BUFS_NEW];
 
-    UWORD8 au1_pic_buf_id_mv_buf_id_map[MAX_DISP_BUFS_NEW];
+    ref_map_t as_buf_id_info_map[MAX_DISP_BUFS_NEW];
 
     UWORD8 au1_pic_buf_ref_flag[MAX_DISP_BUFS_NEW];
 

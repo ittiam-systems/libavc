@@ -1128,6 +1128,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
 
     ps_dec->u2_pic_wd = u2_pic_wd;
     ps_dec->u2_pic_ht = u2_pic_ht;
+    ps_dec->u4_total_mbs = ps_seq->u2_total_num_of_mbs << (1 - ps_seq->u1_frame_mbs_only_flag);
 
     /* Determining the Width and Height of Frame from that of Picture */
     ps_dec->u2_frm_wd_y = u2_frm_wd_y;
