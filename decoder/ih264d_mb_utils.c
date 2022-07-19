@@ -32,6 +32,7 @@
  */
 #include <string.h>
 #include <stdlib.h>
+#include "ih264_defs.h"
 #include "ih264d_bitstrm.h"
 #include "ih264d_defs.h"
 #include "ih264d_debug.h"
@@ -1468,3 +1469,95 @@ void ih264d_transfer_mb_group_data(dec_struct_t * ps_dec,
 
 }
 
+/*
+ **************************************************************************
+ * \if Function name : ih264d_populate_mb_info_map \endif
+ *
+ * \brief
+ *     Populate mb info values for mbtype and qp map at 8x8 level for each MB
+ *
+ * \return
+ *    void
+ *
+ **************************************************************************
+ */
+void ih264d_populate_mb_info_map(dec_struct_t *ps_dec, dec_mb_info_t *ps_cur_mb_info,
+                                 UWORD16 u2_blk_x, UWORD16 u2_blk_y, UWORD8 u1_qp_val)
+{
+    UWORD16 stride = ps_dec->u2_frm_wd_in_mbs << 1;
+    UWORD8 *pu1_qp_map = ps_dec->as_buf_id_info_map[ps_dec->u1_pic_buf_id].pu1_qp_map;
+    UWORD8 *pu1_mb_type_map = ps_dec->as_buf_id_info_map[ps_dec->u1_pic_buf_id].pu1_mb_type_map;
+
+    UWORD8 cur_mb_type = ps_cur_mb_info->u1_mb_type;
+    UWORD8 mb_is_inter =
+        (cur_mb_type == P_MB || cur_mb_type == B_MB || cur_mb_type == SP_MB);
+    UWORD8 mb_type = mb_is_inter ? BLOCK_TYPE_INTER_MB : BLOCK_TYPE_INTRA_MB;
+    if(cur_mb_type == MB_SKIP) mb_type = BLOCK_TYPE_SKIP_MB;
+
+    // populate qp_map, mb_type_map for mbx, mby
+    // since we store values at 8x8 level, duplicate values for blocks while storing in map
+    if(ps_dec->ps_cur_slice->u1_mbaff_frame_flag)
+    {
+        UWORD8 bot_mb = ps_cur_mb_info->u1_topmb ? 0 : 1;
+        if(ps_cur_mb_info->u1_mb_field_decodingflag)
+        {
+            pu1_qp_map[u2_blk_x +     stride * ( u2_blk_y +      bot_mb)] =
+            pu1_qp_map[u2_blk_x + 1 + stride * ( u2_blk_y +      bot_mb)] =
+            pu1_qp_map[u2_blk_x +     stride * ((u2_blk_y + 2) + bot_mb)] =
+            pu1_qp_map[u2_blk_x + 1 + stride * ((u2_blk_y + 2) + bot_mb)] =
+                u1_qp_val;
+
+            pu1_mb_type_map[u2_blk_x +     stride * ( u2_blk_y +      bot_mb)] =
+            pu1_mb_type_map[u2_blk_x + 1 + stride * ( u2_blk_y +      bot_mb)] =
+            pu1_mb_type_map[u2_blk_x +     stride * ((u2_blk_y + 2) + bot_mb)] =
+            pu1_mb_type_map[u2_blk_x + 1 + stride * ((u2_blk_y + 2) + bot_mb)] =
+                mb_type;
+        }
+        else
+        {
+            pu1_qp_map[u2_blk_x +     stride * ( u2_blk_y +      (2 * bot_mb))] =
+            pu1_qp_map[u2_blk_x + 1 + stride * ( u2_blk_y +      (2 * bot_mb))] =
+            pu1_qp_map[u2_blk_x +     stride * ((u2_blk_y + 1) + (2 * bot_mb))] =
+            pu1_qp_map[u2_blk_x + 1 + stride * ((u2_blk_y + 1) + (2 * bot_mb))] =
+                u1_qp_val;
+
+            pu1_mb_type_map[u2_blk_x +     stride * ( u2_blk_y +      (2 * bot_mb))] =
+            pu1_mb_type_map[u2_blk_x + 1 + stride * ( u2_blk_y +      (2 * bot_mb))] =
+            pu1_mb_type_map[u2_blk_x +     stride * ((u2_blk_y + 1) + (2 * bot_mb))] =
+            pu1_mb_type_map[u2_blk_x + 1 + stride * ((u2_blk_y + 1) + (2 * bot_mb))] =
+                mb_type;
+        }
+    }
+    else
+    {
+        if(ps_dec->ps_cur_slice->u1_field_pic_flag)
+        {
+            UWORD8 bot_mb = ps_dec->ps_cur_slice->u1_bottom_field_flag;
+            pu1_qp_map[u2_blk_x +     stride * (2 *  u2_blk_y +      bot_mb)] =
+            pu1_qp_map[u2_blk_x + 1 + stride * (2 *  u2_blk_y +      bot_mb)] =
+            pu1_qp_map[u2_blk_x +     stride * (2 * (u2_blk_y + 1) + bot_mb)] =
+            pu1_qp_map[u2_blk_x + 1 + stride * (2 * (u2_blk_y + 1) + bot_mb)] =
+                u1_qp_val;
+
+            pu1_mb_type_map[u2_blk_x +     stride * (2 *  u2_blk_y +      bot_mb)] =
+            pu1_mb_type_map[u2_blk_x + 1 + stride * (2 *  u2_blk_y +      bot_mb)] =
+            pu1_mb_type_map[u2_blk_x +     stride * (2 * (u2_blk_y + 1) + bot_mb)] =
+            pu1_mb_type_map[u2_blk_x + 1 + stride * (2 * (u2_blk_y + 1) + bot_mb)] =
+                mb_type;
+        }
+        else
+        {
+            pu1_qp_map[u2_blk_x +     stride *  u2_blk_y     ] =
+            pu1_qp_map[u2_blk_x + 1 + stride *  u2_blk_y     ] =
+            pu1_qp_map[u2_blk_x +     stride * (u2_blk_y + 1)] =
+            pu1_qp_map[u2_blk_x + 1 + stride * (u2_blk_y + 1)] =
+                u1_qp_val;
+
+            pu1_mb_type_map[u2_blk_x +     stride *  u2_blk_y     ] =
+            pu1_mb_type_map[u2_blk_x + 1 + stride *  u2_blk_y     ] =
+            pu1_mb_type_map[u2_blk_x +     stride * (u2_blk_y + 1)] =
+            pu1_mb_type_map[u2_blk_x + 1 + stride * (u2_blk_y + 1)] =
+                mb_type;
+        }
+    }
+}

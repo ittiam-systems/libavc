@@ -2172,6 +2172,22 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     memset(pv_buf, 0, size);
     ps_dec->pu1_pic_buf_base = pv_buf;
 
+    /* Allocate memory for mb_info maps */
+    if(ps_dec->u1_enable_mb_info)
+    {
+        size = (u4_total_mbs << 2) * MAX_DISP_BUFS_NEW;
+
+        pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+        RETURN_IF((NULL == pv_buf), IV_FAIL);
+        memset(pv_buf, 0, size);
+        ps_dec->pu1_qp_map_base = pv_buf;
+
+        pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
+        RETURN_IF((NULL == pv_buf), IV_FAIL);
+        memset(pv_buf, 0, size);
+        ps_dec->pu1_mb_type_map_base = pv_buf;
+    }
+
     /* Post allocation Increment Actions */
 
     /***************************************************************************/
@@ -2319,6 +2335,13 @@ WORD16 ih264d_free_dynamic_bufs(dec_struct_t * ps_dec)
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_nbr_mb_row);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_mv_bank_buf_base);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_pic_buf_base);
+
+    /* Free memory for mb_info maps */
+    if(ps_dec->u1_enable_mb_info)
+    {
+        PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_qp_map_base);
+        PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_mb_type_map_base);
+    }
     return 0;
 }
 
