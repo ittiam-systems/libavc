@@ -506,6 +506,20 @@ static IV_API_CALL_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                 return (IV_FAIL);
             }
 
+            {
+                dec_struct_t *ps_dec = (dec_struct_t *)(ps_handle->pv_codec_handle);
+                if(ps_dec->u1_enable_mb_info)
+                {
+                    if(!ps_ip->pu1_8x8_blk_qp_map && !ps_ip->pu1_8x8_blk_type_map)
+                    {
+                        ps_op->s_ivd_video_decode_op_t.u4_error_code |= 1
+                                        << IVD_UNSUPPORTEDPARAM;
+                        ps_op->s_ivd_video_decode_op_t.u4_error_code |=
+                                        IH264D_FRAME_INFO_OP_BUF_NULL;
+                        return IV_FAIL;
+                    }
+                }
+            }
         }
             break;
 
@@ -1491,6 +1505,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
         ps_dec->u4_share_disp_buf = 0;
     }
 
+    ps_dec->u1_enable_mb_info = ps_create_ip->u4_enable_frame_info;
     ps_dec->pf_aligned_alloc = pf_aligned_alloc;
     ps_dec->pf_aligned_free = pf_aligned_free;
     ps_dec->pv_mem_ctxt = pv_mem_ctxt;
@@ -2298,6 +2313,20 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     }
 
+    if(ps_dec->u1_enable_mb_info && (ps_dec->i4_header_decoded & DECODED_SPS_MASK))
+    {
+        UWORD32 blk_qp_map_size = ps_h264d_dec_ip->u4_8x8_blk_qp_map_size;
+        UWORD32 blk_type_map_size = ps_h264d_dec_ip->u4_8x8_blk_type_map_size;
+        UWORD32 blk_8x8_map_size = ps_dec->u4_total_mbs << 2;
+        if ((ps_h264d_dec_ip->pu1_8x8_blk_qp_map && blk_qp_map_size < blk_8x8_map_size) ||
+            (ps_h264d_dec_ip->pu1_8x8_blk_type_map && blk_type_map_size < blk_8x8_map_size))
+        {
+            ps_dec_op->u4_error_code |= 1 << IVD_UNSUPPORTEDPARAM;
+            ps_dec_op->u4_error_code |= IH264D_INSUFFICIENT_METADATA_BUFFER;
+            return IV_FAIL;
+        }
+    }
+
     if(ps_dec->u1_flushfrm)
     {
         if(ps_dec->u1_init_dec_flag == 0)
@@ -2328,6 +2357,26 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
             ps_dec->u4_fmt_conv_cur_row += ps_dec->u4_fmt_conv_num_rows;
             ps_dec->u4_output_present = 1;
 
+            if(ps_dec->u1_enable_mb_info)
+            {
+                UWORD32 disp_buf_id = ps_dec->s_disp_op.u4_disp_buf_id;
+                if(ps_h264d_dec_ip->pu1_8x8_blk_qp_map)
+                {
+                    ps_h264d_dec_op->pu1_8x8_blk_qp_map = ps_h264d_dec_ip->pu1_8x8_blk_qp_map;
+                    ps_h264d_dec_op->u4_8x8_blk_qp_map_size = ps_dec->u4_total_mbs << 2;
+                    ih264_memcpy(ps_h264d_dec_op->pu1_8x8_blk_qp_map,
+                        ps_dec->as_buf_id_info_map[disp_buf_id].pu1_qp_map,
+                        ps_dec->u4_total_mbs << 2);
+                }
+                if(ps_h264d_dec_ip->pu1_8x8_blk_type_map)
+                {
+                    ps_h264d_dec_op->pu1_8x8_blk_type_map = ps_h264d_dec_ip->pu1_8x8_blk_type_map;
+                    ps_h264d_dec_op->u4_8x8_blk_type_map_size = ps_dec->u4_total_mbs << 2;
+                    ih264_memcpy(ps_h264d_dec_op->pu1_8x8_blk_type_map,
+                        ps_dec->as_buf_id_info_map[disp_buf_id].pu1_mb_type_map,
+                        ps_dec->u4_total_mbs << 2);
+                }
+            }
         }
         ih264d_export_sei_params(&ps_dec_op->s_sei_decode_op, ps_dec);
 
@@ -2820,6 +2869,26 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     }
 
+    if(ps_dec->u1_enable_mb_info && ps_dec->u4_output_present)
+    {
+        UWORD32 disp_buf_id = ps_dec->s_disp_op.u4_disp_buf_id;
+        if(ps_h264d_dec_ip->pu1_8x8_blk_qp_map)
+        {
+            ps_h264d_dec_op->pu1_8x8_blk_qp_map = ps_h264d_dec_ip->pu1_8x8_blk_qp_map;
+            ps_h264d_dec_op->u4_8x8_blk_qp_map_size = ps_dec->u4_total_mbs << 2;
+            ih264_memcpy(ps_h264d_dec_op->pu1_8x8_blk_qp_map,
+                ps_dec->as_buf_id_info_map[disp_buf_id].pu1_qp_map,
+                ps_dec->u4_total_mbs << 2);
+        }
+        if(ps_h264d_dec_ip->pu1_8x8_blk_type_map)
+        {
+            ps_h264d_dec_op->pu1_8x8_blk_type_map = ps_h264d_dec_ip->pu1_8x8_blk_type_map;
+            ps_h264d_dec_op->u4_8x8_blk_type_map_size = ps_dec->u4_total_mbs << 2;
+            ih264_memcpy(ps_h264d_dec_op->pu1_8x8_blk_type_map,
+                ps_dec->as_buf_id_info_map[disp_buf_id].pu1_mb_type_map,
+                ps_dec->u4_total_mbs << 2);
+        }
+    }
 
     /*Data memory barrier instruction,so that yuv write by the library is complete*/
     DATA_SYNC();

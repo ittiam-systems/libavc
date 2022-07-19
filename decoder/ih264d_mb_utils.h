@@ -288,6 +288,12 @@ void ih264d_transfer_mb_group_data(dec_struct_t * ps_dec,
                                    const UWORD8 u1_end_of_row_next /* Next n-Mb End of Row Flag */
                                    );
 
+void ih264d_populate_mb_info_map(dec_struct_t *ps_dec,
+                                 dec_mb_info_t *ps_cur_mb_info,
+                                 UWORD16 u2_blk_x,
+                                 UWORD16 u2_blk_y,
+                                 UWORD8 u1_val);
+
 //void FillRandomData(UWORD8 *pu1_buf, WORD32 u4_bufSize);
 
 #endif /* _MB_UTILS_H_ */
