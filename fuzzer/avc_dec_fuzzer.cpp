@@ -109,8 +109,8 @@ Codec::Codec(IV_COLOR_FORMAT_T colorFormat, size_t numCores) {
 Codec::~Codec() {}
 void Codec::createCodec() {
   IV_API_CALL_STATUS_T ret;
-  ih264d_create_ip_t create_ip;
-  ih264d_create_op_t create_op;
+  ih264d_create_ip_t create_ip{};
+  ih264d_create_op_t create_op{};
   void *fxns = (void *)&ivd_api_function;
 
   create_ip.s_ivd_create_ip_t.e_cmd = IVD_CMD_CREATE;
@@ -132,8 +132,8 @@ void Codec::createCodec() {
 }
 
 void Codec::deleteCodec() {
-  ivd_delete_ip_t delete_ip;
-  ivd_delete_op_t delete_op;
+  ivd_delete_ip_t delete_ip{};
+  ivd_delete_op_t delete_op{};
 
   delete_ip.e_cmd = IVD_CMD_DELETE;
   delete_ip.u4_size = sizeof(ivd_delete_ip_t);
@@ -142,8 +142,8 @@ void Codec::deleteCodec() {
   ivd_api_function(mCodec, (void *)&delete_ip, (void *)&delete_op);
 }
 void Codec::resetCodec() {
-  ivd_ctl_reset_ip_t s_ctl_ip;
-  ivd_ctl_reset_op_t s_ctl_op;
+  ivd_ctl_reset_ip_t s_ctl_ip{};
+  ivd_ctl_reset_op_t s_ctl_op{};
 
   s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
   s_ctl_ip.e_sub_cmd = IVD_CMD_CTL_RESET;
@@ -154,8 +154,8 @@ void Codec::resetCodec() {
 }
 
 void Codec::setCores() {
-  ih264d_ctl_set_num_cores_ip_t s_ctl_ip;
-  ih264d_ctl_set_num_cores_op_t s_ctl_op;
+  ih264d_ctl_set_num_cores_ip_t s_ctl_ip{};
+  ih264d_ctl_set_num_cores_op_t s_ctl_op{};
 
   s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
   s_ctl_ip.e_sub_cmd =
@@ -168,8 +168,8 @@ void Codec::setCores() {
 }
 
 void Codec::setParams(IVD_VIDEO_DECODE_MODE_T mode) {
-  ivd_ctl_set_config_ip_t s_ctl_ip;
-  ivd_ctl_set_config_op_t s_ctl_op;
+  ivd_ctl_set_config_ip_t s_ctl_ip{};
+  ivd_ctl_set_config_op_t s_ctl_op{};
 
   s_ctl_ip.u4_disp_wd = 0;
   s_ctl_ip.e_frm_skip_mode = IVD_SKIP_NONE;
@@ -184,8 +184,8 @@ void Codec::setParams(IVD_VIDEO_DECODE_MODE_T mode) {
 }
 
 void Codec::setArchitecture(IVD_ARCH_T arch) {
-  ih264d_ctl_set_processor_ip_t s_ctl_ip;
-  ih264d_ctl_set_processor_op_t s_ctl_op;
+  ih264d_ctl_set_processor_ip_t s_ctl_ip{};
+  ih264d_ctl_set_processor_op_t s_ctl_op{};
 
   s_ctl_ip.e_cmd = IVD_CMD_VIDEO_CTL;
   s_ctl_ip.e_sub_cmd =
@@ -253,12 +253,9 @@ void Codec::decodeHeader(const uint8_t *data, size_t size) {
 
   while (size > 0) {
     IV_API_CALL_STATUS_T ret;
-    ivd_video_decode_ip_t dec_ip;
-    ivd_video_decode_op_t dec_op;
+    ivd_video_decode_ip_t dec_ip{};
+    ivd_video_decode_op_t dec_op{};
     size_t bytes_consumed;
-
-    memset(&dec_ip, 0, sizeof(dec_ip));
-    memset(&dec_op, 0, sizeof(dec_op));
 
     dec_ip.e_cmd = IVD_CMD_VIDEO_DECODE;
     dec_ip.u4_ts = 0;
@@ -295,11 +292,8 @@ void Codec::decodeHeader(const uint8_t *data, size_t size) {
 IV_API_CALL_STATUS_T Codec::decodeFrame(const uint8_t *data, size_t size,
                                         size_t *bytesConsumed) {
   IV_API_CALL_STATUS_T ret;
-  ivd_video_decode_ip_t dec_ip;
-  ivd_video_decode_op_t dec_op;
-
-  memset(&dec_ip, 0, sizeof(dec_ip));
-  memset(&dec_op, 0, sizeof(dec_op));
+  ivd_video_decode_ip_t dec_ip{};
+  ivd_video_decode_op_t dec_op{};
 
   dec_ip.e_cmd = IVD_CMD_VIDEO_DECODE;
   dec_ip.u4_ts = 0;
