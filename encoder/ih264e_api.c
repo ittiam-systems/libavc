@@ -5871,6 +5871,9 @@ static WORD32 ih264e_set_vui_params(void *pv_api_ip,
     ps_vui->u1_num_reorder_frames = ps_ip->u1_num_reorder_frames;
     ps_vui->u1_max_dec_frame_buffering = ps_ip->u1_max_dec_frame_buffering;
 
+    ps_cfg->u4_timestamp_high = -1;
+    ps_cfg->u4_timestamp_low = -1;
+
     return IV_SUCCESS;
 }
 
