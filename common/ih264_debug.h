@@ -38,6 +38,7 @@
 #ifndef _IH264_DEBUG_H_
 #define _IH264_DEBUG_H_
 
+#include <assert.h>
 
 #if DEBUG_PRINT
 

@@ -36,10 +36,13 @@ libavc_set_link_libraries()
 
 include("${AVC_ROOT}/common/common.cmake")
 include("${AVC_ROOT}/decoder/libavcdec.cmake")
+include("${AVC_ROOT}/decoder/mvc/libmvcdec.cmake")
 include("${AVC_ROOT}/encoder/libavcenc.cmake")
 
 include("${AVC_ROOT}/test/decoder/avcdec.cmake")
+include("${AVC_ROOT}/test/mvcdec/mvcdec.cmake")
 include("${AVC_ROOT}/test/encoder/avcenc.cmake")
 
 include("${AVC_ROOT}/fuzzer/avc_dec_fuzzer.cmake")
+include("${AVC_ROOT}/fuzzer/mvc_dec_fuzzer.cmake")
 include("${AVC_ROOT}/fuzzer/avc_enc_fuzzer.cmake")

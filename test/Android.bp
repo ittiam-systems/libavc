@@ -7,8 +7,8 @@ package {
     default_applicable_licenses: ["external_libavc_license"],
 }
 
-cc_test {
-    name: "avcdec",
+cc_defaults {
+    name: "libavc_mvc_app_defaults",
     gtest: false,
     host_supported:true,
     cflags: [
@@ -19,17 +19,34 @@ cc_test {
         "-Wall",
         "-Werror",
     ],
-    local_include_dirs: [
-        "decoder/",
-    ],
-    srcs: ["decoder/main.c"],
-    static_libs: ["libavcdec"],
     shared_libs: ["liblog"],
     target: {
         darwin: {
             enabled: false,
         },
     },
+}
+
+cc_test {
+    name: "avcdec",
+    defaults: ["libavc_mvc_app_defaults"],
+    local_include_dirs: [
+        "decoder/",
+    ],
+    srcs: ["decoder/main.c"],
+    static_libs: ["libavcdec"],
+}
+
+cc_test {
+    name: "mvcdec",
+    defaults: ["libavc_mvc_app_defaults"],
+    local_include_dirs: [
+        "mvcdec/",
+    ],
+    srcs: ["mvcdec/main.c"],
+    static_libs: [
+        "libmvcdec",
+    ],
 }
 
 cc_test {
