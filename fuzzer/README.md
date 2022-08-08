@@ -36,6 +36,7 @@ Create a directory CORPUS_DIR and copy some elementary h264 files
 To run the fuzzers
 ```
 $ ./avc_dec_fuzzer CORPUS_DIR
+$ ./mvc_dec_fuzzer CORPUS_DIR
 $ ./avc_enc_fuzzer CORPUS_DIR
 ```
 
@@ -45,6 +46,7 @@ $ ./avc_enc_fuzzer CORPUS_DIR
 Build the fuzzers
 ```
   $ mm -j$(nproc) avc_dec_fuzzer
+  $ mm -j$(nproc) mvc_dec_fuzzer
   $ mm -j$(nproc) avc_enc_fuzzer
 ```
 
@@ -58,6 +60,11 @@ To run avc_dec_fuzzer on device
   $ adb sync data
   $ adb shell /data/fuzz/arm64/avc_dec_fuzzer/avc_dec_fuzzer CORPUS_DIR
 ```
+To run mvc_dec_fuzzer on device
+```
+  $ adb sync data
+  $ adb shell /data/fuzz/arm64/mvc_dec_fuzzer/mvc_dec_fuzzer CORPUS_DIR
+```
 To run avc_enc_fuzzer on device
 ```
   $ adb sync data
@@ -67,6 +74,11 @@ To run avc_enc_fuzzer on device
 To run avc_dec_fuzzer on host
 ```
   $ $ANDROID_HOST_OUT/fuzz/x86_64/avc_dec_fuzzer/avc_dec_fuzzer CORPUS_DIR
+```
+
+To run mvc_dec_fuzzer on host
+```
+  $ $ANDROID_HOST_OUT/fuzz/x86_64/mvc_dec_fuzzer/mvc_dec_fuzzer CORPUS_DIR
 ```
 
 To run avc_enc_fuzzer on host

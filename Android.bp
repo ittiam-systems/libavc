@@ -25,6 +25,17 @@ cc_library_headers {
 }
 
 cc_library_headers {
+    name: "libmvcdec_headers",
+    export_include_dirs: [
+        "decoder",
+        "decoder/mvc",
+        "common",
+        "common/mvc",
+    ],
+    min_sdk_version: "29",
+}
+
+cc_library_headers {
     name: "libavcenc_headers",
     export_include_dirs: [
         "common",
@@ -33,15 +44,8 @@ cc_library_headers {
     min_sdk_version: "29",
 }
 
-cc_library_static {
-    name: "libavcdec",
-    vendor_available: true,
-    host_supported: true,
-    shared_libs: [
-        "liblog",
-        "libcutils",
-    ],
-
+cc_defaults {
+    name: "libavc_mvc_dec_defaults",
     cflags: [
         "-fPIC",
         "-O3",
@@ -52,6 +56,87 @@ cc_library_static {
         // #KEEP_THREAD_ACTIVE is experimental
         "-UKEEP_THREADS_ACTIVE",
     ],
+    vendor_available: true,
+    host_supported: true,
+    shared_libs: [
+        "liblog",
+        "libcutils",
+    ],
+
+    arch: {
+        arm: {
+            local_include_dirs: [
+                "decoder/arm",
+                "common/arm",
+            ],
+            cflags: [
+                "-DARM",
+                // These will be overriden by armv7_a_neon
+                "-DDISABLE_NEON",
+                "-DDEFAULT_ARCH=D_ARCH_ARM_NONEON",
+            ],
+
+            neon: {
+                cflags: [
+                    "-UDISABLE_NEON",
+                    "-UDEFAULT_ARCH",
+                    "-DDEFAULT_ARCH=D_ARCH_ARM_A9Q",
+                ],
+            },
+        },
+
+        arm64: {
+            cflags: [
+                "-DARMV8",
+                "-DARM",
+                "-DDEFAULT_ARCH=D_ARCH_ARMV8_GENERIC",
+            ],
+            local_include_dirs: [
+                "decoder/arm",
+                "common/armv8",
+            ],
+        },
+
+        x86: {
+            cflags: [
+                "-DX86",
+                "-msse4.2",
+                "-DDEFAULT_ARCH=D_ARCH_X86_SSE42",
+            ],
+
+            local_include_dirs: [
+                "decoder/x86",
+                "common/x86",
+            ],
+        },
+
+        x86_64: {
+            cflags: [
+                "-DX86",
+                "-msse4.2",
+                "-DDEFAULT_ARCH=D_ARCH_X86_SSE42",
+            ],
+
+            local_include_dirs: [
+                "decoder/x86",
+                "common/x86",
+            ],
+        },
+    },
+
+    sanitize: {
+        integer_overflow: true,
+        misc_undefined: ["bounds"],
+        cfi: true,
+        config: {
+            cfi_assembly_support: true,
+        },
+    },
+}
+
+cc_library_static {
+    name: "libavcdec",
+    defaults: ["libavc_mvc_dec_defaults"],
 
     export_include_dirs: [
         "common",
@@ -106,22 +191,9 @@ cc_library_static {
 
     arch: {
         arm: {
-            local_include_dirs: [
-                "decoder/arm",
-                "common/arm",
-            ],
-
             srcs: [
                 "decoder/arm/ih264d_function_selector.c",
                 "common/arm/ih264_arm_memory_barrier.s",
-            ],
-
-            cflags: [
-                "-DARM",
-
-                // These will be overriden by armv7_a_neon
-                "-DDISABLE_NEON",
-                "-DDEFAULT_ARCH=D_ARCH_ARM_NONEON",
             ],
 
             neon: {
@@ -151,25 +223,10 @@ cc_library_static {
                     "common/arm/ih264_iquant_itrans_recon_dc_a9.s",
                     "common/arm/ih264_ihadamard_scaling_a9.s",
                 ],
-                cflags: [
-                    "-UDISABLE_NEON",
-                    "-UDEFAULT_ARCH",
-                    "-DDEFAULT_ARCH=D_ARCH_ARM_A9Q",
-                ],
             },
         },
 
         arm64: {
-            cflags: [
-                "-DARMV8",
-                "-DARM",
-                "-DDEFAULT_ARCH=D_ARCH_ARMV8_GENERIC",
-            ],
-            local_include_dirs: [
-                "decoder/arm",
-                "common/armv8",
-            ],
-
             srcs: [
                 "decoder/arm/ih264d_function_selector.c",
                 "decoder/arm/ih264d_function_selector_av8.c",
@@ -200,17 +257,6 @@ cc_library_static {
         },
 
         x86: {
-            cflags: [
-                "-DX86",
-                "-msse4.2",
-                "-DDEFAULT_ARCH=D_ARCH_X86_SSE42",
-            ],
-
-            local_include_dirs: [
-                "decoder/x86",
-                "common/x86",
-            ],
-
             srcs: [
                 "decoder/x86/ih264d_function_selector.c",
                 "decoder/x86/ih264d_function_selector_sse42.c",
@@ -231,17 +277,6 @@ cc_library_static {
         },
 
         x86_64: {
-            cflags: [
-                "-DX86",
-                "-msse4.2",
-                "-DDEFAULT_ARCH=D_ARCH_X86_SSE42",
-            ],
-
-            local_include_dirs: [
-                "decoder/x86",
-                "common/x86",
-            ],
-
             srcs: [
                 "decoder/x86/ih264d_function_selector.c",
                 "decoder/x86/ih264d_function_selector_sse42.c",
@@ -263,12 +298,6 @@ cc_library_static {
     },
 
     sanitize: {
-        integer_overflow: true,
-        misc_undefined: ["bounds"],
-        cfi: true,
-        config: {
-            cfi_assembly_support: true,
-        },
         blocklist: "libavc_blocklist.txt",
     },
     apex_available: [
@@ -276,6 +305,31 @@ cc_library_static {
         "com.android.media.swcodec",
     ],
     min_sdk_version: "29",
+}
+
+cc_library_static {
+    name: "libmvcdec",
+    defaults: ["libavc_mvc_dec_defaults"],
+    whole_static_libs: [
+        "libavcdec",
+    ],
+
+    export_include_dirs: [
+        "decoder",
+        "decoder/mvc",
+        "common",
+        "common/mvc",
+    ],
+
+    srcs: [
+        "decoder/mvc/imvcd_api.c",
+        "decoder/mvc/imvcd_api_utils.c",
+        "decoder/mvc/imvcd_dpb_manager.c",
+        "decoder/mvc/imvcd_error_handler.c",
+        "decoder/mvc/imvcd_nalu_parser.c",
+        "decoder/mvc/imvcd_slice_functions.c",
+        "decoder/mvc/imvcd_utils.c",
+    ],
 }
 
 cc_library_static {
