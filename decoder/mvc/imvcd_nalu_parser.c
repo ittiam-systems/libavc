@@ -69,7 +69,8 @@ static WORD32 imvcd_nalu_mvc_ext_parser(mvc_dec_ctxt_t *ps_mvcd_ctxt, dec_bit_st
 
 static WORD32 imvcd_parse_subset_sps(mvc_dec_ctxt_t *ps_mvcd_ctxt, dec_bit_stream_t *ps_bitstrm)
 {
-    subset_sps_t *ps_subset_sps;
+    subset_sps_t *ps_subset_sps = NULL;
+    dec_seq_params_t *ps_sps = NULL;
 
     WORD32 i, j, k;
     UWORD8 u1_profile_idc;
@@ -87,6 +88,26 @@ static WORD32 imvcd_parse_subset_sps(mvc_dec_ctxt_t *ps_mvcd_ctxt, dec_bit_strea
     dec_struct_t *ps_view_ctxt = &ps_mvcd_ctxt->s_view_dec_ctxt;
 
     WORD32 i4_error_code = OK;
+
+    if(0 == ps_mvcd_ctxt->u1_num_sps)
+    {
+        return ERROR_INV_SPS_PPS_T;
+    }
+
+    for(i = 0; i < MAX_NUM_SEQ_PARAMS; i++)
+    {
+        if(ps_view_ctxt->ps_sps[i].u1_is_valid)
+        {
+            ps_sps = &ps_view_ctxt->ps_sps[i];
+
+            break;
+        }
+    }
+
+    if(NULL == ps_sps)
+    {
+        return ERROR_INV_SPS_PPS_T;
+    }
 
     u1_profile_idc = ih264d_get_bits_h264(ps_bitstrm, 8);
 
@@ -113,6 +134,13 @@ static WORD32 imvcd_parse_subset_sps(mvc_dec_ctxt_t *ps_mvcd_ctxt, dec_bit_strea
     if(u4_temp & MASK_ERR_SEQ_SET_ID)
     {
         return ERROR_INV_SPS_PPS_T;
+    }
+
+    if(ps_sps->u1_level_idc != u1_level_idc)
+    {
+        ps_view_ctxt->u1_res_changed = 1;
+
+        return IVD_RES_CHANGED;
     }
 
     ps_subset_sps = &ps_mvcd_ctxt->as_subset_sps[u1_seq_parameter_set_id];
@@ -281,6 +309,38 @@ static WORD32 imvcd_parse_subset_sps(mvc_dec_ctxt_t *ps_mvcd_ctxt, dec_bit_strea
         memset(&ps_subset_sps->s_disp_offsets, 0, sizeof(ps_subset_sps->s_disp_offsets));
     }
 
+    if(ps_sps->u2_frm_wd_in_mbs != ps_subset_sps->s_sps_data.u2_frm_wd_in_mbs)
+    {
+        ps_view_ctxt->u1_res_changed = 1;
+
+        return IVD_RES_CHANGED;
+    }
+
+    if(ps_sps->u2_frm_ht_in_mbs != ps_subset_sps->s_sps_data.u2_frm_ht_in_mbs)
+    {
+        ps_view_ctxt->u1_res_changed = 1;
+
+        return IVD_RES_CHANGED;
+    }
+
+    if(ps_view_ctxt->u2_disp_width != (ps_subset_sps->s_sps_data.u2_frm_wd_in_mbs * MB_SIZE -
+                                       ps_subset_sps->s_disp_offsets.u2_left_offset -
+                                       ps_subset_sps->s_disp_offsets.u2_right_offset))
+    {
+        ps_view_ctxt->u1_res_changed = 1;
+
+        return IVD_RES_CHANGED;
+    }
+
+    if(ps_view_ctxt->u2_disp_height != (ps_subset_sps->s_sps_data.u2_frm_ht_in_mbs * MB_SIZE -
+                                        ps_subset_sps->s_disp_offsets.u2_top_offset -
+                                        ps_subset_sps->s_disp_offsets.u2_bottom_offset))
+    {
+        ps_view_ctxt->u1_res_changed = 1;
+
+        return IVD_RES_CHANGED;
+    }
+
     ps_subset_sps->s_sps_data.u1_vui_parameters_present_flag = ih264d_get_bit_h264(ps_bitstrm);
 
     if(ps_subset_sps->s_sps_data.u1_vui_parameters_present_flag)
@@ -290,6 +350,15 @@ static WORD32 imvcd_parse_subset_sps(mvc_dec_ctxt_t *ps_mvcd_ctxt, dec_bit_strea
         if(i4_error_code != OK)
         {
             return i4_error_code;
+        }
+
+        if(ps_subset_sps->s_sps_data.s_vui.u1_bitstream_restriction_flag &&
+           (ps_sps->s_vui.u4_num_reorder_frames !=
+            ps_subset_sps->s_sps_data.s_vui.u4_num_reorder_frames))
+        {
+            ps_view_ctxt->u1_res_changed = 1;
+
+            return IVD_RES_CHANGED;
         }
     }
 
