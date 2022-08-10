@@ -3435,7 +3435,7 @@ WORD32 ih264d_set_params(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ih264d_ctl_set_config_ip_t *ps_h264d_ctl_ip =
                     (ih264d_ctl_set_config_ip_t *)pv_api_ip;
     ih264d_ctl_set_config_op_t *ps_h264d_ctl_op =
-                    (ih264d_ctl_set_config_op_t *)pv_api_op;;
+                    (ih264d_ctl_set_config_op_t *)pv_api_op;
     ivd_ctl_set_config_ip_t *ps_ctl_ip =
                     &ps_h264d_ctl_ip->s_ivd_ctl_set_config_ip_t;
     ivd_ctl_set_config_op_t *ps_ctl_op =
