@@ -194,7 +194,7 @@ static IV_STATUS_T api_check_input_dimensions(codec_t *ps_codec,
             break;
         case IV_YUV_420SP_UV:
         case IV_YUV_420SP_VU:
-            if ((ps_inp_buf->au4_wd[0] / 2) != ps_inp_buf->au4_wd[1])
+            if (ps_inp_buf->au4_wd[0] != ps_inp_buf->au4_wd[1])
             {
                 ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
                 ps_op->s_ive_op.u4_error_code |= IH264E_WIDTH_NOT_SUPPORTED;
