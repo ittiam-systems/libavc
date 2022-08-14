@@ -242,7 +242,7 @@ static IV_API_CALL_STATUS_T imvcd_view_ctxt_init(imvcd_create_ip_t *ps_ip,
     memset(pv_buf, 0, i4_mem_size);
     ps_view_ctxt->pv_scratch_sps_pps = pv_buf;
 
-    ps_view_ctxt->u4_static_bits_buf_size = 256000;
+    ps_view_ctxt->u4_static_bits_buf_size = MIN_BITSTREAMS_BUF_SIZE;
     pv_buf =
         pf_aligned_alloc(pv_mem_ctxt, i4_default_alignment, ps_view_ctxt->u4_static_bits_buf_size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
