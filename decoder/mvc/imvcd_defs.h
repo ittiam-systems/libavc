@@ -34,4 +34,6 @@
    is still greater than any possible value of u1_pic_buf_id */
 #define IVP_PIC_BUF_ID UINT8_MAX
 
+#define MIN_BITSTREAMS_BUF_SIZE 256000
+
 #endif
