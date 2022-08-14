@@ -50,16 +50,18 @@ static WORD32 imvcd_nalu_mvc_ext_parser(mvc_dec_ctxt_t *ps_mvcd_ctxt, dec_bit_st
     ps_nalu_mvc_ext->u1_non_idr_flag = ih264d_get_bit_h264(ps_bitstrm);
     ps_nalu_mvc_ext->u1_priority_id = ih264d_get_bits_h264(ps_bitstrm, 6);
     ps_nalu_mvc_ext->u2_view_id = ih264d_get_bits_h264(ps_bitstrm, 10);
+
+    if((ps_nalu_mvc_ext->u2_view_id >= MAX_NUM_VIEWS) ||
+       (ps_nalu_mvc_ext->u2_view_id >= ps_mvcd_ctxt->u2_num_views))
+    {
+        return IVD_INVALID_BITSTREAM;
+    }
+
     ps_nalu_mvc_ext->u1_temporal_id = ih264d_get_bits_h264(ps_bitstrm, 3);
     ps_nalu_mvc_ext->u1_anchor_pic_flag = ih264d_get_bit_h264(ps_bitstrm);
     ps_nalu_mvc_ext->u1_inter_view_flag = ih264d_get_bit_h264(ps_bitstrm);
 
     if(0 == ih264d_get_bit_h264(ps_bitstrm))
-    {
-        return IVD_INVALID_BITSTREAM;
-    }
-
-    if(ps_nalu_mvc_ext->u2_view_id >= MAX_NUM_VIEWS)
     {
         return IVD_INVALID_BITSTREAM;
     }
@@ -299,12 +301,13 @@ static WORD32 imvcd_parse_subset_sps(mvc_dec_ctxt_t *ps_mvcd_ctxt, dec_bit_strea
     }
 
     u2_num_views_m1 = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
-    ps_subset_sps->s_sps_mvc_ext.u2_num_views = 1 + u2_num_views_m1;
 
-    if(u2_num_views_m1 > MAX_NUM_VIEWS)
+    if(u2_num_views_m1 >= MAX_NUM_VIEWS)
     {
         return ERROR_INVALID_SEQ_PARAM;
     }
+
+    ps_subset_sps->s_sps_mvc_ext.u2_num_views = 1 + u2_num_views_m1;
 
     if(ps_view_ctxt->i4_decode_header)
     {
