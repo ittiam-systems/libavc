@@ -374,8 +374,9 @@ IV_API_CALL_STATUS_T imvcd_bitstream_buf_alloc(dec_struct_t *ps_view_ctxt, UWORD
 {
     UWORD32 u4_size;
 
-    u4_size = ((ps_view_ctxt->u2_pic_wd * ps_view_ctxt->u2_pic_ht * 3 / 2) + EXTRA_BS_OFFSET) *
-              u2_num_views * sizeof(ps_view_ctxt->pu1_bits_buf_dynamic[0]);
+    u4_size = MAX(MIN_BITSTREAMS_BUF_SIZE,
+                  ((ps_view_ctxt->u2_pic_wd * ps_view_ctxt->u2_pic_ht * 3 / 2) + EXTRA_BS_OFFSET) *
+                      u2_num_views * sizeof(ps_view_ctxt->pu1_bits_buf_dynamic[0]));
     ps_view_ctxt->pu1_bits_buf_dynamic =
         ps_view_ctxt->pf_aligned_alloc(ps_view_ctxt->pv_mem_ctxt, 128, u4_size);
     RETURN_IF((NULL == ps_view_ctxt->pu1_bits_buf_dynamic), IV_FAIL);
