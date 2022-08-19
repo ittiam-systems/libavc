@@ -1260,6 +1260,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
     convert_uv_only = 1;
     if (u4_pad_bottom_sz || u4_pad_right_sz ||
         ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_422ILE ||
+        ps_codec->s_cfg.u4_enable_quality_metrics & QUALITY_MASK_PSNR ||
         ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1))
     {
         if (ps_proc->i4_mb_y == ps_proc->i4_ht_mbs - 1)
@@ -1279,6 +1280,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
     if (ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_422ILE ||
         ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_420P ||
         ps_proc->i4_mb_y == (ps_proc->i4_ht_mbs - 1) ||
+        ps_codec->s_cfg.u4_enable_quality_metrics & QUALITY_MASK_PSNR ||
         u4_pad_bottom_sz || u4_pad_right_sz)
     {
         if ((ps_codec->s_cfg.e_inp_color_fmt == IV_YUV_420SP_UV) ||
@@ -2070,7 +2072,8 @@ WORD32 ih264e_process(process_ctxt_t *ps_proc)
      *   2. dump recon for bit stream sanity check
      */
     ps_proc->u4_compute_recon = ps_codec->u4_is_curr_frm_ref ||
-                                ps_codec->s_cfg.u4_enable_recon;
+                                ps_codec->s_cfg.u4_enable_recon ||
+                                ps_codec->s_cfg.u4_enable_quality_metrics & QUALITY_MASK_PSNR;
 
     /* Encode 'n' macroblocks,
      * 'n' being the number of mbs dictated by current proc ctxt */
