@@ -369,8 +369,11 @@ typedef struct
     /** Input color format                                                  */
     IV_COLOR_FORMAT_T                           e_inp_color_fmt;
 
-    /** Flag to enable/disable - To be used only for debugging/testing      */
+    /** Flag to enable/disable recon                                        */
     UWORD32                                     u4_enable_recon;
+
+    /** Flag to enable/disable quality metrics                              */
+    UWORD32                                     u4_enable_quality_metrics;
 
     /** Recon color format                                                  */
     IV_COLOR_FORMAT_T                           e_recon_color_fmt;
@@ -627,6 +630,22 @@ typedef struct
 
 
 /**
+ *****************************************************************************
+ * @brief  Structure to store psnr of the sequence
+ *****************************************************************************
+ */
+typedef struct  {
+    UWORD64 total_sse[3];
+    double global_psnr[3];  // total_sse / total_samples
+    double total_psnr[3];   // sum (per_frame_sse / per_frame_samples)
+    double avg_psnr[3];     // total_psnr / total_frames
+    UWORD32 total_samples[3];
+    WORD32 total_frames;
+} quality_stats_t;
+
+
+
+/**
  * Structure to represent a MV Bank buffer
  */
 typedef struct
@@ -669,6 +688,9 @@ typedef struct
  */
 typedef struct
 {
+    /** Per pic PSNR */
+    quality_stats_t s_pic_quality_stats;
+
     /** Picture count */
     WORD32    i4_pic_cnt;
 
@@ -2472,6 +2494,11 @@ struct _codec_t
      * Thread handle for each of the processing threads
      */
     void *apv_proc_thread_handle[MAX_PROCESS_THREADS];
+
+    /**
+     * Structure for global PSNR
+     */
+    quality_stats_t s_global_quality_stats;
 
     /**
      * Thread created flag for each of the processing threads
