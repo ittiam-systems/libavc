@@ -70,6 +70,7 @@
 #include "ime_distortion_metrics.h"
 #include "ime_defs.h"
 #include "ime_structs.h"
+#include "psnr.h"
 #include "ih264_error.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
@@ -2203,4 +2204,78 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
     }
 
     return error_status;
+}
+
+/**
+*******************************************************************************
+*
+* @brief
+*  Calculate the per-pic and global PSNR
+*
+* @par Description:
+*  This function takes the source and recon luma/chroma buffer pointers from the
+*  codec context and calculates the per-pic and global PSNR for the current encoding
+*  frame.
+*
+* @param[in] ps_codec
+*  Pointer to process context
+*
+* @returns  none
+*
+* @remarks
+*
+*
+*******************************************************************************
+*/
+void ih264e_compute_quality_stats(process_ctxt_t *ps_proc)
+{
+    codec_t *ps_codec = ps_proc->ps_codec;
+    WORD32 wd = ps_codec->s_cfg.u4_wd;
+    WORD32 ht = ps_codec->s_cfg.u4_ht;
+    WORD32 disp_wd = ps_codec->s_cfg.u4_disp_wd;
+    WORD32 disp_ht = ps_codec->s_cfg.u4_disp_ht;
+    WORD32 src_strds = ps_proc->i4_src_strd;
+    WORD32 rec_strds = ps_proc->i4_rec_strd;
+    quality_stats_t *ps_pic_quality_stats = NULL;
+    double sum_squared_error[3] = {0.0, 0.0, 0.0};
+    double total_samples[3];
+    WORD32 i;
+    for (i = 0; i < ps_codec->i4_ref_buf_cnt; i++)
+    {
+        if (ps_codec->as_ref_set[i].i4_pic_cnt != -1 &&
+            ps_codec->as_ref_set[i].i4_poc == ps_codec->i4_poc)
+        {
+            ps_pic_quality_stats = &ps_codec->as_ref_set[i].s_pic_quality_stats;
+            break;
+        }
+    }
+
+    if(ps_pic_quality_stats == NULL) return;
+
+    get_sse(
+        ps_proc->pu1_src_buf_luma_base, ps_proc->pu1_rec_buf_luma_base,
+        ps_proc->pu1_src_buf_chroma_base, ps_proc->pu1_rec_buf_chroma_base,
+        src_strds, rec_strds, wd, ht, sum_squared_error);
+
+    total_samples[0] = disp_wd * disp_ht;
+    total_samples[1] = total_samples[2] = total_samples[0] / 4;
+
+    ps_pic_quality_stats->total_frames = 1;
+    ps_codec->s_global_quality_stats.total_frames += 1;
+    for (i = 0; i < 3; i++)
+    {
+        double psnr = sse_to_psnr(total_samples[i], sum_squared_error[i]);
+        ps_pic_quality_stats->total_samples[i] = total_samples[i];
+        ps_pic_quality_stats->total_sse[i] = sum_squared_error[i];
+        ps_pic_quality_stats->global_psnr[i] = ps_pic_quality_stats->avg_psnr[i] =
+            ps_pic_quality_stats->total_psnr[i] = psnr;
+        ps_codec->s_global_quality_stats.total_sse[i] += sum_squared_error[i];
+        ps_codec->s_global_quality_stats.global_psnr[i] =
+            sse_to_psnr(ps_codec->s_global_quality_stats.total_samples[i],
+                ps_codec->s_global_quality_stats.total_sse[i]);
+        ps_codec->s_global_quality_stats.total_psnr[i] += psnr;
+        ps_codec->s_global_quality_stats.avg_psnr[i] =
+            ps_codec->s_global_quality_stats.total_psnr[i] /
+                ps_codec->s_global_quality_stats.total_frames;
+    }
 }

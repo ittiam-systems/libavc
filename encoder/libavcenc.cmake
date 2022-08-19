@@ -39,7 +39,8 @@ list(
   "${AVC_ROOT}/encoder/irc_rate_control_api.c"
   "${AVC_ROOT}/encoder/irc_rd_model.c"
   "${AVC_ROOT}/encoder/irc_vbr_storage_vbv.c"
-  "${AVC_ROOT}/encoder/irc_vbr_str_prms.c")
+  "${AVC_ROOT}/encoder/irc_vbr_str_prms.c"
+  "${AVC_ROOT}/encoder/psnr.c")
 
 include_directories(${AVC_ROOT}/encoder)
 
