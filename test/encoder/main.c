@@ -1470,9 +1470,9 @@ void set_vui_params(app_ctxt_t *ps_app_ctxt)
     s_vui_params_ip.u1_video_format = 0;
     s_vui_params_ip.u1_video_full_range_flag = 0;
     s_vui_params_ip.u1_colour_description_present_flag = 1;
-    s_vui_params_ip.u1_colour_primaries = 0;
-    s_vui_params_ip.u1_transfer_characteristics = 0;
-    s_vui_params_ip.u1_matrix_coefficients = 0;
+    s_vui_params_ip.u1_colour_primaries = 2;
+    s_vui_params_ip.u1_transfer_characteristics = 2;
+    s_vui_params_ip.u1_matrix_coefficients = 2;
     s_vui_params_ip.u1_chroma_loc_info_present_flag = 0;
     s_vui_params_ip.u1_chroma_sample_loc_type_top_field = 0;
     s_vui_params_ip.u1_chroma_sample_loc_type_bottom_field = 0;
