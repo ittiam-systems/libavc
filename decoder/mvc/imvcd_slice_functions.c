@@ -221,15 +221,16 @@ static WORD32 imvcd_set_ref_idx_override_flag(dec_struct_t *ps_view_ctxt)
 static WORD32 imvcd_set_num_ref_idx_active(dec_struct_t *ps_view_ctxt, UWORD8 *pu1_num_ref_idx)
 {
     dec_bit_stream_t *ps_bitstrm = ps_view_ctxt->ps_bitstrm;
+    UWORD32 u4_num_ref_idx_m1 = ih264d_uev(&ps_bitstrm->u4_ofst, ps_bitstrm->pu4_buffer);
 
-    pu1_num_ref_idx[0] = 1 + ih264d_uev(&ps_bitstrm->u4_ofst, ps_bitstrm->pu4_buffer);
-
-    if(pu1_num_ref_idx[0] > H264_MAX_REF_PICS)
+    if(u4_num_ref_idx_m1 >= H264_MAX_REF_PICS)
     {
         return ERROR_NUM_REF;
     }
 
-    COPYTHECONTEXT("SH: num_ref_idx_lx_active_minus1", pu1_num_ref_idx[0] - 1);
+    pu1_num_ref_idx[0] = 1 + u4_num_ref_idx_m1;
+
+    COPYTHECONTEXT("SH: num_ref_idx_lx_active_minus1", u4_num_ref_idx_m1);
 
     return OK;
 }
