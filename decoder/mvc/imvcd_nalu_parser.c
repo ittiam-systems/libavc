@@ -194,13 +194,14 @@ static WORD32 imvcd_parse_subset_sps(mvc_dec_ctxt_t *ps_mvcd_ctxt, dec_bit_strea
         }
     }
 
-    ps_subset_sps->s_sps_data.u1_bits_in_frm_num =
-        4 + ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+    u4_temp = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
 
-    if(ps_subset_sps->s_sps_data.u1_bits_in_frm_num > MAX_BITS_IN_FRAME_NUM)
+    if(u4_temp > (MAX_BITS_IN_FRAME_NUM - 4))
     {
         return ERROR_INV_SPS_PPS_T;
     }
+
+    ps_subset_sps->s_sps_data.u1_bits_in_frm_num = 4 + u4_temp;
 
     ps_subset_sps->s_sps_data.u2_u4_max_pic_num_minus1 =
         (1 << (ps_subset_sps->s_sps_data.u1_bits_in_frm_num)) - 1;
