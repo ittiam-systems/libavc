@@ -63,6 +63,23 @@ void ih264e_join_threads(codec_t *ps_codec);
 /**
 ******************************************************************************
 *
+* @brief
+*  This function calculates various quality metrics; the initial one is PSNR.
+*
+* @par   Description
+*
+* @param[in] ps_codec
+*  pointer to process context
+*
+* @returns  none
+*
+******************************************************************************
+*/
+void ih264e_compute_quality_stats(process_ctxt_t *ps_proc);
+
+/**
+******************************************************************************
+*
 * @brief This function puts the current thread to sleep for a duration
 *  of sleep_us
 *

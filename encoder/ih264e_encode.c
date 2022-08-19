@@ -531,6 +531,12 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
         ih264_list_reset(ps_codec->pv_proc_jobq);
 
         ih264_list_reset(ps_codec->pv_entropy_jobq);
+
+        if (ps_codec->s_cfg.u4_enable_quality_metrics & QUALITY_MASK_PSNR)
+        {
+            ih264e_compute_quality_stats(ps_proc);
+        }
+
     }
 
 
@@ -566,6 +572,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
         IH264_ERROR_T ret = IH264_SUCCESS;
         pic_buf_t *ps_pic_buf = NULL;
         WORD32 i4_buf_status, i4_curr_poc = 32768;
+        WORD8 buf_idx = -1;
 
         /* In case of skips we return recon, but indicate that buffer is zero size */
         if (ps_codec->s_rate_control.post_encode_skip[ctxt_sel]
@@ -593,6 +600,17 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
                 {
                     ps_pic_buf = ps_codec->as_ref_set[i].ps_pic_buf;
                     i4_curr_poc = ps_codec->as_ref_set[i].i4_poc;
+                    buf_idx = i;
+                }
+            }
+            if ((ps_codec->s_cfg.u4_enable_quality_metrics & QUALITY_MASK_PSNR)
+                                && buf_idx >= 0)
+            {
+                UWORD8 comp;
+                for(comp = 0; comp < 3; comp++)
+                {
+                    DEBUG("PSNR[%d]: %f\n", comp,
+                        ps_codec->as_ref_set[buf_idx].s_pic_quality_stats.total_psnr[comp]);
                 }
             }
 
