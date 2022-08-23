@@ -1877,7 +1877,8 @@ WORD32 imvcd_dpb_do_mmco(dpb_commands_t *ps_dpb_cmds, mvc_dpb_manager_t *ps_dpb_
                     WORD64 i8_pic_num;
 
                     u4_diff_pic_num = ps_mmc_params->u4_diff_pic_num;
-                    i8_pic_num = ps_cur_au->i4_pic_num - ((WORD32) (u4_diff_pic_num + 1));
+                    i8_pic_num =
+                        ((WORD64) ps_cur_au->i4_pic_num) - ((WORD64) (u4_diff_pic_num + 1));
 
                     if(IS_OUT_OF_RANGE_S32(i8_pic_num))
                     {
@@ -1930,7 +1931,8 @@ WORD32 imvcd_dpb_do_mmco(dpb_commands_t *ps_dpb_cmds, mvc_dpb_manager_t *ps_dpb_
 
                     u4_diff_pic_num = ps_mmc_params->u4_diff_pic_num;
 
-                    i8_pic_num = ps_cur_au->i4_pic_num - ((WORD32) (u4_diff_pic_num + 1));
+                    i8_pic_num =
+                        ((WORD64) ps_cur_au->i4_pic_num) - ((WORD64) (u4_diff_pic_num + 1));
 
                     if(IS_OUT_OF_RANGE_S32(i8_pic_num))
                     {
