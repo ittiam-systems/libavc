@@ -25,7 +25,8 @@ Build fuzzer with required sanitizers (-DSANITIZE=fuzzer-no-link is mandatory
   to enable fuzzers)
 ```
  $ cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
-   -DCMAKE_BUILD_TYPE=Debug -DSANITIZE=fuzzer-no-link,address
+   -DCMAKE_BUILD_TYPE=Debug -DSANITIZE=fuzzer-no-link,address,\
+   signed-integer-overflow,unsigned-integer-overflow
  $ make
  ```
 
