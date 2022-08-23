@@ -426,6 +426,7 @@ static WORD32 imvcd_set_ref_pic_list_mod_data(mvc_dec_ctxt_t *ps_mvcd_ctxt)
             WORD32 *pi4_long_term_pic_num = ps_ref_pic_list_mod_data->ai4_long_term_pic_num[i];
             WORD32 *pi4_abs_diff_view_idx_minus1 =
                 ps_ref_pic_list_mod_data->ai4_abs_diff_view_idx_minus1[i];
+            UWORD32 u4_pic_num_mod_count = 0;
 
             do
             {
@@ -482,6 +483,12 @@ static WORD32 imvcd_set_ref_pic_list_mod_data(mvc_dec_ctxt_t *ps_mvcd_ctxt)
                 pi4_abs_diff_pic_num_minus1++;
                 pi4_long_term_pic_num++;
                 pi4_abs_diff_view_idx_minus1++;
+                u4_pic_num_mod_count++;
+
+                if(u4_pic_num_mod_count > ps_ref_pic_list_mod_data->au1_num_active_refs[i])
+                {
+                    return ERROR_INV_SLICE_HDR_T;
+                }
             } while(true);
         }
     }
