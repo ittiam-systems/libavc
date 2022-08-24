@@ -797,6 +797,16 @@ static IV_API_CALL_STATUS_T imvcd_view_decode(iv_obj_t *ps_dec_hdl, imvcd_video_
         ps_mvcd_ctxt->au1_nal_ref_idc[ps_mvcd_ctxt->u2_num_views_decoded] =
             NAL_REF_IDC(pu1_bitstream_buf[0]);
 
+        if(ps_view_ctxt->u4_dec_thread_created &&
+           !is_slice_nalu_type(ps_mvcd_ctxt->ae_nalu_id[ps_mvcd_ctxt->u2_num_views_decoded]))
+        {
+            ps_op->s_ivd_op.u4_error_code = ERROR_FEATURE_UNAVAIL;
+
+            imvcd_video_decode_clean_return(ps_mvcd_ctxt, ps_ip, ps_op);
+
+            return IV_FAIL;
+        }
+
         if(!is_mvc_nalu(ps_mvcd_ctxt->ae_nalu_id[ps_mvcd_ctxt->u2_num_views_decoded]))
         {
             ivd_video_decode_op_t s_avc_op;
