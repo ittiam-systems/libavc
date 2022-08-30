@@ -1601,16 +1601,19 @@ WORD32 ih264d_parse_bslice(dec_struct_t * ps_dec, UWORD16 u2_first_mb_in_slice)
         COPYTHECONTEXT("SH: cabac_init_idc",ps_slice->u1_cabac_init_idc);
     }
 
-    /* Read slice_qp_delta */
-    WORD64 i8_temp = (WORD64)ps_pps->u1_pic_init_qp
-                        + ih264d_sev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
-    if((i8_temp < MIN_H264_QP) || (i8_temp > MAX_H264_QP))
     {
-        return ERROR_INV_RANGE_QP_T;
+        WORD64 i8_temp;
+        /* Read slice_qp_delta */
+        i8_temp = (WORD64)ps_pps->u1_pic_init_qp
+                            + ih264d_sev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+        if((i8_temp < MIN_H264_QP) || (i8_temp > MAX_H264_QP))
+        {
+            return ERROR_INV_RANGE_QP_T;
+        }
+        ps_slice->u1_slice_qp = i8_temp;
+        COPYTHECONTEXT("SH: slice_qp_delta",
+                        (WORD8)(ps_slice->u1_slice_qp - ps_pps->u1_pic_init_qp));
     }
-    ps_slice->u1_slice_qp = i8_temp;
-    COPYTHECONTEXT("SH: slice_qp_delta",
-                    (WORD8)(ps_slice->u1_slice_qp - ps_pps->u1_pic_init_qp));
 
     if(ps_pps->u1_deblocking_filter_parameters_present_flag == 1)
     {
@@ -1691,4 +1694,3 @@ WORD32 ih264d_parse_bslice(dec_struct_t * ps_dec, UWORD16 u2_first_mb_in_slice)
         return ret;
     return OK;
 }
-

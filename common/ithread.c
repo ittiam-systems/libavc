@@ -82,8 +82,8 @@ WORD32 ithread_create(void *thread_handle, void *attribute, void *strt, void *ar
 
 WORD32 ithread_join(void *thread_handle, void ** val_ptr)
 {
-    UNUSED(val_ptr);
     pthread_t *pthread_handle   = (pthread_t *)thread_handle;
+    UNUSED(val_ptr);
     return pthread_join(*pthread_handle, NULL);
 }
 
