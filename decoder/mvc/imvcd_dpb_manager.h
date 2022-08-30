@@ -34,9 +34,12 @@
 #include "ih264_error.h"
 #include "ih264_buf_mgr.h"
 #include "ih264_disp_mgr.h"
+#include "ih264d_dpb_manager.h"
 #include "imvcd_defs.h"
 #include "imvcd_structs.h"
 #include "imvcd_utils.h"
+
+#define NUM_MMCO_CMD_IDS ((RESET_ALL_PICTURES) + 1)
 
 typedef struct mvc_dpb_info_t
 {
