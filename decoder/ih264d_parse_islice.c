@@ -1388,6 +1388,7 @@ WORD32 ih264d_parse_islice(dec_struct_t *ps_dec,
     UWORD32 *pu4_bitstrm_ofst = &ps_dec->ps_bitstrm->u4_ofst;
     UWORD32 u4_temp;
     WORD32 i_temp;
+    WORD64 i8_temp;
     WORD32 ret;
 
     /*--------------------------------------------------------------------*/
@@ -1412,7 +1413,7 @@ WORD32 ih264d_parse_islice(dec_struct_t *ps_dec,
     /* G050 */
 
     /* Read slice_qp_delta */
-    WORD64 i8_temp = (WORD64)ps_pps->u1_pic_init_qp
+    i8_temp = (WORD64)ps_pps->u1_pic_init_qp
                         + ih264d_sev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
     if((i8_temp < MIN_H264_QP) || (i8_temp > MAX_H264_QP))
         return ERROR_INV_RANGE_QP_T;

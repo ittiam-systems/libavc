@@ -1,4 +1,5 @@
 include(CheckCXXCompilerFlag)
+set(CMAKE_C_STANDARD 90)
 
 # Adds compiler options for all targets
 function(libavc_add_compile_options)
@@ -9,6 +10,7 @@ function(libavc_add_compile_options)
   else()
     add_compile_options(-msse4.2 -mno-avx)
   endif()
+  add_compile_options(-Wdeclaration-after-statement)
 
   set(CMAKE_REQUIRED_FLAGS -fsanitize=fuzzer-no-link)
   check_cxx_compiler_flag(-fsanitize=fuzzer-no-link
@@ -32,8 +34,6 @@ endfunction()
 
 # Adds defintions for all targets
 function(libavc_add_definitions)
-  add_definitions(-DPROFILE_ENABLE -DMD5_DISABLE)
-
   if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
     add_definitions(-DARMV8 -DDEFAULT_ARCH=D_ARCH_ARMV8_GENERIC)
   elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch32")

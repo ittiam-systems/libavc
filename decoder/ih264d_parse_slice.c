@@ -692,10 +692,10 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
     {
         ret = ih264d_form_default_scaling_matrix(ps_dec);
     }
-    
+
     if(ret != OK)
         return ret;
- 
+
     /* required while reading the transform_size_8x8 u4_flag */
     ps_dec->s_high_profile.u1_direct_8x8_inference_flag =
                     ps_seq->u1_direct_8x8_inference_flag;
@@ -1427,6 +1427,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
 
     if(ps_cur_slice->u1_mmco_equalto5)
     {
+        WORD64 i8_result;
         WORD32 i4_temp_poc;
         WORD32 i4_top_field_order_poc, i4_bot_field_order_poc;
 
@@ -1443,8 +1444,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         else
             i4_temp_poc = ps_dec->ps_cur_pic->i4_bottom_field_order_cnt;
 
-        WORD64 i8_result = (WORD64)i4_temp_poc
-                        - ps_dec->ps_cur_pic->i4_top_field_order_cnt;
+        i8_result = (WORD64)i4_temp_poc - ps_dec->ps_cur_pic->i4_top_field_order_cnt;
         if(IS_OUT_OF_RANGE_S32(i8_result))
         {
             return ERROR_INV_POC;
@@ -1944,4 +1944,3 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
 
     return ret;
 }
-
