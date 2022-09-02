@@ -194,8 +194,9 @@ void imvcd_modulate_max_disp_seq(dec_struct_t *ps_view_ctxt)
 {
     WORD64 i8_temp;
 
-    i8_temp = ps_view_ctxt->i4_prev_max_display_seq + ps_view_ctxt->i4_max_poc +
-              ps_view_ctxt->u1_max_dec_frame_buffering + 1;
+    i8_temp = ((WORD64) ps_view_ctxt->i4_prev_max_display_seq) +
+              ((WORD64) ps_view_ctxt->i4_max_poc) +
+              ((WORD64) ps_view_ctxt->u1_max_dec_frame_buffering) + 1ll;
 
     ps_view_ctxt->i4_prev_max_display_seq = IS_OUT_OF_RANGE_S32(i8_temp) ? 0 : ((WORD32) i8_temp);
     ps_view_ctxt->i4_max_poc = 0;
