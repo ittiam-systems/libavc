@@ -1015,7 +1015,8 @@ static IV_API_CALL_STATUS_T imvcd_finish_au_decode(mvc_dec_ctxt_t *ps_mvcd_ctxt,
 
     bool b_is_idr = imvcd_is_idr_au(ps_mvcd_ctxt);
     bool b_is_ref_au = !!ps_mvcd_ctxt->au1_nal_ref_idc[ps_mvcd_ctxt->u2_num_views - 1];
-    WORD64 i8_display_poc = ps_view_ctxt->i4_prev_max_display_seq + ps_cur_au->i4_poc;
+    WORD64 i8_display_poc =
+        ((WORD64) ps_view_ctxt->i4_prev_max_display_seq) + ((WORD64) ps_cur_au->i4_poc);
 
     imvcd_dpb_delete_nonref_nondisplay_pics(ps_dpb_mgr);
 

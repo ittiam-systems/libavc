@@ -612,7 +612,7 @@ static WORD32 imvcd_decode_gaps_in_frame_num(mvc_dec_ctxt_t *ps_mvcd_ctxt)
             }
         }
 
-        i8_display_poc = ps_view_ctxt->i4_prev_max_display_seq + i4_poc;
+        i8_display_poc = ((WORD64) ps_view_ctxt->i4_prev_max_display_seq) + ((WORD64) i4_poc);
 
         if(IS_OUT_OF_RANGE_S32(i8_display_poc))
         {
