@@ -1154,13 +1154,21 @@ WORD32 imvcd_dpb_reorder_ref_pic_list(mvc_dpb_manager_t *ps_dpb_mgr,
             if((0 == pu1_modification_of_pic_nums_idc[0]) ||
                (1 == pu1_modification_of_pic_nums_idc[0]))
             {
-                WORD32 i4_mod_pic_num = 1 + pi4_abs_diff_pic_num_minus1[0];
+                WORD32 i4_mod_pic_num = pi4_abs_diff_pic_num_minus1[0];
+
                 UWORD8 u1_mod_buf_idx = u1_num_ref_bufs;
 
-                if(pi4_abs_diff_pic_num_minus1[0] > i4_max_pic_num)
+                /* According to section 7.4.3.1 from spec, */
+                /* this value is expected to be from the */
+                /* closed interval [0, i4_max_pic_num - 1] */
+                if((i4_mod_pic_num < 0) || (i4_mod_pic_num >= i4_max_pic_num))
                 {
                     return ERROR_DBP_MANAGER_T;
                 }
+
+                /* +1 not accounted during initialisation, */
+                /* mainly to preclude integer overflow */
+                i4_mod_pic_num++;
 
                 if(0 == pu1_modification_of_pic_nums_idc[0])
                 {
