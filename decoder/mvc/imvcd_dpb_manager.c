@@ -1243,8 +1243,20 @@ WORD32 imvcd_dpb_reorder_ref_pic_list(mvc_dpb_manager_t *ps_dpb_mgr,
             {
                 WORD32 i4_target_view_id;
 
-                WORD32 i4_mod_view_order_id = pi4_abs_diff_view_idx_minus1[0] + 1;
+                WORD32 i4_mod_view_order_id = pi4_abs_diff_view_idx_minus1[0];
                 UWORD8 u1_mod_buf_idx = u1_num_ref_bufs;
+
+                /* According to section H.7.4.3.1.1 from spec, */
+                /* this value is expected to be from the */
+                /* closed interval [0, u2_max_view_idx - 1] */
+                if((i4_mod_view_order_id < 0) || (i4_mod_view_order_id >= u2_max_view_idx))
+                {
+                    return ERROR_DBP_MANAGER_T;
+                }
+
+                /* +1 not accounted during initialisation, */
+                /* mainly to preclude integer overflow */
+                i4_mod_view_order_id++;
 
                 if(4 == pu1_modification_of_pic_nums_idc[0])
                 {
@@ -1265,9 +1277,7 @@ WORD32 imvcd_dpb_reorder_ref_pic_list(mvc_dpb_manager_t *ps_dpb_mgr,
                     }
                 }
 
-                if((0 == u2_view_order_id) ||
-                   !((i4_mod_view_order_id >= 0) && (i4_mod_view_order_id <= u2_max_view_idx)) ||
-                   (NULL == ps_mvc_ivp_ref_data))
+                if((0 == u2_view_order_id) || (NULL == ps_mvc_ivp_ref_data))
                 {
                     return ERROR_DBP_MANAGER_T;
                 }
