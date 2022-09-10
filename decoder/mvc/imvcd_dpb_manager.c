@@ -1485,10 +1485,6 @@ static WORD32 imvcd_dpb_delete_gap_frm_mmco(mvc_dpb_manager_t *ps_dpb_mgr, WORD3
 static WORD32 imvcd_dpb_insert_lt_node(mvc_dpb_manager_t *ps_dpb_mgr, mvc_dpb_info_t *ps_new_node,
                                        UWORD32 u4_lt_idx)
 {
-    WORD32 i;
-
-    mvc_dpb_info_t *ps_next_dpb = ps_dpb_mgr->ps_dpb_lt_head;
-
     ps_new_node->s_top_field.u1_reference_info = IS_LONG_TERM;
     ps_new_node->s_bot_field.u1_reference_info = IS_LONG_TERM;
     ps_new_node->s_top_field.u1_long_term_frame_idx = u4_lt_idx;
@@ -1498,27 +1494,28 @@ static WORD32 imvcd_dpb_insert_lt_node(mvc_dpb_manager_t *ps_dpb_mgr, mvc_dpb_in
 
     if(ps_dpb_mgr->u1_num_lt_ref_bufs > 0)
     {
-        if(u4_lt_idx < ps_next_dpb->ps_au_buf->u1_long_term_frm_idx)
-        {
-            ps_new_node->ps_prev_long = ps_next_dpb;
-            ps_dpb_mgr->ps_dpb_lt_head = ps_new_node;
-        }
-        else
-        {
-            ps_next_dpb = ps_next_dpb->ps_prev_long;
+        WORD32 i;
 
-            for(i = 1; i < ps_dpb_mgr->u1_num_lt_ref_bufs; i++)
+        mvc_dpb_info_t **pps_next_node = &ps_dpb_mgr->ps_dpb_lt_head;
+
+        for(i = 0; i < ps_dpb_mgr->u1_num_lt_ref_bufs; i++)
+        {
+            if((*pps_next_node)->ps_au_buf->u1_long_term_frm_idx > u4_lt_idx)
             {
-                if(ps_next_dpb->ps_au_buf->u1_long_term_frm_idx > u4_lt_idx)
-                {
-                    ps_new_node->ps_prev_long = ps_next_dpb->ps_prev_long;
-                    ps_next_dpb->ps_prev_long = ps_new_node;
+                ps_new_node->ps_prev_long = *pps_next_node;
+                *pps_next_node = ps_new_node;
 
-                    break;
-                }
-
-                ps_next_dpb = ps_next_dpb->ps_prev_long;
+                break;
             }
+            else if(NULL == (*pps_next_node)->ps_prev_long)
+            {
+                (*pps_next_node)->ps_prev_long = ps_new_node;
+                ps_new_node->ps_prev_long = NULL;
+
+                break;
+            }
+
+            pps_next_node = &(*pps_next_node)->ps_prev_long;
         }
     }
     else
