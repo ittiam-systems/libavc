@@ -617,11 +617,11 @@ static WORD32 imvcd_decode_gaps_in_frame_num(mvc_dec_ctxt_t *ps_mvcd_ctxt)
         if(IS_OUT_OF_RANGE_S32(i8_display_poc))
         {
             ps_view_ctxt->i4_prev_max_display_seq = 0;
+            i8_display_poc = i4_poc;
         }
 
-        i4_error_code = imvcd_dpb_insert_pic_in_display_list(
-            ps_dpb_mgr, ps_view_ctxt->i4_prev_max_display_seq + i4_poc, u4_next_frm_num,
-            DO_NOT_DISP);
+        i4_error_code = imvcd_dpb_insert_pic_in_display_list(ps_dpb_mgr, (WORD32) i8_display_poc,
+                                                             u4_next_frm_num, DO_NOT_DISP);
 
         if(i4_error_code != OK)
         {
@@ -2159,13 +2159,7 @@ WORD32 imvcd_parse_decode_slice(mvc_dec_ctxt_t *ps_mvcd_ctxt)
         /* IDR Picture or POC wrap around */
         if(i4_poc == 0)
         {
-            WORD64 i8_temp = ps_view_ctxt->i4_prev_max_display_seq + ps_view_ctxt->i4_max_poc +
-                             ps_view_ctxt->u1_max_dec_frame_buffering + 1;
-
-            /*If i4_prev_max_display_seq overflows integer range, reset it */
-            ps_view_ctxt->i4_prev_max_display_seq =
-                IS_OUT_OF_RANGE_S32(i8_temp) ? 0 : (WORD32) i8_temp;
-            ps_view_ctxt->i4_max_poc = 0;
+            imvcd_modulate_max_disp_seq(ps_view_ctxt);
         }
     }
 
