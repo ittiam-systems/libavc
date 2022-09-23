@@ -314,6 +314,7 @@ IV_API_CALL_STATUS_T imvcd_view_error_checks(mvc_dec_ctxt_t *ps_mvcd_ctxt)
 
     nalu_mvc_ext_t *ps_nalu_mvc_ext = imvcd_get_cur_nalu_mvc_ext(ps_mvcd_ctxt);
     dec_struct_t *ps_view_ctxt = &ps_mvcd_ctxt->s_view_dec_ctxt;
+    dec_pic_params_t *ps_pps = ps_view_ctxt->ps_cur_pps;
 
     bool b_is_idr_slice = imvcd_is_idr_au(ps_mvcd_ctxt);
 
@@ -327,11 +328,37 @@ IV_API_CALL_STATUS_T imvcd_view_error_checks(mvc_dec_ctxt_t *ps_mvcd_ctxt)
         return IV_FAIL;
     }
 
+    /* In accordance with section 8.2.1 from spec. It is reproduced below - */
+    /* The bitstream shall not contain data that result in Min( TopFieldOrderCnt,
+       BottomFieldOrderCnt ) not equal to 0 for a coded IDR frame, TopFieldOrderCnt not equal to
+       0 for a coded IDR top field, or BottomFieldOrderCnt not equal to 0 for a coded IDR bottom
+       field. Thus, at least one of TopFieldOrderCnt and BottomFieldOrderCnt shall be equal to 0
+       for the fields of a coded IDR frame. */
+    if(b_is_idr_slice)
+    {
+        if(ps_view_ctxt->ps_cur_slice->u1_field_pic_flag)
+        {
+            if(ps_view_ctxt->ps_cur_slice->u1_bottom_field_flag &&
+               (ps_pps->i4_bottom_field_order_cnt != 0))
+            {
+                return IV_FAIL;
+            }
+            else if(!ps_view_ctxt->ps_cur_slice->u1_bottom_field_flag &&
+                    (ps_pps->i4_top_field_order_cnt != 0))
+            {
+                return IV_FAIL;
+            }
+        }
+        else if(MIN(ps_pps->i4_top_field_order_cnt, ps_pps->i4_bottom_field_order_cnt) != 0)
+        {
+            return IV_FAIL;
+        }
+    }
+
     if(ps_nalu_mvc_ext->u2_view_id != 0)
     {
         subset_sps_t *ps_subset_sps =
-            ps_mvcd_ctxt
-                ->aps_pps_id_to_subset_sps_map[ps_view_ctxt->ps_cur_pps->u1_pic_parameter_set_id];
+            ps_mvcd_ctxt->aps_pps_id_to_subset_sps_map[ps_pps->u1_pic_parameter_set_id];
 
         if((NULL == ps_subset_sps) || !ps_subset_sps->s_sps_data.u1_is_valid)
         {
