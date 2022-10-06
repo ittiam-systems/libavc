@@ -2242,6 +2242,11 @@ WORD32 imvcd_parse_decode_slice(mvc_dec_ctxt_t *ps_mvcd_ctxt)
             }
         }
 
+        if(!imvcd_dpb_is_diff_poc_valid(ps_mvcd_ctxt->ps_dpb_mgr, ps_cur_slice->i4_poc))
+        {
+            return ERROR_INV_SLICE_HDR_T;
+        }
+
         if(ps_view_ctxt->u1_separate_parse == 1)
         {
             if(!ps_view_ctxt->u4_dec_thread_created)
