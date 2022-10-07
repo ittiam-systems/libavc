@@ -1334,7 +1334,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
                     num_rows = MB_SIZE - u4_pad_bottom_sz;
                 for (i = 0; i < num_rows; i++)
                 {
-                    memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_wd);
+                    memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_disp_wd);
                     pu1_src += ps_proc->s_inp_buf.s_raw_buf.au4_strd[0];
                     pu1_dst += ps_proc->i4_src_strd;
                 }
@@ -1351,7 +1351,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
                     num_rows = BLK8x8SIZE;
                 for (i = 0; i < num_rows; i++)
                 {
-                    memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_wd);
+                    memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_disp_wd);
                     pu1_src += ps_proc->s_inp_buf.s_raw_buf.au4_strd[1];
                     pu1_dst += ps_proc->i4_src_chroma_strd;
                 }
@@ -1422,7 +1422,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
                         ps_proc->s_inp_buf.s_raw_buf.au4_strd[0] * (i4_mb_y * MB_SIZE) -
                         ps_proc->s_inp_buf.s_raw_buf.au4_strd[0];
         UWORD8 *pu1_dst = ps_proc->pu1_src_buf_luma - ps_proc->i4_src_strd;
-        memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_wd);
+        memcpy(pu1_dst, pu1_src, ps_codec->s_cfg.u4_disp_wd);
         if (u4_pad_right_sz && (ps_proc->i4_mb_x == 0)) {
             pu1_dst += ps_codec->s_cfg.u4_disp_wd;
             memset(pu1_dst, pu1_dst[-1], u4_pad_right_sz);
