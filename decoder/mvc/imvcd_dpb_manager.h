@@ -28,6 +28,7 @@
 
 #ifndef _IMVCD_DPB_MANAGER_H_
 #define _IMVCD_DPB_MANAGER_H_
+#include <stdbool.h>
 #include <string.h>
 
 #include "ih264_typedefs.h"
@@ -213,5 +214,7 @@ extern void imvcd_dpb_reset_ivp_ctxt(mvc_dpb_manager_t *ps_dpb_mgr);
 extern pic_buffer_t **imvcd_dpb_get_view_ref_pic_list(mvc_dpb_manager_t *ps_dpb_mgr,
                                                       UWORD16 u2_view_order_id, UWORD16 u2_view_id,
                                                       UWORD8 u1_pred_dir);
+
+extern bool imvcd_dpb_is_diff_poc_valid(mvc_dpb_manager_t *ps_dpb_mgr, WORD32 i4_curr_poc);
 
 #endif

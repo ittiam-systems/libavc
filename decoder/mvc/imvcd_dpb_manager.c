@@ -25,6 +25,7 @@
 /*  Description       : Functions for MVC NALU parsing                       */
 /*                                                                           */
 /*****************************************************************************/
+#include <stdbool.h>
 
 #include "ih264_typedefs.h"
 #include "ih264d_error_handler.h"
@@ -2175,4 +2176,28 @@ WORD32 imvcd_dpb_update_default_index_list(mvc_dpb_manager_t *ps_dpb_mgr)
     }
 
     return OK;
+}
+
+bool imvcd_dpb_is_diff_poc_valid(mvc_dpb_manager_t *ps_dpb_mgr, WORD32 i4_curr_poc)
+{
+    WORD32 i;
+
+    mvc_dpb_info_t *ps_next_dpb = ps_dpb_mgr->ps_dpb_st_head;
+
+    /* Check in conformance with section 8.2.1 from spec */
+    /* Particularly the statement - */
+    /* 'The bitstream shall not contain data that result in values of DiffPicOrderCnt(picA, picB)
+     * used in the decoding process that exceed the range of -2^15 to 2^15 - 1 inclusive' */
+    for(i = 0; i < ps_dpb_mgr->u1_num_st_ref_bufs; i++)
+    {
+        if(((((WORD64) i4_curr_poc) - ((WORD64) ps_next_dpb->ps_au_buf->i4_poc)) >= (1 << 15)) ||
+           ((((WORD64) i4_curr_poc) - ((WORD64) ps_next_dpb->ps_au_buf->i4_poc)) < -(1 << 15)))
+        {
+            return false;
+        }
+
+        ps_next_dpb = ps_next_dpb->ps_prev_short;
+    }
+
+    return true;
 }
