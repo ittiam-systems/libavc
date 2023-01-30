@@ -24,9 +24,10 @@ rm -rf ${build_dir}
 mkdir -p ${build_dir}
 
 pushd ${build_dir}
-cmake ${SRC}/libavc
-make -j$(nproc) avc_dec_fuzzer
-cp ${build_dir}/avc_dec_fuzzer $OUT/avc_dec_fuzzer
+cmake ${SRC}/libavc -DENABLE_SVC=1 -DENABLE_MVC=1
+make -j$(nproc) avc_dec_fuzzer svc_enc_fuzzer
+cp ${build_dir}/avc_dec_fuzzer $OUT/
+cp ${build_dir}/svc_enc_fuzzer $OUT/
 popd
 
 cp $SRC/avc_dec_fuzzer_seed_corpus.zip $OUT/avc_dec_fuzzer_seed_corpus.zip
