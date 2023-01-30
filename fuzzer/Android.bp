@@ -24,6 +24,22 @@ cc_defaults {
     },
 }
 
+cc_defaults {
+    name: "libavc_enc_fuzzer_defaults",
+    host_supported: true,
+    static_libs: ["liblog"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+    fuzz_config: {
+        cc: [
+            "android-media-fuzzing-reports@google.com",
+        ],
+        componentid: 155276,
+    },
+}
+
 cc_fuzz {
     name: "avc_dec_fuzzer",
     defaults: ["libavc_mvc_fuzzer_defaults"],
@@ -48,22 +64,22 @@ cc_fuzz {
 
 cc_fuzz {
     name: "avc_enc_fuzzer",
-    host_supported: true,
+    defaults: ["libavc_enc_fuzzer_defaults"],
     srcs: [
         "avc_enc_fuzzer.cpp",
     ],
     static_libs: [
-        "libavcenc",
-        "liblog",
+        "libavcenc"
     ],
-    cflags: [
-        "-Wall",
-        "-Werror",
+}
+
+cc_fuzz {
+    name: "svc_enc_fuzzer",
+    defaults: ["libavc_enc_fuzzer_defaults"],
+    srcs: [
+        "svc_enc_fuzzer.cpp",
     ],
-    fuzz_config: {
-        cc: [
-            "android-media-fuzzing-reports@google.com",
-        ],
-        componentid: 155276,
-    },
+    static_libs: [
+        "libsvcenc"
+    ],
 }

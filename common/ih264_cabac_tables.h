@@ -141,10 +141,15 @@ typedef enum
     LAST_SIGNIFICANT_COEFF_FLAG_8X8_FRAME = 417,
     COEFF_ABS_LEVEL_MINUS1_8X8 = 426,
     SIGNIFICANT_COEFF_FLAG_8X8_FIELD = 436,
-    LAST_SIGNIFICANT_COEFF_FLAG_8X8_FIELD = 451
+    LAST_SIGNIFICANT_COEFF_FLAG_8X8_FIELD = 451,
+
+    /* SVC related CABAC offsets */
+    BASE_MODE_FLAG = 460,
+    MOTION_PREDICTION_FLAG_L0 = 463,
+    MOTION_PREDICTION_FLAG_L1 = 464,
+    RESIDUAL_PREDICTION_FLAG = 465,
 
 } cabac_table_num_t;
-
 
 /**
 ******************************************************************************
