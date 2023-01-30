@@ -44,6 +44,8 @@
 /*Width of a 4x4 block*/
 #define SUB_BLK_WIDTH_4x4                   4
 
+#define SUB_BLK_HEIGHT_4x4                  4
+
 /*Width of an 8x8 block*/
 #define SUB_BLK_WIDTH_8x8                   8
 

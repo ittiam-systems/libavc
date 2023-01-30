@@ -16,7 +16,7 @@
  *
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
-*/
+ */
 
 #ifndef _RATE_CONTROL_API_STRUCTS_H_
 #define _RATE_CONTROL_API_STRUCTS_H_
@@ -74,7 +74,9 @@ typedef struct rate_control_api_t
 
     UWORD8 u1_is_first_frm;
 
-    UWORD8 au1_min_max_qp[(MAX_PIC_TYPE << 1)];
+    UWORD8 au1_min_max_qp[MAX_PIC_TYPE * 2];
+
+    UWORD8 au1_min_max_avc_qp[MAX_PIC_TYPE * 2];
 
     WORD32 i4_prev_frm_est_bits;
 
@@ -89,5 +91,4 @@ typedef struct rate_control_api_t
 
 } rate_control_api_t;
 
-#endif/*_RATE_CONTROL_API_STRUCTS_H_*/
-
+#endif /*_RATE_CONTROL_API_STRUCTS_H_*/

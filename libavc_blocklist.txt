@@ -27,6 +27,7 @@ fun:irc_initialise_rate_control
 # Numerous overflows in multiple functions, CAVLC is a compression technique.
 src:*/decoder/ih264d_parse_cavlc.c
 src:*/encoder/ih264e_cavlc.c
+src:*/encoder/svc/isvce_cavlc.c
 
 # Performance related
 fun:ih264e_pack_c_mb
