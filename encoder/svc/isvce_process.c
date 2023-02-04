@@ -301,7 +301,7 @@ WORD32 isvce_update_rc_post_enc(isvce_codec_t *ps_codec, WORD32 ctxt_sel, WORD32
 
     /* current frame stats */
     frame_info_t s_frame_info;
-    picture_type_e rc_pic_type;
+    picture_type_e rc_pic_type = I_PIC;
 
     /* temp var */
     WORD32 i, j;
@@ -423,18 +423,11 @@ WORD32 isvce_update_rc_post_enc(isvce_codec_t *ps_codec, WORD32 ctxt_sel, WORD32
             if(ENABLE_ILP_MV)
             {
                 svc_layer_data_t *ps_layer_data;
-                coordinates_t s_ref_frame_dims;
-
-                WORD32 i4_num_mbs;
 
                 svc_au_data_t *ps_svc_au_data = ps_svc_ilp_data->ps_svc_au_data;
 
-                s_ref_frame_dims.i4_abscissa =
-                    ps_svc_ilp_data->ps_residual_bufs[ps_entropy->u1_spatial_layer_id].u4_width;
-                s_ref_frame_dims.i4_ordinate =
-                    ps_svc_ilp_data->ps_residual_bufs[ps_entropy->u1_spatial_layer_id].u4_height;
-                i4_num_mbs = (s_ref_frame_dims.i4_abscissa * s_ref_frame_dims.i4_ordinate) /
-                             (MB_SIZE * MB_SIZE);
+                WORD32 i4_num_mbs = (ps_proc->i4_ht_mbs * ps_proc->i4_wd_mbs) / (MB_SIZE * MB_SIZE);
+
                 ps_layer_data = &ps_svc_au_data->ps_svc_layer_data[ps_entropy->u1_spatial_layer_id];
 
                 memset(ps_layer_data->ps_mb_info, 0,
