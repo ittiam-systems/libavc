@@ -2481,9 +2481,10 @@ static WORD32 isvce_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
         total_size += sizeof(bitstrm_t);
         total_size = ALIGN128(total_size);
 
-        /* size of bit stream buffer */
+#if ENABLE_RE_ENC_AS_SKIP
         total_size += sizeof(bitstrm_t);
         total_size = ALIGN128(total_size);
+#endif
 
         /* top nnz luma */
         total_size += (max_mb_cols * 4 * sizeof(UWORD8));
@@ -3527,14 +3528,13 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
 
                 /* bit stream ptr */
                 ps_codec->as_process[i].s_entropy.ps_bitstrm = (bitstrm_t *) (pu1_buf + size);
-                size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm);
+                size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm[0]);
                 size = ALIGN128(size);
 
 #if ENABLE_RE_ENC_AS_SKIP
-                /* bit stream ptr */
                 ps_codec->as_process[i].s_entropy.ps_bitstrm_after_slice_hdr =
                     (bitstrm_t *) (pu1_buf + size);
-                size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm_after_slice_hdr);
+                size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm_after_slice_hdr[0]);
                 size = ALIGN128(size);
 #endif
 
@@ -3582,14 +3582,13 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
 
                 /* bit stream ptr */
                 ps_codec->as_process[i].s_entropy.ps_bitstrm = (bitstrm_t *) (pu1_buf + size);
-                size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm);
+                size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm[0]);
                 size = ALIGN128(size);
 
 #if ENABLE_RE_ENC_AS_SKIP
-                /* bit stream ptr */
                 ps_codec->as_process[i].s_entropy.ps_bitstrm_after_slice_hdr =
                     (bitstrm_t *) (pu1_buf + size);
-                size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm_after_slice_hdr);
+                size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm_after_slice_hdr[0]);
                 size = ALIGN128(size);
 #endif
 
