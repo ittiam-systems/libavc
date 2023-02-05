@@ -4474,8 +4474,8 @@ static WORD32 isvce_get_buf_info(void *pv_codec_handle, void *pv_api_ip, void *p
     for(i = 0; i < (WORD32) ps_op->s_ive_op.u4_out_comp_cnt; i++)
     {
         ps_op->s_ive_op.au4_min_out_buf_size[i] =
-            MAX(((wd * ht * 3) >> 1) * ps_codec->s_cfg.s_svc_params.u1_num_spatial_layers,
-                MIN_STREAM_SIZE);
+            MAX(((wd * ht * 3) >> 1), MIN_STREAM_SIZE) *
+            ps_codec->s_cfg.s_svc_params.u1_num_spatial_layers;
     }
 
     ps_op->u4_rec_comp_cnt = MIN_RAW_BUFS_420_COMP;

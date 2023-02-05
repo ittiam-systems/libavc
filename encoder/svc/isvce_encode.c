@@ -198,7 +198,8 @@ WORD32 isvce_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     /* Check for output memory allocation size */
     {
         UWORD32 u4_min_bufsize =
-            MIN_STREAM_SIZE * ps_codec->s_cfg.s_svc_params.u1_num_spatial_layers;
+            MAX(MIN_STREAM_SIZE, (ps_codec->s_cfg.u4_wd * ps_codec->s_cfg.u4_ht * 3) / 2) *
+            ps_codec->s_cfg.s_svc_params.u1_num_spatial_layers;
         UWORD32 u4_bufsize_per_layer = ps_video_encode_ip->s_ive_ip.s_out_buf.u4_bufsize /
                                        ps_codec->s_cfg.s_svc_params.u1_num_spatial_layers;
 
