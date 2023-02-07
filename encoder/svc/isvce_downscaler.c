@@ -443,7 +443,7 @@ void isvce_downscaler_function_selector(downscaler_state_t *ps_scaler_state, IV_
 
             break;
         }
-#elif !defined(DISABLE_NEON)
+#elif defined(ARM) && !defined(DISABLE_NEON)
         case ARCH_ARM_A9Q:
         case ARCH_ARM_A9A:
         case ARCH_ARM_A9:

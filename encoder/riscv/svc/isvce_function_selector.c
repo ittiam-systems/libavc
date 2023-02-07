@@ -37,7 +37,9 @@
 *******************************************************************************
 */
 
+#include "ih264_typedefs.h"
 #include "iv2.h"
+#include "isvce_platform_macros.h"
 #include "isvce_structs.h"
 
 /**
