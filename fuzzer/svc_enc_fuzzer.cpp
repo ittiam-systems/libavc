@@ -38,7 +38,7 @@ constexpr IVE_SPEED_CONFIG kEncSpeed[] = {IVE_CONFIG, IVE_SLOWEST,    IVE_NORMAL
 constexpr IV_PROFILE_T kProfile[] = {IV_PROFILE_BASE, IV_PROFILE_MAIN};
 constexpr IVE_RC_MODE_T kRCMode[] = {IVE_RC_NONE, IVE_RC_STORAGE, IVE_RC_CBR_NON_LOW_DELAY,
                                      IVE_RC_CBR_LOW_DELAY};
-constexpr IV_COLOR_FORMAT_T kSupportedColorFormats[] = {IV_YUV_420P};
+constexpr IV_COLOR_FORMAT_T kSupportedColorFormats[] = {IV_YUV_420P, IV_YUV_420SP_UV};
 constexpr WORD32 kSupportedLevels[] = {10, 9,  11, 12, 13, 20, 21, 22,
                                        30, 31, 32, 40, 41, 42, 50, 51};
 constexpr IVE_SLICE_MODE_T kSliceMode[] = {IVE_SLICE_MODE_NONE};
