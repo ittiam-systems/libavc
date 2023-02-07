@@ -916,7 +916,7 @@ void isvce_intra_sampling_function_selector(intra_sampling_ctxt_t *ps_ctxt,
 
                 break;
             }
-#elif !defined(DISABLE_NEON)
+#elif defined(ARM) && !defined(DISABLE_NEON)
             case ARCH_ARM_A9Q:
             case ARCH_ARM_A9A:
             case ARCH_ARM_A9:

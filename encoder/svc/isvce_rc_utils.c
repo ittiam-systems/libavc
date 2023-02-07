@@ -223,7 +223,7 @@ static void isvce_get_gpp_function_selector(svc_rc_utils_state_t *ps_rc_utils_st
 
             break;
         }
-#elif !defined(DISABLE_NEON)
+#elif defined(ARM) && !defined(DISABLE_NEON)
         case ARCH_ARM_A9Q:
         case ARCH_ARM_A9A:
         case ARCH_ARM_A9:

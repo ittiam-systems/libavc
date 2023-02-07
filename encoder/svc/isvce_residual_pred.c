@@ -794,7 +794,7 @@ void isvce_svc_residual_sampling_function_selector(res_pred_state_t *ps_res_pred
 
                 break;
             }
-#elif !defined(DISABLE_NEON)
+#elif defined(ARM) && !defined(DISABLE_NEON)
             case ARCH_ARM_A9Q:
             case ARCH_ARM_A9A:
             case ARCH_ARM_A9:
@@ -836,7 +836,7 @@ void isvce_svc_residual_sampling_function_selector(res_pred_state_t *ps_res_pred
 
             break;
     }
-#elif !defined(DISABLE_NEON)
+#elif defined(ARM) && !defined(DISABLE_NEON)
         case ARCH_ARM_A9Q:
         case ARCH_ARM_A9A:
         case ARCH_ARM_A9:

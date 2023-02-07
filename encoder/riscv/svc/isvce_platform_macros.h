@@ -37,6 +37,7 @@
 #ifndef _ISVCE_PLATFORM_MACROS_H_
 #define _ISVCE_PLATFORM_MACROS_H_
 
+#include "isvce_structs.h"
 /*****************************************************************************/
 /* Extern Function Declarations                                              */
 /*****************************************************************************/
