@@ -261,6 +261,39 @@ void *ih264_buf_mgr_init(void *pv_buf)
     return ps_buf_mgr;
 }
 
+/**
+*******************************************************************************
+*
+* @brief
+*      Buffer manager reset function.
+*
+* @par Description:
+*    resets the buffer manager structure
+*
+* @param[in] ps_buf_mgr
+*  Pointer to the buffer manager
+*
+* @returns
+*
+* @remarks
+*  None
+*
+*******************************************************************************
+*/
+void ih264_buf_mgr_reset(void *pv_buf_mgr)
+{
+    WORD32 id;
+    buf_mgr_t *ps_buf_mgr;
+
+    ps_buf_mgr = (buf_mgr_t *) pv_buf_mgr;
+
+    for(id = 0; id < BUF_MGR_MAX_CNT; id++)
+    {
+        ps_buf_mgr->au4_status[id] = 0;
+    }
+
+    return;
+}
 
 /**
 *******************************************************************************

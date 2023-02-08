@@ -771,4 +771,8 @@ typedef enum
 #define CCV_PRIMARIES_Y_UPPER_LIMIT        5000000
 #define CCV_PRIMARIES_Y_LOWER_LIMIT        -5000000
 
+#define RSD_MAX 255
+#define RSD_MIN -255
+#define CLIP_RSD(x) CLIP3(RSD_MIN, RSD_MAX, (x))
+
 #endif /* IH264_DEFS_H_ */
