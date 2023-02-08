@@ -47,6 +47,17 @@ cc_library_headers {
 }
 
 cc_library_headers {
+    name: "libsvcdec_headers",
+    export_include_dirs: [
+        "common",
+        "common/svc",
+        "decoder",
+        "decoder/svc"
+    ],
+    min_sdk_version: "29",
+}
+
+cc_library_headers {
     name: "libavcenc_headers",
     export_include_dirs: [
         "common",
@@ -156,7 +167,7 @@ cc_defaults {
 }
 
 cc_defaults {
-    name: "libavc_mvc_dec_defaults",
+    name: "libavc_mvc_svc_dec_defaults",
     cflags: [
         "-fPIC",
         "-O3",
@@ -253,7 +264,7 @@ cc_defaults {
 
 cc_library_static {
     name: "libavcdec",
-    defaults: ["libavc_mvc_dec_defaults"],
+    defaults: ["libavc_mvc_svc_dec_defaults"],
 
     export_include_dirs: [
         "common",
@@ -435,7 +446,7 @@ cc_library_static {
 
 cc_library_static {
     name: "libmvcdec",
-    defaults: ["libavc_mvc_dec_defaults"],
+    defaults: ["libavc_mvc_svc_dec_defaults"],
     whole_static_libs: [
         "libavcdec",
     ],
@@ -799,6 +810,120 @@ cc_library_static {
                 "encoder/x86/svc/isvce_function_selector_ssse3.c",
                 "encoder/x86/svc/isvce_rc_utils_sse42.c",
                 "encoder/x86/svc/isvce_residual_pred_sse42.c",
+            ],
+        },
+    },
+}
+
+cc_library_static {
+    name: "libsvcdec",
+    defaults: ["libavc_mvc_svc_dec_defaults"],
+    whole_static_libs: [
+        "libavcdec",
+    ],
+
+    export_include_dirs: [
+        "decoder",
+        "decoder/svc",
+        "common",
+        "common/svc",
+    ],
+
+    srcs: [
+        "decoder/svc/isvcd_ii_pred.c",
+        "decoder/svc/isvcd_intra_resamp.c",
+        "decoder/svc/isvcd_iquant_itrans.c",
+        "decoder/svc/isvcd_iquant_itrans_residual.c",
+        "decoder/svc/isvcd_iquant_itrans_residual_recon.c",
+        "decoder/svc/isvcd_mode_mv_resamp.c",
+        "decoder/svc/isvcd_pred_residual_recon.c",
+        "decoder/svc/isvcd_residual_resamp.c",
+        "decoder/svc/isvcd_api.c",
+        "decoder/svc/isvcd_cabac.c",
+        "decoder/svc/isvcd_cabac_init_tables.c",
+        "decoder/svc/isvcd_compute_bs.c",
+        "decoder/svc/isvcd_function_selector_generic.c",
+        "decoder/svc/isvcd_mb_utils.c",
+        "decoder/svc/isvcd_nal.c",
+        "decoder/svc/isvcd_nal_parse.c",
+        "decoder/svc/isvcd_parse_cavlc.c",
+        "decoder/svc/isvcd_parse_ebslice.c",
+        "decoder/svc/isvcd_parse_eislice.c",
+        "decoder/svc/isvcd_parse_epslice.c",
+        "decoder/svc/isvcd_parse_headers.c",
+        "decoder/svc/isvcd_parse_slice.c",
+        "decoder/svc/isvcd_process_ebslice.c",
+        "decoder/svc/isvcd_process_epslice.c",
+        "decoder/svc/isvcd_thread_compute_bs.c",
+        "decoder/svc/isvcd_thread_parse_decode.c",
+        "decoder/svc/isvcd_utils.c",
+        "decoder/svc/isvcd_vui.c",
+    ],
+
+    arch: {
+        arm: {
+            srcs: [
+                "decoder/arm/svc/isvcd_function_selector.c",
+            ],
+
+            neon: {
+                srcs: [
+                    "decoder/arm/svc/isvcd_function_selector_neon.c",
+                    "decoder/arm/svc/isvcd_intra_resamp_neon.c",
+                    "decoder/arm/svc/isvcd_iquant_itrans_neon.c",
+                    "decoder/arm/svc/isvcd_iquant_itrans_residual_neon.c",
+                    "decoder/arm/svc/isvcd_iquant_itrans_residual_recon_neon.c",
+                    "decoder/arm/svc/isvcd_pred_residual_recon_neon.c",
+                    "decoder/arm/svc/isvcd_residual_resamp_neon.c",
+                ],
+            },
+        },
+
+        arm64: {
+            srcs: [
+                "decoder/arm/svc/isvcd_function_selector.c",
+                "decoder/arm/svc/isvcd_function_selector_neon.c",
+                "decoder/arm/svc/isvcd_intra_resamp_neon.c",
+                "decoder/arm/svc/isvcd_iquant_itrans_neon.c",
+                "decoder/arm/svc/isvcd_iquant_itrans_residual_neon.c",
+                "decoder/arm/svc/isvcd_iquant_itrans_residual_recon_neon.c",
+                "decoder/arm/svc/isvcd_pred_residual_recon_neon.c",
+                "decoder/arm/svc/isvcd_residual_resamp_neon.c",
+            ],
+        },
+
+        riscv64: {
+            local_include_dirs: [
+                "decoder/riscv/svc",
+            ],
+
+            srcs: [
+                "decoder/riscv/svc/isvcd_function_selector.c",
+            ],
+        },
+        x86: {
+            srcs: [
+                "decoder/x86/svc/isvcd_function_selector.c",
+                "decoder/x86/svc/isvcd_function_selector_sse42.c",
+                "decoder/x86/svc/isvcd_intra_resamp_sse42.c",
+                "decoder/x86/svc/isvcd_iquant_itrans_residual_recon_sse42.c",
+                "decoder/x86/svc/isvcd_iquant_itrans_residual_sse42.c",
+                "decoder/x86/svc/isvcd_iquant_itrans_sse42.c",
+                "decoder/x86/svc/isvcd_pred_residual_recon_sse42.c",
+                "decoder/x86/svc/isvcd_residual_resamp_sse42.c",
+            ],
+        },
+
+        x86_64: {
+            srcs: [
+                "decoder/x86/svc/isvcd_function_selector.c",
+                "decoder/x86/svc/isvcd_function_selector_sse42.c",
+                "decoder/x86/svc/isvcd_intra_resamp_sse42.c",
+                "decoder/x86/svc/isvcd_iquant_itrans_residual_recon_sse42.c",
+                "decoder/x86/svc/isvcd_iquant_itrans_residual_sse42.c",
+                "decoder/x86/svc/isvcd_iquant_itrans_sse42.c",
+                "decoder/x86/svc/isvcd_pred_residual_recon_sse42.c",
+                "decoder/x86/svc/isvcd_residual_resamp_sse42.c",
             ],
         },
     },

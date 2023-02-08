@@ -82,6 +82,9 @@ WORD32 ih264_buf_mgr_size(void);
 //Free buffer manager
 IH264_ERROR_T ih264_buf_mgr_free(buf_mgr_t *ps_buf_mgr);
 
+// Reset the buffer manager
+void ih264_buf_mgr_reset(void *pv_buf_mgr);
+
 // Initializes the buffer API structure
 void *ih264_buf_mgr_init(void *pv_buf);
 

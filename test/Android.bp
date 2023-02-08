@@ -8,7 +8,7 @@ package {
 }
 
 cc_defaults {
-    name: "libavc_mvc_app_defaults",
+    name: "libavc_mvc_svc_app_defaults",
     gtest: false,
     host_supported:true,
     cflags: [
@@ -48,7 +48,7 @@ cc_defaults {
 
 cc_test {
     name: "avcdec",
-    defaults: ["libavc_mvc_app_defaults"],
+    defaults: ["libavc_mvc_svc_app_defaults"],
     local_include_dirs: [
         "decoder/",
     ],
@@ -58,7 +58,7 @@ cc_test {
 
 cc_test {
     name: "mvcdec",
-    defaults: ["libavc_mvc_app_defaults"],
+    defaults: ["libavc_mvc_svc_app_defaults"],
     local_include_dirs: [
         "mvcdec/",
     ],
@@ -99,5 +99,22 @@ cc_test {
 
     static_libs: [
         "libsvcenc",
+    ],
+}
+
+cc_test {
+    name: "svcdec",
+    defaults: ["libavc_mvc_svc_app_defaults"],
+
+    local_include_dirs: [
+        "svcdec/",
+    ],
+
+    srcs: [
+        "svcdec/main.c",
+    ],
+
+    static_libs: [
+        "libsvcdec",
     ],
 }

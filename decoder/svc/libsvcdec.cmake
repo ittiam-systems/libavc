@@ -1,0 +1,102 @@
+# src files
+list(
+  APPEND
+  LIBSVCDEC_SRCS
+  "${AVC_ROOT}/decoder/ih264d_api.c"
+  "${AVC_ROOT}/decoder/ih264d_bitstrm.c"
+  "${AVC_ROOT}/decoder/ih264d_cabac.c"
+  "${AVC_ROOT}/decoder/ih264d_cabac_init_tables.c"
+  "${AVC_ROOT}/decoder/ih264d_compute_bs.c"
+  "${AVC_ROOT}/decoder/ih264d_deblocking.c"
+  "${AVC_ROOT}/decoder/ih264d_dpb_mgr.c"
+  "${AVC_ROOT}/decoder/ih264d_format_conv.c"
+  "${AVC_ROOT}/decoder/ih264d_function_selector_generic.c"
+  "${AVC_ROOT}/decoder/ih264d_inter_pred.c"
+  "${AVC_ROOT}/decoder/ih264d_mb_utils.c"
+  "${AVC_ROOT}/decoder/ih264d_mvpred.c"
+  "${AVC_ROOT}/decoder/ih264d_nal.c"
+  "${AVC_ROOT}/decoder/ih264d_parse_bslice.c"
+  "${AVC_ROOT}/decoder/ih264d_parse_cabac.c"
+  "${AVC_ROOT}/decoder/ih264d_parse_cavlc.c"
+  "${AVC_ROOT}/decoder/ih264d_parse_headers.c"
+  "${AVC_ROOT}/decoder/ih264d_parse_islice.c"
+  "${AVC_ROOT}/decoder/ih264d_parse_mb_header.c"
+  "${AVC_ROOT}/decoder/ih264d_parse_pslice.c"
+  "${AVC_ROOT}/decoder/ih264d_parse_slice.c"
+  "${AVC_ROOT}/decoder/ih264d_process_bslice.c"
+  "${AVC_ROOT}/decoder/ih264d_process_intra_mb.c"
+  "${AVC_ROOT}/decoder/ih264d_process_pslice.c"
+  "${AVC_ROOT}/decoder/ih264d_quant_scaling.c"
+  "${AVC_ROOT}/decoder/ih264d_sei.c"
+  "${AVC_ROOT}/decoder/ih264d_tables.c"
+  "${AVC_ROOT}/decoder/ih264d_thread_compute_bs.c"
+  "${AVC_ROOT}/decoder/ih264d_thread_parse_decode.c"
+  "${AVC_ROOT}/decoder/ih264d_utils.c"
+  "${AVC_ROOT}/decoder/ih264d_vui.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_api.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_cabac.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_cabac_init_tables.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_compute_bs.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_function_selector_generic.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_mb_utils.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_nal.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_nal_parse.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_parse_cavlc.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_parse_ebslice.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_parse_eislice.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_parse_epslice.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_parse_headers.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_parse_slice.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_process_ebslice.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_process_epslice.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_thread_compute_bs.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_thread_parse_decode.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_utils.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_vui.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_ii_pred.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_intra_resamp.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_iquant_itrans.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_iquant_itrans_residual.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_iquant_itrans_residual_recon.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_mode_mv_resamp.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_pred_residual_recon.c"
+  "${AVC_ROOT}/decoder/svc/isvcd_residual_resamp.c")
+
+include_directories(${AVC_ROOT}/decoder)
+include_directories(${AVC_ROOT}/decoder/svc)
+
+if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64" OR "${CMAKE_SYSTEM_PROCESSOR}"
+                                                     STREQUAL "aarch32")
+  list(
+    APPEND
+    LIBSVCDEC_ASMS
+    "${AVC_ROOT}/decoder/arm/ih264d_function_selector.c"
+    "${AVC_ROOT}/decoder/arm/ih264d_function_selector_a9q.c"
+    "${AVC_ROOT}/decoder/arm/ih264d_function_selector_av8.c"
+    "${AVC_ROOT}/decoder/arm/svc/isvcd_function_selector.c"
+    "${AVC_ROOT}/decoder/arm/svc/isvcd_function_selector_neon.c"
+    "${AVC_ROOT}/decoder/arm/svc/isvcd_intra_resamp_neon.c"
+    "${AVC_ROOT}/decoder/arm/svc/isvcd_iquant_itrans_neon.c"
+    "${AVC_ROOT}/decoder/arm/svc/isvcd_iquant_itrans_residual_neon.c"
+    "${AVC_ROOT}/decoder/arm/svc/isvcd_iquant_itrans_residual_recon_neon.c"
+    "${AVC_ROOT}/decoder/arm/svc/isvcd_pred_residual_recon_neon.c"
+    "${AVC_ROOT}/decoder/arm/svc/isvcd_residual_resamp_neon.c")
+else()
+  list(
+    APPEND
+    LIBSVCDEC_ASMS
+    "${AVC_ROOT}/decoder/x86/ih264d_function_selector.c"
+    "${AVC_ROOT}/decoder/x86/ih264d_function_selector_sse42.c"
+    "${AVC_ROOT}/decoder/x86/ih264d_function_selector_ssse3.c"
+    "${AVC_ROOT}/decoder/x86/svc/isvcd_function_selector.c"
+    "${AVC_ROOT}/decoder/x86/svc/isvcd_function_selector_sse42.c"
+    "${AVC_ROOT}/decoder/x86/svc/isvcd_intra_resamp_sse42.c"
+    "${AVC_ROOT}/decoder/x86/svc/isvcd_iquant_itrans_residual_recon_sse42.c"
+    "${AVC_ROOT}/decoder/x86/svc/isvcd_iquant_itrans_residual_sse42.c"
+    "${AVC_ROOT}/decoder/x86/svc/isvcd_iquant_itrans_sse42.c"
+    "${AVC_ROOT}/decoder/x86/svc/isvcd_pred_residual_recon_sse42.c"
+    "${AVC_ROOT}/decoder/x86/svc/isvcd_residual_resamp_sse42.c")
+endif()
+
+add_library(libsvcdec STATIC ${LIBAVC_COMMON_SRCS} ${LIBAVC_COMMON_ASMS}
+                             ${LIBSVCDEC_SRCS} ${LIBSVCDEC_ASMS})
