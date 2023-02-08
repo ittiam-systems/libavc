@@ -93,5 +93,7 @@ typedef struct
 
 WORD32 ih264d_parse_vui_parametres(vui_t *ps_vu4,
                                    dec_bit_stream_t *ps_bitstrm);
+WORD32 ih264d_parse_hrd_parametres(hrd_t *ps_hrd,
+                                   dec_bit_stream_t *ps_bitstrm);
 #endif /* _SEI_H_ */
 
