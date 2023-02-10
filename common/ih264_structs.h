@@ -1869,6 +1869,55 @@ typedef struct
 
 
 /**
+ * Structure to hold shutter interval info SEI
+ */
+typedef struct
+{
+    /**
+     * specifies if the sei sii is enabled
+     */
+    UWORD8 u1_shutter_interval_info_present_flag;
+
+    /**
+     * specifies the shutter interval temporal sub-layer index
+     * of the current picture
+     */
+    UWORD32 u4_sii_sub_layer_idx;
+
+    /**
+     * specify the number of time units that pass in one second
+     */
+    UWORD32 u4_sii_time_scale;
+
+    /**
+     * specifies that the indicated shutter interval is the same for all
+     * pictures in the coded video sequence
+     */
+    UWORD8 u1_fixed_shutter_interval_within_cvs_flag;
+
+    /**
+     * specifies the the number of time units of a clock operating at the
+     * frequency sii_time_scale Hz that corresponds to the indicated shutter
+     * interval of each picture in the coded video sequence
+     */
+    UWORD32 u4_sii_num_units_in_shutter_interval;
+
+    /**
+     * sii_max_sub_layers_minus1 plus 1 specifies the maximum number of
+     * shutter interval temporal sub-layers indexes that may be present
+     * in the coded video sequence
+     */
+    UWORD8 u1_sii_max_sub_layers_minus1;
+
+    /*
+     * specifies the number of time units of a clock operating at the
+     * frequency sii_time_scale Hz that corresponds to the shutter
+     * interval of each picture in the coded video sequence
+     */
+    UWORD32 au4_sub_layer_num_units_in_shutter_interval[SII_MAX_SUB_LAYERS];
+} sei_sii_params_t;
+
+/**
  * Structure to hold SEI parameters Info
  */
 typedef struct
@@ -1912,6 +1961,16 @@ typedef struct
      * CCV parameters
      */
     sei_ccv_params_t s_sei_ccv_params;
+
+    /**
+     * shutter interval info present flag
+     */
+    UWORD8 u1_sei_sii_params_present_flag;
+
+    /*
+     * Shutter Interval Info parameters
+     */
+    sei_sii_params_t s_sei_sii_params;
 } sei_params_t;
 
 

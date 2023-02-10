@@ -55,6 +55,11 @@
  */
 #define NUM_SEI_CCV_PRIMARIES         3
 
+/*
+ * @brief  specifies maximum number of sub-layers available in the sequence
+ */
+#define SII_MAX_SUB_LAYERS 8
+
 /*****************************************************************************/
 /* Typedefs                                                                  */
 /*****************************************************************************/
@@ -389,6 +394,8 @@ typedef struct {
     UWORD8                                         u1_sei_ave_params_present_flag;
 
     UWORD8                                         u1_sei_ccv_params_present_flag;
+
+    UWORD8 u1_sei_sii_params_present_flag;
 
 }ivd_sei_decode_op_t;
 

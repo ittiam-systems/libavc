@@ -290,7 +290,10 @@ typedef enum {
     IH264D_CMD_CTL_GET_SEI_AVE_PARAMS    = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x303,
 
     /** Get SEI CCV parameters */
-    IH264D_CMD_CTL_GET_SEI_CCV_PARAMS    = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x304
+    IH264D_CMD_CTL_GET_SEI_CCV_PARAMS    = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x304,
+
+    /** Get SEI SII parameters */
+    IH264D_CMD_CTL_GET_SEI_SII_PARAMS = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x305
 
 }IH264D_CMD_CTL_SUB_CMDS;
 /*****************************************************************************/
@@ -807,6 +810,80 @@ typedef struct
     UWORD32                                     u4_ccv_avg_luminance_value;
 } ih264d_ctl_get_sei_ccv_params_op_t;
 
+typedef struct
+{
+    /**
+     * u4_size
+     */
+    UWORD32 u4_size;
+
+    /**
+     * cmd
+     */
+    IVD_API_COMMAND_TYPE_T e_cmd;
+
+    /**
+     * sub_cmd
+     */
+    IVD_CONTROL_API_COMMAND_TYPE_T e_sub_cmd;
+} ih264d_ctl_get_sei_sii_params_ip_t;
+
+typedef struct
+{
+    /**
+     * u4_size
+     */
+    UWORD32 u4_size;
+
+    /**
+     * error_code
+     */
+    UWORD32 u4_error_code;
+
+    /**
+     * specifies if the sei sii is enabled
+     */
+    UWORD8 u1_shutter_interval_info_present_flag;
+
+    /**
+     * specifies the shutter interval temporal sub-layer index
+     * of the current picture
+     */
+    UWORD32 u4_sii_sub_layer_idx;
+
+    /**
+     * specify the number of time units that pass in one second
+     */
+    UWORD32 u4_sii_time_scale;
+
+    /**
+     * specifies that the indicated shutter interval is the same for all
+     * pictures in the coded video sequence
+     */
+    UWORD8 u1_fixed_shutter_interval_within_cvs_flag;
+
+    /**
+     * specifies the the number of time units of a clock operating at the
+     * frequency sii_time_scale Hz that corresponds to the indicated shutter
+     * interval of each picture in the coded video sequence
+     */
+    UWORD32 u4_sii_num_units_in_shutter_interval;
+
+    /**
+     * sii_max_sub_layers_minus1 plus 1 specifies the maximum number of
+     * shutter interval temporal sub-layers indexes that may be present
+     * in the coded video sequence
+     */
+    UWORD8 u1_sii_max_sub_layers_minus1;
+
+    /**
+     * specifies the number of time units of a clock operating at the
+     * frequency sii_time_scale Hz that corresponds to the shutter
+     * interval of each picture in the coded video sequence
+     */
+    UWORD32 au4_sub_layer_num_units_in_shutter_interval[SII_MAX_SUB_LAYERS];
+
+} ih264d_ctl_get_sei_sii_params_op_t;
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

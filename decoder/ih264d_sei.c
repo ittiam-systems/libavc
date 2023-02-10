@@ -644,6 +644,96 @@ WORD32 ih264d_parse_ccv(dec_bit_stream_t *ps_bitstrm,
 
 /*****************************************************************************/
 /*                                                                           */
+/*  Function Name : ih264d_parse_sii                                         */
+/*                                                                           */
+/*  Description   : This function parses SEI message sii                     */
+/*  Inputs        : ps_bitstrm    Bitstream                                  */
+/*                  ps_dec        Poniter decoder context                    */
+/*                  ui4_payload_size pay load i4_size                        */
+/*  Globals       : None                                                     */
+/*  Processing    :                                                          */
+/*  Outputs       : None                                                     */
+/*  Return        : 0 for successfull parsing, else -1                       */
+/*                                                                           */
+/*  Issues        :                                                          */
+/*                                                                           */
+/*  Revision History:                                                        */
+/*                                                                           */
+/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
+/*                                         Draft                             */
+/*                                                                           */
+/*****************************************************************************/
+WORD32 ih264d_parse_sii(dec_bit_stream_t *ps_bitstrm, dec_struct_t *ps_dec,
+                        UWORD32 ui4_payload_size)
+{
+    sei *ps_sei;
+    dec_err_status_t *ps_err;
+    int i;
+    UWORD32 *pu4_bitstrm_ofst = &ps_bitstrm->u4_ofst;
+    UWORD32 *pu4_bitstrm_buf = ps_bitstrm->pu4_buffer;
+    UNUSED(ui4_payload_size);
+
+    if(ps_dec == NULL)
+    {
+        return NOT_OK;
+    }
+    ps_sei = ps_dec->ps_sei_parse;
+
+    if(ps_sei == NULL)
+    {
+        return NOT_OK;
+    }
+    ps_err = ps_dec->ps_dec_err_status;
+
+    ps_sei->u1_sei_sii_params_present_flag = 0;
+    memset(&ps_sei->s_sei_sii_params, 0, sizeof(ps_sei->s_sei_sii_params));
+
+    ps_sei->s_sei_sii_params.u4_sii_sub_layer_idx = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+
+    if(0 == ps_sei->s_sei_sii_params.u4_sii_sub_layer_idx)
+    {
+        ps_sei->s_sei_sii_params.u1_shutter_interval_info_present_flag =
+            (UWORD8) ih264d_get_bit_h264(ps_bitstrm);
+
+        if(1 == ps_sei->s_sei_sii_params.u1_shutter_interval_info_present_flag)
+        {
+            ps_sei->s_sei_sii_params.u4_sii_time_scale =
+                (UWORD32) ih264d_get_bits_h264(ps_bitstrm, 32);
+
+            ps_sei->s_sei_sii_params.u1_fixed_shutter_interval_within_cvs_flag =
+                (UWORD8) ih264d_get_bit_h264(ps_bitstrm);
+
+            if(1 == ps_sei->s_sei_sii_params.u1_fixed_shutter_interval_within_cvs_flag)
+            {
+                ps_sei->s_sei_sii_params.u4_sii_num_units_in_shutter_interval =
+                    (UWORD32) ih264d_get_bits_h264(ps_bitstrm, 32);
+            }
+            else
+            {
+                ps_sei->s_sei_sii_params.u1_sii_max_sub_layers_minus1 =
+                    (UWORD8) ih264d_get_bits_h264(ps_bitstrm, 3);
+                for(i = 0; i <= ps_sei->s_sei_sii_params.u1_sii_max_sub_layers_minus1; i++)
+                {
+                    ps_sei->s_sei_sii_params.au4_sub_layer_num_units_in_shutter_interval[i] =
+                        (UWORD32) ih264d_get_bits_h264(ps_bitstrm, 32);
+                }
+            }
+        }
+    }
+
+    if((ps_sei->s_sei_sii_params.u4_sii_sub_layer_idx >
+        ps_sei->s_sei_sii_params.u1_sii_max_sub_layers_minus1) &&
+       (ps_sei->s_sei_sii_params.u1_fixed_shutter_interval_within_cvs_flag == 0))
+    {
+        return ERROR_INV_SEI_SII_PARAMS;
+    }
+
+    ps_sei->u1_sei_sii_params_present_flag = 1;
+    return (OK);
+}
+
+/*****************************************************************************/
+/*                                                                           */
 /*  Function Name : ih264d_parse_sei_payload                                 */
 /*                                                                           */
 /*  Description   : This function parses SEI pay loads. Currently it's       */
@@ -718,6 +808,10 @@ WORD32 ih264d_parse_sei_payload(dec_bit_stream_t *ps_bitstrm,
 
             i4_status = ih264d_parse_ccv(ps_bitstrm, ps_dec,
                                          ui4_payload_size);
+            break;
+        case SEI_SHUTTER_INTERVAL_INFO:
+
+            i4_status = ih264d_parse_sii(ps_bitstrm, ps_dec, ui4_payload_size);
             break;
         default:
             i4_status = ih264d_flush_bits_h264(ps_bitstrm, (ui4_payload_size << 3));
@@ -985,3 +1079,44 @@ WORD32 ih264d_export_sei_ccv_params(ivd_sei_decode_op_t *ps_sei_decode_op,
     return (OK);
 }
 
+/*****************************************************************************/
+/*                                                                           */
+/*  Function Name : ih264d_export_sei_sii_params                             */
+/*                                                                           */
+/*  Description   : This function populates SEI sii message in               */
+/*                     output structure                                      */
+/*  Inputs        : ps_sei_sii_op pointer to sei sii o\p struct              */
+/*                : ps_sei pointer to decoded sei params                     */
+/*  Outputs       :                                                          */
+/*  Returns       : returns 0 for success; -1 for failure                    */
+/*                                                                           */
+/*  Issues        : none                                                     */
+/*                                                                           */
+/*  Revision History:                                                        */
+/*                                                                           */
+/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
+/*                                                                           */
+/*                                                                           */
+/*****************************************************************************/
+WORD32 ih264d_export_sei_sii_params(ivd_sei_decode_op_t *ps_sei_decode_op, sei *ps_sei,
+                                    sei *ps_sei_export)
+{
+    if((ps_sei_export == NULL) || (ps_sei == NULL))
+    {
+        return NOT_OK;
+    }
+
+    ps_sei_export->u1_sei_sii_params_present_flag = ps_sei->u1_sei_sii_params_present_flag;
+    ps_sei_decode_op->u1_sei_sii_params_present_flag = ps_sei->u1_sei_sii_params_present_flag;
+
+    if(0 == ps_sei_export->u1_sei_sii_params_present_flag)
+    {
+        memset(&ps_sei_export->s_sei_sii_params, 0, sizeof(sei_sii_params_t));
+    }
+    else
+    {
+        memcpy(&ps_sei_export->s_sei_sii_params, &ps_sei->s_sei_sii_params,
+               sizeof(sei_sii_params_t));
+    }
+    return (OK);
+}

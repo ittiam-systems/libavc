@@ -837,6 +837,78 @@ typedef struct
 
 }ih264e_ctl_set_sei_ccv_params_op_t;
 
+/*****************************************************************************/
+/*    Video control  Set SEI SII params                                      */
+/*****************************************************************************/
+
+typedef struct
+{
+    /** size of the structure                                             */
+    UWORD32 u4_size;
+
+    /** Command type : IVE_CMD_VIDEO_CTL                                  */
+    IVE_API_COMMAND_TYPE_T e_cmd;
+
+    /** Sub command type : IVE_CMD_CTL_SET_SEI_SII_PARAMS                 */
+    IVE_CONTROL_API_COMMAND_TYPE_T e_sub_cmd;
+
+    /**
+     * specifies if the sei sii is enabled                                */
+    UWORD8 u1_shutter_interval_info_present_flag;
+
+    /**
+     * specifies the shutter interval temporal sub-layer index
+     * of the current picture                                             */
+    UWORD32 u4_sii_sub_layer_idx;
+
+    /**
+     * specify the number of time units that pass in one second           */
+    UWORD32 u4_sii_time_scale;
+
+    /**
+     * specifies that the indicated shutter interval is the same
+     * for all pictures in the coded video sequence                       */
+    UWORD8 u1_fixed_shutter_interval_within_cvs_flag;
+
+    /**
+     * specifies the the number of time units of a clock operating at
+     * the frequency sii_time_scale Hz that corresponds to the indicated
+     * shutter interval of each picture in the coded video sequence       */
+    UWORD32 u4_sii_num_units_in_shutter_interval;
+
+    /**
+     * sii_max_sub_layers_minus1 plus 1 specifies the maximum number of
+     * shutter interval temporal sub-layers indexes that may be present
+     * in the coded video sequence                                        */
+    UWORD8 u1_sii_max_sub_layers_minus1;
+
+    /**
+     * specifies the number of time units of a clock operating at the
+     * frequency sii_time_scale Hz that corresponds to the shutter
+     * interval of each picture in the coded video sequence               */
+    UWORD32 au4_sub_layer_num_units_in_shutter_interval[8];
+
+    /**
+     * Lower 32bits of time stamp corresponding to input buffer,
+     * from which this command takes effect                               */
+    UWORD32 u4_timestamp_low;
+
+    /**
+     * Upper 32bits of time stamp corresponding to input buffer,
+     * from which this command takes effect                               */
+    UWORD32 u4_timestamp_high;
+
+} ih264e_ctl_set_sei_sii_params_ip_t;
+
+typedef struct
+{
+    /** size of the structure                                             */
+    UWORD32 u4_size;
+
+    /** Return error code                                                 */
+    UWORD32 u4_error_code;
+
+} ih264e_ctl_set_sei_sii_params_op_t;
 
 /* The enum values should not have greater than 8 bits as this is assigned to WORD8 */
 typedef enum

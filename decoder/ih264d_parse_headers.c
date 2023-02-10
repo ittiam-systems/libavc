@@ -125,6 +125,9 @@ void ih264d_get_pre_sei_params(dec_struct_t *ps_dec, UWORD8 u1_nal_unit_type)
         ps_dec->ps_sei->u1_sei_ave_params_present_flag =
                         ps_dec->ps_sei_parse->u1_sei_ave_params_present_flag;
         ps_dec->ps_sei->s_sei_ave_params = ps_dec->ps_sei_parse->s_sei_ave_params;
+        ps_dec->ps_sei->u1_sei_sii_params_present_flag =
+            ps_dec->ps_sei_parse->u1_sei_sii_params_present_flag;
+        ps_dec->ps_sei->s_sei_sii_params = ps_dec->ps_sei_parse->s_sei_sii_params;
     }
 
     ps_dec->ps_sei_parse->u1_sei_mdcv_params_present_flag = 0;
@@ -135,7 +138,8 @@ void ih264d_get_pre_sei_params(dec_struct_t *ps_dec, UWORD8 u1_nal_unit_type)
     memset(&ps_dec->ps_sei_parse->s_sei_ave_params, 0, sizeof(sei_ave_params_t));
     ps_dec->ps_sei_parse->u1_sei_ccv_params_present_flag = 0;
     memset(&ps_dec->ps_sei_parse->s_sei_ccv_params, 0, sizeof(sei_ccv_params_t));
-
+    ps_dec->ps_sei_parse->u1_sei_sii_params_present_flag = 0;
+    memset(&ps_dec->ps_sei_parse->s_sei_sii_params, 0, sizeof(sei_sii_params_t));
 }
 
 /*****************************************************************************/

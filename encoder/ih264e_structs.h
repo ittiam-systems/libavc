@@ -312,6 +312,12 @@ typedef struct
     /** SEI CCV params info                                              */
     sei_ccv_params_t                        s_sei_ccv;
 
+    /** SEI SII params flag                                              */
+    UWORD8 u1_sei_sii_params_present_flag;
+
+    /** SEI SII params info                                              */
+    sei_sii_params_t s_sei_sii;
+
 }inp_buf_t;
 
 typedef struct
