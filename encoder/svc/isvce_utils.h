@@ -231,4 +231,7 @@ extern WORD32 isvce_input_queue_update(isvce_codec_t *ps_codec, ive_video_encode
 
 extern void isvce_join_threads(isvce_codec_t *ps_codec);
 
+extern UWORD32 isvce_get_min_outbuf_size(UWORD32 u4_wd, UWORD32 u4_ht,
+                                         UWORD8 u1_num_spatial_layers);
+
 #endif

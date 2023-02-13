@@ -4540,3 +4540,8 @@ void isvce_join_threads(isvce_codec_t *ps_codec)
 
     ps_codec->i4_proc_thread_cnt = 0;
 }
+
+UWORD32 isvce_get_min_outbuf_size(UWORD32 u4_wd, UWORD32 u4_ht, UWORD8 u1_num_spatial_layers)
+{
+    return MAX((u4_wd * u4_ht * 3), MIN_STREAM_SIZE) * u1_num_spatial_layers;
+}
