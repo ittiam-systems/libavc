@@ -1887,6 +1887,31 @@ void flush_output(iv_obj_t *codec_obj,
                                 s_ctl_get_sei_ccv_params_op.u4_error_code);
                     }
                 }
+                /*************************************************************************/
+                /* Get SEI SII parameters                                                */
+                /*************************************************************************/
+                if(1 == ps_video_decode_op->s_sei_decode_op.u1_sei_sii_params_present_flag)
+                {
+                    ih264d_ctl_get_sei_sii_params_ip_t s_ctl_get_sei_sii_params_ip = {0};
+                    ih264d_ctl_get_sei_sii_params_op_t s_ctl_get_sei_sii_params_op = {0};
+
+                    s_ctl_get_sei_sii_params_ip.e_cmd = IVD_CMD_VIDEO_CTL;
+                    s_ctl_get_sei_sii_params_ip.e_sub_cmd =
+                        (IVD_CONTROL_API_COMMAND_TYPE_T) IH264D_CMD_CTL_GET_SEI_SII_PARAMS;
+                    s_ctl_get_sei_sii_params_ip.u4_size =
+                        sizeof(ih264d_ctl_get_sei_sii_params_ip_t);
+                    s_ctl_get_sei_sii_params_op.u4_size =
+                        sizeof(ih264d_ctl_get_sei_sii_params_op_t);
+                    ret = ivd_api_function((iv_obj_t *) codec_obj,
+                                           (void *) &s_ctl_get_sei_sii_params_ip,
+                                           (void *) &s_ctl_get_sei_sii_params_op);
+
+                    if(IV_SUCCESS != ret)
+                    {
+                        printf("SII SEI params not present : Error %x\n",
+                               s_ctl_get_sei_sii_params_op.u4_error_code);
+                    }
+                }
 
                 if(ps_app_ctx->u4_file_save_flag)
                 {
@@ -3380,6 +3405,30 @@ int main(WORD32 argc, CHAR *argv[])
                 {
                     printf("CCV SEI params not present : Error %x\n",
                             s_ctl_get_sei_ccv_params_op.u4_error_code);
+                }
+            }
+            /*************************************************************************/
+            /* Get SEI SII parameters                                                */
+            /*************************************************************************/
+            if(1 == ps_video_decode_op->s_sei_decode_op.u1_sei_sii_params_present_flag)
+            {
+                ih264d_ctl_get_sei_sii_params_ip_t s_ctl_get_sei_sii_params_ip = {0};
+                ih264d_ctl_get_sei_sii_params_op_t s_ctl_get_sei_sii_params_op = {0};
+
+                s_ctl_get_sei_sii_params_ip.e_cmd = IVD_CMD_VIDEO_CTL;
+                s_ctl_get_sei_sii_params_ip.e_sub_cmd =
+                    (IVD_CONTROL_API_COMMAND_TYPE_T) IH264D_CMD_CTL_GET_SEI_SII_PARAMS;
+                s_ctl_get_sei_sii_params_ip.u4_size = sizeof(ih264d_ctl_get_sei_sii_params_ip_t);
+                s_ctl_get_sei_sii_params_op.u4_size = sizeof(ih264d_ctl_get_sei_sii_params_op_t);
+
+                ret =
+                    ivd_api_function((iv_obj_t *) codec_obj, (void *) &s_ctl_get_sei_sii_params_ip,
+                                     (void *) &s_ctl_get_sei_sii_params_op);
+
+                if(IV_SUCCESS != ret)
+                {
+                    printf("SII SEI params not present : Error %x\n",
+                           s_ctl_get_sei_sii_params_op.u4_error_code);
                 }
             }
 

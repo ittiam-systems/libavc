@@ -49,8 +49,8 @@ typedef enum
     IH264_SEI_MASTERING_DISP_COL_VOL       = 137,
     IH264_SEI_CONTENT_LIGHT_LEVEL_DATA     = 144,
     IH264_SEI_AMBIENT_VIEWING_ENVIRONMENT  = 148,
-    IH264_SEI_CONTENT_COLOR_VOLUME         = 149
-
+    IH264_SEI_CONTENT_COLOR_VOLUME         = 149,
+    IH264_SEI_SHUTTER_INTERVAL_INFO        = 205
 }IH264_SEI_TYPE;
 
 /*****************************************************************************/
@@ -166,5 +166,24 @@ IH264E_ERROR_T ih264e_put_sei_msg(IH264_SEI_TYPE e_payload_type,
                          sei_params_t *ps_sei_params,
                          bitstrm_t *ps_bitstrm);
 
+/**
+******************************************************************************
+*
+*  @brief Signal shutter interval info in the bitstream
+*
+*  @par   Description
+*  Parse Supplemental Enhancement Information
+*
+*  @param[in]   ps_bitstrm
+*  pointer to bitstream context (handle)
+*
+*  @param[in]   ps_sei_sii
+*  pointer to shutter interval info
+*
+*  @return      success or failure error code
+*
+******************************************************************************
+*/
+IH264E_ERROR_T ih264e_put_sei_sii_params(sei_sii_params_t *ps_sei_sii, bitstrm_t *ps_bitstrm);
 
 #endif /* ENCODER_IH264E_SEI_H_ */

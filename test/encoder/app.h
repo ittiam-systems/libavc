@@ -354,9 +354,18 @@ typedef struct
     UWORD32 u4_ccv_max_luminance_value;
     UWORD32 u4_ccv_avg_luminance_value;
 
+    UWORD32 u4_shutter_interval_info_present_flag;
+    UWORD32 u4_sii_sub_layer_idx;
+    UWORD32 u4_sii_time_scale;
+    UWORD32 u4_fixed_shutter_interval_within_cvs_flag;
+    UWORD32 u4_sii_num_units_in_shutter_interval;
+    UWORD32 u4_sii_max_sub_layers_minus1;
+    UWORD32 au4_sub_layer_num_units_in_shutter_interval[SII_MAX_SUB_LAYERS];
+
     ih264e_ctl_set_sei_mdcv_params_ip_t s_sei_mdcv_params;
     ih264e_ctl_set_sei_cll_params_ip_t s_sei_cll_params;
     ih264e_ctl_set_sei_ave_params_ip_t s_sei_ave_params;
+    ih264e_ctl_set_sei_sii_params_ip_t s_sei_sii_params;
 
 } app_ctxt_t;
 
