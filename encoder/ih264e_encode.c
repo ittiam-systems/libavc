@@ -49,6 +49,7 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
+#include <stdbool.h>
 /* User Include files */
 #include "ih264e_config.h"
 #include "ih264_typedefs.h"
@@ -293,6 +294,9 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     /* Force IDR based on SEI params */
 #if SEI_BASED_FORCE_IDR
     {
+        int i;
+        bool au4_sub_layer_num_units_in_shutter_interval_flag = 0;
+
         sei_mdcv_params_t *ps_sei_mdcv_params = &ps_codec->s_sei.s_sei_mdcv_params;
         sei_mdcv_params_t *ps_cfg_sei_mdcv_params =
                                 &ps_codec->s_cfg.s_sei.s_sei_mdcv_params;
@@ -302,6 +306,8 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
         sei_ave_params_t *ps_sei_ave_params = &ps_codec->s_sei.s_sei_ave_params;
         sei_ave_params_t *ps_cfg_sei_ave_params =
                                 &ps_codec->s_cfg.s_sei.s_sei_ave_params;
+        sei_sii_params_t *ps_sei_sii_params = &ps_codec->s_sei.s_sei_sii_params;
+        sei_sii_params_t *ps_cfg_sei_sii_params = &ps_codec->s_cfg.s_sei.s_sei_sii_params;
 
         if((ps_sei_mdcv_params->au2_display_primaries_x[0]!=
                                 ps_cfg_sei_mdcv_params->au2_display_primaries_x[0]) ||
@@ -360,9 +366,39 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
             ps_codec->s_sei.u1_sei_ave_params_present_flag = 0;
         }
 
+        for(i = 0; i <= ps_cfg_sei_sii_params->u1_sii_max_sub_layers_minus1; i++)
+        {
+            au4_sub_layer_num_units_in_shutter_interval_flag =
+                (au4_sub_layer_num_units_in_shutter_interval_flag ||
+                 (ps_sei_sii_params->au4_sub_layer_num_units_in_shutter_interval[i] !=
+                  ps_cfg_sei_sii_params->au4_sub_layer_num_units_in_shutter_interval[i]));
+        }
+
+        if((ps_sei_sii_params->u4_sii_sub_layer_idx !=
+            ps_cfg_sei_sii_params->u4_sii_sub_layer_idx) ||
+           (ps_sei_sii_params->u1_shutter_interval_info_present_flag !=
+            ps_cfg_sei_sii_params->u1_shutter_interval_info_present_flag) ||
+           (ps_sei_sii_params->u4_sii_time_scale != ps_cfg_sei_sii_params->u4_sii_time_scale) ||
+           (ps_sei_sii_params->u1_fixed_shutter_interval_within_cvs_flag !=
+            ps_cfg_sei_sii_params->u1_fixed_shutter_interval_within_cvs_flag) ||
+           (ps_sei_sii_params->u4_sii_num_units_in_shutter_interval !=
+            ps_cfg_sei_sii_params->u4_sii_num_units_in_shutter_interval) ||
+           (ps_sei_sii_params->u1_sii_max_sub_layers_minus1 !=
+            ps_cfg_sei_sii_params->u1_sii_max_sub_layers_minus1) ||
+           au4_sub_layer_num_units_in_shutter_interval_flag)
+        {
+            ps_codec->s_sei.s_sei_sii_params = ps_codec->s_cfg.s_sei.s_sei_sii_params;
+            ps_codec->s_sei.u1_sei_sii_params_present_flag = 1;
+        }
+        else
+        {
+            ps_codec->s_sei.u1_sei_sii_params_present_flag = 0;
+        }
+
         if((1 == ps_codec->s_sei.u1_sei_mdcv_params_present_flag) ||
                 (1 == ps_codec->s_sei.u1_sei_cll_params_present_flag) ||
-                (1 == ps_codec->s_sei.u1_sei_ave_params_present_flag))
+           (1 == ps_codec->s_sei.u1_sei_ave_params_present_flag) ||
+           (1 == ps_codec->s_sei.u1_sei_sii_params_present_flag))
         {
             ps_codec->force_curr_frame_type = IV_IDR_FRAME;
         }

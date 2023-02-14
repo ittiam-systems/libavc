@@ -408,6 +408,8 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
         s_sei.u1_sei_ccv_params_present_flag = 0;
         s_sei.s_sei_ccv_params =
                     ps_codec->as_inp_list[ps_codec->i4_poc % MAX_NUM_BFRAMES].s_sei_ccv;
+        s_sei.u1_sei_sii_params_present_flag = ps_codec->s_cfg.s_sei.u1_sei_sii_params_present_flag;
+        s_sei.s_sei_sii_params = ps_codec->s_cfg.s_sei.s_sei_sii_params;
 
         if((1 == ps_sps->i1_vui_parameters_present_flag) &&
            (1 == ps_codec->s_cfg.s_vui.u1_video_signal_type_present_flag) &&
@@ -425,7 +427,8 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
         if((1 == s_sei.u1_sei_mdcv_params_present_flag && u4_insert_per_idr) ||
            (1 == s_sei.u1_sei_cll_params_present_flag && u4_insert_per_idr) ||
            (1 == s_sei.u1_sei_ave_params_present_flag && u4_insert_per_idr) ||
-           (1 == s_sei.u1_sei_ccv_params_present_flag))
+           (1 == s_sei.u1_sei_ccv_params_present_flag) ||
+           (1 == s_sei.u1_sei_sii_params_present_flag))
         {
             ps_entropy->i4_error_code =
                     ih264e_generate_sei(ps_bitstrm, &s_sei, u4_insert_per_idr);

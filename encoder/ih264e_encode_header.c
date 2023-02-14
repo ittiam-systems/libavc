@@ -786,6 +786,16 @@ IH264E_ERROR_T ih264e_generate_sei(bitstrm_t *ps_bitstrm, sei_params_t *ps_sei,
         }
     }
 
+    /* Shutter Interval Information*/
+    if(1 == ps_sei->u1_sei_sii_params_present_flag)
+    {
+        return_status = ih264e_put_sei_msg(IH264_SEI_SHUTTER_INTERVAL_INFO, ps_sei, ps_bitstrm);
+        if(return_status != IH264E_SUCCESS)
+        {
+            return return_status;
+        }
+    }
+
     /* rbsp trailing bits */
     return_status = ih264e_put_rbsp_trailing_bits(ps_bitstrm);
 

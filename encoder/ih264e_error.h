@@ -241,6 +241,12 @@ typedef enum
     /**Invalid content color volume sei params */
     IH264E_INVALID_SEI_CCV_PARAMS                                   = IH264E_CODEC_ERROR_START + 0x36,
 
+    /**Invalid shutter interval info sei params */
+    IH264E_INVALID_SEI_SII_PARAMS = IH264E_CODEC_ERROR_START + 0x37,
+
+    /**Invalid shutter interval info sei params. Does not match H264 sii spec requirements*/
+    IH264E_SEI_SII_FAILED_TO_MATCH_SPEC_COND = IH264E_CODEC_ERROR_START + 0x38,
+
     /**max failure error code to ensure enum is 32 bits wide */
     IH264E_FAIL                                                     = -1,
 

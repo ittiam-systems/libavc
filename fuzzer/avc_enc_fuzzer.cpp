@@ -87,6 +87,7 @@ enum {
     IDX_SEI_CLL_FLAG,
     IDX_SEI_AVE_FLAG,
     IDX_SEI_CCV_FLAG,
+    IDX_SEI_SII_FLAG,
     IDX_PROFILE,
     IDX_ASPECT_RATIO_FLAG,
     IDX_NAL_HRD_FLAG,
@@ -132,6 +133,7 @@ class Codec {
     void setSeiCllParams();
     void setSeiAveParams();
     void setSeiCcvParams();
+    void setSeiSiiParams();
     void logVersion();
     bool mHalfPelEnable = 1;
     bool mQPelEnable = 1;
@@ -143,6 +145,7 @@ class Codec {
     bool mSeiAveFlag = 1;
     bool mSeiCcvFlag = 1;
     bool mSeiMdcvFlag = 1;
+    bool mSeiSiiFlag = 1;
     bool mAspectRatioFlag = 0;
     bool mNalHrdFlag = 0;
     bool mVclHrdFlag = 0;
@@ -217,6 +220,7 @@ bool Codec::initEncoder(const uint8_t **pdata, size_t *psize) {
     mSeiCllFlag = data[IDX_SEI_CLL_FLAG] & 0x01;
     mSeiAveFlag = data[IDX_SEI_AVE_FLAG] & 0x01;
     mSeiCcvFlag = data[IDX_SEI_CCV_FLAG] & 0x01;
+    mSeiSiiFlag = data[IDX_SEI_SII_FLAG] & 0x01;
     mProfile = kProfle[data[IDX_PROFILE] % kProfleNum];
     mAspectRatioFlag = data[IDX_ASPECT_RATIO_FLAG] & 0x01;
     mNalHrdFlag = data[IDX_NAL_HRD_FLAG] & 0x01;
@@ -345,6 +349,7 @@ bool Codec::initEncoder(const uint8_t **pdata, size_t *psize) {
     setSeiCllParams();
     setSeiAveParams();
     setSeiCcvParams();
+    setSeiSiiParams();
     setProfileParams();
     setEncMode(IVE_ENC_MODE_HEADER);
 
@@ -821,6 +826,37 @@ void Codec::setSeiCcvParams() {
     sSeiCcvParamsOp.u4_size = sizeof(ih264e_ctl_set_sei_ccv_params_op_t);
 
     ih264e_api_function(mCodecCtx, &sSeiCcvParamsIp, &sSeiCcvParamsOp);
+    return;
+}
+
+void Codec::setSeiSiiParams() {
+    ih264e_ctl_set_sei_sii_params_ip_t sSeiSiiParamsIp{};
+    ih264e_ctl_set_sei_sii_params_op_t sSeiSiiParamsOp{};
+
+    sSeiSiiParamsIp.e_cmd = IVE_CMD_VIDEO_CTL;
+    sSeiSiiParamsIp.e_sub_cmd = IVE_CMD_CTL_SET_SEI_SII_PARAMS;
+    sSeiSiiParamsIp.u1_shutter_interval_info_present_flag = mSeiSiiFlag;
+    if(mSeiSiiFlag) {
+        sSeiSiiParamsIp.u4_sii_sub_layer_idx = 0;
+        sSeiSiiParamsIp.u1_shutter_interval_info_present_flag = 1;
+        sSeiSiiParamsIp.u4_sii_time_scale = 24000000;
+        sSeiSiiParamsIp.u1_fixed_shutter_interval_within_cvs_flag = 0;
+        sSeiSiiParamsIp.u4_sii_num_units_in_shutter_interval = 480000;
+        sSeiSiiParamsIp.u1_sii_max_sub_layers_minus1 = 7;
+        for(int i4_count = 0; i4_count <= sSeiSiiParamsIp.u1_sii_max_sub_layers_minus1; ++i4_count) {
+            sSeiSiiParamsIp.au4_sub_layer_num_units_in_shutter_interval[i4_count] = 480000;
+        }
+        sSeiSiiParamsIp.au4_sub_layer_num_units_in_shutter_interval
+            [sSeiSiiParamsIp.u1_sii_max_sub_layers_minus1] = 240000;
+    }
+
+    sSeiSiiParamsIp.u4_timestamp_high = -1;
+    sSeiSiiParamsIp.u4_timestamp_low = -1;
+
+    sSeiSiiParamsIp.u4_size = sizeof(ih264e_ctl_set_sei_sii_params_ip_t);
+    sSeiSiiParamsOp.u4_size = sizeof(ih264e_ctl_set_sei_sii_params_op_t);
+
+    ih264e_api_function(mCodecCtx, &sSeiSiiParamsIp, &sSeiSiiParamsOp);
     return;
 }
 

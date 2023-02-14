@@ -28,6 +28,7 @@
 #include <stddef.h>
 #include <assert.h>
 #include <string.h>
+#include <stdbool.h>
 
 #ifdef WINDOWS_TIMER
 #include "windows.h"
@@ -1724,12 +1725,95 @@ void set_sei_ccv_params(app_ctxt_t *ps_app_ctxt,
     return;
 }
 
+void set_sei_sii_params(app_ctxt_t *ps_app_ctxt, UWORD32 u4_timestamp_low,
+                        UWORD32 u4_timestamp_high)
+{
+    IV_STATUS_T status;
+    int i;
+    bool au4_sub_layer_num_units_in_shutter_interval_flag = 0;
+
+    ih264e_ctl_set_sei_sii_params_ip_t s_sei_sii_params_ip = {0};
+    ih264e_ctl_set_sei_sii_params_op_t s_sei_sii_params_op = {0};
+
+    s_sei_sii_params_ip.e_cmd = IVE_CMD_VIDEO_CTL;
+    s_sei_sii_params_ip.e_sub_cmd = IVE_CMD_CTL_SET_SEI_SII_PARAMS;
+
+    s_sei_sii_params_ip.u4_sii_sub_layer_idx = ps_app_ctxt->u4_sii_sub_layer_idx;
+
+    if(0 == s_sei_sii_params_ip.u4_sii_sub_layer_idx)
+    {
+        s_sei_sii_params_ip.u1_shutter_interval_info_present_flag =
+            (UWORD8) ps_app_ctxt->u4_shutter_interval_info_present_flag;
+
+        if(1 == s_sei_sii_params_ip.u1_shutter_interval_info_present_flag)
+        {
+            s_sei_sii_params_ip.u4_sii_time_scale = ps_app_ctxt->u4_sii_time_scale;
+            s_sei_sii_params_ip.u1_fixed_shutter_interval_within_cvs_flag =
+                (UWORD8) ps_app_ctxt->u4_fixed_shutter_interval_within_cvs_flag;
+
+            if(1 == s_sei_sii_params_ip.u1_fixed_shutter_interval_within_cvs_flag)
+            {
+                s_sei_sii_params_ip.u4_sii_num_units_in_shutter_interval =
+                    ps_app_ctxt->u4_sii_num_units_in_shutter_interval;
+            }
+            else
+            {
+                s_sei_sii_params_ip.u1_sii_max_sub_layers_minus1 =
+                    (UWORD8) ps_app_ctxt->u4_sii_max_sub_layers_minus1;
+
+                for(i = 0; i <= s_sei_sii_params_ip.u1_sii_max_sub_layers_minus1; i++)
+                {
+                    s_sei_sii_params_ip.au4_sub_layer_num_units_in_shutter_interval[i] =
+                        ps_app_ctxt->au4_sub_layer_num_units_in_shutter_interval[i];
+                }
+            }
+        }
+    }
+
+    s_sei_sii_params_ip.u4_timestamp_high = u4_timestamp_high;
+    s_sei_sii_params_ip.u4_timestamp_low = u4_timestamp_low;
+
+    s_sei_sii_params_ip.u4_size = sizeof(ih264e_ctl_set_sei_sii_params_ip_t);
+    s_sei_sii_params_op.u4_size = sizeof(ih264e_ctl_set_sei_sii_params_op_t);
+
+    for(i = 0; i <= s_sei_sii_params_ip.u1_sii_max_sub_layers_minus1; i++)
+    {
+        au4_sub_layer_num_units_in_shutter_interval_flag =
+            (au4_sub_layer_num_units_in_shutter_interval_flag ||
+             (ps_app_ctxt->s_sei_sii_params.au4_sub_layer_num_units_in_shutter_interval[i] !=
+              s_sei_sii_params_ip.au4_sub_layer_num_units_in_shutter_interval[i]));
+    }
+
+    if((ps_app_ctxt->s_sei_sii_params.u4_sii_sub_layer_idx !=
+        s_sei_sii_params_ip.u4_sii_sub_layer_idx) ||
+       (ps_app_ctxt->s_sei_sii_params.u1_shutter_interval_info_present_flag !=
+        s_sei_sii_params_ip.u1_shutter_interval_info_present_flag) ||
+       (ps_app_ctxt->s_sei_sii_params.u4_sii_time_scale != s_sei_sii_params_ip.u4_sii_time_scale) ||
+       (ps_app_ctxt->s_sei_sii_params.u1_fixed_shutter_interval_within_cvs_flag !=
+        s_sei_sii_params_ip.u1_fixed_shutter_interval_within_cvs_flag) ||
+       (ps_app_ctxt->s_sei_sii_params.u4_sii_num_units_in_shutter_interval !=
+        s_sei_sii_params_ip.u4_sii_num_units_in_shutter_interval) ||
+       (ps_app_ctxt->s_sei_sii_params.u1_sii_max_sub_layers_minus1 !=
+        s_sei_sii_params_ip.u1_sii_max_sub_layers_minus1) ||
+       au4_sub_layer_num_units_in_shutter_interval_flag)
+    {
+        status =
+            ih264e_api_function(ps_app_ctxt->ps_enc, &s_sei_sii_params_ip, &s_sei_sii_params_op);
+        if(status != IV_SUCCESS)
+        {
+            printf("Unable to set sei sii params = 0x%x\n", s_sei_sii_params_op.u4_error_code);
+        }
+        ps_app_ctxt->s_sei_sii_params = s_sei_sii_params_ip;
+    }
+    return;
+}
+
 #define PEAK_WINDOW_SIZE    8
 
 void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
 {
-    ih264e_video_encode_ip_t ih264e_video_encode_ip;
-    ih264e_video_encode_op_t ih264e_video_encode_op;
+    ih264e_video_encode_ip_t ih264e_video_encode_ip = {0};
+    ih264e_video_encode_op_t ih264e_video_encode_op = {0};
 
     ive_video_encode_ip_t *ps_video_encode_ip = &ih264e_video_encode_ip.s_ive_ip;
     ive_video_encode_op_t *ps_video_encode_op = &ih264e_video_encode_op.s_ive_op;
@@ -1950,6 +2034,41 @@ void synchronous_encode(iv_obj_t *ps_enc, app_ctxt_t *ps_app_ctxt)
             ps_app_ctxt->u4_ccv_avg_luminance_value = 1;
             set_sei_ccv_params(ps_app_ctxt, u4_timestamp_low, u4_timestamp_high);
         }
+
+        ps_app_ctxt->u4_sii_sub_layer_idx = SII_SUB_LAYER_IDX;
+
+        if(0 == ps_app_ctxt->u4_sii_sub_layer_idx)
+        {
+            ps_app_ctxt->u4_shutter_interval_info_present_flag = SHUTTER_INTERVAL_INFO_PRESENT_FLAG;
+
+            if(1 == ps_app_ctxt->u4_shutter_interval_info_present_flag)
+            {
+                ps_app_ctxt->u4_sii_time_scale = SII_TIME_SCALE;
+                ps_app_ctxt->u4_fixed_shutter_interval_within_cvs_flag =
+                    FIXED_SHUTTER_INTERVAL_WITHIN_CVS_FLAG;
+
+                if(1 == ps_app_ctxt->u4_fixed_shutter_interval_within_cvs_flag)
+                {
+                    ps_app_ctxt->u4_sii_num_units_in_shutter_interval =
+                        SII_NUM_UNITS_IN_SHUTTER_INTERVAL;
+                }
+                else
+                {
+                    int i;
+                    ps_app_ctxt->u4_sii_max_sub_layers_minus1 = SII_MAX_SUB_LAYERS_MINUS1;
+
+                    for(i = 0; i <= (int) ps_app_ctxt->u4_sii_max_sub_layers_minus1; i++)
+                    {
+                        ps_app_ctxt->au4_sub_layer_num_units_in_shutter_interval[i] =
+                            SUB_LAYER_NUM_UNITS_IN_SHUTTER_INTERVAL_HFR;
+                    }
+                    ps_app_ctxt->au4_sub_layer_num_units_in_shutter_interval
+                        [ps_app_ctxt->u4_sii_max_sub_layers_minus1] =
+                        SUB_LAYER_NUM_UNITS_IN_SHUTTER_INTERVAL_SFR;
+                }
+            }
+        }
+        set_sei_sii_params(ps_app_ctxt, u4_timestamp_low, u4_timestamp_high);
 
         /******************************************************************************/
         /****************** Input Initialization **************************************/

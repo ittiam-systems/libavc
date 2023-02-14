@@ -35,6 +35,7 @@
 *  - ih264e_put_sei_ave_params
 *  - ih264e_put_sei_ccv_params
 *  - ih264e_put_sei_msg
+*  - ih264e_put_sei_sii_params
 *
 * @remarks
 *  None
@@ -372,6 +373,121 @@ IH264E_ERROR_T ih264e_put_sei_ccv_params(sei_ccv_params_t *ps_sei_ccv,
 /**
 ******************************************************************************
 *
+*  @brief Signal shutter interval info in the bitstream
+*
+*  @par   Description
+*  Parse Supplemental Enhancement Information
+*
+*  @param[in]   ps_bitstrm
+*  pointer to bitstream context (handle)
+*
+*  @param[in]   ps_sei_sii
+*  pointer to shutter interval info
+*
+*  @return      success or failure error code
+*
+******************************************************************************
+*/
+IH264E_ERROR_T ih264e_put_sei_sii_params(sei_sii_params_t *ps_sei_sii, bitstrm_t *ps_bitstrm)
+{
+    WORD32 return_status = IH264E_SUCCESS;
+    UWORD16 u2_payload_bits = 0;
+    UWORD8 u1_payload_bytes = 0;
+
+    if(ps_sei_sii == NULL)
+    {
+        return IH264E_FAIL;
+    }
+
+    printf("ps_sei_sii->u4_sii_sub_layer_idx: %d\n", ps_sei_sii->u4_sii_sub_layer_idx);
+    printf("ps_sei_sii->u1_shutter_interval_info_present_flag: %d\n",
+           ps_sei_sii->u1_shutter_interval_info_present_flag);
+    printf("ps_sei_sii->u4_sii_time_scale: %d\n", ps_sei_sii->u4_sii_time_scale);
+    printf("ps_sei_sii->u1_fixed_shutter_interval_within_cvs_flag: %d\n",
+           ps_sei_sii->u1_fixed_shutter_interval_within_cvs_flag);
+    printf("ps_sei_sii->u4_sii_num_units_in_shutter_interval: %d\n",
+           ps_sei_sii->u4_sii_num_units_in_shutter_interval);
+    printf("ps_sei_sii->u1_sii_max_sub_layers_minus1: %d\n",
+           ps_sei_sii->u1_sii_max_sub_layers_minus1);
+    printf("ps_sei_sii->au4_sub_layer_num_units_in_shutter_interval[1]: %d\n",
+           ps_sei_sii->au4_sub_layer_num_units_in_shutter_interval[1]);
+
+    if(0 == ps_sei_sii->u4_sii_sub_layer_idx)
+    {
+        u2_payload_bits += 1; /* shutter interval info present flag */
+
+        if(1 == ps_sei_sii->u1_shutter_interval_info_present_flag)
+        {
+            u2_payload_bits += 32; /* sii time scale */
+            u2_payload_bits += 1;  /* fixed shutter interval within cvs flag */
+
+            if(1 == ps_sei_sii->u1_fixed_shutter_interval_within_cvs_flag)
+            {
+                u2_payload_bits += 32; /* sii num units in shutter interval */
+            }
+            else
+            {
+                int sizeofSubLayer;
+                u2_payload_bits += 3; /* sii max sub layers minus1 */
+                sizeofSubLayer =
+                    sizeof(ps_sei_sii->au4_sub_layer_num_units_in_shutter_interval) /
+                    sizeof(ps_sei_sii->au4_sub_layer_num_units_in_shutter_interval[0]);
+                u2_payload_bits +=
+                    32 * sizeofSubLayer; /* sii sub layer num units in shutter interval */
+            }
+        }
+    }
+
+    u1_payload_bytes = (UWORD8) ((u2_payload_bits + 7) >> 3);
+    /************************************************************************/
+    /* PayloadSize : This is the size of the payload in bytes               */
+    /************************************************************************/
+    PUT_BITS(ps_bitstrm, u1_payload_bytes, 8, return_status, "u1_payload_bytes");
+
+    /*******************************************************************************/
+    /* Put the Shutter Interval Info SEI parameters into the bitstream.            */
+    /*******************************************************************************/
+
+    PUT_BITS_UEV(ps_bitstrm, ps_sei_sii->u4_sii_sub_layer_idx, return_status,
+                 "u4_sii_sub_layer_idx");
+
+    if(0 == ps_sei_sii->u4_sii_sub_layer_idx)
+    {
+        PUT_BITS(ps_bitstrm, ps_sei_sii->u1_shutter_interval_info_present_flag, 1, return_status,
+                 "u1_shutter_interval_info_present_flag");
+
+        if(1 == ps_sei_sii->u1_shutter_interval_info_present_flag)
+        {
+            PUT_BITS(ps_bitstrm, ps_sei_sii->u4_sii_time_scale, 32, return_status,
+                     "u4_sii_time_scale");
+            PUT_BITS(ps_bitstrm, ps_sei_sii->u1_fixed_shutter_interval_within_cvs_flag, 1,
+                     return_status, "u1_fixed_shutter_interval_within_cvs_flag");
+
+            if(1 == ps_sei_sii->u1_fixed_shutter_interval_within_cvs_flag)
+            {
+                PUT_BITS(ps_bitstrm, ps_sei_sii->u4_sii_num_units_in_shutter_interval, 32,
+                         return_status, "u4_sii_num_units_in_shutter_interval");
+            }
+            else
+            {
+                int i;
+                PUT_BITS(ps_bitstrm, ps_sei_sii->u1_sii_max_sub_layers_minus1, 3, return_status,
+                         "u1_sii_max_sub_layers_minus1");
+
+                for(i = 0; i <= ps_sei_sii->u1_sii_max_sub_layers_minus1; i++)
+                {
+                    PUT_BITS(ps_bitstrm, ps_sei_sii->au4_sub_layer_num_units_in_shutter_interval[i],
+                             32, return_status, "au4_sub_layer_num_units_in_shutter_interval[i]");
+                }
+            }
+        }
+    }
+    return (return_status);
+}
+
+/**
+******************************************************************************
+*
 *  @brief Generates SEI (Supplemental Enhancement Information )
 *
 *  @par   Description
@@ -431,6 +547,11 @@ IH264E_ERROR_T ih264e_put_sei_msg(IH264_SEI_TYPE e_payload_type,
     case IH264_SEI_CONTENT_COLOR_VOLUME :
          return_status = ih264e_put_sei_ccv_params(&(ps_sei_params->s_sei_ccv_params),
                                                     ps_bitstrm);
+         break;
+
+    case IH264_SEI_SHUTTER_INTERVAL_INFO:
+         return_status = ih264e_put_sei_sii_params(&(ps_sei_params->s_sei_sii_params), ps_bitstrm);
+
          break;
 
     default :
