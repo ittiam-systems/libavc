@@ -2534,8 +2534,6 @@ WORD32 isvcd_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv_
     memset(ps_svcd_ctxt, 0, sizeof(svc_dec_ctxt_t));
 
     ps_svcd_ctxt->u1_prev_num_res_layers = UINT8_MAX;
-    ps_svcd_ctxt->u1_num_sps_ctr = 0;
-    ps_svcd_ctxt->u1_num_pps_ctr = 0;
     ps_svcd_ctxt->u1_pre_parse_in_flush = 1;
     /* set default to maximum values supported */
     ps_svcd_ctxt->u1_tgt_dep_id = MAX_DEPENDENCY_ID;
@@ -4436,7 +4434,7 @@ WORD32 isvcd_dec_non_vcl(void *pv_out_non_vcl, void *pv_seq_params, void *pv_pic
                 if(!i_status)
                 {
                     ps_dec->i4_header_decoded |= 0x1;
-                    ps_svcd_ctxt->u1_num_sps_ctr++;
+                    ps_svcd_ctxt->u4_num_sps_ctr++;
                 }
 
                 if(i_status) return i_status;
@@ -4448,7 +4446,7 @@ WORD32 isvcd_dec_non_vcl(void *pv_out_non_vcl, void *pv_seq_params, void *pv_pic
 
                 if(!i_status)
                 {
-                    ps_svcd_ctxt->u1_num_sps_ctr++;
+                    ps_svcd_ctxt->u4_num_sps_ctr++;
                     ps_dec->i4_header_decoded |= 0x1;
                 }
                 if(i_status) return i_status;
@@ -4462,7 +4460,7 @@ WORD32 isvcd_dec_non_vcl(void *pv_out_non_vcl, void *pv_seq_params, void *pv_pic
                 if(!i_status)
                 {
                     ps_dec->i4_header_decoded |= 0x2;
-                    ps_svcd_ctxt->u1_num_pps_ctr++;
+                    ps_svcd_ctxt->u4_num_pps_ctr++;
                 }
                 break;
             case SEI_NAL:
@@ -4578,8 +4576,8 @@ WORD32 isvcd_pre_parse_refine_au(svc_dec_ctxt_t *ps_svcd_ctxt, ivd_video_decode_
     {
         i4_status = isvcd_seq_hdr_dec(ps_svcd_ctxt, ps_in_bufs, &u4_bytes_consumed);
 
-        if((VCL_NAL_FOUND_TRUE == i4_status) && (ps_svcd_ctxt->u1_num_sps_ctr != 0) &&
-           (ps_svcd_ctxt->u1_num_pps_ctr != 0))
+        if((VCL_NAL_FOUND_TRUE == i4_status) && (ps_svcd_ctxt->u4_num_sps_ctr != 0) &&
+           (ps_svcd_ctxt->u4_num_pps_ctr != 0))
         {
             /* set the header decoded flag */
             ps_dec->i4_header_decoded = 3;
@@ -5320,7 +5318,7 @@ WORD32 isvcd_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                     ps_svc_lyr_dec = ps_svcd_ctxt->ps_svc_dec_lyr + u1_num_res_lyrs - 1;
                     ps_dec = &ps_svc_lyr_dec->s_dec;
 
-                    if((0 == ps_svcd_ctxt->u1_num_sps_ctr) || (0 == ps_svcd_ctxt->u1_num_pps_ctr) ||
+                    if((0 == ps_svcd_ctxt->u4_num_sps_ctr) || (0 == ps_svcd_ctxt->u4_num_pps_ctr) ||
                        (NULL == ps_dec->ps_cur_pps))
                     {
                         ps_svcd_ctxt->u1_exit_till_next_IDR = 1;
@@ -6409,8 +6407,8 @@ WORD32 isvcd_reset(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ps_ctl_op->u4_error_code = 0;
 
     ps_svcd_ctxt->i4_eos_flag = 0;
-    ps_svcd_ctxt->u1_num_sps_ctr = 0;
-    ps_svcd_ctxt->u1_num_pps_ctr = 0;
+    ps_svcd_ctxt->u4_num_sps_ctr = 0;
+    ps_svcd_ctxt->u4_num_pps_ctr = 0;
     ps_svcd_ctxt->u1_pre_parse_in_flush = 1;
     for(u1_layer_id = 0; u1_layer_id < MAX_NUM_RES_LYRS; u1_layer_id++)
     {

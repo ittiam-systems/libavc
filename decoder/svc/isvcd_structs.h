@@ -714,8 +714,8 @@ typedef struct
 
     WORD32 i4_eos_flag;
     UWORD8 u1_prev_num_res_layers;
-    UWORD8 u1_num_sps_ctr;
-    UWORD8 u1_num_pps_ctr;
+    UWORD32 u4_num_sps_ctr;
+    UWORD32 u4_num_pps_ctr;
     UWORD8 u1_parse_nal_unit_error;
     UWORD8 u1_exit_till_next_IDR;
     UWORD8 u1_pre_parse_in_flush;
