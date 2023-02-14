@@ -564,9 +564,9 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
             return IVD_RES_CHANGED;
         }
         /* Check again for unsupported resolutions with updated values*/
-        if((u2_pic_wd > H264_MAX_FRAME_WIDTH) || (u2_pic_ht > H264_MAX_FRAME_HEIGHT) ||
-           (u2_pic_wd < H264_MIN_FRAME_WIDTH) || (u2_pic_ht < H264_MIN_FRAME_HEIGHT) ||
-           (u2_pic_wd * (UWORD32) u2_pic_ht > H264_MAX_FRAME_SIZE))
+        if((u2_pic_wd > SVCD_MAX_FRAME_WIDTH) || (u2_pic_ht > SVCD_MAX_FRAME_HEIGHT) ||
+           (u2_pic_wd < SVCD_MIN_FRAME_WIDTH) || (u2_pic_ht < SVCD_MIN_FRAME_HEIGHT) ||
+           (u2_pic_wd * (UWORD32) u2_pic_ht > SVCD_MAX_FRAME_SIZE))
         {
             return IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED;
         }
@@ -1540,9 +1540,9 @@ WORD32 isvcd_parse_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stream_t *p
             return IVD_RES_CHANGED;
         }
         /* Check again for unsupported resolutions with updated values*/
-        if((u2_pic_wd > H264_MAX_FRAME_WIDTH) || (u2_pic_ht > H264_MAX_FRAME_HEIGHT) ||
-           (u2_pic_wd < H264_MIN_FRAME_WIDTH) || (u2_pic_ht < H264_MIN_FRAME_HEIGHT) ||
-           (u2_pic_wd * (UWORD32) u2_pic_ht > H264_MAX_FRAME_SIZE))
+        if((u2_pic_wd > SVCD_MAX_FRAME_WIDTH) || (u2_pic_ht > SVCD_MAX_FRAME_HEIGHT) ||
+           (u2_pic_wd < SVCD_MIN_FRAME_WIDTH) || (u2_pic_ht < SVCD_MIN_FRAME_HEIGHT) ||
+           (u2_pic_wd * (UWORD32) u2_pic_ht > SVCD_MAX_FRAME_SIZE))
         {
             return IVD_STREAM_WIDTH_HEIGHT_NOT_SUPPORTED;
         }
