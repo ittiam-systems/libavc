@@ -399,19 +399,6 @@ IH264E_ERROR_T ih264e_put_sei_sii_params(sei_sii_params_t *ps_sei_sii, bitstrm_t
         return IH264E_FAIL;
     }
 
-    printf("ps_sei_sii->u4_sii_sub_layer_idx: %d\n", ps_sei_sii->u4_sii_sub_layer_idx);
-    printf("ps_sei_sii->u1_shutter_interval_info_present_flag: %d\n",
-           ps_sei_sii->u1_shutter_interval_info_present_flag);
-    printf("ps_sei_sii->u4_sii_time_scale: %d\n", ps_sei_sii->u4_sii_time_scale);
-    printf("ps_sei_sii->u1_fixed_shutter_interval_within_cvs_flag: %d\n",
-           ps_sei_sii->u1_fixed_shutter_interval_within_cvs_flag);
-    printf("ps_sei_sii->u4_sii_num_units_in_shutter_interval: %d\n",
-           ps_sei_sii->u4_sii_num_units_in_shutter_interval);
-    printf("ps_sei_sii->u1_sii_max_sub_layers_minus1: %d\n",
-           ps_sei_sii->u1_sii_max_sub_layers_minus1);
-    printf("ps_sei_sii->au4_sub_layer_num_units_in_shutter_interval[1]: %d\n",
-           ps_sei_sii->au4_sub_layer_num_units_in_shutter_interval[1]);
-
     if(0 == ps_sei_sii->u4_sii_sub_layer_idx)
     {
         u2_payload_bits += 1; /* shutter interval info present flag */
