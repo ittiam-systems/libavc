@@ -728,21 +728,6 @@ WORD32 ih264d_parse_sii(dec_bit_stream_t *ps_bitstrm, dec_struct_t *ps_dec,
         return ERROR_INV_SEI_SII_PARAMS;
     }
 
-    printf("ps_sei->s_sei_sii_params.u4_sii_sub_layer_idx: %d\n",
-           ps_sei->s_sei_sii_params.u4_sii_sub_layer_idx);
-    printf("ps_sei->s_sei_sii_params.u1_shutter_interval_info_present_flag: %d\n",
-           ps_sei->s_sei_sii_params.u1_shutter_interval_info_present_flag);
-    printf("ps_sei->s_sei_sii_params.u4_sii_time_scale: %d\n",
-           ps_sei->s_sei_sii_params.u4_sii_time_scale);
-    printf("ps_sei->s_sei_sii_params.u1_fixed_shutter_interval_within_cvs_flag: %d\n",
-           ps_sei->s_sei_sii_params.u1_fixed_shutter_interval_within_cvs_flag);
-    printf("ps_sei->s_sei_sii_params.u4_sii_num_units_in_shutter_interval: %d\n",
-           ps_sei->s_sei_sii_params.u4_sii_num_units_in_shutter_interval);
-    printf("ps_sei->s_sei_sii_params.u1_sii_max_sub_layers_minus1: %d\n",
-           ps_sei->s_sei_sii_params.u1_sii_max_sub_layers_minus1);
-    printf("ps_sei->s_sei_sii_params.au4_sub_layer_num_units_in_shutter_interval[1]: %d\n",
-           ps_sei->s_sei_sii_params.au4_sub_layer_num_units_in_shutter_interval[1]);
-
     ps_sei->u1_sei_sii_params_present_flag = 1;
     return (OK);
 }
