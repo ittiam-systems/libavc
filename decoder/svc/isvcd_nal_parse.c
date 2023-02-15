@@ -381,7 +381,9 @@ void isvcd_pic_reset_ctxt(nal_parse_ctxt_t *ps_nal_parse_ctxt)
 
     /* reset the bytes left to buffer size */
     ps_nal_parse_ctxt->u4_bytes_left_vcl = MAX_VCL_NAL_BUFF_SIZE;
-    ps_nal_parse_ctxt->u4_bytes_left_non_vcl = MAX_NON_VCL_NAL_BUFF_SIZE;
+
+    /* 85% of the buffer is used. 15% is used to handle error cases*/
+    ps_nal_parse_ctxt->u4_bytes_left_non_vcl = (MAX_NON_VCL_NAL_BUFF_SIZE * 0.85);
 
     /* Offset the buffer to start of vcl data */
     UPDATE_NAL_BUF_PTR(&ps_nal_parse_ctxt->pu1_non_vcl_nal_buf, NON_VCL_NAL,
