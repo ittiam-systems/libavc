@@ -5288,7 +5288,7 @@ WORD32 isvcd_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
                     ps_dec_op->u4_frame_decoded_flag = 0;
                     ret = isvcd_parse_nal_unit(ps_svc_lyr_dec, ps_cur_node->i4_nal_ref_idc);
-                    if(((ret != OK)) && (u1_res_id != (u1_num_res_lyrs - 1)))
+                    if(ret != OK)
                     {
                         ps_svcd_ctxt->u1_parse_nal_unit_error = 1;
                         break;

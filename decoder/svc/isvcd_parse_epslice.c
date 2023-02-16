@@ -3194,12 +3194,7 @@ WORD32 isvcd_parse_interlayer_resamp_func_init(svc_dec_lyr_struct_t *ps_svc_lyr_
 {
     dec_struct_t *ps_dec = &ps_svc_lyr_dec->s_dec;
     dec_slice_params_t *ps_slice = ps_dec->ps_cur_slice;
-    svc_dec_ctxt_t *ps_svcd_ctxt = ps_svc_lyr_dec->ps_svcd_ctxt;
     WORD32 ret = OK;
-    WORD32 num_mb_skipped;
-    WORD32 prev_slice_err;
-    pocstruct_t temp_poc;
-    WORD32 ht_in_mbs;
 
     if(TARGET_LAYER != ps_svc_lyr_dec->u1_layer_identifier)
     {
@@ -3207,9 +3202,6 @@ WORD32 isvcd_parse_interlayer_resamp_func_init(svc_dec_lyr_struct_t *ps_svc_lyr_
         ps_slice->i1_slice_alpha_c0_offset = ps_svc_lyr_dec->i1_inter_lyr_slice_alpha_c0_offset;
         ps_slice->i1_slice_beta_offset = ps_svc_lyr_dec->i1_inter_lyr_slice_beta_offset;
     }
-
-    ht_in_mbs = ps_dec->u2_pic_ht >> (4 + ps_dec->ps_cur_slice->u1_field_pic_flag);
-    num_mb_skipped = (ht_in_mbs * ps_dec->u2_frm_wd_in_mbs) - ps_dec->u2_total_mbs_coded;
 
     if(0 == u2_first_mb_in_slice)
     {
@@ -3224,21 +3216,6 @@ WORD32 isvcd_parse_interlayer_resamp_func_init(svc_dec_lyr_struct_t *ps_svc_lyr_
         if(ret != OK) return NOT_OK;
         ret = isvcd_residual_samp_res_init(ps_svc_lyr_dec);
         if(ret != OK) return NOT_OK;
-    }
-    if(ps_dec->u4_first_slice_in_pic && (ps_dec->u4_pic_buf_got == 0))
-        prev_slice_err = 1;
-    else
-        prev_slice_err = 2;
-
-    if(ps_dec->u4_first_slice_in_pic && (ps_dec->u2_total_mbs_coded == 0)) prev_slice_err = 1;
-
-    if((ps_svc_lyr_dec->u1_layer_identifier == TARGET_LAYER) &&
-       (1 == ps_svcd_ctxt->u1_parse_nal_unit_error))
-    {
-        ret = isvcd_mark_err_slice_skip(
-            ps_svc_lyr_dec, num_mb_skipped, ps_dec->u1_nal_unit_type == IDR_SLICE_NAL,
-            ps_dec->ps_cur_slice->u2_frame_num, &temp_poc, prev_slice_err);
-        return ret;
     }
 
     return ret;
