@@ -60,6 +60,10 @@
  */
 #define SII_MAX_SUB_LAYERS 8
 
+#define SEI_FGC_NUM_COLOUR_COMPONENTS 3
+#define SEI_FGC_MAX_NUM_MODEL_VALUES 6
+#define SEI_FGC_MAX_NUM_INTENSITY_INTERVALS 256
+
 /*****************************************************************************/
 /* Typedefs                                                                  */
 /*****************************************************************************/
@@ -396,6 +400,8 @@ typedef struct {
     UWORD8                                         u1_sei_ccv_params_present_flag;
 
     UWORD8 u1_sei_sii_params_present_flag;
+
+    UWORD8                                         u1_sei_fgc_params_present_flag;
 
 }ivd_sei_decode_op_t;
 

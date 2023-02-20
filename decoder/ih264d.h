@@ -293,7 +293,10 @@ typedef enum {
     IH264D_CMD_CTL_GET_SEI_CCV_PARAMS    = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x304,
 
     /** Get SEI SII parameters */
-    IH264D_CMD_CTL_GET_SEI_SII_PARAMS = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x305
+    IH264D_CMD_CTL_GET_SEI_SII_PARAMS = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x305,
+
+    /** Get SEI FGC parameters */
+    IH264D_CMD_CTL_GET_SEI_FGC_PARAMS    = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x306
 
 }IH264D_CMD_CTL_SUB_CMDS;
 /*****************************************************************************/
@@ -833,6 +836,24 @@ typedef struct
     /**
      * u4_size
      */
+    UWORD32                                     u4_size;
+
+    /**
+     * cmd
+     */
+    IVD_API_COMMAND_TYPE_T                      e_cmd;
+
+    /**
+     * sub_cmd
+     */
+    IVD_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
+}ih264d_ctl_get_sei_fgc_params_ip_t;
+
+typedef struct
+{
+    /**
+     * u4_size
+     */
     UWORD32 u4_size;
 
     /**
@@ -884,6 +905,124 @@ typedef struct
     UWORD32 au4_sub_layer_num_units_in_shutter_interval[SII_MAX_SUB_LAYERS];
 
 } ih264d_ctl_get_sei_sii_params_op_t;
+
+typedef struct
+{
+    /**
+     * u4_size
+     */
+    UWORD32 u4_size;
+
+    /**
+     * error_code
+     */
+    UWORD32 u4_error_code;
+
+    /**
+     * Flag to control the presence of FGC SEI params
+     */
+    UWORD8 u1_film_grain_characteristics_cancel_flag;
+
+    /**
+     * Specifies the pic order count
+     */
+    WORD32 i4_poc; 
+
+    /**
+     * Specifies IDR pic ID
+     */
+    UWORD32 u4_idr_pic_id;
+
+    /**
+     * Specifies film grain model for simulation
+     */
+    UWORD8 u1_film_grain_model_id;
+
+    /**
+     * Specifies separate color format for decoded samples and grain
+     */
+    UWORD8 u1_separate_colour_description_present_flag;
+
+    /**
+     * Specifies the bit depth used for the luma component
+     */
+    UWORD8 u1_film_grain_bit_depth_luma_minus8;
+
+    /**
+     * Specifies the bit depth used for the Cb and Cr components
+     */
+    UWORD8 u1_film_grain_bit_depth_chroma_minus8;
+
+    /**
+     * Specifies the colour space of the FGC in SEI
+     */
+    UWORD8 u1_film_grain_full_range_flag;
+
+    /**
+     * Specifies the colour space of the FGC in SEI
+     */
+    UWORD8 u1_film_grain_colour_primaries;
+
+    /**
+     * Specifies the colour space of the FGC in SEI
+     */
+    UWORD8 u1_film_grain_transfer_characteristics;
+
+    /**
+     * Specifies the colour space of the FGC in SEI
+     */
+    UWORD8 u1_film_grain_matrix_coefficients;
+
+    /**
+     * identifies the blending mode used to blend the simulated film grain with the decoded images
+     */
+    UWORD8 u1_blending_mode_id;
+
+    /**
+     * Specifies a scale factor used in the film grain characterization equations
+     */
+    UWORD8 u1_log2_scale_factor;
+
+    /**
+     * Indicates whether film grain is modelled or not on the colour component
+     */
+    UWORD8 au1_comp_model_present_flag[SEI_FGC_NUM_COLOUR_COMPONENTS];
+
+    /**
+     * Specifies the number of intensity intervals for which 
+     * a specific set of model values has been estimated
+     */
+    UWORD8 au1_num_intensity_intervals_minus1[SEI_FGC_NUM_COLOUR_COMPONENTS];
+
+    /**
+     * Specifies the number of model values present for each intensity interval in which 
+     * the film grain has been modelled
+     */
+    UWORD8 au1_num_model_values_minus1[SEI_FGC_NUM_COLOUR_COMPONENTS];
+
+    /**
+     * Specifies the lower bound of the interval of intensity levels for which 
+     * the set of model values applies
+     */
+    UWORD8 au1_intensity_interval_lower_bound[SEI_FGC_NUM_COLOUR_COMPONENTS][SEI_FGC_MAX_NUM_INTENSITY_INTERVALS];
+
+    /**
+     * Specifies the upper bound of the interval of intensity levels for which 
+     * the set of model values applies
+     */
+    UWORD8 au1_intensity_interval_upper_bound[SEI_FGC_NUM_COLOUR_COMPONENTS][SEI_FGC_MAX_NUM_INTENSITY_INTERVALS];
+
+    /**
+     * Represents each one of the model values present for 
+     * the colour component and intensity interval
+     */
+    WORD32 ai4_comp_model_value[SEI_FGC_NUM_COLOUR_COMPONENTS][SEI_FGC_MAX_NUM_INTENSITY_INTERVALS][SEI_FGC_MAX_NUM_MODEL_VALUES];
+
+    /**
+     * Specifies the persistence of the film grain characteristics SEI message
+     */
+    UWORD32 u4_film_grain_characteristics_repetition_period;
+}ih264d_ctl_get_sei_fgc_params_op_t;
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */
