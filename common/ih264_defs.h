@@ -785,4 +785,11 @@ typedef enum
 #define SUB_LAYER_NUM_UNITS_IN_SHUTTER_INTERVAL_HFR 480000
 #define SUB_LAYER_NUM_UNITS_IN_SHUTTER_INTERVAL_SFR 240000
 
+/*
+ * @brief Below macros related to film grain characteristics SEI
+ */
+#define SEI_FGC_NUM_COLOUR_COMPONENTS 3
+#define SEI_FGC_MAX_NUM_MODEL_VALUES 6
+#define SEI_FGC_MAX_NUM_INTENSITY_INTERVALS 256
+
 #endif /* IH264_DEFS_H_ */

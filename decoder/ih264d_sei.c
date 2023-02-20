@@ -734,6 +734,188 @@ WORD32 ih264d_parse_sii(dec_bit_stream_t *ps_bitstrm, dec_struct_t *ps_dec,
 
 /*****************************************************************************/
 /*                                                                           */
+/*  Function Name : ih264d_parse_fgc                                         */
+/*                                                                           */
+/*  Description   : This function parses SEI message film grain charcaristics*/
+/*  Inputs        : ps_bitstrm    Bitstream                                  */
+/*                  ps_dec          Poniter decoder context                  */
+/*                  ui4_payload_size pay load i4_size                        */
+/*  Globals       : None                                                     */
+/*  Processing    :                                                          */
+/*  Outputs       : None                                                     */
+/*  Return        : 0 for successfull parsing, else -1                       */
+/*                                                                           */
+/*  Issues        :                                                          */
+/*                                                                           */
+/*  Revision History:                                                        */
+/*                                                                           */
+/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
+/*                         Draft                                             */
+/*                                                                           */
+/*****************************************************************************/
+WORD32 ih264d_parse_fgc(dec_bit_stream_t *ps_bitstrm,
+                        dec_struct_t *ps_dec,
+                        UWORD32 ui4_payload_size)
+{
+  sei *ps_sei = ps_dec->ps_sei_parse;
+  dec_err_status_t *ps_err = ps_dec->ps_dec_err_status;
+  UWORD32 *pu4_bitstrm_ofst = &ps_bitstrm->u4_ofst;
+  UWORD32 *pu4_bitstrm_buf = ps_bitstrm->pu4_buffer;
+  UWORD32 u4_count;
+  WORD32 i4_luma_bitdepth, i4_chroma_bitdepth; 
+  UWORD32 c, i, j;
+  UNUSED(ui4_payload_size);
+
+  if((ps_dec == NULL) || (ps_sei == NULL))
+  {
+    return NOT_OK;
+  }
+
+  ps_sei->u1_sei_fgc_params_present_flag = 0;
+
+  ps_sei->s_sei_fgc_params.u1_film_grain_characteristics_cancel_flag = (UWORD8)ih264d_get_bit_h264(ps_bitstrm);
+
+  if(0 == ps_sei->s_sei_fgc_params.u1_film_grain_characteristics_cancel_flag)
+  {
+    ps_sei->s_sei_fgc_params.u1_film_grain_model_id =  (UWORD8)ih264d_get_bits_h264(ps_bitstrm, 2);
+    if(ps_sei->s_sei_fgc_params.u1_film_grain_model_id > 1)
+    {
+      return ERROR_INV_SEI_FGC_PARAMS;
+    }
+    ps_sei->s_sei_fgc_params.u1_separate_colour_description_present_flag = 
+      (UWORD8)ih264d_get_bit_h264(ps_bitstrm);
+
+    if(ps_sei->s_sei_fgc_params.u1_separate_colour_description_present_flag){
+      ps_sei->s_sei_fgc_params.u1_film_grain_bit_depth_luma_minus8 = 
+        (UWORD8)ih264d_get_bits_h264(ps_bitstrm, 3);
+       
+      i4_luma_bitdepth = ps_sei->s_sei_fgc_params.u1_film_grain_bit_depth_luma_minus8 + 8;
+
+      ps_sei->s_sei_fgc_params.u1_film_grain_bit_depth_chroma_minus8 = 
+        (UWORD8)ih264d_get_bits_h264(ps_bitstrm, 3);
+      
+      i4_chroma_bitdepth = ps_sei->s_sei_fgc_params.u1_film_grain_bit_depth_chroma_minus8 + 8;
+
+      ps_sei->s_sei_fgc_params.u1_film_grain_full_range_flag = 
+        (UWORD8)ih264d_get_bit_h264(ps_bitstrm);
+
+      ps_sei->s_sei_fgc_params.u1_film_grain_colour_primaries = 
+        (UWORD8)ih264d_get_bits_h264(ps_bitstrm, 8);
+
+      ps_sei->s_sei_fgc_params.u1_film_grain_transfer_characteristics = 
+        (UWORD8)ih264d_get_bits_h264(ps_bitstrm, 8);
+
+      ps_sei->s_sei_fgc_params.u1_film_grain_matrix_coefficients = 
+        (UWORD8)ih264d_get_bits_h264(ps_bitstrm, 8);
+    }
+    else
+    {
+        if(ps_dec->ps_cur_sps == NULL)
+        {
+            return NOT_OK;
+        }
+        i4_luma_bitdepth = ps_dec->ps_cur_sps->i4_bit_depth_luma_minus8 + 8;
+        i4_chroma_bitdepth = ps_dec->ps_cur_sps->i4_bit_depth_chroma_minus8 + 8;
+    }
+    ps_sei->s_sei_fgc_params.u1_blending_mode_id = 
+      (UWORD8)ih264d_get_bits_h264(ps_bitstrm, 2);
+
+    if(ps_sei->s_sei_fgc_params.u1_blending_mode_id > 1){
+      return ERROR_INV_SEI_FGC_PARAMS;
+    }
+
+    ps_sei->s_sei_fgc_params.u1_log2_scale_factor = 
+      (UWORD8)ih264d_get_bits_h264(ps_bitstrm, 4);
+
+    for(c = 0; c < SEI_FGC_NUM_COLOUR_COMPONENTS; c++){
+
+      ps_sei->s_sei_fgc_params.au1_comp_model_present_flag[c] = 
+        (UWORD8)ih264d_get_bit_h264(ps_bitstrm);
+    }
+
+
+    for(c = 0; c < SEI_FGC_NUM_COLOUR_COMPONENTS; c++){
+      if(ps_sei->s_sei_fgc_params.au1_comp_model_present_flag[c]){
+        ps_sei->s_sei_fgc_params.au1_num_intensity_intervals_minus1[c] = 
+          (UWORD8)ih264d_get_bits_h264(ps_bitstrm, 8);
+
+        ps_sei->s_sei_fgc_params.au1_num_model_values_minus1[c] = 
+          (UWORD8)ih264d_get_bits_h264(ps_bitstrm, 3);
+
+        if(ps_sei->s_sei_fgc_params.au1_num_model_values_minus1[c] > (SEI_FGC_MAX_NUM_MODEL_VALUES - 1)){
+          return ERROR_INV_SEI_FGC_PARAMS;
+        }
+
+        for(i = 0; i <= ps_sei->s_sei_fgc_params.au1_num_intensity_intervals_minus1[c]; i++){
+
+          ps_sei->s_sei_fgc_params.au1_intensity_interval_lower_bound[c][i] = 
+            (UWORD8)ih264d_get_bits_h264(ps_bitstrm, 8);
+
+          ps_sei->s_sei_fgc_params.au1_intensity_interval_upper_bound[c][i] = 
+            (UWORD8)ih264d_get_bits_h264(ps_bitstrm, 8);
+
+          for(j = 0; j <= ps_sei->s_sei_fgc_params.au1_num_model_values_minus1[c]; j++){
+
+            ps_sei->s_sei_fgc_params.ai4_comp_model_value[c][i][j] = 
+              (WORD32)ih264d_sev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+            if(0 == ps_sei->s_sei_fgc_params.u1_film_grain_model_id){
+                if((1 == j) || (2 == j)){
+                  if((ps_sei->s_sei_fgc_params.ai4_comp_model_value[c][i][j] < 0) || 
+                        (ps_sei->s_sei_fgc_params.ai4_comp_model_value[c][i][j] > 16))
+                      return ERROR_INV_SEI_FGC_PARAMS;
+                }
+                else if((3 == j) || (4 == j)){
+                  if((ps_sei->s_sei_fgc_params.ai4_comp_model_value[c][i][j] < 0) || 
+                        (ps_sei->s_sei_fgc_params.ai4_comp_model_value[c][i][j] > 
+                          ps_sei->s_sei_fgc_params.ai4_comp_model_value[c][i][j-2]))
+                      return ERROR_INV_SEI_FGC_PARAMS;
+                }
+                else{
+                      WORD32 max_lim = (c==0)?(1 << i4_luma_bitdepth) - 1:
+                                              (1 << i4_chroma_bitdepth) - 1;
+                      
+                      if((ps_sei->s_sei_fgc_params.ai4_comp_model_value[c][i][j] < 0) ||
+                        (ps_sei->s_sei_fgc_params.ai4_comp_model_value[c][i][j] > max_lim)){
+                      return ERROR_INV_SEI_FGC_PARAMS;
+                  }
+                    
+                }
+            }
+            else
+            {
+              WORD32 max_lim = (c==0)?(1 << (i4_luma_bitdepth -1)):
+                                      (1 << (i4_chroma_bitdepth -1));
+              
+              if((ps_sei->s_sei_fgc_params.ai4_comp_model_value[c][i][j] <  -max_lim) ||
+                  (ps_sei->s_sei_fgc_params.ai4_comp_model_value[c][i][j] >=  max_lim)){
+                return ERROR_INV_SEI_FGC_PARAMS;
+              }
+              
+            }
+          }
+
+        }
+      }
+    }
+
+    ps_sei->s_sei_fgc_params.u4_film_grain_characteristics_repetition_period = 
+      (UWORD32)ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+    
+    if(ps_sei->s_sei_fgc_params.u4_film_grain_characteristics_repetition_period  < 0 ||
+        ps_sei->s_sei_fgc_params.u4_film_grain_characteristics_repetition_period > 16384)
+    {
+      return ERROR_INV_SEI_FGC_PARAMS;
+    } 
+
+    ps_sei->u1_sei_fgc_params_present_flag = 1;
+  }
+  
+  return (OK);
+
+}
+
+/*****************************************************************************/
+/*                                                                           */
 /*  Function Name : ih264d_parse_sei_payload                                 */
 /*                                                                           */
 /*  Description   : This function parses SEI pay loads. Currently it's       */
@@ -812,6 +994,12 @@ WORD32 ih264d_parse_sei_payload(dec_bit_stream_t *ps_bitstrm,
         case SEI_SHUTTER_INTERVAL_INFO:
 
             i4_status = ih264d_parse_sii(ps_bitstrm, ps_dec, ui4_payload_size);
+            break;
+
+        case SEI_FILM_GRAIN_CHARACTERISTICS:
+            i4_status = ih264d_parse_fgc(ps_bitstrm,ps_dec,
+                                         ui4_payload_size);
+            
             break;
         default:
             i4_status = ih264d_flush_bits_h264(ps_bitstrm, (ui4_payload_size << 3));
@@ -1118,5 +1306,48 @@ WORD32 ih264d_export_sei_sii_params(ivd_sei_decode_op_t *ps_sei_decode_op, sei *
         memcpy(&ps_sei_export->s_sei_sii_params, &ps_sei->s_sei_sii_params,
                sizeof(sei_sii_params_t));
     }
+    return (OK);
+}
+
+/*****************************************************************************/
+/*                                                                           */
+/*  Function Name : ih264d_export_sei_fgc_params                             */
+/*                                                                           */
+/*  Description   : This function populates SEI film grain params in         */
+/*                     output structure                                      */
+/*  Inputs        : ps_sei_fgc_op pointer to sei fgc o\p struct              */
+/*                : ps_sei pointer to decoded sei params                     */
+/*  Outputs       :                                                          */
+/*  Returns       : returns 0 for success; -1 for failure                    */
+/*                                                                           */
+/*  Issues        : none                                                     */
+/*                                                                           */
+/*  Revision History:                                                        */
+/*                                                                           */
+/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
+/*                                                                           */
+/*                                                                           */
+/*****************************************************************************/
+WORD32 ih264d_export_sei_fgc_params(ivd_sei_decode_op_t *ps_sei_decode_op,
+    sei *ps_sei, sei *ps_sei_export)
+{
+    if((ps_sei_export == NULL) || (ps_sei == NULL))
+    {
+        return NOT_OK;
+    }
+
+    ps_sei_export->u1_sei_fgc_params_present_flag = ps_sei->u1_sei_fgc_params_present_flag;
+    ps_sei_decode_op->u1_sei_fgc_params_present_flag = ps_sei->u1_sei_fgc_params_present_flag;
+
+    if(0 == ps_sei_export->u1_sei_fgc_params_present_flag)
+    {
+        memset(&ps_sei_export->s_sei_fgc_params, 0, sizeof(sei_fgc_params_t));
+    }
+    else
+    {
+        memcpy(&ps_sei_export->s_sei_fgc_params, &ps_sei->s_sei_fgc_params,
+            sizeof(sei_fgc_params_t));
+    }
+
     return (OK);
 }
