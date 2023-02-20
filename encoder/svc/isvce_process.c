@@ -426,7 +426,7 @@ WORD32 isvce_update_rc_post_enc(isvce_codec_t *ps_codec, WORD32 ctxt_sel, WORD32
 
                 svc_au_data_t *ps_svc_au_data = ps_svc_ilp_data->ps_svc_au_data;
 
-                WORD32 i4_num_mbs = (ps_proc->i4_ht_mbs * ps_proc->i4_wd_mbs) / (MB_SIZE * MB_SIZE);
+                WORD32 i4_num_mbs = ps_proc->i4_ht_mbs * ps_proc->i4_wd_mbs;
 
                 ps_layer_data = &ps_svc_au_data->ps_svc_layer_data[ps_entropy->u1_spatial_layer_id];
 

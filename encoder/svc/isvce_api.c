@@ -3550,7 +3550,7 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
 
                 /* ps_mb_qp_ctxt */
                 ps_codec->as_process[i].s_entropy.ps_mb_qp_ctxt = (mb_qp_ctxt_t *) (pu1_buf + size);
-                size = ALIGN128(sizeof(ps_codec->as_process[i].s_entropy.ps_mb_qp_ctxt[0]));
+                size += ALIGN128(sizeof(ps_codec->as_process[i].s_entropy.ps_mb_qp_ctxt[0]));
 
                 offset = size;
 
