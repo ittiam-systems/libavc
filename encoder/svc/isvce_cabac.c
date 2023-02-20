@@ -252,6 +252,9 @@ void isvce_cabac_flush(isvce_cabac_ctxt_t *ps_cabac_ctxt)
         WORD32 bits_left;
         WORD32 rem_bits;
 
+        /* carry exists only if pu1_strm_buf has at least 1 byte of data */
+        carry = carry && (u4_strm_buf_offset > 0);
+
         if(carry)
         {
             /* CORNER CASE: if the previous data is 0x000003, then EPB will be
@@ -283,7 +286,10 @@ void isvce_cabac_flush(isvce_cabac_ctxt_t *ps_cabac_ctxt)
         }
 
         /*  clear the carry in low */
-        u4_low &= ((1 << (u4_bits_gen + CABAC_BITS)) - 1);
+        if(carry)
+        {
+            u4_low &= ((1 << (u4_bits_gen + CABAC_BITS)) - 1);
+        }
 
         /* extract the remaining bits;                                   */
         /* includes additional msb bit of low as per Figure 9-12      */
