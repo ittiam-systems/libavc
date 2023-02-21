@@ -460,8 +460,8 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
         ps_dec->u1_pic_buf_id = cur_pic_buf_id;
         ps_cur_pic->u4_ts = ps_dec->u4_ts;
 
-        /*Update POC and inter_pic_id in sei structure,
-         *later can be used by application for grain synthesis(SMPTE-RDD5)*/
+        /* Update POC and inter_pic_id in sei structure,
+         * later can be used by application for grain synthesis(SMPTE-RDD5) */
         if(ps_dec->ps_sei->u1_sei_fgc_params_present_flag)
         {
             ps_dec->ps_sei->s_sei_fgc_params.i4_poc = i4_poc;

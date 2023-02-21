@@ -260,7 +260,6 @@ typedef struct
     ivd_rel_display_frame_op_t                  s_ivd_rel_display_frame_op_t;
 }ih264d_rel_display_frame_op_t;
 
-
 typedef enum {
     /** Set number of cores/threads to be used */
     IH264D_CMD_CTL_SET_NUM_CORES         = IVD_CMD_CTL_CODEC_SUBCMD_START,
@@ -296,7 +295,7 @@ typedef enum {
     IH264D_CMD_CTL_GET_SEI_SII_PARAMS = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x305,
 
     /** Get SEI FGC parameters */
-    IH264D_CMD_CTL_GET_SEI_FGC_PARAMS    = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x306
+    IH264D_CMD_CTL_GET_SEI_FGC_PARAMS = IVD_CMD_CTL_CODEC_SUBCMD_START + 0x306
 
 }IH264D_CMD_CTL_SUB_CMDS;
 /*****************************************************************************/
@@ -836,24 +835,6 @@ typedef struct
     /**
      * u4_size
      */
-    UWORD32                                     u4_size;
-
-    /**
-     * cmd
-     */
-    IVD_API_COMMAND_TYPE_T                      e_cmd;
-
-    /**
-     * sub_cmd
-     */
-    IVD_CONTROL_API_COMMAND_TYPE_T              e_sub_cmd;
-}ih264d_ctl_get_sei_fgc_params_ip_t;
-
-typedef struct
-{
-    /**
-     * u4_size
-     */
     UWORD32 u4_size;
 
     /**
@@ -914,6 +895,24 @@ typedef struct
     UWORD32 u4_size;
 
     /**
+     * cmd
+     */
+    IVD_API_COMMAND_TYPE_T e_cmd;
+
+    /**
+     * sub_cmd
+     */
+    IVD_CONTROL_API_COMMAND_TYPE_T e_sub_cmd;
+} ih264d_ctl_get_sei_fgc_params_ip_t;
+
+typedef struct
+{
+    /**
+     * u4_size
+     */
+    UWORD32 u4_size;
+
+    /**
      * error_code
      */
     UWORD32 u4_error_code;
@@ -926,7 +925,7 @@ typedef struct
     /**
      * Specifies the pic order count
      */
-    WORD32 i4_poc; 
+    WORD32 i4_poc;
 
     /**
      * Specifies IDR pic ID
@@ -989,40 +988,43 @@ typedef struct
     UWORD8 au1_comp_model_present_flag[SEI_FGC_NUM_COLOUR_COMPONENTS];
 
     /**
-     * Specifies the number of intensity intervals for which 
+     * Specifies the number of intensity intervals for which
      * a specific set of model values has been estimated
      */
     UWORD8 au1_num_intensity_intervals_minus1[SEI_FGC_NUM_COLOUR_COMPONENTS];
 
     /**
-     * Specifies the number of model values present for each intensity interval in which 
+     * Specifies the number of model values present for each intensity interval in which
      * the film grain has been modelled
      */
     UWORD8 au1_num_model_values_minus1[SEI_FGC_NUM_COLOUR_COMPONENTS];
 
     /**
-     * Specifies the lower bound of the interval of intensity levels for which 
+     * Specifies the lower bound of the interval of intensity levels for which
      * the set of model values applies
      */
-    UWORD8 au1_intensity_interval_lower_bound[SEI_FGC_NUM_COLOUR_COMPONENTS][SEI_FGC_MAX_NUM_INTENSITY_INTERVALS];
+    UWORD8 au1_intensity_interval_lower_bound[SEI_FGC_NUM_COLOUR_COMPONENTS]
+                                             [SEI_FGC_MAX_NUM_INTENSITY_INTERVALS];
 
     /**
-     * Specifies the upper bound of the interval of intensity levels for which 
+     * Specifies the upper bound of the interval of intensity levels for which
      * the set of model values applies
      */
-    UWORD8 au1_intensity_interval_upper_bound[SEI_FGC_NUM_COLOUR_COMPONENTS][SEI_FGC_MAX_NUM_INTENSITY_INTERVALS];
+    UWORD8 au1_intensity_interval_upper_bound[SEI_FGC_NUM_COLOUR_COMPONENTS]
+                                             [SEI_FGC_MAX_NUM_INTENSITY_INTERVALS];
 
     /**
-     * Represents each one of the model values present for 
+     * Represents each one of the model values present for
      * the colour component and intensity interval
      */
-    WORD32 ai4_comp_model_value[SEI_FGC_NUM_COLOUR_COMPONENTS][SEI_FGC_MAX_NUM_INTENSITY_INTERVALS][SEI_FGC_MAX_NUM_MODEL_VALUES];
+    WORD32 ai4_comp_model_value[SEI_FGC_NUM_COLOUR_COMPONENTS][SEI_FGC_MAX_NUM_INTENSITY_INTERVALS]
+                               [SEI_FGC_MAX_NUM_MODEL_VALUES];
 
     /**
      * Specifies the persistence of the film grain characteristics SEI message
      */
     UWORD32 u4_film_grain_characteristics_repetition_period;
-}ih264d_ctl_get_sei_fgc_params_op_t;
+} ih264d_ctl_get_sei_fgc_params_op_t;
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

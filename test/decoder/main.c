@@ -1913,7 +1913,7 @@ void flush_output(iv_obj_t *codec_obj,
                     }
                 }
 
-/*************************************************************************/
+                /*************************************************************************/
                 /* Get SEI film grain parameters                                                */
                 /*************************************************************************/
                 if(1 == ps_video_decode_op->s_sei_decode_op.u1_sei_fgc_params_present_flag)
@@ -1922,26 +1922,26 @@ void flush_output(iv_obj_t *codec_obj,
                     ih264d_ctl_get_sei_fgc_params_op_t s_ctl_get_sei_fgc_params_op;
 
                     memset(&s_ctl_get_sei_fgc_params_ip, 0,
-                                        sizeof(ih264d_ctl_get_sei_fgc_params_ip_t));
+                           sizeof(ih264d_ctl_get_sei_fgc_params_ip_t));
                     memset(&s_ctl_get_sei_fgc_params_op, 0,
-                                        sizeof(ih264d_ctl_get_sei_fgc_params_op_t));
+                           sizeof(ih264d_ctl_get_sei_fgc_params_op_t));
 
                     s_ctl_get_sei_fgc_params_ip.e_cmd = IVD_CMD_VIDEO_CTL;
                     s_ctl_get_sei_fgc_params_ip.e_sub_cmd =
-                            (IVD_CONTROL_API_COMMAND_TYPE_T)IH264D_CMD_CTL_GET_SEI_FGC_PARAMS;
+                        (IVD_CONTROL_API_COMMAND_TYPE_T) IH264D_CMD_CTL_GET_SEI_FGC_PARAMS;
                     s_ctl_get_sei_fgc_params_ip.u4_size =
-                            sizeof(ih264d_ctl_get_sei_fgc_params_ip_t);
+                        sizeof(ih264d_ctl_get_sei_fgc_params_ip_t);
                     s_ctl_get_sei_fgc_params_op.u4_size =
-                            sizeof(ih264d_ctl_get_sei_fgc_params_op_t);
+                        sizeof(ih264d_ctl_get_sei_fgc_params_op_t);
 
-                    ret = ivd_api_function((iv_obj_t *)codec_obj,
-                                            (void *)&s_ctl_get_sei_fgc_params_ip,
-                                            (void *)&s_ctl_get_sei_fgc_params_op);
-                 
+                    ret = ivd_api_function((iv_obj_t *) codec_obj,
+                                           (void *) &s_ctl_get_sei_fgc_params_ip,
+                                           (void *) &s_ctl_get_sei_fgc_params_op);
+
                     if(IV_SUCCESS != ret)
                     {
                         printf("FGC SEI params not present : Error %x\n",
-                                s_ctl_get_sei_fgc_params_op.u4_error_code);
+                               s_ctl_get_sei_fgc_params_op.u4_error_code);
                     }
                 }
 
@@ -3472,27 +3472,23 @@ int main(WORD32 argc, CHAR *argv[])
                 ih264d_ctl_get_sei_fgc_params_ip_t s_ctl_get_sei_fgc_params_ip;
                 ih264d_ctl_get_sei_fgc_params_op_t s_ctl_get_sei_fgc_params_op;
 
-                memset(&s_ctl_get_sei_fgc_params_ip, 0,
-                                        sizeof(ih264d_ctl_get_sei_fgc_params_ip_t));
-                memset(&s_ctl_get_sei_fgc_params_op, 0,
-                                        sizeof(ih264d_ctl_get_sei_fgc_params_op_t));
+                memset(&s_ctl_get_sei_fgc_params_ip, 0, sizeof(ih264d_ctl_get_sei_fgc_params_ip_t));
+                memset(&s_ctl_get_sei_fgc_params_op, 0, sizeof(ih264d_ctl_get_sei_fgc_params_op_t));
 
                 s_ctl_get_sei_fgc_params_ip.e_cmd = IVD_CMD_VIDEO_CTL;
                 s_ctl_get_sei_fgc_params_ip.e_sub_cmd =
-                        (IVD_CONTROL_API_COMMAND_TYPE_T)IH264D_CMD_CTL_GET_SEI_FGC_PARAMS;
-                s_ctl_get_sei_fgc_params_ip.u4_size =
-                        sizeof(ih264d_ctl_get_sei_fgc_params_ip_t);
-                s_ctl_get_sei_fgc_params_op.u4_size =
-                        sizeof(ih264d_ctl_get_sei_fgc_params_op_t);
+                    (IVD_CONTROL_API_COMMAND_TYPE_T) IH264D_CMD_CTL_GET_SEI_FGC_PARAMS;
+                s_ctl_get_sei_fgc_params_ip.u4_size = sizeof(ih264d_ctl_get_sei_fgc_params_ip_t);
+                s_ctl_get_sei_fgc_params_op.u4_size = sizeof(ih264d_ctl_get_sei_fgc_params_op_t);
 
-                ret = ivd_api_function((iv_obj_t *)codec_obj,
-                                        (void *)&s_ctl_get_sei_fgc_params_ip,
-                                        (void *)&s_ctl_get_sei_fgc_params_op);
+                ret =
+                    ivd_api_function((iv_obj_t *) codec_obj, (void *) &s_ctl_get_sei_fgc_params_ip,
+                                     (void *) &s_ctl_get_sei_fgc_params_op);
 
                 if(IV_SUCCESS != ret)
                 {
                     printf("FGC SEI params not present : Error %x\n",
-                            s_ctl_get_sei_fgc_params_op.u4_error_code);
+                           s_ctl_get_sei_fgc_params_op.u4_error_code);
                 }
             }
 

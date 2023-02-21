@@ -130,10 +130,11 @@ void ih264d_get_pre_sei_params(dec_struct_t *ps_dec, UWORD8 u1_nal_unit_type)
         ps_dec->ps_sei->s_sei_sii_params = ps_dec->ps_sei_parse->s_sei_sii_params;
     }
 
-    if(NULL != ps_dec->ps_sei){
-      ps_dec->ps_sei->u1_sei_fgc_params_present_flag =
-        ps_dec->ps_sei_parse->u1_sei_fgc_params_present_flag;
-      ps_dec->ps_sei->s_sei_fgc_params = ps_dec->ps_sei_parse->s_sei_fgc_params;
+    if(NULL != ps_dec->ps_sei)
+    {
+        ps_dec->ps_sei->u1_sei_fgc_params_present_flag =
+            ps_dec->ps_sei_parse->u1_sei_fgc_params_present_flag;
+        ps_dec->ps_sei->s_sei_fgc_params = ps_dec->ps_sei_parse->s_sei_fgc_params;
     }
 
     ps_dec->ps_sei_parse->u1_sei_mdcv_params_present_flag = 0;
