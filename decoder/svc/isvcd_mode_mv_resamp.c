@@ -3024,8 +3024,8 @@ WORD32 isvcd_compute_scaled_offsets(res_prms_t *ps_curr_res_prms, res_prms_t *ps
                  i4_scaled_ref_lyr_height;
 
     /* calcualte the values to be added based on left and top offset */
-    i4_scale_add_x = (1 << (i4_shift_x - 1)) - i4_offset_x * i4_scale_x;
-    i4_scale_add_y = (1 << (i4_shift_y - 1)) - i4_offset_y * i4_scale_y;
+    i4_scale_add_x = (1 << (i4_shift_x - 1)) - (i4_offset_x * (WORD32) i4_scale_x);
+    i4_scale_add_y = (1 << (i4_shift_y - 1)) - (i4_offset_y * (WORD32) i4_scale_y);
 
     /* derive the projected locations in the reference layer */
     for(i4_cntr = 0; i4_cntr < i4_curr_lyr_width; i4_cntr++)
