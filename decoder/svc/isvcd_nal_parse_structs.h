@@ -97,7 +97,10 @@ static __inline void UPDATE_NAL_BUF_PTR(UWORD8 **ppu1_buf, WORD32 i4_derived_nal
     pu1_buf_ptr += u4_inc;
 
     /* Update the pointers */
+    if(*pu4_bytes_left >= u4_inc)
+    {
     *pu4_bytes_left -= u4_inc;
+    }
     *ppu1_buf = pu1_buf_ptr;
 }
 

@@ -603,7 +603,8 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
         COPYTHECONTEXT("SPS_EXt: u1_extended_spatial_scalability_idc",
                        ps_seq_svc_ext->u1_extended_spatial_scalability_idc);
 
-        if(ps_seq_svc_ext->u1_extended_spatial_scalability_idc >= 3)
+        /* u1_extended_spatial_scalability_idc value 0 is supported*/
+        if(ps_seq_svc_ext->u1_extended_spatial_scalability_idc != 0)
         {
             return ERROR_SVC_INV_SUBSET_SPS;
         }
