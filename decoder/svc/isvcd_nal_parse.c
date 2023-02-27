@@ -2040,7 +2040,7 @@ WORD32 isvcd_nal_parse_vcl_nal_partial(void *pv_nal_parse_ctxt, UWORD8 *pu1_stre
         {
             ppu1_out_buf = &ps_nal_parse_ctxt->pu1_vcl_nal_buf;
             pu4_bytes_left = &ps_nal_parse_ctxt->u4_bytes_left_vcl;
-            if(*pu4_bytes_left < MAX_VCL_NAL_BUFF_SIZE * 0.05)
+            if(*pu4_bytes_left < (MAX_VCL_NAL_BUFF_SIZE * 0.05))
             {
                 return (VCL_NAL_FOUND_FALSE);
             }
@@ -2049,7 +2049,7 @@ WORD32 isvcd_nal_parse_vcl_nal_partial(void *pv_nal_parse_ctxt, UWORD8 *pu1_stre
         {
             ppu1_out_buf = &ps_nal_parse_ctxt->pu1_non_vcl_nal_buf;
             pu4_bytes_left = &ps_nal_parse_ctxt->u4_bytes_left_non_vcl;
-            if(*pu4_bytes_left < MAX_NON_VCL_NAL_BUFF_SIZE * 0.05)
+            if(*pu4_bytes_left < (MAX_NON_VCL_NAL_BUFF_SIZE * 0.05))
             {
                 return (VCL_NAL_FOUND_FALSE);
             }
@@ -2336,7 +2336,7 @@ WORD32 isvcd_nal_parse_non_vcl_nal(void *pv_nal_parse_ctxt, UWORD8 *pu1_stream_b
         {
             ppu1_out_buf = &ps_nal_parse_ctxt->pu1_vcl_nal_buf;
             pu4_bytes_left = &ps_nal_parse_ctxt->u4_bytes_left_vcl;
-            if(*pu4_bytes_left < MAX_VCL_NAL_BUFF_SIZE * 0.05)
+            if(*pu4_bytes_left < (MAX_VCL_NAL_BUFF_SIZE * 0.05))
             {
                 return (VCL_NAL_FOUND_FALSE);
             }
@@ -2345,7 +2345,7 @@ WORD32 isvcd_nal_parse_non_vcl_nal(void *pv_nal_parse_ctxt, UWORD8 *pu1_stream_b
         {
             ppu1_out_buf = &ps_nal_parse_ctxt->pu1_non_vcl_nal_buf;
             pu4_bytes_left = &ps_nal_parse_ctxt->u4_bytes_left_non_vcl;
-            if(*pu4_bytes_left < MAX_NON_VCL_NAL_BUFF_SIZE * 0.05)
+            if(*pu4_bytes_left < (MAX_NON_VCL_NAL_BUFF_SIZE * 0.05))
             {
                 return (VCL_NAL_FOUND_FALSE);
             }
