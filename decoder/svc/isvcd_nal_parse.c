@@ -382,8 +382,7 @@ void isvcd_pic_reset_ctxt(nal_parse_ctxt_t *ps_nal_parse_ctxt)
     /* reset the bytes left to buffer size */
     ps_nal_parse_ctxt->u4_bytes_left_vcl = MAX_VCL_NAL_BUFF_SIZE;
 
-    /* 85% of the buffer is used. 15% is used to handle error cases*/
-    ps_nal_parse_ctxt->u4_bytes_left_non_vcl = (MAX_NON_VCL_NAL_BUFF_SIZE * 0.85);
+    ps_nal_parse_ctxt->u4_bytes_left_non_vcl = MAX_NON_VCL_NAL_BUFF_SIZE;
 
     /* Offset the buffer to start of vcl data */
     UPDATE_NAL_BUF_PTR(&ps_nal_parse_ctxt->pu1_non_vcl_nal_buf, NON_VCL_NAL,
@@ -2041,11 +2040,19 @@ WORD32 isvcd_nal_parse_vcl_nal_partial(void *pv_nal_parse_ctxt, UWORD8 *pu1_stre
         {
             ppu1_out_buf = &ps_nal_parse_ctxt->pu1_vcl_nal_buf;
             pu4_bytes_left = &ps_nal_parse_ctxt->u4_bytes_left_vcl;
+            if(*pu4_bytes_left < MAX_VCL_NAL_BUFF_SIZE * 0.05)
+            {
+                return (VCL_NAL_FOUND_FALSE);
+            }
         }
         else
         {
             ppu1_out_buf = &ps_nal_parse_ctxt->pu1_non_vcl_nal_buf;
             pu4_bytes_left = &ps_nal_parse_ctxt->u4_bytes_left_non_vcl;
+            if(*pu4_bytes_left < MAX_NON_VCL_NAL_BUFF_SIZE * 0.05)
+            {
+                return (VCL_NAL_FOUND_FALSE);
+            }
         }
 
         /* if 0 bytes left then discard the current NAL */
@@ -2329,11 +2336,19 @@ WORD32 isvcd_nal_parse_non_vcl_nal(void *pv_nal_parse_ctxt, UWORD8 *pu1_stream_b
         {
             ppu1_out_buf = &ps_nal_parse_ctxt->pu1_vcl_nal_buf;
             pu4_bytes_left = &ps_nal_parse_ctxt->u4_bytes_left_vcl;
+            if(*pu4_bytes_left < MAX_VCL_NAL_BUFF_SIZE * 0.05)
+            {
+                return (VCL_NAL_FOUND_FALSE);
+            }
         }
         else
         {
             ppu1_out_buf = &ps_nal_parse_ctxt->pu1_non_vcl_nal_buf;
             pu4_bytes_left = &ps_nal_parse_ctxt->u4_bytes_left_non_vcl;
+            if(*pu4_bytes_left < MAX_NON_VCL_NAL_BUFF_SIZE * 0.05)
+            {
+                return (VCL_NAL_FOUND_FALSE);
+            }
         }
 
         /* if 0 bytes left then discard the current NAL */
