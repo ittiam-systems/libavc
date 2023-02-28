@@ -2768,13 +2768,6 @@ WORD32 isvcd_mark_err_slice_skip(svc_dec_lyr_struct_t *ps_svc_lyr_dec, WORD32 nu
 
             if(ps_dec->u1_separate_parse == 1)
             {
-                if(ps_dec->u4_dec_thread_created == 0)
-                {
-                    ithread_create(ps_dec->pv_dec_thread_handle, NULL,
-                                   (void *) ih264d_decode_picture_thread, (void *) ps_dec);
-
-                    ps_dec->u4_dec_thread_created = 1;
-                }
 #ifdef KEEP_THREADS_ACTIVE
                 ret = ithread_mutex_lock(ps_dec->apv_proc_start_mutex[0]);
                 RETURN_IF((ret != IV_SUCCESS), ret);
