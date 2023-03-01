@@ -603,8 +603,8 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
         COPYTHECONTEXT("SPS_EXt: u1_extended_spatial_scalability_idc",
                        ps_seq_svc_ext->u1_extended_spatial_scalability_idc);
 
-        /* u1_extended_spatial_scalability_idc value 0 is supported*/
-        if(ps_seq_svc_ext->u1_extended_spatial_scalability_idc != 0)
+        /* u1_extended_spatial_scalability_idc value 0, 1 and 2 are supported */
+        if(ps_seq_svc_ext->u1_extended_spatial_scalability_idc > 2)
         {
             return ERROR_SVC_INV_SUBSET_SPS;
         }
@@ -661,6 +661,11 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
             COPYTHECONTEXT("SPS_EXt: i4_seq_scaled_ref_layer_left_offset",
                            ps_seq_svc_ext->i4_seq_scaled_ref_layer_left_offset);
 
+            if(ps_seq_svc_ext->i4_seq_scaled_ref_layer_left_offset != 0)
+            {
+                return ERROR_SVC_INV_SUBSET_SPS;
+            }
+
             if(ps_seq_svc_ext->i4_seq_scaled_ref_layer_left_offset >= MAX_SCLD_REF_LAYER_OFFSET ||
                ps_seq_svc_ext->i4_seq_scaled_ref_layer_left_offset < MIN_SCLD_REF_LAYER_OFFSET)
             {
@@ -671,6 +676,11 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
                 ih264d_sev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
             COPYTHECONTEXT("SPS_EXt: i4_seq_scaled_ref_layer_top_offset",
                            ps_seq_svc_ext->i4_seq_scaled_ref_layer_top_offset);
+
+            if(ps_seq_svc_ext->i4_seq_scaled_ref_layer_top_offset != 0)
+            {
+                return ERROR_SVC_INV_SUBSET_SPS;
+            }
 
             if(ps_seq_svc_ext->i4_seq_scaled_ref_layer_top_offset >= MAX_SCLD_REF_LAYER_OFFSET ||
                ps_seq_svc_ext->i4_seq_scaled_ref_layer_top_offset < MIN_SCLD_REF_LAYER_OFFSET)

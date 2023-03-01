@@ -1719,6 +1719,11 @@ WORD32 isvcd_parse_slice_header(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
             COPYTHECONTEXT("Slice Header SVC ext: i4_scaled_ref_layer_left_offset",
                            ps_svc_slice_params->i4_scaled_ref_layer_left_offset);
 
+            if(ps_svc_slice_params->i4_scaled_ref_layer_left_offset != 0)
+            {
+                return ERROR_INV_SLICE_HDR_T;
+            }
+
             if(ps_svc_slice_params->i4_scaled_ref_layer_left_offset >= MAX_SCLD_REF_LAYER_OFFSET ||
                ps_svc_slice_params->i4_scaled_ref_layer_left_offset < MIN_SCLD_REF_LAYER_OFFSET)
             {
@@ -1729,6 +1734,11 @@ WORD32 isvcd_parse_slice_header(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
                 ih264d_sev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
             COPYTHECONTEXT("Slice Header SVC ext: i4_scaled_ref_layer_top_offset",
                            ps_svc_slice_params->i4_scaled_ref_layer_top_offset);
+
+            if(ps_svc_slice_params->i4_scaled_ref_layer_top_offset != 0)
+            {
+                return ERROR_INV_SLICE_HDR_T;
+            }
 
             if(ps_svc_slice_params->i4_scaled_ref_layer_top_offset >= MAX_SCLD_REF_LAYER_OFFSET ||
                ps_svc_slice_params->i4_scaled_ref_layer_top_offset < MIN_SCLD_REF_LAYER_OFFSET)
