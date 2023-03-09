@@ -158,12 +158,6 @@ cc_defaults {
         },
         blocklist: "libavc_blocklist.txt",
     },
-
-    apex_available: [
-        "//apex_available:platform", //due to libstagefright_soft_avcenc
-        "com.android.media.swcodec",
-    ],
-    min_sdk_version: "29",
 }
 
 cc_defaults {
@@ -658,6 +652,12 @@ cc_library_static {
             ],
         },
     },
+
+    apex_available: [
+        "//apex_available:platform", //due to libstagefright_soft_avcenc
+        "com.android.media.swcodec",
+    ],
+    min_sdk_version: "29",
 }
 
 cc_library_static {

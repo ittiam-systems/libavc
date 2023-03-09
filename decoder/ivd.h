@@ -399,9 +399,9 @@ typedef struct {
 
     UWORD8                                         u1_sei_ccv_params_present_flag;
 
-    UWORD8 u1_sei_sii_params_present_flag;
+    UWORD8                                         u1_sei_sii_params_present_flag;
 
-    UWORD8 u1_sei_fgc_params_present_flag;
+    UWORD8                                         u1_sei_fgc_params_present_flag;
 
 }ivd_sei_decode_op_t;
 
