@@ -263,7 +263,7 @@ void isvce_cabac_flush(isvce_cabac_ctxt_t *ps_cabac_ctxt)
              is not correct as per standard */
             /* so check for previous four bytes and if it is equal to 0x00000303
              then subtract u4_strm_buf_offset by 1 */
-            if(pu1_strm_buf[u4_strm_buf_offset - 1] == 0x03 &&
+            if((u4_strm_buf_offset >= 4) && pu1_strm_buf[u4_strm_buf_offset - 1] == 0x03 &&
                pu1_strm_buf[u4_strm_buf_offset - 2] == 0x03 &&
                pu1_strm_buf[u4_strm_buf_offset - 3] == 0x00 &&
                pu1_strm_buf[u4_strm_buf_offset - 4] == 0x00)
