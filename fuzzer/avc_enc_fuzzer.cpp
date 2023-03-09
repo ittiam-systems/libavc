@@ -843,8 +843,8 @@ void Codec::setSeiSiiParams() {
         sSeiSiiParamsIp.u1_fixed_shutter_interval_within_cvs_flag = 0;
         sSeiSiiParamsIp.u4_sii_num_units_in_shutter_interval = 480000;
         sSeiSiiParamsIp.u1_sii_max_sub_layers_minus1 = 7;
-        for(int i4_count = 0; i4_count <= sSeiSiiParamsIp.u1_sii_max_sub_layers_minus1; ++i4_count) {
-            sSeiSiiParamsIp.au4_sub_layer_num_units_in_shutter_interval[i4_count] = 480000;
+        for(int count = 0; count <= sSeiSiiParamsIp.u1_sii_max_sub_layers_minus1; ++count) {
+            sSeiSiiParamsIp.au4_sub_layer_num_units_in_shutter_interval[count] = 480000;
         }
         sSeiSiiParamsIp.au4_sub_layer_num_units_in_shutter_interval
             [sSeiSiiParamsIp.u1_sii_max_sub_layers_minus1] = 240000;

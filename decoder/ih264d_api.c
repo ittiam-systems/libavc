@@ -490,10 +490,10 @@ static IV_API_CALL_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                                  ps_ip->s_ivd_video_decode_ip_t.u4_num_Bytes);
             ps_op->s_ivd_video_decode_op_t.u4_error_code = 0;
 
-            if(ps_ip->s_ivd_video_decode_ip_t.u4_size
-                            != sizeof(ih264d_video_decode_ip_t) &&
-                            ps_ip->s_ivd_video_decode_ip_t.u4_size != sizeof(ivd_video_decode_ip_t) &&
-                            ps_ip->s_ivd_video_decode_ip_t.u4_size != offsetof(ivd_video_decode_ip_t, s_out_buffer))
+            if(ps_ip->s_ivd_video_decode_ip_t.u4_size != sizeof(ih264d_video_decode_ip_t) &&
+               ps_ip->s_ivd_video_decode_ip_t.u4_size != sizeof(ivd_video_decode_ip_t) &&
+               ps_ip->s_ivd_video_decode_ip_t.u4_size !=
+                   offsetof(ivd_video_decode_ip_t, s_out_buffer))
             {
                 ps_op->s_ivd_video_decode_op_t.u4_error_code |= 1
                                 << IVD_UNSUPPORTEDPARAM;
@@ -502,10 +502,10 @@ static IV_API_CALL_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                 return (IV_FAIL);
             }
 
-            if(ps_op->s_ivd_video_decode_op_t.u4_size
-                            != sizeof(ih264d_video_decode_op_t) &&
-                            ps_op->s_ivd_video_decode_op_t.u4_size != sizeof(ivd_video_decode_op_t) &&
-                            ps_op->s_ivd_video_decode_op_t.u4_size != offsetof(ivd_video_decode_op_t, u4_output_present))
+            if(ps_op->s_ivd_video_decode_op_t.u4_size != sizeof(ih264d_video_decode_op_t) &&
+               ps_op->s_ivd_video_decode_op_t.u4_size != sizeof(ivd_video_decode_op_t) &&
+               ps_op->s_ivd_video_decode_op_t.u4_size !=
+                   offsetof(ivd_video_decode_op_t, u4_output_present))
             {
                 ps_op->s_ivd_video_decode_op_t.u4_error_code |= 1
                                 << IVD_UNSUPPORTEDPARAM;
