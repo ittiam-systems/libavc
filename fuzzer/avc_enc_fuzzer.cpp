@@ -20,6 +20,7 @@
 #include <malloc.h>
 #include <algorithm>
 #include <string.h>
+#include <tuple>
 #include <vector>
 
 #include "ih264_defs.h"
