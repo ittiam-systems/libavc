@@ -25,8 +25,9 @@ mkdir -p ${build_dir}
 
 pushd ${build_dir}
 cmake ${SRC}/libavc -DENABLE_SVC=1 -DENABLE_MVC=1
-make -j$(nproc) avc_dec_fuzzer svc_dec_fuzzer svc_enc_fuzzer
+make -j$(nproc) avc_dec_fuzzer avc_enc_fuzzer svc_dec_fuzzer svc_enc_fuzzer
 cp ${build_dir}/avc_dec_fuzzer $OUT/
+cp ${build_dir}/avc_enc_fuzzer $OUT/
 cp ${build_dir}/svc_dec_fuzzer $OUT/
 cp ${build_dir}/svc_enc_fuzzer $OUT/
 popd
