@@ -518,6 +518,37 @@ WORD32 isvce_svc_inp_params_validate(isvce_init_ip_t *ps_ip, isvce_cfg_params_t 
 *******************************************************************************
 *
 * @brief
+*  Validates SVC frame-level input params
+*
+* @param[in] ps_cfg
+*  Cfg parameters
+*
+* @returns  error code in conformance with 'IH264E_ERROR_T'
+*
+*******************************************************************************
+*/
+WORD32 isvce_svc_frame_params_validate(
+    rate_control_api_t *aps_rate_control_api[MAX_NUM_SPATIAL_LAYERS], UWORD8 u1_num_spatial_layers)
+{
+    WORD32 i;
+
+    /* RC requires total bits in a second to fit int32_t */
+    for(i = 0; i < u1_num_spatial_layers; i++)
+    {
+        if((((UWORD64) irc_get_bits_per_frame(aps_rate_control_api[i])) *
+            irc_get_intra_frame_interval(aps_rate_control_api[i])) > ((UWORD64) INT32_MAX))
+        {
+            return IH264E_BITRATE_NOT_SUPPORTED;
+        }
+    }
+
+    return IV_SUCCESS;
+}
+
+/**
+*******************************************************************************
+*
+* @brief
 *  Used to get reference picture buffer size for a given level and
 *  and padding used
 *
