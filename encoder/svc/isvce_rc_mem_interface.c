@@ -244,9 +244,9 @@ WORD32 isvce_get_rate_control_mem_tab(void *pv_rate_control, iv_mem_rec_t *ps_me
         refptr1[RC_MEM_FRAME_TIME] = &ps_rate_control->pps_frame_time;
         refptr1[RC_MEM_TIME_STAMP] = &ps_rate_control->pps_time_stamp;
         refptr1[RC_MEM_FRAME_RATE] = &ps_rate_control->pps_pd_frm_rate;
-        refptr1[RC_MEM_API_L0] = &ps_rate_control->apps_rate_control_api[0];
-        refptr1[RC_MEM_API_L1] = &ps_rate_control->apps_rate_control_api[1];
-        refptr1[RC_MEM_API_L2] = &ps_rate_control->apps_rate_control_api[2];
+        refptr1[RC_MEM_API_L0] = (void **) &ps_rate_control->apps_rate_control_api[0];
+        refptr1[RC_MEM_API_L1] = (void **) &ps_rate_control->apps_rate_control_api[1];
+        refptr1[RC_MEM_API_L2] = (void **) &ps_rate_control->apps_rate_control_api[2];
     }
 
     /* Get the total number of memtabs used by Frame time Module */

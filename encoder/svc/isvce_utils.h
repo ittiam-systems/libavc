@@ -46,6 +46,21 @@
 
 #include "ih264_typedefs.h"
 #include "ih264e_bitstream.h"
+/* Dependencies of 'irc_picture_type.h' */
+#include "irc_cntrl_param.h"
+#include "irc_frame_info_collector.h"
+#include "irc_mem_req_and_acq.h"
+/* Dependencies of 'irc_rate_control_api_structs' */
+#include "irc_picture_type.h"
+#include "irc_rd_model.h"
+#include "irc_vbr_storage_vbv.h"
+#include "irc_est_sad.h"
+#include "irc_bit_allocation.h"
+#include "irc_mb_model_based.h"
+#include "irc_cbr_buffer_control.h"
+#include "irc_vbr_str_prms.h"
+#include "irc_common.h"
+#include "irc_rate_control_api_structs.h"
 #include "isvc_macros.h"
 #include "isvc_structs.h"
 #include "isvce_defs.h"
@@ -164,6 +179,9 @@ extern WORD32 isvce_svc_au_props_validate(svc_inp_params_t *ps_svc_inp_params, U
                                           UWORD32 u4_svc_comp_ht);
 
 extern WORD32 isvce_svc_inp_params_validate(isvce_init_ip_t *ps_ip, isvce_cfg_params_t *ps_cfg);
+
+extern WORD32 isvce_svc_frame_params_validate(
+    rate_control_api_t *aps_rate_control_api[MAX_NUM_SPATIAL_LAYERS], UWORD8 u1_num_spatial_layers);
 
 extern WORD32 isvce_get_total_svc_au_buf_size(svc_inp_params_t *ps_svc_inp_params,
                                               WORD32 i4_pic_size, WORD32 i4_level,

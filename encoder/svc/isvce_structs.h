@@ -65,8 +65,23 @@
 #include "ih264e_cabac_structs.h"
 #include "ih264e_defs.h"
 #include "ime_structs.h"
+
+/* Dependencies of 'irc_picture_type.h' */
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
+#include "irc_mem_req_and_acq.h"
+
+/* Dependencies of 'irc_rate_control_api_structs' */
+#include "irc_picture_type.h"
+#include "irc_rd_model.h"
+#include "irc_vbr_storage_vbv.h"
+#include "irc_est_sad.h"
+#include "irc_bit_allocation.h"
+#include "irc_mb_model_based.h"
+#include "irc_cbr_buffer_control.h"
+#include "irc_vbr_str_prms.h"
+#include "irc_common.h"
+#include "irc_rate_control_api_structs.h"
 
 #include "ih264e_structs.h"
 #include "isvce_cabac_structs.h"
@@ -76,9 +91,6 @@
 #include "isvce_nalu_stat_aggregator.h"
 #include "isvce_pred_structs.h"
 #include "isvce_rc_utils.h"
-
-#include "irc_cntrl_param.h"
-#include "irc_frame_info_collector.h"
 
 typedef struct svc_params_t
 {
@@ -723,7 +735,7 @@ typedef struct isvce_entropy_ctxt_t
  */
 typedef struct isvce_rate_control_ctxt_t
 {
-    void *apps_rate_control_api[MAX_NUM_SPATIAL_LAYERS];
+    rate_control_api_t *apps_rate_control_api[MAX_NUM_SPATIAL_LAYERS];
 
     void *pps_frame_time;
 
