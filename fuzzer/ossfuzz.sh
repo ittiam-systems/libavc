@@ -30,6 +30,7 @@ rm -rf ${build_dir}
 mkdir -p ${build_dir}
 
 pushd ${build_dir}
+UBSAN_OPTIONS=suppressions=libavc_suppressions.txt
 cmake ${SRC}/libavc -DENABLE_SVC=1 -DENABLE_MVC=1
 make -j$(nproc) avc_dec_fuzzer avc_enc_fuzzer svc_dec_fuzzer svc_enc_fuzzer
 cp ${build_dir}/avc_dec_fuzzer $OUT/
@@ -40,3 +41,4 @@ popd
 
 cp $SRC/avc_dec_fuzzer_seed_corpus.zip $OUT/avc_dec_fuzzer_seed_corpus.zip
 cp $SRC/libavc/fuzzer/avc_dec_fuzzer.dict $OUT/avcdec_fuzzer.dict
+cp $SRC/libavc/libavc_suppressions.txt $OUT/
