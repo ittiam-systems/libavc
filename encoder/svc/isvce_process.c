@@ -2375,7 +2375,8 @@ WORD32 isvce_process(isvce_process_ctxt_t *ps_proc)
             ps_proc->ps_mb_info->u1_base_mode_flag = 0;
         }
 
-        isvce_mvp_idx_eval(ps_proc->ps_mb_info, ps_proc->ps_pred_mv, ps_proc->ps_ilp_mv->as_mv[0],
+        isvce_mvp_idx_eval(ps_proc->ps_mb_info, ps_proc->ps_pred_mv,
+                           ps_proc->ps_ilp_mv ? ps_proc->ps_ilp_mv->as_mv[0] : NULL,
                            ps_proc->s_me_ctxt.pu1_mv_bits);
 
         /* 8x8 Tx is not supported, and I8x8 is also unsupported */
@@ -2472,7 +2473,8 @@ WORD32 isvce_process(isvce_process_ctxt_t *ps_proc)
             ps_sub_pic_rc_variables->u4_cbp = ps_proc->u4_cbp;
             ps_sub_pic_rc_variables->aps_mvps[0] = ps_proc->ps_pred_mv;
 #if MAX_MVP_IDX == 1
-            ps_sub_pic_rc_variables->aps_mvps[1] = ps_proc->ps_ilp_mv->as_mv[0];
+            ps_sub_pic_rc_variables->aps_mvps[1] =
+                ps_proc->ps_ilp_mv ? ps_proc->ps_ilp_mv->as_mv[0] : NULL;
 #endif
             ps_sub_pic_rc_variables->apu1_nnzs[Y] = (UWORD8 *) ps_proc->au4_nnz;
             ps_sub_pic_rc_variables->apu1_nnzs[UV] = ps_proc->au1_chroma_nnz;
