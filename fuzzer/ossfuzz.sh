@@ -18,6 +18,12 @@ test "${SRC}" != "" || exit 1
 test "${WORK}" != "" || exit 1
 test "${OUT}" != "" || exit 1
 
+#Opt out of null and shift sanitizers in undefined sanitizer
+if [[ $SANITIZER = *undefined* ]]; then
+  CFLAGS="$CFLAGS -fno-sanitize=null,shift"
+  CXXFLAGS="$CXXFLAGS -fno-sanitize=null,shift"
+fi
+
 # Build libavc
 build_dir=$WORK/build
 rm -rf ${build_dir}
