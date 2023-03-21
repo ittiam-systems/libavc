@@ -18,6 +18,12 @@ test "${SRC}" != "" || exit 1
 test "${WORK}" != "" || exit 1
 test "${OUT}" != "" || exit 1
 
+#enable only integer overflow and bounds sanitizer in undefined sanitizer mode
+if [[ $SANITIZER = *undefined* ]]; then
+  CFLAGS="$CFLAGS -fsanitize=unsigned-integer-overflow,signed-integer-overflow,bounds -fno-sanitize-recover=unsigned-integer-overflow,signed-integer-overflow,bounds"
+  CXXFLAGS="$CXXFLAGS -fsanitize=unsigned-integer-overflow,signed-integer-overflow,bounds -fno-sanitize-recover=unsigned-integer-overflow,signed-integer-overflow,bounds"
+fi
+
 # Build libavc
 build_dir=$WORK/build
 rm -rf ${build_dir}
