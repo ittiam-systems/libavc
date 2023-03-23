@@ -117,11 +117,13 @@ WORD32 isvcd_ii_pred_res_init(void *pv_svc_dec)
         ps_ii_pred_ctxt->i4_ref_res_lyr_ht = ps_ii_pred_ctxt->i4_cur_res_lyr_ht;
     }
 
-    ps_lyr_mem = &ps_ctxt->as_res_lyr_mem[ps_ctxt->i4_res_id];
+    if ((ps_ctxt->i4_res_id >= 0) && (ps_ctxt->i4_res_id <= 2))
+    {
+        ps_lyr_mem = &ps_ctxt->as_res_lyr_mem[ps_ctxt->i4_res_id];
 
-    ps_ii_pred_ctxt->pi2_ref_loc_x = ps_lyr_mem->pi2_ref_loc_x;
-    ps_ii_pred_ctxt->pi2_ref_loc_y = ps_lyr_mem->pi2_ref_loc_y;
-
+        ps_ii_pred_ctxt->pi2_ref_loc_x = ps_lyr_mem->pi2_ref_loc_x;
+        ps_ii_pred_ctxt->pi2_ref_loc_y = ps_lyr_mem->pi2_ref_loc_y;
+    }
     /* Store the dimensions */
     ps_ii_pred_ctxt->i4_cur_res_lyr_wd = ps_res_prms->i4_res_width;
     ps_ii_pred_ctxt->i4_cur_res_lyr_ht = ps_res_prms->i4_res_height;
