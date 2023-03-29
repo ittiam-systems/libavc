@@ -1435,9 +1435,7 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                         return IV_FAIL;
                     }
 
-                    if ((ps_ip->s_ive_ip.u4_me_speed_preset != FULL_SRCH)
-                                    && (ps_ip->s_ive_ip.u4_me_speed_preset != DMND_SRCH)
-                                    && (ps_ip->s_ive_ip.u4_me_speed_preset != HEX_SRCH))
+                    if (ps_ip->s_ive_ip.u4_me_speed_preset != DMND_SRCH)
                     {
                         ps_op->s_ive_op.u4_error_code |= 1
                                         << IVE_UNSUPPORTEDPARAM;
