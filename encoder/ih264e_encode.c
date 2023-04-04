@@ -215,8 +215,8 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     ih264e_video_encode_op_t *ps_video_encode_op = pv_api_op;
 
     /* i/o structures */
-    inp_buf_t s_inp_buf;
-    out_buf_t s_out_buf;
+    inp_buf_t s_inp_buf = {};
+    out_buf_t s_out_buf = {};
 
     /* temp var */
     WORD32 ctxt_sel = 0, i, i4_rc_pre_enc_skip;
