@@ -2293,7 +2293,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     ps_dec->u4_slice_start_code_found = 0;
 
-    /* In case the deocder is not in flush mode(in shared mode),
+    /* In case the decoder is not in flush mode(in shared mode),
      then decoder has to pick up a buffer to write current frame.
      Check if a frame is available in such cases */
 
