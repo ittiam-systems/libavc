@@ -4844,7 +4844,7 @@ WORD32 isvcd_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     ps_dec_op->u4_output_present = 0;
     ps_dec_op->u4_frame_decoded_flag = 0;
 
-    /* In case the deocder is not in flush mode(in shared mode),
+    /* In case the decoder is not in flush mode(in shared mode),
      then decoder has to pick up a buffer to write current frame.
      Check if a frame is available in such cases */
     if(ps_dec->u1_init_dec_flag == 1 && ps_dec->u4_share_disp_buf == 1 && ps_dec->u1_flushfrm == 0)
