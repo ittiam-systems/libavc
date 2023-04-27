@@ -340,6 +340,18 @@ WORD32 isvcd_mv_pred_ref_tfr_nby2_epmb(dec_struct_t *ps_dec, UWORD8 u1_mb_idx, U
 
                         /* Populate the colpic info and reference frames */
                         i1_ref_idx = pi1_ref_idx[u1_blk_no];
+                        /********************************************************************/
+                        /* If reference index is inferred from the base layer and it is     */
+                        /* exceeding the number of active reference in the current layer.   */
+                        /* Then reference index is clipped to the max in the current layer  */
+                        /********************************************************************/
+                        if(ps_svc_cur_mb_info->u1_base_mode_flag == 1)
+                        {
+                            if(i1_ref_idx > (ps_dec->ps_cur_slice->u1_num_ref_idx_lx_active[0] - 1))
+                            {
+                                i1_ref_idx = ps_dec->ps_cur_slice->u1_num_ref_idx_lx_active[0] - 1;
+                            }
+                        }
                         s_mvPred.i1_ref_frame[0] = i1_ref_idx;
 
                         if((1 != ps_svc_cur_mb_info->u1_base_mode_flag) &&
