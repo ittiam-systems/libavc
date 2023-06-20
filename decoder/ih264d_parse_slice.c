@@ -1162,7 +1162,10 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
 
         if(ps_dec->ps_cur_sps->u1_gaps_in_frame_num_value_allowed_flag)
         {
-            ih264d_decode_gaps_in_frame_num(ps_dec, u2_frame_num);
+            ret = ih264d_decode_gaps_in_frame_num(ps_dec, u2_frame_num);
+            if (ret != OK) {
+                return ERROR_DBP_MANAGER_T;
+            }
         }
 
         ps_prev_poc->i4_prev_frame_num_ofst = ps_cur_poc->i4_prev_frame_num_ofst;
