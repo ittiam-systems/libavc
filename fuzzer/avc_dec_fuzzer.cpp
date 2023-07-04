@@ -118,6 +118,7 @@ void Codec::createCodec() {
   create_ip.s_ivd_create_ip_t.e_output_format = mColorFormat;
   create_ip.s_ivd_create_ip_t.pf_aligned_alloc = iv_aligned_malloc;
   create_ip.s_ivd_create_ip_t.pf_aligned_free = iv_aligned_free;
+  create_ip.u4_keep_threads_active = 0;
   create_ip.s_ivd_create_ip_t.pv_mem_ctxt = NULL;
   create_ip.s_ivd_create_ip_t.u4_size = sizeof(ih264d_create_ip_t);
   create_op.s_ivd_create_op_t.u4_size = sizeof(ih264d_create_op_t);
