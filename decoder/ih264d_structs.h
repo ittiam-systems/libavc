@@ -123,7 +123,6 @@ typedef enum
     COEFF_ABS_LEVEL_CAT_5_OFFSET = 0
 } cabac_blk_cat_offset_t;
 
-#ifdef KEEP_THREADS_ACTIVE
 typedef enum
 {
     PROC_INIT,
@@ -131,7 +130,6 @@ typedef enum
     PROC_IN_PROGRESS,
     PROC_DONE,
 } proc_state_t;
-#endif
 
 /** Structure for the MV bank */
 typedef struct _mv_pred_t
@@ -771,6 +769,8 @@ typedef struct _DecStruct
 
     UWORD8 *pu1_col_zero_flag;
 
+    UWORD8 i4_threads_active; /** Keeps thread active*/
+
     UWORD16 u2_pic_wd; /** Width of the picture being decoded */
     UWORD16 u2_pic_ht; /** Height of the picture being decoded */
     UWORD32 u4_total_mbs; /** Total MBs in the picture being decoded */
@@ -1315,7 +1315,6 @@ typedef struct _DecStruct
     UWORD32 u4_dec_thread_created;
     void *pv_dec_thread_handle;
 
-#ifdef KEEP_THREADS_ACTIVE
     /**
      * Condition variable to signal process start - One for each thread
      */
@@ -1350,7 +1349,6 @@ typedef struct _DecStruct
      * Flag to signal processing thread to exit
      */
     WORD32 i4_break_threads;
-#endif
 
     volatile UWORD8 *pu1_dec_mb_map;
     volatile UWORD8 *pu1_recon_mb_map;

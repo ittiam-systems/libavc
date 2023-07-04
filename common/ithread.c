@@ -210,7 +210,6 @@ WORD32 ithread_set_affinity(WORD32 core_id)
 
 }
 
-#ifdef KEEP_THREADS_ACTIVE
 WORD32 ithread_get_cond_struct_size(void)
 {
     return (sizeof(pthread_cond_t));
@@ -235,4 +234,3 @@ WORD32 ithread_cond_signal(void *cond)
 {
     return pthread_cond_signal((pthread_cond_t *)cond);
 }
-#endif

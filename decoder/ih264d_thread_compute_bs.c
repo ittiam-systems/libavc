@@ -692,27 +692,29 @@ void ih264d_recon_deblk_thread(dec_struct_t *ps_dec)
 
 
     UWORD32 yield_cnt = 0;
+    UWORD32 ret;
 
     ithread_set_name("ih264d_recon_deblk_thread");
 
     while(1)
     {
-#ifdef KEEP_THREADS_ACTIVE
-        UWORD32 ret = ithread_mutex_lock(ps_dec->apv_proc_start_mutex[1]);
-        if(OK != ret)
-            break;
-
-        while(ps_dec->ai4_process_start[1] != PROC_START)
+        if(ps_dec->i4_threads_active)
         {
-            ithread_cond_wait(ps_dec->apv_proc_start_condition[1],
-                              ps_dec->apv_proc_start_mutex[1]);
-        }
-        ps_dec->ai4_process_start[1] = PROC_IN_PROGRESS;
+            ret = ithread_mutex_lock(ps_dec->apv_proc_start_mutex[1]);
+            if(OK != ret)
+                break;
 
-        ret = ithread_mutex_unlock(ps_dec->apv_proc_start_mutex[1]);
-        if(OK != ret || ps_dec->i4_break_threads == 1)
-            break;
-#endif
+            while(ps_dec->ai4_process_start[1] != PROC_START)
+            {
+                ithread_cond_wait(ps_dec->apv_proc_start_condition[1],
+                                  ps_dec->apv_proc_start_mutex[1]);
+            }
+            ps_dec->ai4_process_start[1] = PROC_IN_PROGRESS;
+
+            ret = ithread_mutex_unlock(ps_dec->apv_proc_start_mutex[1]);
+            if(OK != ret || ps_dec->i4_break_threads == 1)
+                break;
+        }
 
         while(1)
         {
@@ -748,8 +750,8 @@ void ih264d_recon_deblk_thread(dec_struct_t *ps_dec)
             ps_dec->u4_fmt_conv_cur_row += ps_dec->u4_fmt_conv_num_rows;
 
         }
-
-#ifdef KEEP_THREADS_ACTIVE
+        if(ps_dec->i4_threads_active)
+        {
         ret = ithread_mutex_lock(ps_dec->apv_proc_done_mutex[1]);
         if(OK != ret)
             break;
@@ -760,9 +762,11 @@ void ih264d_recon_deblk_thread(dec_struct_t *ps_dec)
         ret = ithread_mutex_unlock(ps_dec->apv_proc_done_mutex[1]);
         if(OK != ret)
             break;
-#else
-        break;
-#endif
+        }
+        else
+        {
+            break;
+        }
     }
 }
 
