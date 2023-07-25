@@ -710,7 +710,8 @@ UWORD8 isvce_sub_pic_rc_get_mb_qp(svc_sub_pic_rc_ctxt_t *ps_sub_pic_rc_ctxt, UWO
 
     u4_num_mbs_sampled = ps_layer_state->u4_num_mbs_sampled;
 
-    if(u4_num_mbs_sampled < (MIN_SAMPLED_MB_RATIO * ps_layer_state->i4_num_mbs))
+    if(u4_num_mbs_sampled <
+       ((UWORD32) ceil(MIN_SAMPLED_MB_RATIO * ((DOUBLE) ps_layer_state->i4_num_mbs))))
     {
         ithread_mutex_unlock(ps_sub_pic_rc_state->pv_bits_accumulator_mutex);
 
@@ -720,9 +721,16 @@ UWORD8 isvce_sub_pic_rc_get_mb_qp(svc_sub_pic_rc_ctxt_t *ps_sub_pic_rc_ctxt, UWO
     i4_cumulative_mb_bits = (WORD32) (ps_layer_state->s_cumulative_mb_bits.i8_header_bits +
                                       ps_layer_state->s_cumulative_mb_bits.i8_texture_bits);
 
-    d_bit_consumption_ratio =
-        (((DOUBLE) i4_cumulative_mb_bits) * ((DOUBLE) ps_layer_state->i4_num_mbs)) /
-        (((DOUBLE) ps_layer_state->u4_allocated_bits) * ((DOUBLE) u4_num_mbs_sampled));
+    if((0 == ps_layer_state->u4_allocated_bits) || (0 == u4_num_mbs_sampled))
+    {
+        d_bit_consumption_ratio = nextafter(BIT_RATIO_FOR_OVERCONSUMPTION, INFINITY);
+    }
+    else
+    {
+        d_bit_consumption_ratio =
+            (((DOUBLE) i4_cumulative_mb_bits) * ((DOUBLE) ps_layer_state->i4_num_mbs)) /
+            (((DOUBLE) ps_layer_state->u4_allocated_bits) * ((DOUBLE) u4_num_mbs_sampled));
+    }
 
     ithread_mutex_unlock(ps_sub_pic_rc_state->pv_bits_accumulator_mutex);
 
