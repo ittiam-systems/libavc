@@ -1087,6 +1087,11 @@ void imvcd_dpb_normalise_ref_pic_list(mvc_dpb_manager_t *ps_dpb_mgr, UWORD16 u2_
 
     for(i = 0; i < u1_num_ref_bufs; i++)
     {
+        if(u1_num_bufs_modified >= MVC_MAX_REF_PICS)
+        {
+            return;
+        }
+
         if(!(u2_buf_mod_bitfield & (1 << i)))
         {
             ps_dpb_mgr->aps_mod_dpb[u1_pred_lx][u1_num_bufs_modified++] =

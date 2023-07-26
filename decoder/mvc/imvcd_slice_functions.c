@@ -513,7 +513,6 @@ static WORD32 imvcd_decode_gaps_in_frame_num(mvc_dec_ctxt_t *ps_mvcd_ctxt)
     mvc_dpb_manager_t *ps_dpb_mgr = ps_mvcd_ctxt->ps_dpb_mgr;
 
     UWORD16 u2_frame_num = ps_cur_slice->u2_frame_num;
-    WORD32 i4_frame_gaps = 0;
     UWORD32 u4_next_frm_num = ps_view_ctxt->u2_prev_ref_frame_num + 1;
     UWORD32 u4_max_frm_num = ps_view_ctxt->ps_cur_sps->u2_u4_max_pic_num_minus1 + 1;
     WORD32 *pi4_gaps_start_frm_num = ps_dpb_mgr->ai4_gaps_start_frm_num;
@@ -646,8 +645,6 @@ static WORD32 imvcd_decode_gaps_in_frame_num(mvc_dec_ctxt_t *ps_mvcd_ctxt)
         {
             u4_next_frm_num -= u4_max_frm_num;
         }
-
-        i4_frame_gaps++;
     }
 
     return OK;
@@ -1236,7 +1233,6 @@ static WORD32 imvcd_corrupted_slice_handler(mvc_dec_ctxt_t *ps_mvcd_ctxt)
     bool b_decode_nmb;
     UWORD8 u1_inter_mb_type;
     UWORD8 u1_deblk_mb_type;
-    UWORD32 u4_num_mbsNby2;
     UWORD16 i2_cur_mb_addr;
     UWORD32 u4_mb_skip_run;
     WORD32 i, j;
@@ -1395,7 +1391,6 @@ static WORD32 imvcd_corrupted_slice_handler(mvc_dec_ctxt_t *ps_mvcd_ctxt)
     b_is_slice_end = false;
     b_tfr_n_mb = false;
     b_decode_nmb = false;
-    u4_num_mbsNby2 = 0;
     i2_cur_mb_addr = ps_view_ctxt->u2_total_mbs_coded;
     u4_mb_skip_run = u4_remaining_mbs;
 
@@ -1457,7 +1452,6 @@ static WORD32 imvcd_corrupted_slice_handler(mvc_dec_ctxt_t *ps_mvcd_ctxt)
 
         i2_cur_mb_addr++;
         u4_num_mbs++;
-        u4_num_mbsNby2++;
         ps_parse_mb_data++;
 
         /****************************************************************/
@@ -1477,7 +1471,6 @@ static WORD32 imvcd_corrupted_slice_handler(mvc_dec_ctxt_t *ps_mvcd_ctxt)
         {
             ps_view_ctxt->pf_mvpred_ref_tfr_nby2mb(ps_view_ctxt, u4_mb_idx, u4_num_mbs);
 
-            u4_num_mbsNby2 = 0;
             ps_parse_mb_data = ps_view_ctxt->ps_parse_mb_data;
             ps_view_ctxt->ps_part = ps_view_ctxt->ps_parse_part_params;
 
