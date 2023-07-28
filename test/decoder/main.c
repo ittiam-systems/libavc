@@ -2163,7 +2163,7 @@ int main(WORD32 argc, CHAR *argv[])
     //s_app_ctx.u4_output_present = 0;
     s_app_ctx.u4_chksum_save_flag = 0;
     s_app_ctx.u4_frame_info_enable = 0;
-    s_app_ctx.i4_active_threads = 0;
+    s_app_ctx.i4_active_threads = 1;
 
     s_app_ctx.get_stride = &default_get_stride;
 
