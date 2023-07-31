@@ -879,6 +879,7 @@ IV_API_CALL_STATUS_T get_version(void *codec_obj)
 /*****************************************************************************/
 void codec_exit(CHAR *pc_err_message)
 {
+    printf("Summary\n");
     printf("%s\n", pc_err_message);
     exit(-1);
 }
