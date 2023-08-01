@@ -18,10 +18,10 @@ test "${SRC}" != "" || exit 1
 test "${WORK}" != "" || exit 1
 test "${OUT}" != "" || exit 1
 
-#Opt out of null and shift sanitizers in undefined sanitizer
+#Opt out of shift sanitizer in undefined sanitizer
 if [[ $SANITIZER = *undefined* ]]; then
-  CFLAGS="$CFLAGS -fno-sanitize=null,shift"
-  CXXFLAGS="$CXXFLAGS -fno-sanitize=null,shift"
+  CFLAGS="$CFLAGS -fno-sanitize=shift"
+  CXXFLAGS="$CXXFLAGS -fno-sanitize=shift"
 fi
 
 # Build libavc
