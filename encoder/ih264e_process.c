@@ -2621,7 +2621,7 @@ WORKER:
                 /* entropy code all mbs enlisted under the current job */
                 error_status = ih264e_entropy(ps_proc);
 
-                if ((s_job.i2_mb_y == ps_proc->i4_ht_mbs - 1) || error_status != IH264_SUCCESS)
+                if (s_job.i2_mb_y == ps_proc->i4_ht_mbs - 1)
                 {
                     error_status |= ih264e_update_rc_post_enc(ps_codec, ctxt_sel,
                                                               (ps_codec->i4_poc == 0));
