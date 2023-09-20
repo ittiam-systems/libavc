@@ -373,8 +373,8 @@ cc_library_static {
                 "common/armv8/ih264_padding_neon_av8.s",
                 "common/armv8/ih264_weighted_bi_pred_av8.s",
                 "common/armv8/ih264_weighted_pred_av8.s",
-                "decoder/arm/ih264d_function_selector_av8.c",
                 "decoder/arm/ih264d_function_selector.c",
+                "decoder/arm/ih264d_function_selector_av8.c",
             ],
         },
 
@@ -401,9 +401,9 @@ cc_library_static {
                 "common/x86/ih264_mem_fns_ssse3.c",
                 "common/x86/ih264_padding_ssse3.c",
                 "common/x86/ih264_weighted_pred_sse42.c",
+                "decoder/x86/ih264d_function_selector.c",
                 "decoder/x86/ih264d_function_selector_sse42.c",
                 "decoder/x86/ih264d_function_selector_ssse3.c",
-                "decoder/x86/ih264d_function_selector.c",
             ],
         },
 
@@ -421,9 +421,9 @@ cc_library_static {
                 "common/x86/ih264_mem_fns_ssse3.c",
                 "common/x86/ih264_padding_ssse3.c",
                 "common/x86/ih264_weighted_pred_sse42.c",
+                "decoder/x86/ih264d_function_selector.c",
                 "decoder/x86/ih264d_function_selector_sse42.c",
                 "decoder/x86/ih264d_function_selector_ssse3.c",
-                "decoder/x86/ih264d_function_selector.c",
             ],
         },
     },
@@ -446,20 +446,20 @@ cc_library_static {
     ],
 
     export_include_dirs: [
-        "decoder",
-        "decoder/mvc",
         "common",
         "common/mvc",
+        "decoder",
+        "decoder/mvc",
     ],
 
     srcs: [
+        "decoder/mvc/imvcd_api.c",
         "decoder/mvc/imvcd_api_utils.c",
         "decoder/mvc/imvcd_dpb_manager.c",
         "decoder/mvc/imvcd_error_handler.c",
         "decoder/mvc/imvcd_nalu_parser.c",
         "decoder/mvc/imvcd_slice_functions.c",
         "decoder/mvc/imvcd_utils.c",
-        "decoder/mvc/imvcd_api.c",
     ],
 }
 
