@@ -3165,6 +3165,7 @@ WORD32 ih264d_set_flush_mode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op
     ps_ctl_op->u4_error_code = 0;
 
     ps_dec = (dec_struct_t *)(dec_hdl->pv_codec_handle);
+    ih264d_join_threads(ps_dec);
     UNUSED(pv_api_ip);
     /* ! */
     /* Signal flush frame control call */
