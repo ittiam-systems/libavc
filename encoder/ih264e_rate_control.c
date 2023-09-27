@@ -596,7 +596,9 @@ WORD32 ih264e_rc_post_enc(void * ps_rate_control_api,
     pi4_is_post_encode_skip[0]= 0;
 
     /* For NLDRC, get the buffer status for stuffing or skipping */
-    if (irc_get_rc_type(ps_rate_control_api) == CBR_NLDRC)
+    /* Default NLDRC to CBR with no frame drops. */
+    /* FIX ME: In frame drop mode, the bitstream generated is non-compliant */
+    if (0 && irc_get_rc_type(ps_rate_control_api) == CBR_NLDRC)
     {
         WORD32 i4_get_num_bit_to_prevent_vbv_overflow;
         UWORD8 u1_enc_buf_overflow,u1_enc_buf_underflow;
