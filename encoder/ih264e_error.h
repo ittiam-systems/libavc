@@ -48,7 +48,7 @@
     {\
         out_status = ((1 << severity) | error);\
         ps_codec->i4_error_code = out_status;\
-        return (ret_code);\
+        if (severity == IVE_FATALERROR) return (ret_code);\
     }
 
 
