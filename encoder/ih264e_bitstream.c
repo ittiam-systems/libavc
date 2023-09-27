@@ -182,7 +182,6 @@ IH264E_ERROR_T ih264e_put_bits(bitstrm_t *ps_bitstrm,
         /* 4. insert remaining bits of code starting from msb of cur word   */
         /* 5. update bitsleft in current word and stream buffer offset      */
         /********************************************************************/
-        IH264E_ERROR_T status = IH264E_SUCCESS;
         WORD32  i, rem_bits = (code_len - bits_left_in_cw);
 
         /* insert parital code corresponding to bits left in cur word */
@@ -193,7 +192,8 @@ IH264E_ERROR_T ih264e_put_bits(bitstrm_t *ps_bitstrm,
             /* flush the bits in cur word byte by byte and copy to stream */
             UWORD8   u1_next_byte = (u4_cur_word >> (i-8)) & 0xFF;
 
-            status |= ih264e_put_byte_epb(ps_bitstrm, u1_next_byte);
+            IH264E_ERROR_T status = ih264e_put_byte_epb(ps_bitstrm, u1_next_byte);
+            if (status != IH264E_SUCCESS) return status;
         }
 
         /* insert the remaining bits from code val into current word */
@@ -202,7 +202,7 @@ IH264E_ERROR_T ih264e_put_bits(bitstrm_t *ps_bitstrm,
         /* update the state variables and return success */
         ps_bitstrm->u4_cur_word         = u4_cur_word;
         ps_bitstrm->i4_bits_left_in_cw  = WORD_SIZE - rem_bits;
-        return (status);
+        return (IH264E_SUCCESS);
 
     }
 }
@@ -262,7 +262,6 @@ IH264E_ERROR_T ih264e_put_rbsp_trailing_bits(bitstrm_t *ps_bitstrm)
     UWORD32 u4_cur_word = ps_bitstrm->u4_cur_word;
     WORD32  bits_left_in_cw = ps_bitstrm->i4_bits_left_in_cw;
     WORD32  bytes_left_in_cw = (bits_left_in_cw - 1) >> 3;
-    IH264E_ERROR_T status = IH264E_SUCCESS;
 
     /* insert a 1 at the end of current word and flush all the bits */
     u4_cur_word |= (1 << (bits_left_in_cw - 1));
@@ -275,7 +274,8 @@ IH264E_ERROR_T ih264e_put_rbsp_trailing_bits(bitstrm_t *ps_bitstrm)
         /* flush the bits in cur word byte by byte  and copy to stream */
         UWORD8   u1_next_byte = (u4_cur_word >> (i-8)) & 0xFF;
 
-        status |= ih264e_put_byte_epb(ps_bitstrm, u1_next_byte);
+        IH264E_ERROR_T status = ih264e_put_byte_epb(ps_bitstrm, u1_next_byte);
+        if (status != IH264E_SUCCESS) return status;
     }
 
     /* Default init values for scratch variables of bitstream context */
@@ -283,7 +283,7 @@ IH264E_ERROR_T ih264e_put_rbsp_trailing_bits(bitstrm_t *ps_bitstrm)
     ps_bitstrm->i4_bits_left_in_cw  = WORD_SIZE;
     ps_bitstrm->i4_zero_bytes_run   = 0;
 
-    return (status);
+    return (IH264E_SUCCESS);
 }
 
 /**
