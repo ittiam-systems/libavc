@@ -586,6 +586,12 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
         ih264_list_reset(ps_codec->pv_entropy_jobq);
 
+        error_status = ih264e_update_rc_post_enc(ps_codec, ctxt_sel, (ps_codec->i4_poc == 0));
+        SET_ERROR_ON_RETURN(error_status,
+                            ((error_status == IH264E_BITSTREAM_BUFFER_OVERFLOW) ?
+                                            IVE_UNSUPPORTEDPARAM : IVE_FATALERROR),
+                            ps_video_encode_op->s_ive_op.u4_error_code, IV_FAIL);
+
         if (ps_codec->s_cfg.u4_enable_quality_metrics & QUALITY_MASK_PSNR)
         {
             ih264e_compute_quality_stats(ps_proc);
