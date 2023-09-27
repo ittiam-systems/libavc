@@ -265,10 +265,11 @@ static inline IH264E_ERROR_T ih264e_put_byte_epb(bitstrm_t *ps_bitstrm, UWORD8 b
        UWORD8 u1_next_byte = (ps_bitstrm->u4_cur_word >> (i - 8)) & 0xFF;      \
        err |= ih264e_put_byte_epb(ps_bitstrm, u1_next_byte);                   \
     }                                                                          \
-    ps_bitstrm->u4_cur_word = 0;                                               \
-    ps_bitstrm->i4_bits_left_in_cw = WORD_SIZE;                                \
-}                                                                              \
-
+    if (err == IH264E_SUCCESS) {                                               \
+        ps_bitstrm->u4_cur_word = 0;                                           \
+        ps_bitstrm->i4_bits_left_in_cw = WORD_SIZE;                            \
+    }                                                                          \
+}
 
 
 /*****************************************************************************/

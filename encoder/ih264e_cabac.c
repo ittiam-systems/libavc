@@ -315,11 +315,13 @@ IH264E_ERROR_T ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
         last_byte &= 0xFF;
         status |= ih264e_put_byte_epb(ps_stream, last_byte);
 
-        /* update the state variables and return success */
-        ps_stream->i4_zero_bytes_run = 0;
-        /* Default init values for scratch variables of bitstream context */
-        ps_stream->u4_cur_word = 0;
-        ps_stream->i4_bits_left_in_cw = WORD_SIZE;
+        if (status == IH264E_SUCCESS) {
+            /* update the state variables and return success */
+            ps_stream->i4_zero_bytes_run = 0;
+            /* Default init values for scratch variables of bitstream context */
+            ps_stream->u4_cur_word = 0;
+            ps_stream->i4_bits_left_in_cw = WORD_SIZE;
+        }
 
     }
     return status;
