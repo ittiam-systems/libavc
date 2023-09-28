@@ -203,7 +203,7 @@ void ih264e_init_cabac_ctxt(entropy_ctxt_t *ps_ent_ctxt)
 
     ih264e_init_cabac_enc_envirnoment(&ps_cabac_ctxt->s_cab_enc_env);
 
-    ps_cabac_ctxt->i1_prevps_mb_qp_delta_ctxt = 0;
+    ps_cabac_ctxt->i1_prev_mb_qp_delta_ctxt = 0;
 
     if (ISLICE != u1_slice_type)
     {

@@ -179,8 +179,8 @@ typedef struct
 
     /* These things need to be updated at each MbLevel */
 
-    /* Prev ps_mb_qp_delta_ctxt */
-    WORD8 i1_prevps_mb_qp_delta_ctxt;
+    /* prev mb qp delta ctxt */
+    WORD8 i1_prev_mb_qp_delta_ctxt;
 
     /* Pointer to mb_info_ctxt_t map */
     mb_info_ctxt_t *ps_mb_map_ctxt_inc;

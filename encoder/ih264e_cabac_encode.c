@@ -598,8 +598,8 @@ static void ih264e_cabac_enc_mb_qp_delta(WORD8 i1_mb_qp_delta,
     u4_bins = 0;
     i1_bins_len = 1;
     /* calculate ctxtInc, depending on neighbour availability */
-    u1_ctxt_inc = (!(!(ps_cabac_ctxt->i1_prevps_mb_qp_delta_ctxt)));
-    ps_cabac_ctxt->i1_prevps_mb_qp_delta_ctxt = i1_mb_qp_delta;
+    u1_ctxt_inc = (!(!(ps_cabac_ctxt->i1_prev_mb_qp_delta_ctxt)));
+    ps_cabac_ctxt->i1_prev_mb_qp_delta_ctxt = i1_mb_qp_delta;
 
     if (u1_code_num == 0)
     {
@@ -1721,6 +1721,7 @@ IH264E_ERROR_T ih264e_write_islice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
         *(ps_cabac_ctxt->pu1_left_uv_ac_csbp) = 0;
         *(ps_cabac_ctxt->pu1_left_y_ac_csbp) = 0;
         *(ps_cabac_ctxt->pu1_left_yuv_dc_csbp) = 0;
+        ps_cabac_ctxt->i1_prev_mb_qp_delta_ctxt = 0;
         /* Ending bitstream offset for header in bits */
         bitstream_end_offset = GET_NUM_BITS(ps_bitstream);
         ps_ent_ctxt->u4_header_bits[0] += bitstream_end_offset
@@ -1887,6 +1888,7 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
             *(ps_cabac_ctxt->pu1_left_uv_ac_csbp) = 0;
             *(ps_cabac_ctxt->pu1_left_y_ac_csbp) = 0;
             *(ps_cabac_ctxt->pu1_left_yuv_dc_csbp) = 0;
+            ps_cabac_ctxt->i1_prev_mb_qp_delta_ctxt = 0;
             /* Ending bitstream offset for header in bits */
             bitstream_end_offset = GET_NUM_BITS(ps_bitstream);
             ps_ent_ctxt->u4_header_bits[0] += bitstream_end_offset
@@ -2002,6 +2004,7 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
             *(ps_cabac_ctxt->pu1_left_uv_ac_csbp) = 0;
             *(ps_cabac_ctxt->pu1_left_y_ac_csbp) = 0;
             *(ps_cabac_ctxt->pu1_left_yuv_dc_csbp) = 0;
+            ps_cabac_ctxt->i1_prev_mb_qp_delta_ctxt = 0;
         }
         ps_curr_ctxt->u1_intrapred_chroma_mode = 0;
         ps_curr_ctxt->u1_cbp = cbp;
@@ -2195,6 +2198,7 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
             *(ps_cabac_ctxt->pu1_left_uv_ac_csbp) = 0;
             *(ps_cabac_ctxt->pu1_left_y_ac_csbp) = 0;
             *(ps_cabac_ctxt->pu1_left_yuv_dc_csbp) = 0;
+            ps_cabac_ctxt->i1_prev_mb_qp_delta_ctxt = 0;
             /* Ending bitstream offset for header in bits */
             bitstream_end_offset = GET_NUM_BITS(ps_bitstream);
             ps_ent_ctxt->u4_header_bits[0] += bitstream_end_offset
@@ -2390,6 +2394,7 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
             *(ps_cabac_ctxt->pu1_left_uv_ac_csbp) = 0;
             *(ps_cabac_ctxt->pu1_left_y_ac_csbp) = 0;
             *(ps_cabac_ctxt->pu1_left_yuv_dc_csbp) = 0;
+            ps_cabac_ctxt->i1_prev_mb_qp_delta_ctxt = 0;
         }
         ps_curr_ctxt->u1_intrapred_chroma_mode = 0;
         ps_curr_ctxt->u1_cbp = cbp;
