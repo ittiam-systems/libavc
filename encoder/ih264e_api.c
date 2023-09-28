@@ -2311,7 +2311,8 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                         return IV_FAIL;
                     }
 
-                    if (ps_ip->s_ive_ip.u4_air_refresh_period == 0)
+                    if (ps_ip->s_ive_ip.e_air_mode != IVE_AIR_MODE_NONE &&
+                        ps_ip->s_ive_ip.u4_air_refresh_period == 0)
                     {
                         ps_op->s_ive_op.u4_error_code |= 1
                                         << IVE_UNSUPPORTEDPARAM;
