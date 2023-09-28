@@ -3339,7 +3339,7 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
     max_mb_cnt = max_mb_rows * max_mb_cols;
 
     /* profile / level info */
-    level = ih264e_get_min_level(max_ht_luma, max_wd_luma);
+    level = ih264e_get_min_level(max_wd_luma, max_ht_luma);
 
     /* validate params */
     if ((level < MIN_LEVEL) || (level > MAX_LEVEL))
