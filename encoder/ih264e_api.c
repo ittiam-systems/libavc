@@ -1613,6 +1613,16 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                         return IV_FAIL;
                     }
 
+                    if((ps_ip->s_ive_ip.u4_idr_frm_interval > ps_ip->s_ive_ip.u4_i_frm_interval) &&
+                                    (ps_ip->s_ive_ip.u4_idr_frm_interval % ps_ip->s_ive_ip.u4_i_frm_interval != 0))
+                    {
+                        ps_op->s_ive_op.u4_error_code |= 1
+                                        << IVE_UNSUPPORTEDPARAM;
+                        ps_op->s_ive_op.u4_error_code |=
+                                        IH264E_INVALID_INTRA_FRAME_INTERVAL;
+                        return IV_FAIL;
+                    }
+
                     break;
                 }
 
@@ -5755,6 +5765,9 @@ static IV_STATUS_T ih264_set_gop_params(void *pv_api_ip,
 
     ps_cfg->u4_i_frm_interval = ps_ip->s_ive_ip.u4_i_frm_interval;
     ps_cfg->u4_idr_frm_interval = ps_ip->s_ive_ip.u4_idr_frm_interval;
+
+    if(ps_cfg->u4_idr_frm_interval < ps_cfg->u4_i_frm_interval)
+        ps_cfg->u4_i_frm_interval = ps_cfg->u4_idr_frm_interval;
 
     ps_cfg->u4_timestamp_high = ps_ip->s_ive_ip.u4_timestamp_high;
     ps_cfg->u4_timestamp_low = ps_ip->s_ive_ip.u4_timestamp_low;
