@@ -1479,7 +1479,7 @@ void set_vui_params(app_ctxt_t *ps_app_ctxt)
     s_vui_params_ip.u1_chroma_sample_loc_type_bottom_field = 0;
     s_vui_params_ip.u1_vui_timing_info_present_flag = 0;
     s_vui_params_ip.u4_vui_num_units_in_tick = 0;
-    s_vui_params_ip.u4_vui_time_scale = 0;
+    s_vui_params_ip.u4_vui_time_scale = ps_app_ctxt->u4_tgt_frame_rate * 2000;
     s_vui_params_ip.u1_fixed_frame_rate_flag = 0;
     s_vui_params_ip.u1_nal_hrd_parameters_present_flag = 0;
     s_vui_params_ip.u1_vcl_hrd_parameters_present_flag = 0;
