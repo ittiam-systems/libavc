@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-#include <utils/Log.h>
-
 #include "ih264_defs.h"
 #include "ih264_typedefs.h"
 #include "ih264e.h"
 #include "ih264e_error.h"
 
-#include "AvcEncoderTestEnvironment.h"
+#include "TestArgs.h"
 
 #define MAX_FRAME_HEIGHT 1080
 #define MAX_FRAME_WIDTH 1920
 #define MAX_OUTPUT_BUFFER_SIZE (MAX_FRAME_HEIGHT * MAX_FRAME_WIDTH)
-
-#define ENCODED_FILE "/data/local/tmp/AvcOutput"
 
 #define ive_api_function ih264e_api_function
 
@@ -35,9 +31,9 @@ constexpr int16_t kCompressionRatio = 1;
 constexpr size_t kMinQP = 4;
 constexpr uint32_t kHeaderLength = 0x800;
 
-static AvcEncoderTestEnvironment* gEnv = nullptr;
+static TestArgs* gArgs = nullptr;
 
-class AvcEncoderTest
+class AvcEncTest
     : public ::testing::TestWithParam<tuple<string, int32_t, int32_t, float, int32_t>> {
   private:
     void setRawBuf(iv_raw_buf_t* psInpRawBuf, const uint8_t* data);
@@ -110,10 +106,10 @@ class AvcEncoderTest
     IV_PROFILE_T mProfile = IV_PROFILE_BASE;
 
   public:
-    AvcEncoderTest()
+    AvcEncTest()
         : mInputBuffer(nullptr), mOutputBuffer(nullptr), mFpInput(nullptr), mFpOutput(nullptr) {}
 
-    ~AvcEncoderTest() {
+    ~AvcEncTest() {
         iv_mem_rec_t* ps_mem_rec = mMemRecords;
         for (size_t i = 0; i < mNumMemRecords; ++i) {
             if (ps_mem_rec) {
@@ -131,11 +127,12 @@ class AvcEncoderTest
         tuple<string /* fileName */, int32_t /* frameWidth */, int32_t /* frameHeight */,
               float /* frameRate */, int32_t /* bitRate */>
                 params = GetParam();
-        mFileName = gEnv->getRes() + get<0>(params);
+        mFileName = gArgs->getRes() + get<0>(params);
         mFrameWidth = get<1>(params);
         mFrameHeight = get<2>(params);
         mFrameRate = get<3>(params);
         mBitRate = get<4>(params);
+        mOutFileName = gArgs->getRes() + "out.bin";
 
         ASSERT_LE(mFrameWidth, 1080) << "Frame Width <= 1080";
 
@@ -153,8 +150,8 @@ class AvcEncoderTest
         mFpInput = fopen(mFileName.c_str(), "rb");
         ASSERT_NE(mFpInput, nullptr) << "Failed to open the input file: " << mFileName;
 
-        mFpOutput = fopen(ENCODED_FILE, "wb");
-        ASSERT_NE(mFpOutput, nullptr) << "Failed to open the output file:" << ENCODED_FILE;
+        mFpOutput = fopen(mOutFileName.c_str(), "wb");
+        ASSERT_NE(mFpOutput, nullptr) << "Failed to open the output file:" << mOutFileName;
 
         /* Getting Number of MemRecords */
         iv_num_mem_rec_ip_t sNumMemRecIp = {};
@@ -316,6 +313,7 @@ class AvcEncoderTest
     int32_t mBitRate = 256000;
     int64_t mOutputBufferSize = MAX_OUTPUT_BUFFER_SIZE;
     string mFileName;
+    string mOutFileName;
     uint8_t* mInputBuffer = nullptr;
     uint8_t* mOutputBuffer = nullptr;
     FILE* mFpInput = nullptr;
@@ -323,7 +321,7 @@ class AvcEncoderTest
     IV_STATUS_T status;
 };
 
-void AvcEncoderTest::setDimensions() {
+void AvcEncTest::setDimensions() {
     ive_ctl_set_dimensions_ip_t sDimensionsIp = {};
     ive_ctl_set_dimensions_op_t sDimensionsOp = {};
 
@@ -344,7 +342,7 @@ void AvcEncoderTest::setDimensions() {
     return;
 }
 
-void AvcEncoderTest::setNumCores() {
+void AvcEncTest::setNumCores() {
     ive_ctl_set_num_cores_ip_t sNumCoresIp = {};
     ive_ctl_set_num_cores_op_t sNumCoresOp = {};
 
@@ -364,7 +362,7 @@ void AvcEncoderTest::setNumCores() {
     return;
 }
 
-void AvcEncoderTest::setDefault() {
+void AvcEncTest::setDefault() {
     ive_ctl_setdefault_ip_t sDefaultIp = {};
     ive_ctl_setdefault_op_t sDefaultOp = {};
 
@@ -383,7 +381,7 @@ void AvcEncoderTest::setDefault() {
     return;
 }
 
-void AvcEncoderTest::getBufInfo() {
+void AvcEncTest::getBufInfo() {
     ih264e_ctl_getbufinfo_ip_t sGetBufInfoIp = {};
     ih264e_ctl_getbufinfo_op_t sGetBufInfoOp = {};
 
@@ -402,7 +400,7 @@ void AvcEncoderTest::getBufInfo() {
     return;
 }
 
-void AvcEncoderTest::setFrameRate() {
+void AvcEncTest::setFrameRate() {
     ive_ctl_set_frame_rate_ip_t sFrameRateIp = {};
     ive_ctl_set_frame_rate_op_t sFrameRateOp = {};
 
@@ -423,7 +421,7 @@ void AvcEncoderTest::setFrameRate() {
     return;
 }
 
-void AvcEncoderTest::setIpeParams() {
+void AvcEncTest::setIpeParams() {
     ive_ctl_set_ipe_params_ip_t sIpeParamsIp = {};
     ive_ctl_set_ipe_params_op_t sIpeParamsOp = {};
 
@@ -445,7 +443,7 @@ void AvcEncoderTest::setIpeParams() {
     return;
 }
 
-void AvcEncoderTest::setBitRate() {
+void AvcEncTest::setBitRate() {
     ive_ctl_set_bitrate_ip_t sBitrateIp = {};
     ive_ctl_set_bitrate_op_t sBitrateOp = {};
 
@@ -465,7 +463,7 @@ void AvcEncoderTest::setBitRate() {
     return;
 }
 
-void AvcEncoderTest::setFrameType(IV_PICTURE_CODING_TYPE_T eFrameType) {
+void AvcEncTest::setFrameType(IV_PICTURE_CODING_TYPE_T eFrameType) {
     ive_ctl_set_frame_type_ip_t sFrameTypeIp = {};
     ive_ctl_set_frame_type_op_t sFrameTypeOp = {};
 
@@ -484,7 +482,7 @@ void AvcEncoderTest::setFrameType(IV_PICTURE_CODING_TYPE_T eFrameType) {
     return;
 }
 
-void AvcEncoderTest::setQp() {
+void AvcEncTest::setQp() {
     ive_ctl_set_qp_ip_t s_QpIp = {};
     ive_ctl_set_qp_op_t s_QpOp = {};
 
@@ -515,7 +513,7 @@ void AvcEncoderTest::setQp() {
     return;
 }
 
-void AvcEncoderTest::setEncMode(IVE_ENC_MODE_T eEncMode) {
+void AvcEncTest::setEncMode(IVE_ENC_MODE_T eEncMode) {
     ive_ctl_set_enc_mode_ip_t sEncModeIp = {};
     ive_ctl_set_enc_mode_op_t sEncModeOp = {};
 
@@ -535,7 +533,7 @@ void AvcEncoderTest::setEncMode(IVE_ENC_MODE_T eEncMode) {
     return;
 }
 
-void AvcEncoderTest::setVbvParams() {
+void AvcEncTest::setVbvParams() {
     ive_ctl_set_vbv_params_ip_t sVbvIp = {};
     ive_ctl_set_vbv_params_op_t sVbvOp = {};
 
@@ -556,7 +554,7 @@ void AvcEncoderTest::setVbvParams() {
     return;
 }
 
-void AvcEncoderTest::setAirParams() {
+void AvcEncTest::setAirParams() {
     ive_ctl_set_air_params_ip_t sAirIp = {};
     ive_ctl_set_air_params_op_t sAirOp = {};
 
@@ -577,7 +575,7 @@ void AvcEncoderTest::setAirParams() {
     return;
 }
 
-void AvcEncoderTest::setMeParams() {
+void AvcEncTest::setMeParams() {
     ive_ctl_set_me_params_ip_t sMeParamsIp = {};
     ive_ctl_set_me_params_op_t sMeParamsOp = {};
 
@@ -604,7 +602,7 @@ void AvcEncoderTest::setMeParams() {
     return;
 }
 
-void AvcEncoderTest::setGopParams() {
+void AvcEncTest::setGopParams() {
     ive_ctl_set_gop_params_ip_t sGopParamsIp = {};
     ive_ctl_set_gop_params_op_t sGopParamsOp = {};
 
@@ -626,7 +624,7 @@ void AvcEncoderTest::setGopParams() {
     return;
 }
 
-void AvcEncoderTest::setProfileParams() {
+void AvcEncTest::setProfileParams() {
     ive_ctl_set_profile_params_ip_t sProfileParamsIp = {};
     ive_ctl_set_profile_params_op_t sProfileParamsOp = {};
 
@@ -651,7 +649,7 @@ void AvcEncoderTest::setProfileParams() {
     return;
 }
 
-void AvcEncoderTest::setDeblockParams() {
+void AvcEncTest::setDeblockParams() {
     ive_ctl_set_deblock_params_ip_t sDeblockParamsIp = {};
     ive_ctl_set_deblock_params_op_t sDeblockParamsOp = {};
 
@@ -672,7 +670,7 @@ void AvcEncoderTest::setDeblockParams() {
     return;
 }
 
-void AvcEncoderTest::setVuiParams() {
+void AvcEncTest::setVuiParams() {
     ih264e_vui_ip_t sVuiParamsIp = {};
     ih264e_vui_op_t sVuiParamsOp = {};
 
@@ -694,7 +692,7 @@ void AvcEncoderTest::setVuiParams() {
     return;
 }
 
-void AvcEncoderTest::setSeiMdcvParams() {
+void AvcEncTest::setSeiMdcvParams() {
     ih264e_ctl_set_sei_mdcv_params_ip_t sSeiMdcvParamsIp = {};
     ih264e_ctl_set_sei_mdcv_params_op_t sSeiMdcvParamsOp = {};
 
@@ -723,7 +721,7 @@ void AvcEncoderTest::setSeiMdcvParams() {
     return;
 }
 
-void AvcEncoderTest::setSeiCllParams() {
+void AvcEncTest::setSeiCllParams() {
     ih264e_ctl_set_sei_cll_params_ip_t sSeiCllParamsIp = {};
     ih264e_ctl_set_sei_cll_params_op_t sSeiCllParamsOp = {};
 
@@ -747,7 +745,7 @@ void AvcEncoderTest::setSeiCllParams() {
     return;
 }
 
-void AvcEncoderTest::setSeiAveParams() {
+void AvcEncTest::setSeiAveParams() {
     ih264e_ctl_set_sei_ave_params_ip_t sSeiAveParamsIp = {};
     ih264e_ctl_set_sei_ave_params_op_t sSeiAveParamsOp = {};
 
@@ -772,7 +770,7 @@ void AvcEncoderTest::setSeiAveParams() {
     return;
 }
 
-void AvcEncoderTest::setSeiCcvParams() {
+void AvcEncTest::setSeiCcvParams() {
     ih264e_ctl_set_sei_ccv_params_ip_t sSeiCcvParamsIp = {};
     ih264e_ctl_set_sei_ccv_params_op_t sSeiCcvParamsOp = {};
 
@@ -808,7 +806,7 @@ void AvcEncoderTest::setSeiCcvParams() {
     return;
 }
 
-void AvcEncoderTest::logVersion() {
+void AvcEncTest::logVersion() {
     ive_ctl_getversioninfo_ip_t sCtlIp = {};
     ive_ctl_getversioninfo_op_t sCtlOp = {};
     UWORD8 au1Buf[512];
@@ -827,7 +825,7 @@ void AvcEncoderTest::logVersion() {
     return;
 }
 
-void AvcEncoderTest::encodeFrames(int64_t numFramesToEncode) {
+void AvcEncTest::encodeFrames(int64_t numFramesToEncode) {
     ih264e_video_encode_ip_t ih264e_video_encode_ip = {};
     ih264e_video_encode_op_t ih264e_video_encode_op = {};
 
@@ -897,7 +895,7 @@ void AvcEncoderTest::encodeFrames(int64_t numFramesToEncode) {
 
         int32_t numOutputBytes = fwrite((UWORD8*)sEncodeOp->s_out_buf.pv_buf, sizeof(UWORD8),
                                         sEncodeOp->s_out_buf.u4_bytes, mFpOutput);
-        ASSERT_NE(numOutputBytes, 0) << "Failed to write the output!" << ENCODED_FILE;
+        ASSERT_NE(numOutputBytes, 0) << "Failed to write the output!" << mOutFileName;
 
         numFramesToEncode--;
         numFrame++;
@@ -914,11 +912,11 @@ void AvcEncoderTest::encodeFrames(int64_t numFramesToEncode) {
     if (sEncodeOp->output_present) {
         int32_t numOutputBytes = fwrite((UWORD8*)sEncodeOp->s_out_buf.pv_buf, sizeof(UWORD8),
                                         sEncodeOp->s_out_buf.u4_bytes, mFpOutput);
-        ASSERT_NE(numOutputBytes, 0) << "Failed to write the output!" << ENCODED_FILE;
+        ASSERT_NE(numOutputBytes, 0) << "Failed to write the output!" << mOutFileName;
     }
 }
 
-void AvcEncoderTest::setRawBuf(iv_raw_buf_t* psInpRawBuf, const uint8_t* data) {
+void AvcEncTest::setRawBuf(iv_raw_buf_t* psInpRawBuf, const uint8_t* data) {
     switch (mIvVideoColorFormat) {
         case IV_YUV_420SP_UV:
             [[fallthrough]];
@@ -982,7 +980,7 @@ void AvcEncoderTest::setRawBuf(iv_raw_buf_t* psInpRawBuf, const uint8_t* data) {
     return;
 }
 
-int64_t AvcEncoderTest::getTotalFrames() {
+int64_t AvcEncTest::getTotalFrames() {
     struct stat buf;
     stat(mFileName.c_str(), &buf);
     size_t fileSize = buf.st_size;
@@ -990,23 +988,22 @@ int64_t AvcEncoderTest::getTotalFrames() {
     return totalFrames;
 }
 
-TEST_P(AvcEncoderTest, EncodeTest) {
+TEST_P(AvcEncTest, EncodeTest) {
     ASSERT_NO_FATAL_FAILURE(encodeFrames(mTotalFrames)) << "Failed to Encode: " << mFileName;
 }
 
-INSTANTIATE_TEST_SUITE_P(EncodeTest, AvcEncoderTest,
+INSTANTIATE_TEST_SUITE_P(EncodeTest, AvcEncTest,
                          ::testing::Values(make_tuple("bbb_352x288_420p_30fps_32frames.yuv", 352,
                                                       288, 30, 2048),
                                            make_tuple("football_qvga.yuv", 320, 240, 30, 1024)));
 
 int32_t main(int argc, char** argv) {
-    gEnv = new AvcEncoderTestEnvironment();
-    ::testing::AddGlobalTestEnvironment(gEnv);
+    gArgs = new TestArgs();
+    ::testing::AddGlobalTestEnvironment(gArgs);
     ::testing::InitGoogleTest(&argc, argv);
-    uint8_t status = gEnv->initFromOptions(argc, argv);
+    uint8_t status = gArgs->initFromOptions(argc, argv);
     if (status == 0) {
         status = RUN_ALL_TESTS();
-        ALOGI("Encoder Test Result = %d\n", status);
     }
     return status;
 }

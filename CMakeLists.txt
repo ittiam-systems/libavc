@@ -6,6 +6,7 @@ set(AVC_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(AVC_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 option(ENABLE_MVC "Enables svcenc and svcdec builds" OFF)
 option(ENABLE_SVC "Enables svcenc and svcdec builds" OFF)
+option(ENABLE_TESTS "Enables gtest based unit tests" OFF)
 
 if("${AVC_ROOT}" STREQUAL "${AVC_CONFIG_DIR}")
   message(
@@ -66,4 +67,8 @@ include("${AVC_ROOT}/fuzzer/avc_enc_fuzzer.cmake")
 if (${ENABLE_SVC})
   include("${AVC_ROOT}/fuzzer/svc_enc_fuzzer.cmake")
   include("${AVC_ROOT}/fuzzer/svc_dec_fuzzer.cmake")
+endif()
+
+if (${ENABLE_TESTS})
+    include("${AVC_ROOT}/tests/AvcEncTest.cmake")
 endif()

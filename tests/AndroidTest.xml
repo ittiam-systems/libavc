@@ -14,18 +14,18 @@
      limitations under the License.
 -->
 <configuration description="Test module config for AVC encoder unit tests">
-    <option name="test-suite-tag" value="AvcEncoderTest" />
+    <option name="test-suite-tag" value="AvcEncTest" />
     <target_preparer class="com.android.tradefed.targetprep.PushFilePreparer">
         <option name="cleanup" value="true" />
-        <option name="push" value="AvcEncoderTest->/data/local/tmp/AvcEncoderTest/" />
+        <option name="push" value="AvcEncTest->/data/local/tmp/AvcEncTest/" />
         <option name="push-file"
             key="https://storage.googleapis.com/android_media/external/libavc/tests/AvcEncoder.zip?unzip=true"
-            value="/data/local/tmp/AvcEncoderTestRes/" />
+            value="/data/local/tmp/AvcEncTestRes/" />
     </target_preparer>
 
     <test class="com.android.tradefed.testtype.GTest" >
         <option name="native-test-device-path" value="/data/local/tmp" />
-        <option name="module-name" value="AvcEncoderTest" />
-        <option name="native-test-flag" value="-P /data/local/tmp/AvcEncoderTestRes/" />
+        <option name="module-name" value="AvcEncTest" />
+        <option name="native-test-flag" value="-P /data/local/tmp/AvcEncTestRes/" />
     </test>
 </configuration>
