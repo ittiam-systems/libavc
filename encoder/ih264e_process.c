@@ -392,6 +392,9 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
         /* populate slice header */
         ih264e_populate_slice_header(ps_proc, ps_slice_hdr, ps_pps, ps_sps);
 
+        /* Starting bitstream offset for header in bits */
+        bitstream_start_offset = GET_NUM_BITS(ps_bitstrm);
+
         /* generate sei */
         u4_insert_per_idr = (NAL_SLICE_IDR == ps_slice_hdr->i1_nal_unit_type);
 
@@ -451,6 +454,11 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
             RETURN_ENTROPY_IF_ERROR(ps_codec, ps_entropy, ctxt_sel);
             ih264e_init_cabac_ctxt(ps_entropy);
         }
+
+        /* Ending bitstream offset for header in bits */
+        bitstream_end_offset = GET_NUM_BITS(ps_bitstrm);
+        ps_entropy->u4_header_bits[i4_slice_type == PSLICE] +=
+                        bitstream_end_offset - bitstream_start_offset;
     }
 
     /* begin entropy coding for the mb set */
@@ -608,12 +616,17 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
                         && ps_codec->s_cfg.e_slice_mode
                                         != IVE_SLICE_MODE_BLOCKS)
         {
+            bitstream_start_offset = GET_NUM_BITS(ps_bitstrm);
             ih264e_cabac_encode_terminate(ps_cabac_ctxt, 0);
+            bitstream_end_offset = GET_NUM_BITS(ps_bitstrm);
+            ps_entropy->u4_header_bits[i4_slice_type == PSLICE] +=
+                            bitstream_end_offset - bitstream_start_offset;
         }
     }
 
     if (ps_entropy->i4_eof)
     {
+        bitstream_start_offset = GET_NUM_BITS(ps_bitstrm);
         if (CAVLC == ps_entropy->u1_entropy_coding_mode_flag)
         {
             /* mb skip run */
@@ -635,6 +648,9 @@ IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
         {
             ih264e_cabac_encode_terminate(ps_cabac_ctxt, 1);
         }
+        bitstream_end_offset = GET_NUM_BITS(ps_bitstrm);
+        ps_entropy->u4_header_bits[i4_slice_type == PSLICE] +=
+                        bitstream_end_offset - bitstream_start_offset;
 
         DEBUG("entropy status %x", ps_entropy->i4_error_code);
     }
