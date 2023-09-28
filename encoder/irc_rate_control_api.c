@@ -163,7 +163,9 @@ void irc_initialise_rate_control(rate_control_api_t *ps_rate_control_api,
                                  UWORD32 u4_tgt_ticks)
 {
     WORD32 i;
-    UWORD32 u4_frms_in_delay_prd = (u4_frame_rate * u4_max_delay) / 1000000;
+    UWORD32 u4_frms_in_delay_prd;
+
+    X_PROD_Y_DIV_Z(u4_frame_rate, u4_max_delay, 1000000, u4_frms_in_delay_prd);
     ps_rate_control_api->e_rc_type = e_rate_control_type;
     ps_rate_control_api->u1_is_mb_level_rc_on = u1_is_mb_level_rc_on;
 
@@ -307,8 +309,8 @@ void irc_initialise_rate_control(rate_control_api_t *ps_rate_control_api,
 
     /* Initialize the mb level rate control module */
     irc_init_mb_level_rc(ps_rate_control_api->ps_mb_rate_control);
-    ps_rate_control_api->i4_prev_frm_est_bits = u4_avg_bit_rate * 1000
-                    / u4_frame_rate;
+    X_PROD_Y_DIV_Z(u4_avg_bit_rate, 1000, u4_frame_rate,
+                   ps_rate_control_api->i4_prev_frm_est_bits);
 
     ps_rate_control_api->prev_ref_pic_type = I_PIC;
 }
