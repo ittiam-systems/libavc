@@ -245,7 +245,7 @@ void allocate_input(app_ctxt_t *ps_app_ctxt)
     /* Size of buffer */
     luma_size = ps_app_ctxt->u4_wd * ps_app_ctxt->u4_ht;
     chroma_size = luma_size >> 1;
-    pic_size = luma_size + chroma_size;
+    pic_size = luma_size + chroma_size * 2;
 
     num_mbs = ALIGN16(ps_app_ctxt->u4_max_wd) *  ALIGN16(ps_app_ctxt->u4_max_ht);
     num_mbs /= 256;
