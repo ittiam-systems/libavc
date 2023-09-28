@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/out -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DENABLE_MVC=1 -DENABLE_SVC=1
+      run: cmake -B ${{github.workspace}}/out -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DENABLE_MVC=1 -DENABLE_SVC=1 -DENABLE_TESTS=1
 
     - name: Build
       run: cmake --build ${{github.workspace}}/out --config ${{env.BUILD_TYPE}}

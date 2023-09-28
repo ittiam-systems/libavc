@@ -22,9 +22,9 @@
 
 using namespace std;
 
-class AvcEncoderTestEnvironment : public::testing::Environment {
+class TestArgs : public::testing::Environment {
   public:
-    AvcEncoderTestEnvironment() : res("/data/local/tmp/AvcEncoderTest/") {}
+    TestArgs() : res("/data/local/tmp/AvcEncTestRes/") {}
 
     // Parses the command line arguments
     int initFromOptions(int argc, char **argv);
@@ -37,7 +37,7 @@ class AvcEncoderTestEnvironment : public::testing::Environment {
     string res;
 };
 
-int AvcEncoderTestEnvironment::initFromOptions(int argc, char **argv) {
+int TestArgs::initFromOptions(int argc, char **argv) {
     static struct option options[] = {{"path", required_argument, 0, 'P'}, {0, 0, 0, 0}};
 
     while (true) {

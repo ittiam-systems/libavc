@@ -24,10 +24,10 @@ package {
 }
 
 cc_test {
-    name: "AvcEncoderTest",
+    name: "AvcEncTest",
     gtest: true,
 
-    srcs : [ "AvcEncoderTest.cpp" ],
+    srcs : [ "AvcEncTest.cpp" ],
 
     shared_libs: [
         "libutils",
