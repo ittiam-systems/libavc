@@ -41,7 +41,7 @@ cc_defaults {
         "-Wno-unused-variable",
     ],
     local_include_dirs: [
-        "encoder",
+        "avcenc",
     ],
     static_libs: ["libavcenc"],
 }
@@ -50,9 +50,9 @@ cc_test {
     name: "avcdec",
     defaults: ["avcdec_defaults"],
     local_include_dirs: [
-        "decoder",
+        "avcdec",
     ],
-    srcs: ["decoder/main.c"],
+    srcs: ["avcdec/main.c"],
     static_libs: ["libavcdec"],
 }
 
@@ -73,11 +73,11 @@ cc_test {
     defaults: ["avcenc_defaults"],
 
     srcs: [
-        "encoder/main.c",
-        "encoder/psnr.c",
-        "encoder/input.c",
-        "encoder/output.c",
-        "encoder/recon.c",
+        "avcenc/main.c",
+        "avcenc/psnr.c",
+        "avcenc/input.c",
+        "avcenc/output.c",
+        "avcenc/recon.c",
     ],
 }
 
