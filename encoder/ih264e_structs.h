@@ -2254,6 +2254,11 @@ struct _codec_t
     WORD32 i4_frame_num;
 
     /**
+     * frame num backup (used in post enc skip case)
+     */
+    WORD32 i4_restore_frame_num;
+
+    /**
      *  slice_type
      */
     WORD32  i4_slice_type;

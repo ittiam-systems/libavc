@@ -2472,6 +2472,12 @@ WORD32 ih264e_update_rc_post_enc(codec_t *ps_codec, WORD32 ctxt_sel, WORD32 i4_i
     if (ps_codec->s_rate_control.post_encode_skip[ctxt_sel])
     {
          ps_entropy->ps_bitstrm->u4_strm_buf_offset = 0;
+         // If an IDR frame was skipped, restore frame num and IDR pic id
+         if (ps_codec->u4_is_idr == 1)
+         {
+             ps_codec->i4_frame_num = ps_codec->i4_restore_frame_num;
+             ps_codec->i4_idr_pic_id--;
+         }
     }
     else if (i4_stuffing_byte)
     {

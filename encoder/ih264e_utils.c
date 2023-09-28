@@ -1489,6 +1489,8 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
         /* set idr flag */
         ps_codec->u4_is_idr = 1;
 
+        ps_codec->i4_restore_frame_num = ps_codec->i4_frame_num;
+
         /* reset frame num */
         ps_codec->i4_frame_num = 0;
 
