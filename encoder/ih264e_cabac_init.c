@@ -21,19 +21,21 @@
 /**
 *******************************************************************************
 * @file
-* ih264e_cabac_init.c
+*  ih264e_cabac_init.c
 *
 * @brief
 *  Contains all initialization functions for cabac contexts
 *
 * @author
-*  Doney Alex
+*  ittiam
 *
-* @par List of Functions:
-*
+* @par List of Functions
+*  - ih264e_init_cabac_enc_envirnoment
+*  - ih264e_init_cabac_table
+*  - ih264e_init_cabac_ctxt
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -42,7 +44,7 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -50,57 +52,43 @@
 #include <limits.h>
 #include <assert.h>
 
-/* User include files */
+/* User Include Files */
+#include "ih264e_config.h"
 #include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
-#include "ih264_defs.h"
+
 #include "ih264_debug.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
+#include "ih264_macros.h"
 #include "ih264_error.h"
+#include "ih264_defs.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
-#include "ih264_platform_macros.h"
-#include "ih264_macros.h"
-#include "ih264_buf_mgr.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
-#include "ih264_common_tables.h"
+#include "ih264_cavlc_tables.h"
 #include "ih264_cabac_tables.h"
-#include "ih264_list.h"
-#include "ih264e_defs.h"
+#include "ih264_platform_macros.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
-#include "ih264e_rate_control.h"
+
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
-#include "ih264e_cabac.h"
-#include "ih264e_process.h"
-#include "ithread.h"
-#include "ih264e_intra_modes_eval.h"
 #include "ih264e_encode_header.h"
-#include "ih264e_globals.h"
-#include "ih264e_config.h"
-#include "ih264e_trace.h"
+#include "ih264e_cabac.h"
 #include "ih264e_statistics.h"
-#include "ih264_cavlc_tables.h"
-#include "ih264e_deblk.h"
-#include "ih264e_me.h"
-#include "ih264e_debug.h"
-#include "ih264e_master.h"
-#include "ih264e_utils.h"
-#include "irc_mem_req_and_acq.h"
-#include "irc_rate_control_api.h"
-#include "ih264e_platform_macros.h"
-#include "ime_statistics.h"
-
+#include "ih264e_trace.h"
 
 
 /*****************************************************************************/
@@ -108,20 +96,18 @@
 /*****************************************************************************/
 
 /**
- *******************************************************************************
- *
- * @brief
- * Initialize cabac encoding environment
- *
- * @param[in] ps_cab_enc_env
- *  Pointer to encoding_envirnoment_t structure
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
+*******************************************************************************
+*
+* @brief Initialize cabac encoding environment
+*
+* @param[in] ps_cab_enc_env
+*  Pointer to encoding_envirnoment_t structure
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
 */
 static void ih264e_init_cabac_enc_envirnoment(encoding_envirnoment_t *ps_cab_enc_env)
 {
@@ -131,26 +117,23 @@ static void ih264e_init_cabac_enc_envirnoment(encoding_envirnoment_t *ps_cab_enc
     ps_cab_enc_env->u4_bits_gen = 0;
 }
 
-
 /**
- *******************************************************************************
- *
- * @brief
- * Initialize default context values and pointers (Called once at the beginning of encoding).
- *
- * @param[in] ps_ent_ctxt
- *  Pointer to entropy context structure
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
+*******************************************************************************
+*
+* @brief Initialize default context values and pointers. Called once at the
+*  beginning of encoding.
+*
+* @param[in] ps_ent_ctxt
+*  Pointer to entropy context structure
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
 */
 void ih264e_init_cabac_table(entropy_ctxt_t *ps_ent_ctxt)
 {
-    /* CABAC context */
     cabac_ctxt_t *ps_cabac_ctxt = ps_ent_ctxt->ps_cabac;
     ps_cabac_ctxt->ps_mb_map_ctxt_inc = ps_cabac_ctxt->ps_mb_map_ctxt_inc_base + 1;
     ps_cabac_ctxt->ps_lft_csbp = &ps_cabac_ctxt->s_lft_csbp;
@@ -158,7 +141,7 @@ void ih264e_init_cabac_table(entropy_ctxt_t *ps_ent_ctxt)
 
     {
         /* 0th entry of mb_map_ctxt_inc will be always be containing default values */
-        /* for CABAC context representing MB not available                       */
+        /* for CABAC context representing MB not available */
         mb_info_ctxt_t *ps_def_ctxt = ps_cabac_ctxt->ps_mb_map_ctxt_inc - 1;
 
         ps_def_ctxt->u1_mb_type = CAB_SKIP;
@@ -171,30 +154,25 @@ void ih264e_init_cabac_table(entropy_ctxt_t *ps_ent_ctxt)
     }
 }
 
-
 /**
- *******************************************************************************
- *
- * @brief
- * Initialize cabac context: Initialize all contest with init values given in the spec.
- * Called at the beginning of entropy coding of each slice for CABAC encoding.
- *
- * @param[in] ps_ent_ctxt
- *  Pointer to entropy context structure
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief Initialize cabac context: Initialize all contest with init values given
+*  in the spec. Called at the beginning of entropy coding of each slice for
+*  CABAC encoding.
+*
+* @param[in] ps_ent_ctxt
+*  Pointer to entropy context structure
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264e_init_cabac_ctxt(entropy_ctxt_t *ps_ent_ctxt)
 {
-    /* CABAC context */
     cabac_ctxt_t *ps_cabac_ctxt = ps_ent_ctxt->ps_cabac;
-
-    /* slice header */
     slice_header_t *ps_slice_hdr = ps_ent_ctxt->ps_slice_hdr_base;
     const UWORD8 u1_slice_type = ps_slice_hdr->u1_slice_type;
     WORD8 i1_cabac_init_idc = 0;
@@ -212,11 +190,9 @@ void ih264e_init_cabac_ctxt(entropy_ctxt_t *ps_ent_ctxt)
     else
     {
         i1_cabac_init_idc = 3;
-
     }
 
     memcpy(au1_cabac_ctxt_table,
            gau1_ih264_cabac_ctxt_init_table[i1_cabac_init_idc][u1_qp_y],
            NUM_CABAC_CTXTS * sizeof(bin_ctxt_model));
-
 }

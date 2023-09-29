@@ -31,19 +31,19 @@
 *  ittiam
 *
 * @par List of Functions:
-*  - ih264e_derive_neighbor_availability_of_mbs()
-*  - ih264e_derive_ngbr_avbl_of_mb_partitions()
-*  - ih264e_evaluate_intra16x16_modes_for_least_cost_rdoptoff()
-*  - ih264e_evaluate_intra8x8_modes_for_least_cost_rdoptoff()
-*  - ih264e_evaluate_intra4x4_modes_for_least_cost_rdoptoff()
-*  - ih264e_evaluate_intra4x4_modes_for_least_cost_rdopton()
-*  - ih264e_evaluate_chroma_intra8x8_modes_for_least_cost_rdoptoff()
-*  - ih264e_evaluate_intra16x16_modes()
-*  - ih264e_evaluate_intra4x4_modes()
-*  - ih264e_evaluate_intra_chroma_modes()
+*  - ih264e_derive_neighbor_availability_of_mbs
+*  - ih264e_derive_ngbr_avbl_of_mb_partitions
+*  - ih264e_evaluate_intra16x16_modes_for_least_cost_rdoptoff
+*  - ih264e_evaluate_intra8x8_modes_for_least_cost_rdoptoff
+*  - ih264e_evaluate_intra4x4_modes_for_least_cost_rdoptoff
+*  - ih264e_evaluate_intra4x4_modes_for_least_cost_rdopton
+*  - ih264e_evaluate_chroma_intra8x8_modes_for_least_cost_rdoptoff
+*  - ih264e_evaluate_intra16x16_modes
+*  - ih264e_evaluate_intra4x4_modes
+*  - ih264e_evaluate_intra_chroma_modes
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -52,43 +52,47 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
 
-/* User include files */
+/* User Include Files */
 #include "ih264e_config.h"
 #include "ih264_typedefs.h"
-#include "ih264e_defs.h"
 #include "iv2.h"
 #include "ive2.h"
+
 #include "ih264_debug.h"
-#include "ih264_defs.h"
 #include "ih264_macros.h"
-#include "ih264_intra_pred_filters.h"
-#include "ih264_structs.h"
-#include "ih264_common_tables.h"
-#include "ih264_trans_quant_itrans_iquant.h"
-#include "ih264_inter_pred_filters.h"
+#include "ih264_defs.h"
 #include "ih264_mem_fns.h"
 #include "ih264_padding.h"
+#include "ih264_structs.h"
+#include "ih264_trans_quant_itrans_iquant.h"
+#include "ih264_inter_pred_filters.h"
+#include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_common_tables.h"
 #include "ih264_cabac_tables.h"
-#include "ime_distortion_metrics.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
+
 #include "ime_defs.h"
+#include "ime_distortion_metrics.h"
 #include "ime_structs.h"
+#include "ime_platform_macros.h"
+
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
+
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
+#include "ih264e_globals.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264e_intra_modes_eval.h"
-#include "ih264e_globals.h"
-#include "ime_platform_macros.h"
 
 
 /*****************************************************************************/
@@ -322,7 +326,6 @@ UWORD8 ih264e_derive_ngbr_avbl_of_mb_partitions(block_neighbors_t *ps_ngbr_avbl,
 *
 ******************************************************************************
 */
-
 void ih264e_evaluate_intra16x16_modes_for_least_cost_rdoptoff(process_ctxt_t *ps_proc)
 {
     /* Codec Context */
@@ -364,6 +367,7 @@ void ih264e_evaluate_intra16x16_modes_for_least_cost_rdoptoff(process_ctxt_t *ps
     UWORD8 *pu1_mb_b = pu1_ref_mb - i4_rec_strd;
     UWORD8 *pu1_mb_d = pu1_mb_b - 1;
     UWORD8 u1_mb_a, u1_mb_b, u1_mb_d;
+
     /* valid intra modes map */
     UWORD32 u4_valid_intra_modes;
 
@@ -570,6 +574,7 @@ void ih264e_evaluate_intra8x8_modes_for_least_cost_rdoptoff(process_ctxt_t *ps_p
     UWORD8 *pu1_top_mb_intra_modes = ps_proc->pu1_top_mb_intra_modes + (ps_proc->i4_mb_x << 4);
     mb_info_t *ps_top_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + ps_proc->i4_mb_x;
     mb_info_t *ps_top_right_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + ps_proc->i4_mb_x;
+
     /* valid intra modes map */
     UWORD32 u4_valid_intra_modes;
 
@@ -594,7 +599,7 @@ void ih264e_evaluate_intra8x8_modes_for_least_cost_rdoptoff(process_ctxt_t *ps_p
                                   && (u4_constrained_intra_pred ? ps_top_right_mb_syn_ele->u2_is_intra : 1));
 
 
-    for(b8 = 0; b8 < 4; b8++)
+    for (b8 = 0; b8 < 4; b8++)
     {
         u4_pix_x = (b8 & 0x01) << 3;
         u4_pix_y = (b8 >> 1) << 3;
@@ -835,6 +840,7 @@ void ih264e_evaluate_intra4x4_modes_for_least_cost_rdoptoff(process_ctxt_t *ps_p
 
     UWORD32 u4_constrained_intra_pred = ps_proc->ps_codec->s_cfg.u4_constrained_intra_pred;
     UWORD8 u1_mb_a, u1_mb_b, u1_mb_c, u1_mb_d;
+
     if (ps_proc->ps_ngbr_avbl->u1_mb_c)
     {
         ps_top_right_mb_syn_ele = ps_proc->ps_top_row_mb_syntax_ele + ps_proc->i4_mb_x + 1;
@@ -1094,7 +1100,7 @@ void ih264e_evaluate_intra4x4_modes_for_least_cost_rdopton(process_ctxt_t *ps_pr
     UWORD8 *pu1_mb_d;
 
     /* number of non zero coeffs*/
-    UWORD8  *pu1_nnz = (UWORD8 *)ps_proc->au4_nnz_intra_4x4;
+    UWORD8 *pu1_nnz = (UWORD8 *)ps_proc->au4_nnz_intra_4x4;
 
     /* quantization parameters */
     quant_params_t *ps_qp_params = ps_proc->ps_qp_params[0];
@@ -1148,11 +1154,11 @@ void ih264e_evaluate_intra4x4_modes_for_least_cost_rdopton(process_ctxt_t *ps_pr
     i4_ngbr_avbl = (u1_mb_a) + (u1_mb_d << 1) + (u1_mb_b << 2) + (u1_mb_c << 3);
     memcpy(ps_proc->au1_ngbr_avbl_4x4_subblks, gau1_ih264_4x4_ngbr_avbl[i4_ngbr_avbl], 16);
 
-    for(b8 = 0; b8 < 4; b8++)
+    for (b8 = 0; b8 < 4; b8++)
     {
         u4_blk_x = (b8 & 0x01) << 3;
         u4_blk_y = (b8 >> 1) << 3;
-        for(b4 = 0; b4 < 4; b4++, pu1_nnz++, pi2_res_mb += MB_SIZE)
+        for (b4 = 0; b4 < 4; b4++, pu1_nnz++, pi2_res_mb += MB_SIZE)
         {
             u4_pix_x = u4_blk_x + ((b4 & 0x01) << 2);
             u4_pix_y = u4_blk_y + ((b4 >> 1) << 2);
@@ -1377,7 +1383,6 @@ void ih264e_evaluate_intra4x4_modes_for_least_cost_rdopton(process_ctxt_t *ps_pr
 *
 ******************************************************************************
 */
-
 void ih264e_evaluate_chroma_intra8x8_modes_for_least_cost_rdoptoff(process_ctxt_t *ps_proc)
 {
     /* Codec Context */
@@ -1422,8 +1427,8 @@ void ih264e_evaluate_chroma_intra8x8_modes_for_least_cost_rdoptoff(process_ctxt_
     UWORD8 i;
     UWORD32 u4_constrained_intra_pred = ps_proc->ps_codec->s_cfg.u4_constrained_intra_pred;
     UWORD8 u1_mb_a, u1_mb_b, u1_mb_d;
-    /* locating neighbors that are available for prediction */
 
+    /* locating neighbors that are available for prediction */
     /* gather prediction pels from the neighbors */
     /* left pels */
     u1_mb_a = ((ps_proc->ps_ngbr_avbl->u1_mb_a)
@@ -2054,7 +2059,6 @@ void ih264e_evaluate_intra_4x4_modes(UWORD8 *pu1_src,
         pu1_dst += dst_strd;
         memset(pu1_dst, u4_dcval, 4);
     }
-
     else if (i4_min_cost == i4_cost[3])
     {
         *u4_intra_mode = DIAG_DL_I4x4;
@@ -2080,7 +2084,6 @@ void ih264e_evaluate_intra_4x4_modes(UWORD8 *pu1_src,
         pu1_dst += dst_strd;
         memcpy(pu1_dst, (pu1_pred_val - 3), 4);
     }
-
     else if (i4_min_cost == i4_cost[5])
     {
         *u4_intra_mode = VERT_R_I4x4;

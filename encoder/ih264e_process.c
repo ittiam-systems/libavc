@@ -27,24 +27,23 @@
 *  Contains functions for codec thread
 *
 * @author
-*  Harish
+*  ittiam
 *
 * @par List of Functions:
-* - ih264e_generate_sps_pps()
-* - ih264e_init_entropy_ctxt()
-* - ih264e_entropy()
-* - ih264e_pack_header_data()
-* - ih264e_update_proc_ctxt()
-* - ih264e_init_proc_ctxt()
-* - ih264e_pad_recon_buffer()
-* - ih264e_dblk_pad_hpel_processing_n_mbs()
-* - ih264e_process()
-* - ih264e_set_rc_pic_params()
-* - ih264e_update_rc_post_enc()
-* - ih264e_process_thread()
+* - ih264e_generate_sps_pps
+* - ih264e_init_entropy_ctxt
+* - ih264e_entropy
+* - ih264e_pack_header_data
+* - ih264e_update_proc_ctxt
+* - ih264e_init_proc_ctxt
+* - ih264e_pad_recon_buffer
+* - ih264e_dblk_pad_hpel_processing_n_mbs
+* - ih264e_process
+* - ih264e_update_rc_post_enc
+* - ih264e_process_thread
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -53,7 +52,7 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -61,57 +60,60 @@
 #include <limits.h>
 #include <assert.h>
 
-/* User include files */
+/* User Include Files */
+#include "ih264e_config.h"
 #include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
-#include "ih264_defs.h"
+#include "ithread.h"
+
 #include "ih264_debug.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
+#include "ih264_macros.h"
 #include "ih264_error.h"
+#include "ih264_defs.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
-#include "ih264_cabac_tables.h"
-#include "ih264_platform_macros.h"
-#include "ih264_macros.h"
-#include "ih264_buf_mgr.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
 #include "ih264_common_tables.h"
+#include "ih264_cavlc_tables.h"
+#include "ih264_cabac_tables.h"
+#include "ih264_buf_mgr.h"
 #include "ih264_list.h"
-#include "ih264e_defs.h"
+#include "ih264_platform_macros.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+#include "ime_statistics.h"
+
+#include "irc_mem_req_and_acq.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
+#include "irc_rate_control_api.h"
+
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
+#include "ih264e_globals.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
-#include "ih264e_cabac.h"
-#include "ih264e_process.h"
-#include "ithread.h"
-#include "ih264e_intra_modes_eval.h"
+#include "ih264e_deblk.h"
 #include "ih264e_encode_header.h"
-#include "ih264e_globals.h"
-#include "ih264e_config.h"
+#include "ih264e_utils.h"
+#include "ih264e_me.h"
+#include "ih264e_intra_modes_eval.h"
+#include "ih264e_cavlc.h"
+#include "ih264e_cabac.h"
+#include "ih264e_master.h"
+#include "ih264e_process.h"
 #include "ih264e_trace.h"
 #include "ih264e_statistics.h"
-#include "ih264_cavlc_tables.h"
-#include "ih264e_cavlc.h"
-#include "ih264e_deblk.h"
-#include "ih264e_me.h"
-#include "ih264e_debug.h"
-#include "ih264e_master.h"
-#include "ih264e_utils.h"
-#include "irc_mem_req_and_acq.h"
-#include "irc_rate_control_api.h"
 #include "ih264e_platform_macros.h"
-#include "ime_statistics.h"
 
 
 /*****************************************************************************/
@@ -121,17 +123,17 @@
 /**
 ******************************************************************************
 *
-*  @brief This function generates sps, pps set on request
+* @brief This function generates sps, pps set on request
 *
-*  @par   Description
+* @par   Description
 *  When the encoder is set in header generation mode, the following function
 *  is called. This generates sps and pps headers and returns the control back
 *  to caller.
 *
-*  @param[in]    ps_codec
+* @param[in]    ps_codec
 *  pointer to codec context
 *
-*  @return      success or failure error code
+* @return      success or failure error code
 *
 ******************************************************************************
 */
@@ -275,7 +277,6 @@ IH264E_ERROR_T ih264e_init_entropy_ctxt(process_ctxt_t *ps_proc)
 *
 *******************************************************************************
 */
-
 IH264E_ERROR_T ih264e_entropy(process_ctxt_t *ps_proc)
 {
     /* codec context */
@@ -1093,7 +1094,8 @@ WORD32 ih264e_update_proc_ctxt(process_ctxt_t *ps_proc)
     }
 
     /* update intra cost if valid */
-    if (ps_proc->i4_mb_intra_cost != INT_MAX) {
+    if (ps_proc->i4_mb_intra_cost != INT_MAX)
+    {
         ps_codec->pi4_mb_intra_cost[(i4_mb_y * i4_wd_mbs) + i4_mb_x] = ps_proc->i4_mb_intra_cost;
     }
 
@@ -1278,7 +1280,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
     ps_proc->pu1_rec_buf_luma = ps_proc->pu1_rec_buf_luma_base + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * MB_SIZE);
     ps_proc->pu1_rec_buf_chroma = ps_proc->pu1_rec_buf_chroma_base + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * BLK8x8SIZE);
 
-    /* Tempral back and forward reference buffer */
+    /* Temporal back and forward reference buffer */
     ps_proc->apu1_ref_buf_luma[0] = ps_proc->apu1_ref_buf_luma_base[0] + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * MB_SIZE);
     ps_proc->apu1_ref_buf_chroma[0] = ps_proc->apu1_ref_buf_chroma_base[0] + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * BLK8x8SIZE);
     ps_proc->apu1_ref_buf_luma[1] = ps_proc->apu1_ref_buf_luma_base[1] + (i4_mb_x * MB_SIZE) + i4_rec_strd * (i4_mb_y * MB_SIZE);
@@ -1607,9 +1609,6 @@ IH264E_ERROR_T ih264e_pad_recon_buffer(process_ctxt_t *ps_proc,
     return IH264E_SUCCESS;
 }
 
-
-
-
 /**
 *******************************************************************************
 *
@@ -1930,7 +1929,7 @@ IH264E_ERROR_T ih264e_dblk_pad_hpel_processing_n_mbs(process_ctxt_t *ps_proc,
 /**
 *******************************************************************************
 *
-* @brief This function performs luma & chroma core coding for a set of mb's.
+* @brief This function performs luma & chroma encoding for a set of mb's.
 *
 * @par Description:
 *  The mb to be coded is taken and is evaluated over a predefined set of modes
@@ -2041,7 +2040,6 @@ WORD32 ih264e_process(process_ctxt_t *ps_proc)
         u4_valid_modes |= (1 << B16x16);
     }
 
-
     /* init entropy */
     ps_proc->s_entropy.i4_mb_x = ps_proc->i4_mb_x;
     ps_proc->s_entropy.i4_mb_y = ps_proc->i4_mb_y;
@@ -2091,16 +2089,13 @@ WORD32 ih264e_process(process_ctxt_t *ps_proc)
                     /* get the min sad condition for current mb */
                     ps_proc->u4_min_sad_reached = ps_proc->ps_nmb_info[u4_mb_index].u4_min_sad_reached;
                     ps_proc->u4_min_sad = ps_proc->ps_nmb_info[u4_mb_index].u4_min_sad;
+                    ps_proc->i4_mb_distortion = ps_proc->ps_nmb_info[u4_mb_index].i4_mb_distortion;
+                    ps_proc->i4_mb_cost = ps_proc->ps_nmb_info[u4_mb_index].i4_mb_cost;
+                    ps_proc->u4_mb_type = ps_proc->ps_nmb_info[u4_mb_index].u4_mb_type;
 
                     ps_proc->ps_skip_mv = &(ps_proc->ps_nmb_info[u4_mb_index].as_skip_mv[0]);
                     ps_proc->ps_ngbr_avbl = &(ps_proc->ps_nmb_info[u4_mb_index].s_ngbr_avbl);
                     ps_proc->ps_pred_mv = &(ps_proc->ps_nmb_info[u4_mb_index].as_pred_mv[0]);
-
-                    ps_proc->i4_mb_distortion = ps_proc->ps_nmb_info[u4_mb_index].i4_mb_distortion;
-                    ps_proc->i4_mb_cost = ps_proc->ps_nmb_info[u4_mb_index].i4_mb_cost;
-                    ps_proc->u4_min_sad = ps_proc->ps_nmb_info[u4_mb_index].u4_min_sad;
-                    ps_proc->u4_min_sad_reached = ps_proc->ps_nmb_info[u4_mb_index].u4_min_sad_reached;
-                    ps_proc->u4_mb_type = ps_proc->ps_nmb_info[u4_mb_index].u4_mb_type;
 
                     /* get the best sub pel buffer */
                     ps_proc->pu1_best_subpel_buf = ps_proc->ps_nmb_info[u4_mb_index].pu1_best_sub_pel_buf;
@@ -2205,8 +2200,8 @@ WORD32 ih264e_process(process_ctxt_t *ps_proc)
                     }
 
                 }
+            }
         }
-     }
 
         /* is intra */
         if (ps_proc->u4_mb_type == I4x4 || ps_proc->u4_mb_type == I16x16 || ps_proc->u4_mb_type == I8x8)

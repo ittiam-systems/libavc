@@ -17,138 +17,35 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-/**
- *******************************************************************************
- * @file
- *  ih264e_platform_macros.h
- *
- * @brief
- *  Contains platform specific routines used for codec context intialization
- *
- * @author
- *  ittiam
- *
- * @remarks
- *  none
- *
- *******************************************************************************
- */
-
-
-#ifndef IH264E_PLATFORM_MACROS_H_
-#define IH264E_PLATFORM_MACROS_H_
-
-/*****************************************************************************/
-/* Extern Function Declarations                                              */
-/*****************************************************************************/
 
 /**
 *******************************************************************************
+* @file
+*  ih264e_platform_macros.h
 *
-* @brief Initialize the intra/inter/transform/deblk function pointers of
-* codec context
+* @brief
+*  Contains platform specific routines used for codec context intialization
 *
-* @par Description: the current routine initializes the function pointers of
-* codec context basing on the architecture in use
+* @author
+*  ittiam
 *
-* @param[in] ps_codec
-*  Codec context pointer
-*
-* @returns  none
-*
-* @remarks none
+* @remarks
+*  none
 *
 *******************************************************************************
 */
+
+#ifndef _IH264E_PLATFORM_MACROS_H_
+#define _IH264E_PLATFORM_MACROS_H_
+
+/*****************************************************************************/
+/* Function Declarations                                                     */
+/*****************************************************************************/
+
 void ih264e_init_function_ptr_generic(codec_t *ps_codec);
-/**
-*******************************************************************************
-*
-* @brief Initialize the intra/inter/transform/deblk function pointers of
-* codec context
-*
-* @par Description: the current routine initializes the function pointers of
-* codec context basing on the architecture in use
-*
-* @param[in] ps_codec
-*  Codec context pointer
-*
-* @returns  none
-*
-* @remarks none
-*
-*******************************************************************************
-*/
 void ih264e_init_function_ptr_ssse3(codec_t *ps_codec);
 void ih264e_init_function_ptr_sse42(codec_t *ps_codec);
-
-/**
-*******************************************************************************
-*
-* @brief Initialize the intra/inter/transform/deblk function pointers of
-* codec context
-*
-* @par Description: the current routine initializes the function pointers of
-* codec context basing on the architecture in use
-*
-* @param[in] ps_codec
-*  Codec context pointer
-*
-* @returns  none
-*
-* @remarks none
-*
-*******************************************************************************
-*/
 void ih264e_init_function_ptr(void *pv_codec);
-
-/**
-*******************************************************************************
-*
-* @brief Determine the architecture of the encoder executing environment
-*
-* @par Description: This routine returns the architecture of the enviro-
-* ment in which the current encoder is being tested
-*
-* @param[in] void
-*
-* @returns  IV_ARCH_T
-*  architecture
-*
-* @remarks none
-*
-*******************************************************************************
-*/
 IV_ARCH_T ih264e_default_arch(void);
 
-/**
-*******************************************************************************
-*
-* @brief Data Memory Barrier, Data Synchronization Barrier
-*
-*
-* @par Description: These functions do nothing on x86 side. But on arm platforms,
-*
-* Data Memory Barrier acts as a memory barrier. It ensures that all explicit
-* memory accesses that appear in program order before the DMB instruction are
-* observed before any explicit memory accesses that appear in program order
-* after the DMB instruction. It does not affect the ordering of any other
-* instructions executing on the processor
-*
-* Data Synchronization Barrier acts as a special kind of memory barrier. No
-* instruction in program order after this instruction executes until this instruction
-* completes. This instruction completes when:
-*       1. All explicit memory accesses before this instruction complete.
-*       2. All Cache, Branch predictor and TLB maintenance operations before
-*       this instruction complete.
-*
-* @param[in] void
-*
-* @returns  void
-*
-* @remarks none
-*
-*******************************************************************************
-*/
-
-#endif /* IH264E_PLATFORM_MACROS_H_ */
+#endif /* _IH264E_PLATFORM_MACROS_H_ */

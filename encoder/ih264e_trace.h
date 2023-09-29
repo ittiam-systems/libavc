@@ -24,20 +24,20 @@
 *  ih264e_trace.h
 *
 * @brief
-*  This file contains extern declarations of routines that could be helpful
-*  for debugging purposes.
+*  This file contains declarations of routines that could be helpful for
+*  debugging purposes.
 *
 * @author
 *  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
 
-#ifndef IH264E_TRACE_H_
-#define IH264E_TRACE_H_
+#ifndef _IH264E_TRACE_H_
+#define _IH264E_TRACE_H_
 
 #if ENABLE_TRACE
 /*****************************************************************************/
@@ -58,7 +58,7 @@ typedef struct
 }enc_trace_t;
 
 /*****************************************************************************/
-/* Extern variable declarations                                              */
+/* Global variable declarations                                              */
 /*****************************************************************************/
 extern enc_trace_t g_enc_trace;
 
@@ -83,13 +83,13 @@ extern enc_trace_t g_enc_trace;
 ******************************************************************************
  */
 
-#define ENTROPY_TRACE(syntax_string, value)                                           \
-    {                                                                                 \
-        if(g_enc_trace.fp)                                                            \
-        {                                                                             \
-            fprintf( g_enc_trace.fp, "%-40s : %d\n", syntax_string, value );          \
-            fflush ( g_enc_trace.fp);                                                 \
-        }                                                                             \
+#define ENTROPY_TRACE(syntax_string, value)                                    \
+    {                                                                          \
+        if(g_enc_trace.fp)                                                     \
+        {                                                                      \
+            fprintf( g_enc_trace.fp, "%-40s : %d\n", syntax_string, value );   \
+            fflush ( g_enc_trace.fp);                                          \
+        }                                                                      \
     }
 
 
@@ -100,7 +100,7 @@ extern enc_trace_t g_enc_trace;
  */
 
 #define AEV_TRACE(string, value, range)                                      \
-    if(range && g_enc_trace.fp)                                                                \
+    if(range && g_enc_trace.fp)                                              \
     {                                                                        \
         fprintf( g_enc_trace.fp, "%-40s:%8d R:%d\n", string, value, range);  \
         fflush ( g_enc_trace.fp);                                            \
@@ -117,45 +117,11 @@ extern enc_trace_t g_enc_trace;
 
 
 /*****************************************************************************/
-/* Extern Function Declarations                                              */
+/* Function Declarations                                                     */
 /*****************************************************************************/
 
+WORD32 ih264e_trace_init(const char *pu1_file_name);
 
-/**
-******************************************************************************
-*
-*  @brief Dummy trace init when trace is disabled in encoder
-*
-*  @par   Description
-*  This routine needs to be called at start of trace
-*
-*  @param[in]   pu1_file_name
-*  Name of file where trace outputs need to be stores (handle)
-*
-*  @return      success or failure error code
-*
-******************************************************************************
-*/
-extern WORD32    ih264e_trace_init
-        (
-            const char        *pu1_file_name
-        );
+WORD32 ih264e_trace_deinit(void);
 
-/**
-******************************************************************************
-*
-*  @brief Dummy trace de-init function when trace is disabled
-*
-*  @par   Description
-*  This routine needs to be called at end of trace
-*
-*  @return      success or failure error code
-*
-******************************************************************************
-*/
-extern WORD32    ih264e_trace_deinit
-        (
-            void
-        );
-
-#endif // IH264E_TRACE_H_
+#endif /* _IH264E_TRACE_H_ */

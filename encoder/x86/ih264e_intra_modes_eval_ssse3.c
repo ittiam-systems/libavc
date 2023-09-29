@@ -23,11 +23,11 @@
 *  ih264e_intra_modes_eval_ssse3.c
 *
 * @brief
-*   This file contains definitions of routines that perform rate distortion
+*  This file contains definitions of routines that perform rate distortion
 *  analysis on a macroblock if they are to be coded as intra.
 *
 * @author
-*  Ittiam
+*  ittiam
 *
 * @par List of Functions:
 *  ih264e_evaluate_intra16x16_modes_ssse3
@@ -35,7 +35,7 @@
 *  ih264e_evaluate_intra_chroma_modes_ssse3
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -128,7 +128,7 @@
 *  says what all modes are valid
 *
 * @return
-*  None
+*  none
 *
 ******************************************************************************
 */

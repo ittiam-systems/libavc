@@ -24,8 +24,7 @@
 *  ih264e_config.h
 *
 * @brief
-*  contains any necessary declarations/definitions that are used during codec
-*  build
+*  h264 library configuration definitions
 *
 * @author
 *  ittiam
@@ -35,8 +34,8 @@
 ******************************************************************************
 */
 
-#ifndef IH264E_CONFIG_H_
-#define IH264E_CONFIG_H_
+#ifndef _IH264E_CONFIG_H_
+#define _IH264E_CONFIG_H_
 
 /*****************************************************************************/
 /* Constant Macros                                                           */
@@ -49,4 +48,4 @@
 #define DEBUG_RC 0
 #define TRACE_SUPPORT 0
 
-#endif /* IH264E_CONFIG_H_ */
+#endif /* _IH264E_CONFIG_H_ */

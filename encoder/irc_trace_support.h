@@ -18,44 +18,17 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 
-/**
-*******************************************************************************
-* @file
-*  ih264e_trace_support.h
-*
-* @brief
-*  This file contains extern declarations of routines that could be helpful
-*  for debugging purposes.
-*
-* @author
-*  Harish
-*
-* @remarks
-*  None
-*
-*******************************************************************************
-*/
+#ifndef _RC_TRACE_SUPPORT_H_
+#define _RC_TRACE_SUPPORT_H_
 
-#ifndef TRACE_SUPPORT_H_
-#define TRACE_SUPPORT_H_
+#if DEBUG_RC
+#define TRACE_PRINTF(...)                                                   \
+{                                                                           \
+    printf("\n[RC DBG] %s/%d:: ", __FUNCTION__, __LINE__);                  \
+    printf(__VA_ARGS__);                                                    \
+}
+#else
+#define TRACE_PRINTF(...) {}
+#endif
 
-/*****************************************************************************/
-/* Structures                                                                */
-/*****************************************************************************/
-
-typedef struct
-{
-    WORD8 * pu1_buf;
-    WORD32 i4_offset;
-    WORD32 i4_max_size;
-}trace_support_t;
-
-/*****************************************************************************/
-/* Extern function declarations                                              */
-/*****************************************************************************/
-
-void init_trace_support(WORD8 *pu1_buf, WORD32 i4_size);
-
-int trace_printf(const WORD8 *format, ...);
-
-#endif // TRACE_SUPPORT_H_
+#endif // _RC_TRACE_SUPPORT_H_

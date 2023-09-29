@@ -30,14 +30,12 @@
 *  ittiam
 *
 * List of Functions
-*  - fill_memtab()
-*  - use_or_fill_base()
-*  - ih264e_map_rc_mem_recs_to_itt_api()
-*  - ih264e_map_itt_mem_rec_to_rc_mem_rec()
-*  - ih264e_get_rate_control_mem_tab()
+*  - ih264e_map_rc_mem_recs_to_itt_api
+*  - ih264e_map_itt_mem_rec_to_rc_mem_rec
+*  - ih264e_get_rate_control_mem_tab
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -47,60 +45,37 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
-#include <string.h>
+#include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
-#include <stdarg.h>
-#include <math.h>
 
 /* User Include Files */
 #include "ih264e_config.h"
 #include "ih264_typedefs.h"
-#include "ih264_size_defs.h"
-#include "iv2.h"
-#include "ive2.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
-#include "ih264e.h"
-#include "ithread.h"
-#include "ih264_defs.h"
+
 #include "ih264_debug.h"
-#include "ih264_macros.h"
-#include "ih264_platform_macros.h"
-#include "ih264_error.h"
-#include "ih264_structs.h"
-#include "ih264_trans_quant_itrans_iquant.h"
-#include "ih264_inter_pred_filters.h"
+#include "ih264_defs.h"
 #include "ih264_mem_fns.h"
 #include "ih264_padding.h"
+#include "ih264_structs.h"
+#include "ih264_size_defs.h"
+#include "ih264_trans_quant_itrans_iquant.h"
+#include "ih264_inter_pred_filters.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
-#include "ih264_common_tables.h"
-#include "ih264_list.h"
 #include "ih264_cabac_tables.h"
-#include "ih264e_error.h"
-#include "ih264e_defs.h"
-#include "ih264e_bitstream.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
+#include "irc_mem_req_and_acq.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
-#include "ih264e_rate_control.h"
-#include "ih264e_cabac_structs.h"
-#include "ih264e_structs.h"
-#include "ih264e_master.h"
-#include "ih264_buf_mgr.h"
-#include "ih264_dpb_mgr.h"
-#include "ih264e_utils.h"
-#include "ih264e_platform_macros.h"
-#include "ih264_cavlc_tables.h"
-#include "ih264e_statistics.h"
-#include "ih264e_trace.h"
-#include "ih264e_fmt_conv.h"
-#include "ih264e_cavlc.h"
-#include "ih264e_rc_mem_interface.h"
-#include "ih264e_time_stamp.h"
+#include "irc_rate_control_api.h"
 #include "irc_common.h"
 #include "irc_rd_model.h"
 #include "irc_est_sad.h"
@@ -111,111 +86,22 @@
 #include "irc_mb_model_based.h"
 #include "irc_cbr_buffer_control.h"
 #include "irc_vbr_str_prms.h"
-#include "irc_rate_control_api.h"
 #include "irc_rate_control_api_structs.h"
+
+#include "ih264e.h"
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
+#include "ih264e_time_stamp.h"
 #include "ih264e_modify_frm_rate.h"
+#include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
+#include "ih264e_cabac_structs.h"
+#include "ih264e_structs.h"
 
 
 /*****************************************************************************/
 /* Function Definitions                                                      */
 /*****************************************************************************/
-
-/**
-******************************************************************************
-*
-* @brief This function fills memory record attributes
-*
-* @par   Description
-*  This function fills memory record attributes
-*
-* @param[in] ps_mem_tab
-*  pointer to mem records
-*
-* @param[in] u4_size
-*  size of the record
-*
-* @param[in] i4_alignment
-*  memory alignment size
-*
-* @param[in] e_usage
-*  usage
-*
-* @param[in] e_mem_region
-*  mem region
-*
-* @return void
-*
-******************************************************************************
-*/
-void fill_memtab(itt_memtab_t *ps_mem_tab,
-                 WORD32 u4_size,
-                 WORD32 i4_alignment,
-                 ITT_MEM_USAGE_TYPE_E e_usage,
-                 ITT_MEM_REGION_E e_mem_region)
-{
-    /* Make the size next multiple of alignment */
-    WORD32 i4_aligned_size   = (((u4_size) + (i4_alignment-1)) & (~(i4_alignment-1)));
-
-    /* Fill the memtab */
-    ps_mem_tab->u4_size      = i4_aligned_size;
-    ps_mem_tab->i4_alignment = i4_alignment;
-    ps_mem_tab->e_usage      = e_usage;
-    ps_mem_tab->e_mem_region = e_mem_region;
-}
-
-/**
-******************************************************************************
-*
-* @brief This function fills memory record attributes
-*
-* @par   Description
-*  This function fills memory record attributes
-*
-* @param[in] ps_mem_tab
-*  pointer to mem records
-*
-* @param[in] ptr_to_be_filled
-*  handle to the memory record storage space
-*
-* @param[in] e_func_type
-*  enum that dictates fill memory records or use memory records
-*
-* @return void
-*
-******************************************************************************
-*/
-WORD32 use_or_fill_base(itt_memtab_t *ps_mem_tab,
-                        void **ptr_to_be_filled,
-                        ITT_FUNC_TYPE_E e_func_type)
-{
-    /* Fill base for freeing the allocated memory */
-    if (e_func_type == FILL_BASE)
-    {
-        if (ptr_to_be_filled[0] != 0)
-        {
-            ps_mem_tab->pv_base = ptr_to_be_filled[0];
-            return (0);
-        }
-        else
-        {
-            return (-1);
-        }
-    }
-    /* obtain the allocated memory from base pointer */
-    if (e_func_type == USE_BASE)
-    {
-        if (ps_mem_tab->pv_base != 0)
-        {
-            ptr_to_be_filled[0] = ps_mem_tab->pv_base;
-            return (0);
-        }
-        else
-        {
-            return (-1);
-        }
-    }
-    return (0);
-}
 
 /**
 ******************************************************************************
@@ -308,7 +194,7 @@ void ih264e_map_itt_mem_rec_to_rc_mem_rec(iv_mem_rec_t *ps_mem,
 /**
 ******************************************************************************
 *
-* @brief Get memtabs for rate control
+* @brief Get/Init memtabs for rate control
 *
 * @par   Description
 *  This routine is used to Get/init memtabs for rate control

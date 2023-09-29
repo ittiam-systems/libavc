@@ -27,14 +27,14 @@
  *  and cascaded 2D filter used in motion estimation in H264 encoder.
  *
  * @author
- *  Ittiam
+ *  ittiam
  *
  * @par List of Functions:
  *  ih264e_sixtapfilter_horz_ssse3
  *  ih264e_sixtap_filter_2dvh_vert_ssse3
  *
  * @remarks
- *  None
+ *  none
  *
  *******************************************************************************
  */
@@ -55,7 +55,6 @@
 #include "ih264_defs.h"
 #include "ih264e_half_pel.h"
 #include "ih264_macros.h"
-#include "ih264e_debug.h"
 #include "ih264_inter_pred_filters.h"
 #include "ih264_mem_fns.h"
 #include "ih264_padding.h"
@@ -90,10 +89,10 @@
 *  integer destination stride
 *
 * @returns
-*  None
+*  none
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -236,10 +235,10 @@ void ih264e_sixtapfilter_horz_ssse3(UWORD8 *pu1_src,
 *  integer destination stride of pi16_pred1
 *
 * @returns
-*  None
+*  none
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */

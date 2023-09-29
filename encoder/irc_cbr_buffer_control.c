@@ -370,8 +370,7 @@ void irc_update_cbr_buffer(cbr_buffer_t *ps_cbr_buffer,
     /*SS - Fix for lack of stuffing*/
     if(ps_cbr_buffer->i4_ebf > ps_cbr_buffer->i4_buffer_size)
     {
-        trace_printf(
-             (const WORD8*)"Error: Should not be coming here with stuffing\n");
+        TRACE_PRINTF((const WORD8*)"Error: Should not be coming here with stuffing\n");
         ps_cbr_buffer->i4_ebf = ps_cbr_buffer->i4_buffer_size;
     }
 }

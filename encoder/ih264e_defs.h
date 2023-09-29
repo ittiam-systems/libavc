@@ -23,21 +23,29 @@
 *  ih264e_defs.h
 *
 * @brief
-*  Definitions used in the encoder
+*  Declarations of common definitions used in the encoder library
 *
 * @author
 *  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
 
-#ifndef IH264E_DEFS_H_
-#define IH264E_DEFS_H_
+#ifndef _IH264E_DEFS_H_
+#define _IH264E_DEFS_H_
 
+/*****************************************************************************/
+/* Function Macros                                                           */
+/*****************************************************************************/
 
+/**
+ *****************************************************************************
+ * Macro to extract residue, nnz, significant coefficient map for a 4x4 blk
+ *****************************************************************************
+ */
 #define PARSE_COEFF_DATA_BLOCK_4x4(pv_mb_coeff_data, ps_mb_coeff_data, u4_nnz, u4_sig_coeff_map, pi2_res_block)   \
 {                                                                          \
     ps_mb_coeff_data = pv_mb_coeff_data;                                   \
@@ -53,6 +61,33 @@
       pv_mb_coeff_data = ps_mb_coeff_data->ai2_residue;                    \
     }                                                                      \
 }
+
+/**
+ *****************************************************************************
+ * Macro to compute total size required to hold on set of scaling matrices
+ *****************************************************************************
+ */
+#define SCALING_MAT_SIZE(m_scaling_mat_size)                                 \
+{                                                                            \
+    m_scaling_mat_size = 6 * TRANS_SIZE_4 * TRANS_SIZE_4;                    \
+    m_scaling_mat_size += 6 * TRANS_SIZE_8 * TRANS_SIZE_8;                   \
+    m_scaling_mat_size += 6 * TRANS_SIZE_16 * TRANS_SIZE_16;                 \
+    m_scaling_mat_size += 2 * TRANS_SIZE_32 * TRANS_SIZE_32;                 \
+}
+
+/**
+ ******************************************************************************
+ *  @brief Macros to get raster scan position of a block[8x8] / sub block[4x4]
+ ******************************************************************************
+ */
+#define GET_BLK_RASTER_POS_X(x)     ((x & 0x01))
+#define GET_BLK_RASTER_POS_Y(y)     ((y >> 1))
+#define GET_SUB_BLK_RASTER_POS_X(x) ((x & 0x01))
+#define GET_SUB_BLK_RASTER_POS_Y(y) ((y >> 1))
+
+/*****************************************************************************/
+/* Constant Macros                                                           */
+/*****************************************************************************/
 
 /*****************************************************************************/
 /* Width and height restrictions                                             */
@@ -202,7 +237,9 @@
 #define LOG2_MAX_SLICE_HDR_CNT 8
 #define MAX_SLICE_HDR_CNT (1 << LOG2_MAX_SLICE_HDR_CNT)
 
-/* Generic declarations */
+/**
+ * Generic declarations
+ */
 #define DEFAULT_MAX_LEVEL               40
 #define DEFAULT_RECON_ENABLE            0
 #define DEFAULT_QUALITY_METRICS_ENABLE  0
@@ -268,32 +305,88 @@
 /** Number of buffers Needed for SUBPEL and BIPRED computation */
 #define SUBPEL_BUFF_CNT                 4
 
+#define NUM_RC_MEMTABS 17
+
+#define DISABLE_DEBLOCK_INTERVAL 8
+
 /** Mask value for PSNR. Needed when quality metrics is enabled */
 #define QUALITY_MASK_PSNR               0x1
-/**
- *****************************************************************************
- * Macro to compute total size required to hold on set of scaling matrices
- *****************************************************************************
- */
-#define SCALING_MAT_SIZE(m_scaling_mat_size)                                 \
-{                                                                            \
-    m_scaling_mat_size = 6 * TRANS_SIZE_4 * TRANS_SIZE_4;                    \
-    m_scaling_mat_size += 6 * TRANS_SIZE_8 * TRANS_SIZE_8;                   \
-    m_scaling_mat_size += 6 * TRANS_SIZE_16 * TRANS_SIZE_16;                 \
-    m_scaling_mat_size += 2 * TRANS_SIZE_32 * TRANS_SIZE_32;                 \
-}
 
 /**
- ******************************************************************************
- *  @brief Macros to get raster scan position of a block[8x8] / sub block[4x4]
- ******************************************************************************
+ ****************************************************************************
+ * Number of buffers for I/O based on format
+ ****************************************************************************
  */
-#define GET_BLK_RASTER_POS_X(x)     ((x & 0x01))
-#define GET_BLK_RASTER_POS_Y(y)     ((y >> 1))
-#define GET_SUB_BLK_RASTER_POS_X(x) ((x & 0x01))
-#define GET_SUB_BLK_RASTER_POS_Y(y) ((y >> 1))
 
-#define NUM_RC_MEMTABS 17
+/** Minimum number of input buffers */
+#define MIN_INP_BUFS                 2
+
+/** Minimum number of output buffers */
+#define MIN_OUT_BUFS                1
+
+/** Minimum number of components in bitstream buffer */
+#define MIN_BITS_BUFS_COMP           1
+
+/** Minimum number of components in raw buffer */
+#define MIN_RAW_BUFS_420_COMP        3
+#define MIN_RAW_BUFS_422ILE_COMP     1
+#define MIN_RAW_BUFS_RGB565_COMP     1
+#define MIN_RAW_BUFS_RGBA8888_COMP   1
+#define MIN_RAW_BUFS_420SP_COMP      2
+
+/** Maximum number of active config paramter sets */
+#define MAX_ACTIVE_CONFIG_PARAMS 32
+
+/**
+******************************************************************************
+ *  @brief Thresholds for luma & chroma to determine if the 8x8 subblock needs
+ *  to be encoded or skipped
+******************************************************************************
+*/
+#define LUMA_SUB_BLOCK_SKIP_THRESHOLD 4
+#define LUMA_BLOCK_SKIP_THRESHOLD 5
+#define CHROMA_BLOCK_SKIP_THRESHOLD 4
+
+/**
+******************************************************************************
+ *  @brief      defines the first byte of a NAL unit
+ *  forbidden zero bit - nal_ref_idc - nal_unit_type
+******************************************************************************
+*/
+/* [0 - 11 - 00111] */
+#define NAL_SPS_FIRST_BYTE 0x67
+
+/* [0 - 11 - 01000] */
+#define NAL_PPS_FIRST_BYTE 0x68
+
+/* [0 - 11 - 00001] */
+#define NAL_SLICE_FIRST_BYTE 0x61
+
+/* [0 - 00 - 00001] */
+#define NAL_NON_REF_SLICE_FIRST_BYTE 0x01
+
+/* [0 - 11 - 00101] */
+#define NAL_IDR_SLICE_FIRST_BYTE 0x65
+
+/* [0 - 00 - 01100] */
+#define NAL_FILLER_FIRST_BYTE 0x0C
+
+/* [0 - 00 - 00110] */
+#define NAL_SEI_FIRST_BYTE 0x06
+
+#define H264_ALLOC_INTER_FRM_INTV        2
+
+#define H264_MPEG_QP_MAP    255
+
+#define MPEG2_QP_ELEM       (H264_MPEG_QP_MAP + 1)
+#define H264_QP_ELEM        (MAX_H264_QP + 1)
+
+#define H264_INIT_QUANT_I                26
+#define H264_INIT_QUANT_P                34
+
+/*****************************************************************************/
+/* Enums                                                                     */
+/*****************************************************************************/
 
 /**
  ***************************************************************************
@@ -489,8 +582,6 @@ enum
      */
 };
 
-#define DISABLE_DEBLOCK_INTERVAL 8
-
 /**
  ****************************************************************************
  * Disable deblock levels
@@ -527,76 +618,4 @@ enum
     DISABLE_DEBLK_LEVEL_4
 };
 
-/**
- ****************************************************************************
- * Number of buffers for I/O based on format
- ****************************************************************************
- */
-
-/** Minimum number of input buffers */
-#define MIN_INP_BUFS                 2
-
-/** Minimum number of output buffers */
-#define MIN_OUT_BUFS                1
-
-/** Minimum number of components in bitstream buffer */
-#define MIN_BITS_BUFS_COMP           1
-
-/** Minimum number of components in raw buffer */
-#define MIN_RAW_BUFS_420_COMP        3
-#define MIN_RAW_BUFS_422ILE_COMP     1
-#define MIN_RAW_BUFS_RGB565_COMP     1
-#define MIN_RAW_BUFS_RGBA8888_COMP   1
-#define MIN_RAW_BUFS_420SP_COMP      2
-
-/** Maximum number of active config paramter sets */
-#define MAX_ACTIVE_CONFIG_PARAMS 32
-
-/**
-******************************************************************************
- *  @brief Thresholds for luma & chroma to determine if the 8x8 subblock needs
- *  to be encoded or skipped
-******************************************************************************
-*/
-#define LUMA_SUB_BLOCK_SKIP_THRESHOLD 4
-#define LUMA_BLOCK_SKIP_THRESHOLD 5
-#define CHROMA_BLOCK_SKIP_THRESHOLD 4
-
-/**
-******************************************************************************
- *  @brief      defines the first byte of a NAL unit
- *  forbidden zero bit - nal_ref_idc - nal_unit_type
-******************************************************************************
-*/
-/* [0 - 11 - 00111] */
-#define NAL_SPS_FIRST_BYTE 0x67
-
-/* [0 - 11 - 01000] */
-#define NAL_PPS_FIRST_BYTE 0x68
-
-/* [0 - 11 - 00001] */
-#define NAL_SLICE_FIRST_BYTE 0x61
-
-/* [0 - 00 - 00001] */
-#define NAL_NON_REF_SLICE_FIRST_BYTE 0x01
-
-/* [0 - 11 - 00101] */
-#define NAL_IDR_SLICE_FIRST_BYTE 0x65
-
-/* [0 - 00 - 01100] */
-#define NAL_FILLER_FIRST_BYTE 0x0C
-
-/* [0 - 00 - 00110] */
-#define NAL_SEI_FIRST_BYTE 0x06
-
-#define H264_ALLOC_INTER_FRM_INTV        2
-
-#define H264_MPEG_QP_MAP    255
-
-#define MPEG2_QP_ELEM       (H264_MPEG_QP_MAP + 1)
-#define H264_QP_ELEM        (MAX_H264_QP + 1)
-
-#define H264_INIT_QUANT_I                26
-#define H264_INIT_QUANT_P                34
-
-#endif /*IH264E_DEFS_H_*/
+#endif /*_IH264E_DEFS_H_ */

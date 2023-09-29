@@ -30,13 +30,13 @@
 *  ittiam
 *
 * @par List of Functions:
-*  - ih264e_bitstrm_init()
-*  - ih264e_put_bits()
-*  - ih264e_put_bit()
-*  - ih264e_put_rbsp_trailing_bits()
-*  - ih264e_put_uev()
-*  - ih264e_put_sev()
-*  - ih264e_put_nal_start_code_prefix()
+*  - ih264e_bitstrm_init
+*  - ih264e_put_bits
+*  - ih264e_put_bit
+*  - ih264e_put_rbsp_trailing_bits
+*  - ih264e_put_uev
+*  - ih264e_put_sev
+*  - ih264e_put_nal_start_code_prefix
 *
 ******************************************************************************
 */
@@ -45,7 +45,7 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -53,16 +53,17 @@
 #include <stdarg.h>
 #include <math.h>
 
-/* User include files */
+/* User Include Files */
 #include "ih264e_config.h"
 #include "ih264_typedefs.h"
-#include "ih264_platform_macros.h"
+
 #include "ih264_debug.h"
+#include "ih264_macros.h"
+#include "ih264_defs.h"
+#include "ih264_platform_macros.h"
+
 #include "ih264e_error.h"
 #include "ih264e_bitstream.h"
-#include "ih264_defs.h"
-#include "ih264_macros.h"
-
 
 /*****************************************************************************/
 /* Function Definitions                                                      */

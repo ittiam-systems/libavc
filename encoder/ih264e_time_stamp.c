@@ -30,26 +30,26 @@
 *  ittiam
 *
 * @par List of Functions:
-*  - gcd()
-*  - ih264e_get_range()
-*  - ih264e_frame_time_get_init_free_memtab()
-*  - ih264e_init_frame_time()
-*  - ih264e_should_src_be_skipped()
-*  - ih264e_time_stamp_get_init_free_memtab()
-*  - ih264e_init_time_stamp()
-*  - ih264e_update_time_stamp()
-*  - ih264e_frame_time_get_src_frame_rate()
-*  - ih264e_frame_time_get_tgt_frame_rate()
-*  - ih264e_frame_time_get_src_ticks()
-*  - ih264e_frame_time_get_tgt_ticks()
-*  - ih264e_frame_time_get_src_time()
-*  - ih264e_frame_time_get_tgt_time()
-*  - ih264e_frame_time_update_src_frame_rate()
-*  - ih264e_frame_time_update_tgt_frame_rate()
-*  - ih264_time_stamp_update_frame_rate()
+*  - gcd
+*  - ih264e_get_range
+*  - ih264e_frame_time_get_init_free_memtab
+*  - ih264e_init_frame_time
+*  - ih264e_should_src_be_skipped
+*  - ih264e_time_stamp_get_init_free_memtab
+*  - ih264e_init_time_stamp
+*  - ih264e_update_time_stamp
+*  - ih264e_frame_time_get_src_frame_rate
+*  - ih264e_frame_time_get_tgt_frame_rate
+*  - ih264e_frame_time_get_src_ticks
+*  - ih264e_frame_time_get_tgt_ticks
+*  - ih264e_frame_time_get_src_time
+*  - ih264e_frame_time_get_tgt_time
+*  - ih264e_frame_time_update_src_frame_rate
+*  - ih264e_frame_time_update_tgt_frame_rate
+*  - ih264_time_stamp_update_frame_rate
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -58,34 +58,38 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* user include files */
-#include "irc_datatypes.h"
+/* User Include Files */
+#include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
+
 #include "ih264_defs.h"
-#include "ih264e_defs.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
-#include "irc_cntrl_param.h"
-#include "irc_frame_info_collector.h"
-#include "ih264e_rate_control.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
 #include "ih264_cabac_tables.h"
-#include "ih264e_cabac_structs.h"
-#include "ih264e_structs.h"
-#include "ih264e_rc_mem_interface.h"
-#include "ih264e_time_stamp.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
+#include "irc_mem_req_and_acq.h"
+#include "irc_cntrl_param.h"
+#include "irc_frame_info_collector.h"
 #include "irc_common.h"
 #include "irc_rate_control_api.h"
+
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
+#include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
+#include "ih264e_cabac_structs.h"
+#include "ih264e_structs.h"
+#include "ih264e_time_stamp.h"
 
 
 /*****************************************************************************/
@@ -680,7 +684,7 @@ WORD32 ih264e_frame_time_get_tgt_time(frame_time_t *frame_time)
 *  source frame rate
 *
 * @returns
-*  None
+*  none
 *
 * @remarks
 *
@@ -713,7 +717,7 @@ void ih264e_frame_time_update_src_frame_rate(frame_time_t *ps_frame_time,
 *  target frame rate
 *
 * @returns
-*  None
+*  none
 *
 * @remarks
 *
@@ -746,7 +750,7 @@ void ih264e_frame_time_update_tgt_frame_rate(frame_time_t *ps_frame_time,
 *  source frame rate
 *
 * @returns
-*  None
+*  none
 *
 * @remarks
 *

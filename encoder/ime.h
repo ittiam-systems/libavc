@@ -23,7 +23,7 @@
  *  ime.h
  *
  * @brief
- *  Contains declarations of global variables for H264 encoder
+ *  Contains declarations of me functions
  *
  * @author
  *  Ittiam
@@ -33,8 +33,8 @@
  *******************************************************************************
  */
 
-#ifndef IME_H_
-#define IME_H_
+#ifndef _IME_H_
+#define _IME_H_
 
 /*****************************************************************************/
 /* Constant Macros                                                           */
@@ -51,148 +51,17 @@
 /* Extern Function Declarations                                              */
 /*****************************************************************************/
 
-
-/**
-*******************************************************************************
-*
-* @brief Diamond Search
-*
-* @par Description:
-*  This function computes the sad at vertices of several layers of diamond grid
-*  at a time. The number of layers of diamond grid that would be evaluated is
-*  configurable.The function computes the sad at vertices of a diamond grid. If
-*  the sad at the center of the diamond grid is lesser than the sad at any other
-*  point of the diamond grid, the function marks the candidate Mb partition as
-*  mv.
-*
-* @param[in] ps_mb_part
-*  pointer to current mb partition ctxt with respect to ME
-*
-* @param[in] ps_me_ctxt
-*  pointer to me context
-*
-* @param[in] u4_lambda
-*  lambda motion
-*
-* @param[in] u4_fast_flag
-*  enable/disable fast sad computation
-*
-* @returns  mv pair & corresponding distortion and cost
-*
-* @remarks This module cannot be part of the final product due to its lack of
-* computational feasibility. This is only for quality eval purposes.
-*
-*******************************************************************************
- */
 extern void ime_diamond_search_16x16(me_ctxt_t *ps_me_ctxt, WORD32 i4_reflist);
 
-
-/**
-*******************************************************************************
-*
-* @brief This function computes the best motion vector among the tentative mv
-* candidates chosen.
-*
-* @par Description:
-*  This function determines the position in the search window at which the motion
-*  estimation should begin in order to minimise the number of search iterations.
-*
-* @param[in] ps_mb_part
-*  pointer to current mb partition ctxt with respect to ME
-*
-* @param[in] u4_lambda_motion
-*  lambda motion
-*
-* @param[in] u4_fast_flag
-*  enable/disable fast sad computation
-*
-* @returns  mv pair & corresponding distortion and cost
-*
-* @remarks none
-*
-*******************************************************************************
-*/
 extern void ime_evaluate_init_srchposn_16x16(me_ctxt_t *ps_me_ctxt,
                                              WORD32 i4_reflist);
 
-/**
-*******************************************************************************
-*
-* @brief Searches for the best matching full pixel predictor within the search
-* range
-*
-* @par Description:
-*  This function begins by computing the mv predict vector for the current mb.
-*  This is used for cost computations. Further basing on the algo. chosen, it
-*  looks through a set of candidate vectors that best represent the mb a least
-*  cost and returns this information.
-*
-* @param[in] ps_proc
-*  pointer to current proc ctxt
-*
-* @param[in] ps_me_ctxt
-*  pointer to me context
-*
-* @returns  mv pair & corresponding distortion and cost
-*
-* @remarks none
-*
-*******************************************************************************
-*/
 extern void ime_full_pel_motion_estimation_16x16(me_ctxt_t *ps_me_ctxt,
                                                  WORD32 i4_ref_list);
 
-/**
-*******************************************************************************
-*
-* @brief Searches for the best matching sub pixel predictor within the search
-* range
-*
-* @par Description:
-*  This function begins by searching across all sub pixel sample points
-*  around the full pel motion vector. The vector with least cost is chosen as
-*  the mv for the current mb. If the skip mode is not evaluated while analysing
-*  the initial search candidates then analyse it here and update the mv.
-*
-* @param[in] ps_proc
-*  pointer to current proc ctxt
-*
-* @param[in] ps_me_ctxt
-*  pointer to me context
-*
-* @returns none
-*
-* @remarks none
-*
-*******************************************************************************
-*/
 extern void ime_sub_pel_motion_estimation_16x16(me_ctxt_t *ps_me_ctxt,
                                                 WORD32 i4_reflist);
 
-/**
-*******************************************************************************
-*
-* @brief This function computes cost of skip macroblocks
-*
-* @par Description:
-*
-* @param[in] ps_me_ctxt
-*  pointer to me ctxt
-*
-* @param[in] ps_skip_mv
-*  pointer to skip mv
-*
-  @param[in] is_slice_type_b
-*  Whether slice type is BSLICE or not
-
-* @returns  none
-*
-* @remarks
-* NOTE: while computing the skip cost, do not enable early exit from compute
-* sad function because, a negative bias gets added later
-*
-*******************************************************************************
-*/
 extern void ime_compute_skip_cost(me_ctxt_t *ps_me_ctxt,
                                   ime_mv_t *ps_skip_mv,
                                   mb_part_ctxt *ps_smb_part_info,
@@ -201,4 +70,4 @@ extern void ime_compute_skip_cost(me_ctxt_t *ps_me_ctxt,
                                   WORD32 is_slice_type_b);
 
 
-#endif /* IME_H_ */
+#endif /* _IME_H_ */

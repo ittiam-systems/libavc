@@ -21,20 +21,34 @@
 /**
 *******************************************************************************
 * @file
-*  ih264e_cabac.c
+*  ih264e_cabac_encode.c
 *
 * @brief
 *  Contains all functions to encode in CABAC entropy mode
 *
-*
 * @author
-* Doney Alex
+*  ittiam
 *
-* @par List of Functions:
-*
+* @par List of Functions
+*  - ih264e_cabac_enc_mb_skip
+*  - ih264e_cabac_enc_intra_mb_type
+*  - ih264e_cabac_enc_4x4mb_modes
+*  - ih264e_cabac_enc_chroma_predmode
+*  - ih264e_cabac_enc_cbp
+*  - ih264e_cabac_enc_mb_qp_delta
+*  - ih264e_cabac_write_coeff4x4
+*  - ih264e_cabac_encode_residue_luma_dc
+*  - ih264e_cabac_write_chroma_residue
+*  - ih264e_cabac_encode_residue
+*  - ih264e_cabac_enc_ctx_mvd
+*  - ih264e_cabac_enc_mvds_p16x16
+*  - ih264e_cabac_enc_mvds_b16x16
+*  - ih264e_write_islice_mb_cabac
+*  - ih264e_write_pslice_mb_cabac
+*  - ih264e_write_bslice_mb_cabac
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -43,100 +57,55 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <assert.h>
 #include <limits.h>
 #include <string.h>
 
-/* User include files */
+/* User Include Files */
 #include "ih264e_config.h"
 #include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
+
 #include "ih264_debug.h"
-#include "ih264_defs.h"
-#include "ih264e_defs.h"
 #include "ih264_macros.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
 #include "ih264_error.h"
+#include "ih264_defs.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
-#include "ih264_platform_macros.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_cavlc_tables.h"
 #include "ih264_cabac_tables.h"
+#include "ih264_platform_macros.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
-#include "ih264e_rate_control.h"
+
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
-#include "ih264e_cabac.h"
 #include "ih264e_encode_header.h"
-#include "ih264_cavlc_tables.h"
-#include "ih264e_cavlc.h"
+#include "ih264e_cabac.h"
 #include "ih264e_statistics.h"
 #include "ih264e_trace.h"
 
 /*****************************************************************************/
-/* Function Definitions                                                      */
+/* Global Definitions                                                        */
 /*****************************************************************************/
 
-
-
-
-/**
- *******************************************************************************
- *
- * @brief
- *  Encodes mb_skip_flag  using CABAC entropy coding mode.
- *
- * @param[in] u1_mb_skip_flag
- *  mb_skip_flag
- *
- * @param[in] ps_cabac_ctxt
- *  Pointer to cabac context structure
- *
- * @param[in] u4_ctxidx_offset
- *  ctxIdxOffset for mb_skip_flag context
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
-static void ih264e_cabac_enc_mb_skip(UWORD8 u1_mb_skip_flag,
-                                     cabac_ctxt_t *ps_cabac_ctxt,
-                                     UWORD32 u4_ctxidx_offset)
-{
-
-    UWORD8 u4_ctx_inc;
-    WORD8 a, b;
-    a = ((ps_cabac_ctxt->ps_left_ctxt_mb_info->u1_mb_type & CAB_SKIP_MASK) ?
-                    0 : 1);
-    b = ((ps_cabac_ctxt->ps_top_ctxt_mb_info->u1_mb_type & CAB_SKIP_MASK) ?
-                    0 : 1);
-
-    u4_ctx_inc = a + b;
-    /* Encode the bin */
-    ih264e_cabac_encode_bin(ps_cabac_ctxt,
-                            (UWORD32) u1_mb_skip_flag,
-                            ps_cabac_ctxt->au1_cabac_ctxt_table + u4_ctxidx_offset
-                                    + u4_ctx_inc);
-
-}
-
-
-/* ! < Table 9-36 – Binarization for macroblock types in I slices  in ITU_T_H264-201402
+/* ! < Table 9-36 : Binarization for macroblock types in I slices in ITU_T_H264
  * Bits 0-7 : binarised value
  * Bits 8-15: length of binary sequence
  */
@@ -144,7 +113,6 @@ static const UWORD32 u4_mb_type_intra[26] =
     { 0x0100, 0x0620, 0x0621, 0x0622, 0x0623, 0x0748, 0x0749, 0x074a, 0x074b,
       0x074c, 0x074d, 0x074e, 0x074f, 0x0628, 0x0629, 0x062a, 0x062b, 0x0758,
       0x0759, 0x075a, 0x075b, 0x075c, 0x075d, 0x075e, 0x075f, 0x0203 };
-
 
 /* CtxInc for mb types */
 static const UWORD32 u4_mb_ctxinc[2][26] =
@@ -163,39 +131,97 @@ static const UWORD32 u4_mb_ctxinc[2][26] =
         0x0012233, 0x0012233, 0x0012233, 0x00}
 };
 
+/* ! < Table 9-37 : Binarization for macroblock types in B slices  in ITU_T_H264-201402
+ * Bits 0-7 : binarised value
+ * Bits 8-15: length of binary sequence */
+static const UWORD32 u4_b_mb_type[27] =
+    { 0x0100, 0x0301, 0x0305, 0x0603, 0x0623, 0x0613, 0x0633, 0x060b, 0x062b,
+      0x061b, 0x063b, 0x061f, 0x0707, 0x0747, 0x0727, 0x0767, 0x0717, 0x0757,
+      0x0737, 0x0777, 0x070f, 0x074f, 0x063f };
+
+/* CtxInc for mb types in B slices */
+static const UWORD32 ui_b_mb_type_ctx_inc[27] =
+    { 0x00, 0x0530, 0x0530, 0x0555430, 0x0555430, 0x0555430, 0x0555430,
+      0x0555430, 0x0555430, 0x0555430, 0x0555430, 0x0555430, 0x05555430,
+      0x05555430, 0x05555430, 0x05555430, 0x05555430, 0x05555430, 0x05555430,
+      0x05555430, 0x05555430, 0x05555430, 0x0555430 };
+
+
+/*****************************************************************************/
+/* Function Definitions                                                      */
+/*****************************************************************************/
 
 /**
- *******************************************************************************
- *
- * @brief
- *  Encodes mb_type for an intra MB.
- *
- * @param[in] u4_slice_type
- *  slice type
- *
- * @param[in] u4_intra_mb_type
- *  MB type (Table 7-11)
- *
- * @param[in] ps_cabac_ctxt
- *  Pointer to cabac context structure
- *
- ** @param[in] u4_ctxidx_offset
- *  ctxIdxOffset for mb_type context
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Encodes mb_skip_flag using CABAC entropy coding mode.
+*
+* @param[in] u1_mb_skip_flag
+*  mb_skip_flag
+*
+* @param[in] ps_cabac_ctxt
+*  Pointer to cabac context structure
+*
+* @param[in] u4_ctxidx_offset
+*  ctxIdxOffset for mb_skip_flag context
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
+static void ih264e_cabac_enc_mb_skip(UWORD8 u1_mb_skip_flag,
+                                     cabac_ctxt_t *ps_cabac_ctxt,
+                                     UWORD32 u4_ctxidx_offset)
+{
+    UWORD8 u4_ctx_inc;
+    WORD8 a, b;
 
+    a = ((ps_cabac_ctxt->ps_left_ctxt_mb_info->u1_mb_type & CAB_SKIP_MASK) ?
+                    0 : 1);
+    b = ((ps_cabac_ctxt->ps_top_ctxt_mb_info->u1_mb_type & CAB_SKIP_MASK) ?
+                    0 : 1);
+
+    u4_ctx_inc = a + b;
+
+    /* Encode the bin */
+    ih264e_cabac_encode_bin(ps_cabac_ctxt,
+                            (UWORD32) u1_mb_skip_flag,
+                            ps_cabac_ctxt->au1_cabac_ctxt_table +
+                                    u4_ctxidx_offset + u4_ctx_inc);
+}
+
+/**
+*******************************************************************************
+*
+* @brief
+*  Encodes mb_type for an intra MB.
+*
+* @param[in] u4_slice_type
+*  slice type
+*
+* @param[in] u4_intra_mb_type
+*  MB type (Table 7-11)
+*
+* @param[in] ps_cabac_ctxt
+*  Pointer to cabac context structure
+*
+* @param[in] u4_ctxidx_offset
+*  ctxIdxOffset for mb_type context
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 static void ih264e_cabac_enc_intra_mb_type(UWORD32 u4_slice_type,
                                            UWORD32 u4_intra_mb_type,
                                            cabac_ctxt_t *ps_cabac_ctxt,
                                            UWORD32 u4_ctx_idx_offset)
 {
-
     encoding_envirnoment_t *ps_cab_enc_env = &(ps_cabac_ctxt->s_cab_enc_env);
     bin_ctxt_model *pu1_mb_bin_ctxt, *pu1_bin_ctxt;
     UWORD8 u1_bin;
@@ -252,8 +278,7 @@ static void ih264e_cabac_enc_intra_mb_type(UWORD32 u4_slice_type,
             WORD8 i1_state = (*pu1_bin_ctxt) & 0x3F;
 
             u2_quant_code_int_range = ((u4_code_int_range >> 6) & 0x03);
-            u4_table_val =
-                            gau4_ih264_cabac_table[i1_state][u2_quant_code_int_range];
+            u4_table_val = gau4_ih264_cabac_table[i1_state][u2_quant_code_int_range];
             u4_code_int_range_lps = u4_table_val & 0xFF;
 
             u4_code_int_range -= u4_code_int_range_lps;
@@ -303,39 +328,36 @@ static void ih264e_cabac_enc_intra_mb_type(UWORD32 u4_slice_type,
             ih264e_cabac_put_byte(ps_cabac_ctxt);
             u4_code_int_range = ps_cab_enc_env->u4_code_int_range;
             u4_code_int_low = ps_cab_enc_env->u4_code_int_low;
-
         }
     }
 }
 
-
-
 /**
- *******************************************************************************
- *
- * @brief
- *  Encodes prev_intra4x4_pred_mode_flag and
- *  rem_intra4x4_pred_mode using CABAC entropy coding mode
- *
- * @param[in] ps_cabac_ctxt
- *  Pointer to cabac context structure
- *
- *  @param[in] pu1_intra_4x4_modes
- *  Pointer to array containing prev_intra4x4_pred_mode_flag and
- *  rem_intra4x4_pred_mode
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Encodes prev_intra4x4_pred_mode_flag and rem_intra4x4_pred_mode using
+*  CABAC entropy coding mode
+*
+* @param[in] ps_cabac_ctxt
+*  Pointer to cabac context structure
+*
+* @param[in] pu1_intra_4x4_modes
+*  Pointer to array containing prev_intra4x4_pred_mode_flag and
+*  rem_intra4x4_pred_mode
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 static void ih264e_cabac_enc_4x4mb_modes(cabac_ctxt_t *ps_cabac_ctxt,
                                          UWORD8 *pu1_intra_4x4_modes)
 {
     WORD32 i;
     WORD8 byte;
+
     for (i = 0; i < 16; i += 2)
     {
         /* sub blk idx 1 */
@@ -380,31 +402,27 @@ static void ih264e_cabac_enc_4x4mb_modes(cabac_ctxt_t *ps_cabac_ctxt,
     }
 }
 
-
-
 /**
- *******************************************************************************
- *
- * @brief
- *  Encodes chroma  intrapred mode for the MB.
- *
- * @param[in] u1_chroma_pred_mode
- *  Chroma intr prediction mode
- *
- * @param[in] ps_cabac_ctxt
- *  Pointer to cabac context structure
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Encodes chroma intra pred mode for the MB.
+*
+* @param[in] u1_chroma_pred_mode
+*  Chroma intra prediction mode
+*
+* @param[in] ps_cabac_ctxt
+*  Pointer to cabac context structure
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 static void ih264e_cabac_enc_chroma_predmode(UWORD8 u1_chroma_pred_mode,
                                              cabac_ctxt_t *ps_cabac_ctxt)
 {
-
     WORD8 i1_temp;
     mb_info_ctxt_t *ps_curr_ctxt = ps_cabac_ctxt->ps_curr_ctxt_mb_info;
     mb_info_ctxt_t *ps_left_ctxt = ps_cabac_ctxt->ps_left_ctxt_mb_info;
@@ -413,6 +431,7 @@ static void ih264e_cabac_enc_chroma_predmode(UWORD8 u1_chroma_pred_mode,
     WORD8 i1_bins_len = 1;
     UWORD32 u4_ctx_inc = 0;
     UWORD8 a, b;
+
     a = ((ps_left_ctxt->u1_intrapred_chroma_mode != 0) ? 1 : 0);
     b = ((ps_top_ctxt->u1_intrapred_chroma_mode != 0) ? 1 : 0);
 
@@ -447,29 +466,25 @@ static void ih264e_cabac_enc_chroma_predmode(UWORD8 u1_chroma_pred_mode,
                                 ps_cabac_ctxt->au1_cabac_ctxt_table
                                     + INTRA_CHROMA_PRED_MODE,
                                 ps_cabac_ctxt);
-
 }
 
-
 /**
- *******************************************************************************
- *
- * @brief
- *  Encodes CBP for the MB.
- *
- * @param[in] u1_cbp
- *  CBP for the MB
- *
- * @param[in] ps_cabac_ctxt
- *  Pointer to cabac context structure
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief Encodes CBP for the MB.
+*
+* @param[in] u1_cbp
+*  CBP for the MB
+*
+* @param[in] ps_cabac_ctxt
+*  Pointer to cabac context structure
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 static void ih264e_cabac_enc_cbp(UWORD32 u4_cbp, cabac_ctxt_t *ps_cabac_ctxt)
 {
     mb_info_ctxt_t *ps_left_ctxt = ps_cabac_ctxt->ps_left_ctxt_mb_info;
@@ -555,38 +570,36 @@ static void ih264e_cabac_enc_cbp(UWORD32 u4_cbp, cabac_ctxt_t *ps_cabac_ctxt)
                                 ps_cabac_ctxt);
 }
 
-
 /**
- *******************************************************************************
- *
- * @brief
- *  Encodes mb_qp_delta for the MB.
- *
- * @param[in] i1_mb_qp_delta
- *  mb_qp_delta
- *
- * @param[in] ps_cabac_ctxt
- *  Pointer to cabac context structure
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief Encodes mb_qp_delta for the MB.
+*
+* @param[in] i1_mb_qp_delta
+*  mb_qp_delta
+*
+* @param[in] ps_cabac_ctxt
+*  Pointer to cabac context structure
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 static void ih264e_cabac_enc_mb_qp_delta(WORD8 i1_mb_qp_delta,
                                          cabac_ctxt_t *ps_cabac_ctxt)
 {
     UWORD8 u1_code_num;
     UWORD8 u1_ctxt_inc;
-
     UWORD32 u4_ctx_inc;
     UWORD32 u4_bins;
     WORD8 i1_bins_len;
     UWORD8 u1_ctx_inc, u1_bin;
+
     /* Range of ps_mb_qp_delta_ctxt= -26 to +25 inclusive */
-        ASSERT((i1_mb_qp_delta < 26) && (i1_mb_qp_delta > -27));
+    ASSERT((i1_mb_qp_delta < 26) && (i1_mb_qp_delta > -27));
+
     /* if ps_mb_qp_delta_ctxt=0, then codeNum=0 */
     u1_code_num = 0;
     if (i1_mb_qp_delta > 0)
@@ -692,42 +705,38 @@ static void ih264e_cabac_enc_mb_qp_delta(WORD8 i1_mb_qp_delta,
     }
 }
 
-
-
-
 /**
- *******************************************************************************
- * @brief
- *  Encodes 4residual_block_cabac as defined in 7.3.5.3.3.
- *
- * @param[in] pi2_res_block
- *  pointer to the array of residues
- *
- * @param[in]  u1_nnz
- *  Number of non zero coeffs in the block
- *
- * @param[in] u1_max_num_coeffs
- *  Max number of coeffs that can be there in the block
- *
- * @param[in] u2_sig_coeff_map
- *  Significant coeff map
- *
- * @param[in] u4_ctx_cat_offset
- *  ctxIdxOffset for  absolute value contexts
- *
- * @param[in]  pu1_ctxt_sig_coeff
- *  Pointer to residual state variables
- *
- * @param[in] ps_cabac_ctxt
- *  Pointer to cabac context structure
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @brief
+*  Encodes 4x4 residual_block_cabac as defined in 7.3.5.3.3.
+*
+* @param[in] pi2_res_block
+*  pointer to the array of residues
+*
+* @param[in]  u1_nnz
+*  Number of non zero coeffs in the block
+*
+* @param[in] u1_max_num_coeffs
+*  Max number of coeffs that can be there in the block
+*
+* @param[in] u2_sig_coeff_map
+*  Significant coeff map
+*
+* @param[in] u4_ctx_cat_offset
+*  ctxIdxOffset for  absolute value contexts
+*
+* @param[in]  pu1_ctxt_sig_coeff
+*  Pointer to residual state variables
+*
+* @param[in] ps_cabac_ctxt
+*  Pointer to cabac context structure
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 static void ih264e_cabac_write_coeff4x4(WORD16 *pi2_res_block, UWORD8 u1_nnz,
                                         UWORD8 u1_max_num_coeffs,
                                         UWORD16 u2_sig_coeff_map,
@@ -735,7 +744,6 @@ static void ih264e_cabac_write_coeff4x4(WORD16 *pi2_res_block, UWORD8 u1_nnz,
                                         bin_ctxt_model *pu1_ctxt_sig_coeff,
                                         cabac_ctxt_t *ps_cabac_ctxt)
 {
-
     WORD8 i;
     WORD16 *pi16_coeffs;
     UWORD32 u4_sig_coeff, u4_bins;
@@ -743,152 +751,151 @@ static void ih264e_cabac_write_coeff4x4(WORD16 *pi2_res_block, UWORD8 u1_nnz,
     UWORD8 u1_last_sig_coef_index = (31 - CLZ(u2_sig_coeff_map));
 
     /* Always put Coded Block Flag as 1 */
+    pi16_coeffs = pi2_res_block;
+    {
+        bin_ctxt_model *pu1_bin_ctxt;
+        UWORD8 u1_bin, uc_last;
 
-        pi16_coeffs = pi2_res_block;
+        i = 0;
+        pu1_bin_ctxt = pu1_ctxt_sig_coeff;
+        u4_sig_coeff = 0;
+        u1_bin = 1;
+        if ((u1_last_sig_coef_index))
         {
-            bin_ctxt_model *pu1_bin_ctxt;
-            UWORD8 u1_bin, uc_last;
+            u1_bin = !!(u2_sig_coeff_map & 01);
+        }
+        uc_last = 1;
 
-            i = 0;
-            pu1_bin_ctxt = pu1_ctxt_sig_coeff;
-            u4_sig_coeff = 0;
-            u1_bin = 1;
-            if ((u1_last_sig_coef_index))
+        do
+        {
+            /* Encode Decision */
+            ih264e_cabac_encode_bin(ps_cabac_ctxt, u1_bin, pu1_bin_ctxt);
+
+            if (u1_bin & uc_last)
             {
-                u1_bin = !!(u2_sig_coeff_map & 01);
+                u4_sig_coeff = (u4_sig_coeff | (1 << i));
+                pu1_bin_ctxt = pu1_ctxt_sig_coeff + i
+                                + LAST_SIGNIFICANT_COEFF_FLAG_FRAME
+                                - SIGNIFICANT_COEFF_FLAG_FRAME;
+                u1_bin = (i == u1_last_sig_coef_index);
+                uc_last = 0;
             }
-            uc_last = 1;
-
-            do
+            else
             {
-                /* Encode Decision */
-                ih264e_cabac_encode_bin(ps_cabac_ctxt, u1_bin, pu1_bin_ctxt);
-
-                if (u1_bin & uc_last)
+                i = i + 1;
+                pu1_bin_ctxt = pu1_ctxt_sig_coeff + i;
+                u1_bin = (i == u1_last_sig_coef_index);
+                uc_last = 1;
+                if ((i != u1_last_sig_coef_index))
                 {
-                    u4_sig_coeff = (u4_sig_coeff | (1 << i));
-                    pu1_bin_ctxt = pu1_ctxt_sig_coeff + i
-                                    + LAST_SIGNIFICANT_COEFF_FLAG_FRAME
-                                    - SIGNIFICANT_COEFF_FLAG_FRAME;
-                    u1_bin = (i == u1_last_sig_coef_index);
-                    uc_last = 0;
+                    u1_bin = !!((u2_sig_coeff_map >> i) & 01);
+                }
+            }
+        } while (!((i > u1_last_sig_coef_index) || (i > (u1_max_num_coeffs - 1))));
+    }
+
+    /* Encode coeff_abs_level_minus1 and coeff_sign_flag */
+    {
+        UWORD8 u1_sign;
+        UWORD16 u2_abs_level;
+        UWORD8 u1_abs_level_equal1 = 1, u1_abs_level_gt1 = 0;
+        UWORD8 u1_ctx_inc;
+        UWORD8 u1_coff;
+        WORD16 i2_sufs;
+        WORD8 i1_bins_len;
+
+        i = u1_last_sig_coef_index;
+        pi16_coeffs = pi2_res_block + u1_nnz - 1;
+        do
+        {
+            {
+                u4_sig_coeff = u4_sig_coeff & ((1 << i) - 1);
+                u4_bins = 0;
+                u4_ctx_inc = 0;
+                i1_bins_len = 1;
+                /* Encode the AbsLevelMinus1 */
+                u2_abs_level = ABS(*(pi16_coeffs)) - 1;
+                /* CtxInc for bin0 */
+                u4_ctx_inc = MIN(u1_abs_level_equal1, 4);
+                /* CtxInc for remaining */
+                u1_ctx_inc = 5 + MIN(u1_abs_level_gt1, 4);
+                u4_ctx_inc = u4_ctx_inc + (u1_ctx_inc << 4);
+                if (u2_abs_level)
+                {
+                    u1_abs_level_gt1++;
+                    u1_abs_level_equal1 = 0;
+                }
+                if (!u1_abs_level_gt1)
+                    u1_abs_level_equal1++;
+
+                u1_coff = 14;
+                if (u2_abs_level >= u1_coff)
+                {
+                    /* Prefix TU i.e string of 14 1's */
+                    u4_bins = 0x3fff;
+                    i1_bins_len = 14;
+                    ih264e_encode_decision_bins(
+                                    u4_bins,
+                                    i1_bins_len,
+                                    u4_ctx_inc,
+                                    1,
+                                    ps_cabac_ctxt->au1_cabac_ctxt_table
+                                                    + u4_ctx_cat_offset,
+                                    ps_cabac_ctxt);
+
+                    /* Suffix, uses EncodeBypass */
+                    i2_sufs = u2_abs_level - u1_coff;
+
+                    u4_bins = ih264e_cabac_UEGk0_binarization(i2_sufs,
+                                                              &i1_bins_len);
+
+                    ih264e_cabac_encode_bypass_bins(ps_cabac_ctxt, u4_bins,
+                                                    i1_bins_len);
                 }
                 else
                 {
-                    i = i + 1;
-                    pu1_bin_ctxt = pu1_ctxt_sig_coeff + i;
-                    u1_bin = (i == u1_last_sig_coef_index);
-                    uc_last = 1;
-                    if ((i != u1_last_sig_coef_index))
-                    {
-                        u1_bin = !!((u2_sig_coeff_map >> i) & 01);
-                    }
-                }
-            }while (!((i > u1_last_sig_coef_index)
-                            || (i > (u1_max_num_coeffs - 1))));
-        }
-
-        /* Encode coeff_abs_level_minus1 and coeff_sign_flag */
-        {
-            UWORD8 u1_sign;
-            UWORD16 u2_abs_level;
-            UWORD8 u1_abs_level_equal1 = 1, u1_abs_level_gt1 = 0;
-            UWORD8 u1_ctx_inc;
-            UWORD8 u1_coff;
-            WORD16 i2_sufs;
-            WORD8 i1_bins_len;
-            i = u1_last_sig_coef_index;
-            pi16_coeffs = pi2_res_block + u1_nnz - 1;
-            do
-            {
-                {
-                    u4_sig_coeff = u4_sig_coeff & ((1 << i) - 1);
-                    u4_bins = 0;
-                    u4_ctx_inc = 0;
-                    i1_bins_len = 1;
-                    /* Encode the AbsLevelMinus1 */
-                    u2_abs_level = ABS(*(pi16_coeffs)) - 1;
-                    /* CtxInc for bin0 */
-                    u4_ctx_inc = MIN(u1_abs_level_equal1, 4);
-                    /* CtxInc for remaining */
-                    u1_ctx_inc = 5 + MIN(u1_abs_level_gt1, 4);
-                    u4_ctx_inc = u4_ctx_inc + (u1_ctx_inc << 4);
-                    if (u2_abs_level)
-                    {
-                        u1_abs_level_gt1++;
-                        u1_abs_level_equal1 = 0;
-                    }
-                    if (!u1_abs_level_gt1)
-                        u1_abs_level_equal1++;
-
-                    u1_coff = 14;
-                    if (u2_abs_level >= u1_coff)
-                    {
-                        /* Prefix TU i.e string of 14 1's */
-                        u4_bins = 0x3fff;
-                        i1_bins_len = 14;
-                        ih264e_encode_decision_bins(u4_bins, i1_bins_len,
-                                                    u4_ctx_inc, 1, ps_cabac_ctxt->au1_cabac_ctxt_table
+                    /* Prefix only */
+                    u4_bins = (1 << u2_abs_level) - 1;
+                    i1_bins_len = u2_abs_level + 1;
+                    /* Encode Terminating bit */
+                    ih264e_encode_decision_bins(
+                                    u4_bins,
+                                    i1_bins_len,
+                                    u4_ctx_inc,
+                                    1,
+                                    ps_cabac_ctxt->au1_cabac_ctxt_table
                                                     + u4_ctx_cat_offset,
-                                                    ps_cabac_ctxt);
-
-                        /* Suffix, uses EncodeBypass */
-                        i2_sufs = u2_abs_level - u1_coff;
-
-                        u4_bins = ih264e_cabac_UEGk0_binarization(i2_sufs,
-                                                                  &i1_bins_len);
-
-                        ih264e_cabac_encode_bypass_bins(ps_cabac_ctxt, u4_bins,
-                                                        i1_bins_len);
-
-                    }
-                    else
-                    {
-                        /* Prefix only */
-                        u4_bins = (1 << u2_abs_level) - 1;
-                        i1_bins_len = u2_abs_level + 1;
-                        /* Encode Terminating bit */
-                        ih264e_encode_decision_bins(u4_bins, i1_bins_len,
-                                                    u4_ctx_inc, 1, ps_cabac_ctxt->au1_cabac_ctxt_table
-                                                    + u4_ctx_cat_offset,
-                                                    ps_cabac_ctxt);
-                    }
+                                    ps_cabac_ctxt);
                 }
-                /* encode coeff_sign_flag[i] */
-                u1_sign = ((*pi16_coeffs) < 0) ? 1 : 0;
-                ih264e_cabac_encode_bypass_bin(ps_cabac_ctxt, u1_sign);
-                i = CLZ(u4_sig_coeff);
-                i = 31 - i;
-                pi16_coeffs--;
-            }while (u4_sig_coeff);
-        }
-
+            }
+            /* encode coeff_sign_flag[i] */
+            u1_sign = ((*pi16_coeffs) < 0) ? 1 : 0;
+            ih264e_cabac_encode_bypass_bin(ps_cabac_ctxt, u1_sign);
+            i = CLZ(u4_sig_coeff);
+            i = 31 - i;
+            pi16_coeffs--;
+        } while (u4_sig_coeff);
+    }
 }
 
-
 /**
- *******************************************************************************
- * @brief
- * Write DC coeffs for intra predicted luma block
- *
- * @param[in] ps_ent_ctxt
- *  Pointer to entropy context structure
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @brief
+*  Write DC coeffs for intra predicted luma block
+*
+* @param[in] ps_ent_ctxt
+*  Pointer to entropy context structure
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 static void ih264e_cabac_encode_residue_luma_dc(entropy_ctxt_t *ps_ent_ctxt)
 {
-
-    /* CABAC context */
     cabac_ctxt_t *ps_cabac_ctxt = ps_ent_ctxt->ps_cabac;
     tu_sblk_coeff_data_t *ps_mb_coeff_data;
-
-    /* packed residue */
     void *pv_mb_coeff_data = ps_ent_ctxt->pv_mb_coeff_data;
     UWORD16 u2_sig_coeff_map;
     WORD16 *pi2_res_block;
@@ -941,34 +948,28 @@ static void ih264e_cabac_encode_residue_luma_dc(entropy_ctxt_t *ps_ent_ctxt)
     ps_ent_ctxt->pv_mb_coeff_data = pv_mb_coeff_data;
 }
 
-
-
-
 /**
- *******************************************************************************
- * @brief
- * Write chroma residues to the bitstream
- *
- * @param[in] ps_ent_ctxt
- *  Pointer to entropy context structure
- *
- * @param[in] u1_chroma_cbp
- * coded block pattern, chroma
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @brief
+*  Write chroma residues to the bitstream
+*
+* @param[in] ps_ent_ctxt
+*  Pointer to entropy context structure
+*
+* @param[in] u1_chroma_cbp
+*  coded block pattern, chroma
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 static void ih264e_cabac_write_chroma_residue(entropy_ctxt_t *ps_ent_ctxt,
                                               UWORD8 u1_chroma_cbp)
 {
-    /* CABAC context */
     cabac_ctxt_t *ps_cabac_ctxt = ps_ent_ctxt->ps_cabac;
     tu_sblk_coeff_data_t *ps_mb_coeff_data;
-    /* packed residue */
     void *pv_mb_coeff_data = ps_ent_ctxt->pv_mb_coeff_data;
     UWORD16 u2_sig_coeff_map;
     UWORD8 u1_nnz;
@@ -1114,38 +1115,31 @@ static void ih264e_cabac_write_chroma_residue(entropy_ctxt_t *ps_ent_ctxt,
     ps_ent_ctxt->pv_mb_coeff_data = pv_mb_coeff_data;
 }
 
-
-
-
 /**
- *******************************************************************************
- * @brief
- * Encodes Residues for the MB as defined in 7.3.5.3
- *
- * @param[in] ps_ent_ctxt
- *  Pointer to entropy context structure
- *
- * @param[in] u1_cbp
- * coded block pattern
- *
- * @param[in] u1_ctx_cat
- * Context category, LUMA_AC_CTXCAT or LUMA_4x4_CTXCAT
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @brief
+*  Encodes Residues for the MB as defined in 7.3.5.3
+*
+* @param[in] ps_ent_ctxt
+*  Pointer to entropy context structure
+*
+* @param[in] u1_cbp
+*  coded block pattern
+*
+* @param[in] u1_ctx_cat
+*  Context category, LUMA_AC_CTXCAT or LUMA_4x4_CTXCAT
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 static void ih264e_cabac_encode_residue(entropy_ctxt_t *ps_ent_ctxt,
                                         UWORD32 u4_cbp, UWORD8 u1_ctx_cat)
 {
-    /* CABAC context */
     cabac_ctxt_t *ps_cabac_ctxt = ps_ent_ctxt->ps_cabac;
-
     tu_sblk_coeff_data_t *ps_mb_coeff_data;
-    /* packed residue */
     void *pv_mb_coeff_data = ps_ent_ctxt->pv_mb_coeff_data;
     UWORD16 u2_sig_coeff_map;
     UWORD8 u1_nnz;
@@ -1154,6 +1148,7 @@ static void ih264e_cabac_encode_residue(entropy_ctxt_t *ps_ent_ctxt,
     UWORD8 u1_left_ac_csbp;
     UWORD8 u1_top_ac_csbp;
     UWORD32 u4_ctx_idx_offset_sig_coef, u4_ctx_idx_offset_abs_lvl;
+
     ps_curr_ctxt = ps_cabac_ctxt->ps_curr_ctxt_mb_info;
     ps_top_ctxt = ps_cabac_ctxt->ps_top_ctxt_mb_info;
     u1_left_ac_csbp = ps_cabac_ctxt->pu1_left_y_ac_csbp[0];
@@ -1193,10 +1188,10 @@ static void ih264e_cabac_encode_residue(entropy_ctxt_t *ps_ent_ctxt,
 
             if (!((u4_cbp >> u1_b3b2) & 0x1))
             {
-                /* ---------------------------------------------------------- */
+                /************************************************************/
                 /* The current block is not coded so skip all the sub block */
                 /* and set the pointer of scan level, csbp accrodingly      */
-                /* ---------------------------------------------------------- */
+                /************************************************************/
                 CLEARBIT(u1_top_ac_csbp, u1_b2b0);
                 CLEARBIT(u1_top_ac_csbp, (u1_b2b0 + 1));
                 CLEARBIT(u1_left_ac_csbp, u1_b3b1);
@@ -1267,7 +1262,6 @@ static void ih264e_cabac_encode_residue(entropy_ctxt_t *ps_ent_ctxt,
     }
 
     /*     Write chroma residue */
-
     ps_ent_ctxt->pv_mb_coeff_data = pv_mb_coeff_data;
     {
         UWORD8 u1_cbp_chroma;
@@ -1287,50 +1281,38 @@ static void ih264e_cabac_encode_residue(entropy_ctxt_t *ps_ent_ctxt,
 }
 
 /**
- *******************************************************************************
- * @brief
- * Encodes a Motion vector (9.3.3.1.1.7 )
- *
- * @param[in] u1_mvd
- *  Motion vector to be encoded
- *
- * @param[in] u4_ctx_idx_offset
- * *  ctxIdxOffset for MV_X or MV_Ycontext
- *
- * @param[in]  ui2_abs_mvd
- * sum of absolute value of corresponding neighboring motion vectors
- *
- * @param[in] ps_cabac_ctxt
- *  Pointer to cabac context structure
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @brief
+*  Encodes a Motion vector (Sec. 9.3.3.1.1.7 ITU T. H264)
+*
+* @param[in] u1_mvd
+*  Motion vector to be encoded
+*
+* @param[in] u4_ctx_idx_offset
+*  ctxIdxOffset for MV_X or MV_Ycontext
+*
+* @param[in]  ui2_abs_mvd
+*  sum of absolute value of corresponding neighboring motion vectors
+*
+* @param[in] ps_cabac_ctxt
+*  Pointer to cabac context structure
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 static void ih264e_cabac_enc_ctx_mvd(WORD16 u1_mvd, UWORD32 u4_ctx_idx_offset,
                                      UWORD16 ui2_abs_mvd,
                                      cabac_ctxt_t *ps_cabac_ctxt)
 {
-
     UWORD8  u1_bin, u1_ctxt_inc;
     WORD8 k = 3, u1_coff = 9;
     WORD16 i2_abs_mvd, i2_sufs;
     UWORD32 u4_ctx_inc;
     UWORD32 u4_bins;
     WORD8 i1_bins_len;
-
-    /* if mvd < u1_coff
-     only Prefix
-     else
-     Prefix + Suffix
-
-     encode sign bit
-
-     Prefix TU encoding Cmax =u1_coff and Suffix 3rd order Exp-Golomb
-     */
 
     if (ui2_abs_mvd < 3)
         u4_ctx_inc = 0;
@@ -1436,34 +1418,31 @@ static void ih264e_cabac_enc_ctx_mvd(WORD16 u1_mvd, UWORD32 u4_ctx_idx_offset,
 }
 
 /**
- *******************************************************************************
- * @brief
- * Encodes all motion vectors for a P16x16 MB
- *
- * @param[in] ps_cabac_ctxt
- *  Pointer to cabac context structure
- *
- * @param[in] pi2_mv_ptr
- * Pointer to array of motion vectors
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @brief
+*  Encodes all motion vectors for a P16x16 MB
+*
+* @param[in] ps_cabac_ctxt
+*  Pointer to cabac context structure
+*
+* @param[in] pi2_mv_ptr
+*  Pointer to array of motion vectors
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 static void ih264e_cabac_enc_mvds_p16x16(cabac_ctxt_t *ps_cabac_ctxt,
                                          WORD16 *pi2_mv_ptr)
 {
-
-
     /* Encode the differential component of the motion vectors */
-
     {
         UWORD8 u1_abs_mvd_x, u1_abs_mvd_y;
         UWORD8 *pu1_top_mv_ctxt, *pu1_lft_mv_ctxt;
         WORD16 u2_mv;
+
         u1_abs_mvd_x = 0;
         u1_abs_mvd_y = 0;
         pu1_top_mv_ctxt = ps_cabac_ctxt->ps_curr_ctxt_mb_info->u1_mv[0];
@@ -1498,36 +1477,34 @@ static void ih264e_cabac_enc_mvds_p16x16(cabac_ctxt_t *ps_cabac_ctxt,
     }
 }
 
-
 /**
- *******************************************************************************
- * @brief
- * Encodes all motion vectors for a B MB (Assues that mbype is B_L0_16x16, B_L1_16x16 or B_Bi_16x16
- *
- * @param[in] ps_cabac_ctxt
- *  Pointer to cabac context structure
- *
- * @param[in] pi2_mv_ptr
- * Pointer to array of motion vectors
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @brief
+*  Encodes all motion vectors for a B MB (Assumes that mbype is B_L0_16x16,
+*  B_L1_16x16 or B_Bi_16x16
+*
+* @param[in] ps_cabac_ctxt
+*  Pointer to cabac context structure
+*
+* @param[in] pi2_mv_ptr
+*  Pointer to array of motion vectors
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 static void ih264e_cabac_enc_mvds_b16x16(cabac_ctxt_t *ps_cabac_ctxt,
                                          WORD16 *pi2_mv_ptr,
                                          WORD32 i4_mb_part_pred_mode )
 {
-
     /* Encode the differential component of the motion vectors */
-
     {
         UWORD8 u1_abs_mvd_x, u1_abs_mvd_y;
         UWORD8 *pu1_top_mv_ctxt, *pu1_lft_mv_ctxt;
         WORD16 u2_mv;
+
         u1_abs_mvd_x = 0;
         u1_abs_mvd_y = 0;
         pu1_top_mv_ctxt = ps_cabac_ctxt->ps_curr_ctxt_mb_info->u1_mv[0];
@@ -1595,35 +1572,30 @@ static void ih264e_cabac_enc_mvds_b16x16(cabac_ctxt_t *ps_cabac_ctxt,
     }
 }
 
-
-
 /**
- *******************************************************************************
- *
- * @brief
- *  This function generates CABAC coded bit stream for an Intra Slice.
- *
- * @description
- *  The mb syntax layer for intra slices constitutes luma mb mode, mb qp delta, coded block pattern, chroma mb mode and
- *  luma/chroma residue. These syntax elements are written as directed by table
- *  7.3.5 of h264 specification.
- *
- * @param[in] ps_ent_ctxt
- *  pointer to entropy context
- *
- * @returns error code
- *
- * @remarks none
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  This function generates CABAC coded bit stream for an Intra Slice.
+*
+* @description
+*  The mb syntax layer for intra slices constitutes luma mb mode, mb qp delta,
+*  coded block pattern, chroma mb mode and  luma/chroma residue. These syntax
+*  elements are written as directed by table 7.3.5 of h264 specification.
+*
+* @param[in] ps_ent_ctxt
+*  pointer to entropy context
+*
+* @returns error code
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 IH264E_ERROR_T ih264e_write_islice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
 {
-    /* bit stream ptr */
     bitstrm_t *ps_bitstream = ps_ent_ctxt->ps_bitstrm;
-    /* CABAC context */
     cabac_ctxt_t *ps_cabac_ctxt = ps_ent_ctxt->ps_cabac;
-    /* packed header data */
     UWORD8 *pu1_byte = ps_ent_ctxt->pv_mb_header_data;
     mb_hdr_common_t *ps_mb_hdr = (mb_hdr_common_t *)ps_ent_ctxt->pv_mb_header_data;
     mb_info_ctxt_t *ps_curr_ctxt;
@@ -1748,34 +1720,30 @@ IH264E_ERROR_T ih264e_write_islice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  This function generates CABAC coded bit stream for Inter slices
- *
- * @description
- *  The mb syntax layer for inter slices constitutes luma mb mode, mb qp delta, coded block pattern, chroma mb mode and
- *  luma/chroma residue. These syntax elements are written as directed by table
- *  7.3.5 of h264 specification
- *
- * @param[in] ps_ent_ctxt
- *  pointer to entropy context
- *
- * @returns error code
- *
- * @remarks none
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  This function generates CABAC coded bit stream for Inter slices
+*
+* @description
+*  The mb syntax layer for inter slices constitutes luma mb mode, mb qp delta,
+*  coded block pattern, chroma mb mode and luma/chroma residue. These syntax
+*  elements are written as directed by table 7.3.5 of h264 specification
+*
+* @param[in] ps_ent_ctxt
+*  pointer to entropy context
+*
+* @returns error code
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
 {
-    /* bit stream ptr */
     bitstrm_t *ps_bitstream = ps_ent_ctxt->ps_bitstrm;
-    /* CABAC context */
     cabac_ctxt_t *ps_cabac_ctxt = ps_ent_ctxt->ps_cabac;
-
     mb_info_ctxt_t *ps_curr_ctxt;
-
     WORD32 bitstream_start_offset, bitstream_end_offset;
     WORD32 mb_tpm, mb_type, cbp, chroma_intra_mode, luma_intra_mode;
     WORD8 mb_qp_delta;
@@ -2014,61 +1982,31 @@ IH264E_ERROR_T ih264e_write_pslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
     }
 }
 
-
-/* ! < Table 9-37 – Binarization for macroblock types in B slices  in ITU_T_H264-201402
- * Bits 0-7 : binarised value
- * Bits 8-15: length of binary sequence */
-
-
-static const UWORD32 u4_b_mb_type[27] = { 0x0100, 0x0301, 0x0305, 0x0603,
-                                          0x0623, 0x0613, 0x0633, 0x060b,
-                                          0x062b, 0x061b, 0x063b, 0x061f,
-                                          0x0707, 0x0747, 0x0727, 0x0767,
-                                          0x0717, 0x0757, 0x0737, 0x0777,
-                                          0x070f, 0x074f, 0x063f };
-/* CtxInc for mb types in B slices */
-static const UWORD32 ui_b_mb_type_ctx_inc[27] = { 0x00, 0x0530, 0x0530,
-                                                  0x0555430, 0x0555430,
-                                                  0x0555430, 0x0555430,
-                                                  0x0555430, 0x0555430,
-                                                  0x0555430, 0x0555430,
-                                                  0x0555430, 0x05555430,
-                                                  0x05555430, 0x05555430,
-                                                  0x05555430, 0x05555430,
-                                                  0x05555430, 0x05555430,
-                                                  0x05555430, 0x05555430,
-                                                  0x05555430, 0x0555430 };
-
 /**
- *******************************************************************************
- *
- * @brief
- *  This function generates CABAC coded bit stream for B slices
- *
- * @description
- *  The mb syntax layer for inter slices constitutes luma mb mode,
- *  mb qp delta, coded block pattern, chroma mb mode and
- *  luma/chroma residue. These syntax elements are written as directed by table
- *  7.3.5 of h264 specification
- *
- * @param[in] ps_ent_ctxt
- *  pointer to entropy context
- *
- * @returns error code
- *
- * @remarks none
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  This function generates CABAC coded bit stream for B slices
+*
+* @description
+*  The mb syntax layer for inter slices constitutes luma mb mode, mb qp delta,
+*  coded block pattern, chroma mb mode and luma/chroma residue. These syntax
+*  elements are written as directed by table 7.3.5 of h264 specification
+*
+* @param[in] ps_ent_ctxt
+*  pointer to entropy context
+*
+* @returns error code
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
 {
-    /* bit stream ptr */
     bitstrm_t *ps_bitstream = ps_ent_ctxt->ps_bitstrm;
-    /* CABAC context */
     cabac_ctxt_t *ps_cabac_ctxt = ps_ent_ctxt->ps_cabac;
-
     mb_info_ctxt_t *ps_curr_ctxt;
-
     WORD32 bitstream_start_offset, bitstream_end_offset;
     WORD32 mb_tpm, mb_type, cbp, chroma_intra_mode, luma_intra_mode;
     WORD8 mb_qp_delta;
@@ -2224,7 +2162,6 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
 
         return IH264E_SUCCESS;
     }
-
     else /* Inter MB */
     {
         /* Starting bitstream offset for header in bits */
@@ -2284,7 +2221,6 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
 
             pu1_byte += sizeof(mb_hdr_bdirect_t);
         }
-
         else if (mb_type == BSKIP)/* MB = BSKIP */
         {
             ih264e_cabac_enc_mb_skip(1, ps_cabac_ctxt, MB_SKIP_FLAG_B_SLICE);
@@ -2303,7 +2239,6 @@ IH264E_ERROR_T ih264e_write_bslice_mb_cabac(entropy_ctxt_t *ps_ent_ctxt)
 
             pu1_byte += sizeof(mb_hdr_bskip_t);
         }
-
         else /* mbype is B_L0_16x16, B_L1_16x16 or B_Bi_16x16 */
         {
             mb_hdr_b16x16_t *ps_mb_hdr_b16x16 = (mb_hdr_b16x16_t *)ps_ent_ctxt->pv_mb_header_data;

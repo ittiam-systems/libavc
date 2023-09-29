@@ -20,11 +20,10 @@
 /**
 *******************************************************************************
 * @file
-*  ihevc_typedefs.h
+*  ime_statistics.h
 *
 * @brief
-*  Type definitions used in the code
-*
+*  This file presents some useful statistics associated with me
 *
 * @remarks
 *  None
@@ -33,9 +32,9 @@
 */
 #ifndef _IME_STATISTICS_H_
 #define _IME_STATISTICS_H_
+
 #define DEBUG_HISTOGRAM_ENABLE 0
 #define SAD_EXIT_STATS 0
-
 
 #if SAD_EXIT_STATS
 

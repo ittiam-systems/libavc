@@ -24,19 +24,19 @@
 *  ih264e_modify_frm_rate.c
 *
 * @brief
-*  Functions used to modify frame rate
+*  Handle source frame rate pulldown
 *
 * @author
 *  ittiam
 *
 * @par List of Functions:
-*  - ih264e_pd_frm_rate_get_init_free_memtab()
-*  - ih264e_init_pd_frm_rate()
-*  - ih264e_update_pd_frm_rate()
-*  - ih264e_get_pd_avg_frm_rate()
+*  - ih264e_pd_frm_rate_get_init_free_memtab
+*  - ih264e_init_pd_frm_rate
+*  - ih264e_update_pd_frm_rate
+*  - ih264e_get_pd_avg_frm_rate
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -45,31 +45,35 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* User include files */
-#include "irc_datatypes.h"
+/* User Include Files */
+#include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
+
 #include "ih264_defs.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
 #include "ih264_cabac_tables.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
-#include "ih264e_defs.h"
-#include "ime_distortion_metrics.h"
+
 #include "ime_defs.h"
+#include "ime_distortion_metrics.h"
 #include "ime_structs.h"
+
+#include "irc_mem_req_and_acq.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
+
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
-#include "ih264e_rc_mem_interface.h"
 #include "ih264e_time_stamp.h"
 #include "ih264e_modify_frm_rate.h"
 

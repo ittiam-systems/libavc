@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
@@ -28,9 +29,6 @@
 * @author
 *  ittiam
 *
-* @par List of functions
-*
-*
 * @remarks
 *
 *******************************************************************************
@@ -40,19 +38,19 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* User include files */
+/* User Include Files */
 #include "ih264_typedefs.h"
 #include "ih264_defs.h"
 #include "ih264e_defs.h"
 #include "ih264e_globals.h"
 
 /*****************************************************************************/
-/* Extern global definitions                                                 */
+/* Global definitions                                                        */
 /*****************************************************************************/
 
 /**
 ******************************************************************************
-* @brief  lamda for varying quantizer scales that would be used to
+* @brief  lambda for varying quantizer scales that would be used to
 * compute the RD cost while deciding on the MB modes.
 * input  : qp
 * output : lambda
@@ -111,7 +109,6 @@ const UWORD8 u1_uev_codelength[32] =
      9,      9,      9,      9,      9,      9,      9,      9,
      9,      9,      9,      9,      9,      9,      9,      11,
 };
-
 
 /**
 ******************************************************************************
@@ -196,7 +193,6 @@ const WORD8 gi1_mv_pred_condition[8] =
      -1,    0,    1,    -1,    2,    -1,    -1,    -1
 };
 
-
 /*******************************************************************************
  * Translation of MPEG QP to H264 QP
  ******************************************************************************/
@@ -209,9 +205,8 @@ const WORD8 gi1_mv_pred_condition[8] =
  *        By not considering the weight matrix in both MPEG and H264 we in effect
  *        only changing the relation to
  *              QPrc = c + d*2^(QPen)
- *        This will only entatil changin the RC model parameters, and this will
+ *        This will only entail changing the RC model parameters, and this will
  *        not affect rc relation at all
- *
  *
  * We have MPEG qp which varies from 0-228. The quantization factor has a linear
  * relation ship with the size of quantized values
@@ -235,7 +230,6 @@ const WORD8 gi1_mv_pred_condition[8] =
  *  QPm = a + b*2^(Qph/6)
  *  QPh = 6*log((Qpm - a)/b)
  *
- *
  * Unrounded values for gau1_h264_to_mpeg2_qmap[H264_QP_ELEM] =
  *
  *   0.625       0.70077     0.78581     0.88127     0.98843     1.10870
@@ -247,8 +241,6 @@ const WORD8 gi1_mv_pred_condition[8] =
  *   39.60310    44.45221    49.89514    56.00463    62.86230    70.55978
  *   79.19990    88.89811    99.78398    112.00296   125.71830   141.11325
  *   158.39350   177.78992   199.56167   223.99963
- *
- *
  *
  * Unrounded values for gau1_mpeg2_to_h264_qmap[MPEG2_QP_ELEM]
  *
@@ -286,7 +278,6 @@ const WORD8 gi1_mv_pred_condition[8] =
  *   50.7252   50.7650   50.8046   50.8440   50.8833   50.9224   50.9613
  *   51.0000
  */
-
 const UWORD8 gau1_h264_to_mpeg2_qmap[H264_QP_ELEM] =
 {
      1,    1,    1,    1,   1,    1,    1,   1,

@@ -23,17 +23,15 @@
 *  ive2.h
 *
 * @brief
-* This file contains all the necessary structure and  enumeration
-* definitions needed for the Application  Program Interface(API) of the
-* Ittiam Video Encoders  This is version 2
+*  This file contains all the necessary structure and enumeration definitions
+*  needed for the Application Program Interface(API) of the Ittiam Video
+*  Encoders. This is version 2
 *
 * @author
-* Ittiam
-*
-* @par List of Functions:
+*  ittiam
 *
 * @remarks
-* None
+*  none
 *
 *******************************************************************************
 */

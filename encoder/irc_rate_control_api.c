@@ -54,6 +54,73 @@
 #define GET_LO_DEV_QP(Qprev) (( ((WORD32) Qprev)*LO_DEV_FCTR + (1<<(DEV_Q-1)))>>DEV_Q)
 #define CLIP_QP(Qc, hi_d, lo_d) (((Qc) < (lo_d))?((lo_d)):(((Qc) > (hi_d))?(hi_d):(Qc)))
 
+/*****************************************************************************
+ Function Name : fill_memtab
+ Description   : fill memtab
+ Inputs        :
+ ps_mem_tab           -  Memtab pointer
+ u4_size              -  Size of the memtab
+ i4_alignment         -  alignment of the memtab
+ e_usage              -  usage
+ e_mem_region         -  region
+ *****************************************************************************/
+void fill_memtab(itt_memtab_t *ps_mem_tab,
+                 WORD32 u4_size,
+                 WORD32 i4_alignment,
+                 ITT_MEM_USAGE_TYPE_E e_usage,
+                 ITT_MEM_REGION_E e_mem_region)
+{
+    /* Make the size next multiple of alignment */
+    WORD32 i4_aligned_size   = (((u4_size) + (i4_alignment-1)) & (~(i4_alignment-1)));
+
+    /* Fill the memtab */
+    ps_mem_tab->u4_size      = i4_aligned_size;
+    ps_mem_tab->i4_alignment = i4_alignment;
+    ps_mem_tab->e_usage      = e_usage;
+    ps_mem_tab->e_mem_region = e_mem_region;
+}
+
+/*****************************************************************************
+ Function Name : use_or_fill_base
+ Description   : Get or Set base pointer for the memtab
+ Inputs        :
+ ps_mem_tab           -  Memtab pointer
+ ptr_to_be_filled     -  Pointer to base pointer
+ e_func_type          -  Get/Set flag
+ *****************************************************************************/
+WORD32 use_or_fill_base(itt_memtab_t *ps_mem_tab,
+                        void **ptr_to_be_filled,
+                        ITT_FUNC_TYPE_E e_func_type)
+{
+    /* Fill base for freeing the allocated memory */
+    if (e_func_type == FILL_BASE)
+    {
+        if (ptr_to_be_filled[0] != 0)
+        {
+            ps_mem_tab->pv_base = ptr_to_be_filled[0];
+            return (0);
+        }
+        else
+        {
+            return (-1);
+        }
+    }
+    /* obtain the allocated memory from base pointer */
+    if (e_func_type == USE_BASE)
+    {
+        if (ps_mem_tab->pv_base != 0)
+        {
+            ptr_to_be_filled[0] = ps_mem_tab->pv_base;
+            return (0);
+        }
+        else
+        {
+            return (-1);
+        }
+    }
+    return (0);
+}
+
 /*****************************************************************************/
 /* Restricts the quantization parameter variation within delta */
 /*****************************************************************************/
@@ -169,7 +236,7 @@ void irc_initialise_rate_control(rate_control_api_t *ps_rate_control_api,
     ps_rate_control_api->e_rc_type = e_rate_control_type;
     ps_rate_control_api->u1_is_mb_level_rc_on = u1_is_mb_level_rc_on;
 
-    trace_printf((const WORD8*)"RC type = %d\n", e_rate_control_type);
+    TRACE_PRINTF((const WORD8*)"RC type = %d\n", e_rate_control_type);
 
     /* Set the avg_bitrate_changed flag for each pic_type to 0 */
     for(i = 0; i < MAX_PIC_TYPE; i++)
@@ -204,7 +271,7 @@ void irc_initialise_rate_control(rate_control_api_t *ps_rate_control_api,
              VBR_STORAGE_DVD_COMP */
             if(pu4_peak_bit_rate[0] != pu4_peak_bit_rate[1])
             {
-                trace_printf((const WORD8*)"For VBR_STORAGE and VBR_STORAGE_DVD_COMP the peak bit rates should be same\n");
+                TRACE_PRINTF((const WORD8*)"For VBR_STORAGE and VBR_STORAGE_DVD_COMP the peak bit rates should be same\n");
             }
             irc_init_vbr_vbv(ps_rate_control_api->ps_vbr_storage_vbv,
                              (WORD32)pu4_peak_bit_rate[0],
@@ -365,7 +432,7 @@ UWORD8 irc_get_frame_level_qp(rate_control_api_t *ps_rate_control_api,
                     && (ps_rate_control_api->e_rc_type != CONST_QP)
                     && (ps_rate_control_api->e_rc_type != VBR_STREAMING))
     {
-        trace_printf((const WORD8*)(const WORD8*)" Only VBR,NLDRC and CONST QP supported for now \n");
+        TRACE_PRINTF((const WORD8*)(const WORD8*)" Only VBR,NLDRC and CONST QP supported for now \n");
         return (0);
     }
 
@@ -429,7 +496,7 @@ UWORD8 irc_get_frame_level_qp(rate_control_api_t *ps_rate_control_api,
             /* Total estimated bits */
             i4_cur_est_bits = i4_cur_est_header_bits + i4_cur_est_texture_bits;
 
-            trace_printf((const WORD8*)"ft %d, etb = %d, eb %d, ", e_pic_type,
+            TRACE_PRINTF((const WORD8*)"ft %d, etb = %d, eb %d, ", e_pic_type,
                          i4_cur_est_texture_bits, i4_cur_est_bits);
 
             /* Threshold the estimated bits based on the buffer fullness*/
@@ -498,7 +565,7 @@ UWORD8 irc_get_frame_level_qp(rate_control_api_t *ps_rate_control_api,
                                 - i4_cur_est_header_bits;
             }
 
-            trace_printf((const WORD8*)"emtb = %d, ", i4_cur_est_texture_bits);
+            TRACE_PRINTF((const WORD8*)"emtb = %d, ", i4_cur_est_texture_bits);
 
             /*
              * If the estimated texture bits go to values less than zero
@@ -518,7 +585,7 @@ UWORD8 irc_get_frame_level_qp(rate_control_api_t *ps_rate_control_api,
             {
                 i4_cur_est_texture_bits = (i4_ud_max_bits
                                 - i4_cur_est_header_bits);
-                trace_printf((const WORD8*)"udcb = %d, ",
+                TRACE_PRINTF((const WORD8*)"udcb = %d, ",
                              i4_ud_max_bits - i4_cur_est_header_bits);
             }
 
@@ -551,7 +618,7 @@ UWORD8 irc_get_frame_level_qp(rate_control_api_t *ps_rate_control_api,
                                 << 1) + 1];
             }
 
-            trace_printf((const WORD8*)"ehb %d, etb %d, fqp %d, es %d, eb %d, ",
+            TRACE_PRINTF((const WORD8*)"ehb %d, etb %d, fqp %d, es %d, eb %d, ",
                          i4_cur_est_header_bits, i4_cur_est_texture_bits,
                          u1_frame_qp, u4_estimated_sad, i4_cur_est_bits);
 
@@ -664,7 +731,7 @@ UWORD8 irc_get_frame_level_qp(rate_control_api_t *ps_rate_control_api,
         u1_frame_qp = ps_rate_control_api->au1_init_qp[e_pic_type];
     }
 
-    trace_printf((const WORD8*)"fqp %d\n", u1_frame_qp);
+    TRACE_PRINTF((const WORD8*)"fqp %d\n", u1_frame_qp);
 
     return (u1_frame_qp);
 }
@@ -690,7 +757,7 @@ vbv_buf_status_e irc_get_buffer_status(rate_control_api_t *ps_rate_control_api,
                         i4_total_frame_bits,
                         pi4_num_bits_to_prevent_vbv_underflow);
 
-        trace_printf((const WORD8*)"e_buf_status = %d\n", e_buf_status);
+        TRACE_PRINTF((const WORD8*)"e_buf_status = %d\n", e_buf_status);
     }
     else if(ps_rate_control_api->e_rc_type == VBR_STORAGE)
     {
@@ -758,6 +825,7 @@ void irc_update_frame_level_info(rate_control_api_t *ps_rate_control_api,
     {
         u1_is_scd = 0;
     }
+
     /* For frames that contain plane areas that differ from reference frames, encoder
      * might generate more INTRA MBs because of lower SAD compared with INTER MBs.
      * Such cases should not be treated as scene change.
@@ -767,8 +835,7 @@ void irc_update_frame_level_info(rate_control_api_t *ps_rate_control_api,
     {
         u1_is_scd = 0;
     }
-
-    trace_printf((const WORD8*)"i4_total_frame_bits %d\n", i4_total_frame_bits);
+    TRACE_PRINTF((const WORD8*)"i4_total_frame_bits %d\n", i4_total_frame_bits);
 
     if(!i4_is_it_a_skip && !i4_is_pic_handling_done)
     {
@@ -998,7 +1065,7 @@ void irc_update_frame_level_info(rate_control_api_t *ps_rate_control_api,
                  */
                 ps_rate_control_api->au1_prev_frm_qp[I_PIC] = (UWORD8)i4_avg_qp;
 
-                trace_printf((const WORD8*)"SCD DETECTED\n");
+                TRACE_PRINTF((const WORD8*)"SCD DETECTED\n");
             }
             else
             {
@@ -1068,7 +1135,7 @@ void irc_update_frame_level_info(rate_control_api_t *ps_rate_control_api,
         ps_rate_control_api->prev_ref_pic_type = e_pic_type;
     }
 
-    trace_printf((const WORD8*)"ft %d,hb %d,tb %d,qp %d,fs %d\n", e_pic_type,
+    TRACE_PRINTF((const WORD8*)"ft %d,hb %d,tb %d,qp %d,fs %d\n", e_pic_type,
                  i4_model_updation_hdr_bits, i4_tot_texture_bits, i4_avg_qp,
                  u4_frame_sad);
 

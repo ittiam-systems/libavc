@@ -19,72 +19,76 @@
 */
 
 /**
- *******************************************************************************
- * @file
- *  ih264e_deblk.c
- *
- * @brief
- *  This file contains functions that are associated with deblocking
- *
- * @author
- *  ittiam
- *
- * @par List of Functions:
- *  - ih264e_fill_bs_1mv_1ref_non_mbaff
- *  - ih264e_calculate_csbp
- *  - ih264e_compute_bs
- *  - ih264e_filter_top_edge
- *  - ih264e_filter_left_edge
- *  - ih264e_deblock_mb
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @file
+*  ih264e_deblk.c
+*
+* @brief
+*  This file contains functions that are associated with deblocking
+*
+* @author
+*  ittiam
+*
+* @par List of Functions:
+*  - ih264e_fill_bs_1mv_1ref_non_mbaff
+*  - ih264e_calculate_csbp
+*  - ih264e_compute_bs
+*  - ih264e_filter_top_edge
+*  - ih264e_filter_left_edge
+*  - ih264e_deblock_mb
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 
 /*****************************************************************************/
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
-/* User include files */
+/* User Include Files */
 #include "ih264e_config.h"
 #include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
+
 #include "ih264_macros.h"
 #include "ih264_defs.h"
-#include "ih264e_defs.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_trans_data.h"
 #include "ih264_cabac_tables.h"
+#include "ih264_deblk_tables.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
+
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
-#include "ih264_trans_data.h"
-#include "ih264_deblk_tables.h"
 #include "ih264e_deblk.h"
 
 
 /*****************************************************************************/
-/* Extern global definitions                                                 */
+/* global definitions                                                        */
 /*****************************************************************************/
 
 /**
@@ -160,7 +164,6 @@ static const UWORD16  ih264e_gu2_4x4_v2h_reorder[16] =
 *
 * @param[in] ps_curr_pu
 *  PU for current MB
-*
 *
 * @returns  none
 *
@@ -296,7 +299,7 @@ static void ih264e_fill_bs_1mv_1ref_non_mbaff(UWORD32 *pu4_horz_bs,
         {
             u4_left_flag = 1;
         }
-        else if(ps_curr_pu->b2_pred_mode != 2)/* Not bipred */
+        else if (ps_curr_pu->b2_pred_mode != 2)/* Not bipred */
         {
             i16_pMvl0_x = ps_left_pu->s_me_info[ps_left_pu->b2_pred_mode].s_mv.i2_mvx;
             i16_pMvl0_y = ps_left_pu->s_me_info[ps_left_pu->b2_pred_mode].s_mv.i2_mvy;
@@ -310,7 +313,6 @@ static void ih264e_fill_bs_1mv_1ref_non_mbaff(UWORD32 *pu4_horz_bs,
         }
         else
         {
-
             i16_pMvl0_x = ps_left_pu->s_me_info[PRED_L0].s_mv.i2_mvx;
             i16_pMvl0_y = ps_left_pu->s_me_info[PRED_L0].s_mv.i2_mvy;
             i16_pMvl1_x = ps_left_pu->s_me_info[PRED_L1].s_mv.i2_mvx;

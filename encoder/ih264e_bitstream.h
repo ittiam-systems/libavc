@@ -36,8 +36,8 @@
 *******************************************************************************
 */
 
-#ifndef IH264E_BITSTREAM_H_
-#define IH264E_BITSTREAM_H_
+#ifndef _IH264E_BITSTREAM_H_
+#define _IH264E_BITSTREAM_H_
 
 /*****************************************************************************/
 /* Constant Macros                                                           */
@@ -273,209 +273,25 @@ static inline IH264E_ERROR_T ih264e_put_byte_epb(bitstrm_t *ps_bitstrm, UWORD8 b
 
 
 /*****************************************************************************/
-/* Extern Function Declarations                                              */
+/* Function Declarations                                                     */
 /*****************************************************************************/
 
-/**
-******************************************************************************
-*
-*  @brief Initializes the encoder bitstream engine
-*
-*  @par   Description
-*  This routine needs to be called at start of slice/frame encode
-*
-*  @param[in]   ps_bitstrm
-*  pointer to bitstream context (handle)
-*
-*  @param[in]   p1_bitstrm_buf
-*  bitstream buffer pointer where the encoded stream is generated in byte order
-*
-*  @param[in]   u4_max_bitstrm_size
-*  indicates maximum bitstream buffer size. (in bytes)
-*  If actual stream size exceeds the maximum size, encoder should
-*   1. Not corrupt data beyond u4_max_bitstrm_size bytes
-*   2. Report an error back to application indicating overflow
-*
-*  @return      success or failure error code
-*
-******************************************************************************
-*/
-IH264E_ERROR_T    ih264e_bitstrm_init
-        (
-            bitstrm_t   *ps_bitstrm,
-            UWORD8      *pu1_bitstrm_buf,
-            UWORD32     u4_max_bitstrm_size
-        );
+IH264E_ERROR_T ih264e_bitstrm_init(bitstrm_t *ps_bitstrm,
+                                   UWORD8 *pu1_bitstrm_buf,
+                                   UWORD32 u4_max_bitstrm_size);
 
-/**
-******************************************************************************
-*
-*  @brief puts a code with specified number of bits into the bitstream
-*
-*  @par   Description
-*  inserts code_len number of bits from lsb of code_val into the
-*  bitstream.  If the total bytes (u4_strm_buf_offset) exceeds max
-*  available size (u4_max_strm_size), returns error without corrupting data
-*  beyond it
-*
-*  @param[in]    ps_bitstrm
-*  pointer to bitstream context (handle)
-*
-*  @param[in]    u4_code_val
-*  code value that needs to be inserted in the stream.
-*
-*  @param[in]    code_len
-*  indicates code length (in bits) of code_val that would be inserted in
-*  bitstream buffer size.
-*
-*  @remarks     Assumptions: all bits from bit position code_len to msb of
-*   code_val shall be zero
-*
-*  @return      success or failure error code
-*
-******************************************************************************
-*/
-IH264E_ERROR_T    ih264e_put_bits
-        (
-            bitstrm_t   *ps_bitstrm,
-            UWORD32     u4_code_val,
-            WORD32      code_len
-        );
+IH264E_ERROR_T ih264e_put_bits(bitstrm_t *ps_bitstrm, UWORD32 u4_code_val,
+                               WORD32 code_len);
 
-/**
-******************************************************************************
-*
-*  @brief inserts a 1-bit code into the bitstream
-*
-*  @par   Description
-*  inserts 1bit lsb of code_val into the bitstream
-*  updates context members like u4_cur_word, u4_strm_buf_offset and
-*  i4_bits_left_in_cw. If the total words (u4_strm_buf_offset) exceeds max
-*  available size (u4_max_strm_size), returns error without corrupting data
-*  beyond it
-*
-*  @param[in]    ps_bitstrm
-*  pointer to bitstream context (handle)
-*
-*  @param[in]    u4_code_val
-*  code value that needs to be inserted in the stream.
-*
-*  @remarks     Assumptions: all bits from bit position 1 to msb of code_val
-*  shall be zero
-*
-*  @return      success or failure error code
-*
-******************************************************************************
-*/
-IH264E_ERROR_T    ih264e_put_bit
-        (
-            bitstrm_t   *ps_bitstrm,
-            UWORD32     u4_code_val
-        );
+IH264E_ERROR_T ih264e_put_bit(bitstrm_t *ps_bitstrm, UWORD32 u4_code_val);
 
-/**
-******************************************************************************
-*
-*  @brief inserts rbsp trailing bits at the end of stream buffer (NAL)
-*
-*  @par   Description
-*  inserts rbsp trailing bits, updates context members like u4_cur_word and
-*  i4_bits_left_in_cw and flushes the same in the bitstream buffer. If the
-*  total words (u4_strm_buf_offset) exceeds max available size
-*  (u4_max_strm_size), returns error without corrupting data beyond it
-*
-*  @param[in]    ps_bitstrm
-*  pointer to bitstream context (handle)
-*
-*  @return      success or failure error code
-*
-******************************************************************************
-*/
-IH264E_ERROR_T    ih264e_put_rbsp_trailing_bits
-        (
-            bitstrm_t   *ps_bitstrm
-        );
+IH264E_ERROR_T ih264e_put_rbsp_trailing_bits(bitstrm_t *ps_bitstrm);
 
-/**
-******************************************************************************
-*
-*  @brief puts exponential golomb code of a unsigned integer into bitstream
-*
-*  @par   Description
-*  computes uev code for given syntax element and inserts the same into
-*  bitstream by calling ih264e_put_bits() interface.
-*
-*  @param[in]    ps_bitstrm
-*  pointer to bitstream context (handle)
-*
-*  @param[in]    u4_code_num
-*  unsigned integer input whose golomb code is written in stream
-*
-*  @remarks     Assumptions: code value can be represented in less than 16bits
-*
-*  @return      success or failure error code
-*
-******************************************************************************
-*/
-IH264E_ERROR_T    ih264e_put_uev
-        (
-            bitstrm_t   *ps_bitstrm,
-            UWORD32     u4_code_num
-        );
+IH264E_ERROR_T ih264e_put_uev(bitstrm_t *ps_bitstrm, UWORD32 u4_code_num);
 
-/**
-******************************************************************************
-*
-*  @brief puts exponential golomb code of a signed integer into bitstream
-*
-*  @par   Description
-*  computes sev code for given syntax element and inserts the same into
-*  bitstream by calling ih264e_put_bits() interface.
-*
-*  @param[in]    ps_bitstrm
-*  pointer to bitstream context (handle)
-*
-*  @param[in]    syntax_elem
-*  signed integer input whose golomb code is written in stream
-*
-*  @remarks     Assumptions: code value can be represented in less than 16bits
-*
-*  @return      success or failure error code
-*
-******************************************************************************
-*/
-IH264E_ERROR_T    ih264e_put_sev
-        (
-            bitstrm_t   *ps_bitstrm,
-            WORD32      syntax_elem
-        );
+IH264E_ERROR_T ih264e_put_sev(bitstrm_t *ps_bitstrm, WORD32 syntax_elem);
 
-/**
-******************************************************************************
-*
-*  @brief insert NAL start code prefix (0x000001) into bitstream with an option
-*  of inserting leading_zero_8bits (which makes startcode prefix as 0x00000001)
-*
-*  @par   Description
-*  Although start code prefix could have been put by calling ih264e_put_bits(),
-*  ih264e_put_nal_start_code_prefix() is specially added to make sure emulation
-*  prevention insertion is not done for the NAL start code prefix which will
-*  surely happen otherwise by calling ih264e_put_bits() interface.
-*
-*  @param[in]    ps_bitstrm
-*  pointer to bitstream context (handle)
-*
-*  @param[in]    insert_leading_zero_8bits
-*  flag indicating if one more zero bytes needs to prefixed before start code
-*
-*  @return      success or failure error code
-*
-******************************************************************************
-*/
-IH264E_ERROR_T    ih264e_put_nal_start_code_prefix
-        (
-            bitstrm_t   *ps_bitstrm,
-            WORD32      insert_leading_zero_8bits
-        );
+IH264E_ERROR_T ih264e_put_nal_start_code_prefix(bitstrm_t *ps_bitstrm,
+                                                WORD32 insert_leading_zero_8bits);
 
-#endif /* IH264E_BITSTREAM_H_ */
+#endif /* _IH264E_BITSTREAM_H_ */

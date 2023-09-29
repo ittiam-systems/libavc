@@ -30,35 +30,19 @@
 *  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
 
-#ifndef IH264E_VERSION_H_
-#define IH264E_VERSION_H_
+#ifndef _IH264E_VERSION_H_
+#define _IH264E_VERSION_H_
 
-/**
-*******************************************************************************
-*
-* @brief
-*  Fills the version info in the given char pointer
-*
-* @par Description:
-*  Fills the version info in the given char pointer
-*
-* @param[in] pc_version
-*  Pointer to hold version info
-*
-* @param[in] u4_version_bufsize
-*  Size of the buffer passed
-*
-* @returns error status
-*
-* @remarks none
-*
-*******************************************************************************
-*/
+
+/*****************************************************************************/
+/* Function Declarations                                                     */
+/*****************************************************************************/
+
 IV_STATUS_T ih264e_get_version(CHAR *pc_version, UWORD32 u4_version_bufsize);
 
-#endif /* IH264E_VERSION_H_ */
+#endif /* _IH264E_VERSION_H_ */

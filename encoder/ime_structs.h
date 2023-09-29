@@ -18,24 +18,21 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 /**
- *******************************************************************************
- * @file
- *  ih264e_me.h
- *
- * @brief
- *
- *
- * @author
- *  Ittiam
- *
- * @par List of Functions:
- *  -
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @file
+*  ime_structs.h
+*
+* @brief
+*  Structure definitions used in the code
+*
+* @author
+*  Ittiam
+*
+* @remarks
+*  None
+*
+*******************************************************************************
+*/
 
 #ifndef _IME_STRUCTS_H_
 #define _IME_STRUCTS_H_
@@ -97,7 +94,7 @@ typedef struct
      */
     UWORD32 u4_exit;
 
-    /*
+    /**
      * Buffer corresponding to best half pel cost
      */
     UWORD8 *pu1_best_hpel_buf;
@@ -220,12 +217,12 @@ typedef struct
 
     /*
      * Minimum distortion to search for
-     * */
+     */
     WORD32 i4_min_sad;
 
-    /*
+    /**
      * Signal that minimum sad has been reached in ME
-     * */
+     */
     UWORD32 u4_min_sad_reached;
 
     /**
@@ -243,14 +240,24 @@ typedef struct
      */
     UWORD32 u4_me_speed_preset;
 
+    /**
+     * Is left mb intra
+     */
     UWORD32 u4_left_is_intra;
 
+    /**
+     * Is left mb skip
+     */
     UWORD32 u4_left_is_skip;
 
-    /* skip_type can be PREDL0, PREDL1 or  BIPRED */
+    /**
+     * skip_type can be PREDL0, PREDL1 or  BIPRED
+     */
     WORD32 i4_skip_type;
 
-    /* Biasing given for skip prediction */
+    /**
+     * Biasing given for skip prediction
+     */
     WORD32 i4_skip_bias[2];
 
     /**
@@ -258,7 +265,8 @@ typedef struct
      * We need 1(L0)+1(L1)+1(bi)
      */
     mb_part_ctxt as_mb_part[MAX_NUM_REFLIST + 1];
-    /*
+
+    /**
      * Threshold to compare the sad with
      */
     UWORD16 *pu2_sad_thrsh;
@@ -273,7 +281,7 @@ typedef struct
     ime_compute_sad2_diamond *pf_ime_compute_sad2_diamond;
     ime_sub_pel_compute_sad_16x16_ft *pf_ime_sub_pel_compute_sad_16x16;
 
-    /*
+    /**
      * Function poitners for SATQD
      */
     ime_compute_sad_stat *pf_ime_compute_sad_stat_luma_16x16;
@@ -283,14 +291,14 @@ typedef struct
      */
     UWORD8 u1_mb_qp;
 
-    /*
+    /**
      * Buffers for holding subpel and bipred temp buffers
      */
     UWORD8 *apu1_subpel_buffs[SUBPEL_BUFF_CNT];
 
     WORD32 u4_subpel_buf_strd;
 
-    /*
+    /**
      * Buffers to store the best halfpel plane*
      */
     UWORD8 *pu1_hpel_buf;
@@ -298,5 +306,5 @@ typedef struct
 } me_ctxt_t;
 
 
-#endif  // _IME_STRUCTS_H_
+#endif  /* _IME_STRUCTS_H_ */
 

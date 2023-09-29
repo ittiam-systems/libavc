@@ -36,69 +36,16 @@
 *******************************************************************************
 */
 
-#ifndef IH264E_MC_H_
-#define IH264E_MC_H_
+#ifndef _IH264E_MC_H_
+#define _IH264E_MC_H_
 
 /*****************************************************************************/
-/* Extern Function Declarations                                              */
+/* Function Declarations                                                     */
 /*****************************************************************************/
 
-/**
-******************************************************************************
-*
-* @brief
-*  performs motion compensation for a luma mb for the given mv.
-*
-* @par Description
-*  This routine performs motion compensation of an inter mb. When the inter
-*  mb mode is P16x16, there is no need to copy 16x16 unit from reference buffer
-*  to pred buffer. In this case the function returns pointer and stride of the
-*  ref. buffer and this info is used in place of pred buffer else where.
-*  In other cases, the pred buffer is populated via copy / filtering + copy
-*  (q pel cases) and returned.
-*
-* @param[in] ps_proc
-*  pointer to current proc ctxt
-*
-* @param[out] pu1_pseudo_pred
-*  pseudo prediction buffer
-*
-* @param[out] u4_pseudo_pred_strd
-*  pseudo pred buffer stride
-*
-* @return  none
-*
-* @remarks Assumes half pel buffers for the entire frame are populated.
-*
-******************************************************************************
-*/
-void ih264e_motion_comp_luma(process_ctxt_t *ps_proc,
-                             UWORD8 **pu1_pseudo_pred,
+void ih264e_motion_comp_luma(process_ctxt_t *ps_proc, UWORD8 **pu1_pseudo_pred,
                              WORD32 *pi4_pseudo_pred_strd);
 
-/**
-******************************************************************************
-*
-* @brief
-*  performs motion compensation for chroma mb
-*
-* @par   Description
-*  Copies a MB of data from the reference buffer (Full pel, half pel or q pel)
-*  according to the motion vectors given
-*
-* @param[in] ps_proc
-*  pointer to current proc ctxt
-*
-* @return  none
-*
-* @remarks Assumes half pel and quarter pel buffers for the entire frame are
-*  populated.
-******************************************************************************
-*/
-void ih264e_motion_comp_chroma
-        (
-            process_ctxt_t *ps_proc
-        );
+void ih264e_motion_comp_chroma(process_ctxt_t *ps_proc);
 
-
-#endif // IH264E_MC_H_
+#endif /* _IH264E_MC_H_ */

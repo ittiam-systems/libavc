@@ -23,17 +23,15 @@
 *  iv2.h
 *
 * @brief
-* This file contains all the necessary structure and  enumeration
-* definitions needed for the Application  Program Interface(API) of the
-* Ittiam Video codecs  This is version 2 of Ittiam Video API
+*  This file contains all the necessary structure and enumeration definitions
+*  needed for the Application Program Interface(API) of the Ittiam Video codecs.
+*  This is version 2 of Ittiam Video API
 *
 * @author
-* Ittiam
-*
-* @par List of Functions:
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -77,7 +75,6 @@ typedef enum {
 }IV_MEM_TYPE_T;
 
 /* The color formats used in video/image codecs */
-
 typedef enum {
     IV_CHROMA_NA                            = 0x7FFFFFFF,
     IV_YUV_420P                             = 0x0,
@@ -267,6 +264,7 @@ typedef struct
     UWORD32                                     u4_bufsize;
 
 }iv_bits_buf_t;
+
 /*****************************************************************************/
 /*  Get Number of Memory Records                                             */
 /*****************************************************************************/
