@@ -19,45 +19,52 @@
 */
 
 /**
- *******************************************************************************
- * @file
- *  ih264e_cabac_structs.h
- *
- * @brief
- *  This file contains cabac related structure definitions.
- *
- * @author
- *  Doney Alex
- *
- * @remarks
- *  none
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @file
+*  ih264e_cabac_structs.h
+*
+* @brief
+*  This file contains structure definitions necessary for cabac encoding
+*
+* @author
+*  ittiam
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 
-#ifndef IH264E_CABAC_STRUCTS_H_
-#define IH264E_CABAC_STRUCTS_H_
+#ifndef _IH264E_CABAC_STRUCTS_H_
+#define _IH264E_CABAC_STRUCTS_H_
 
 
+/*****************************************************************************/
+/* Constant Macros                                                           */
+/*****************************************************************************/
 
 #define CABAC_INIT_IDC 2
 
 
+/*****************************************************************************/
+/* Structures                                                                */
+/*****************************************************************************/
+
 /**
- ******************************************************************************
- *  @brief     typedef for  context model
- ******************************************************************************
- */
+*******************************************************************************
+*  @brief     typedef for  context model
+*******************************************************************************
+*/
 
 /* bits 0 to 5 :state
    bit 6       :mps */
 typedef UWORD8 bin_ctxt_model;
 
 /**
- ******************************************************************************
- *  @brief      MB info for cabac
- ******************************************************************************
- */
+*******************************************************************************
+*  @brief      MB info for cabac
+*******************************************************************************
+*/
 typedef struct
 {
     /* Neighbour availability Variables needed to get CtxtInc, for CABAC */
@@ -72,6 +79,7 @@ typedef struct
     /*        CSBP:  V1 V0 U1 U0 Y3 Y2 Y1 Y0                                 */
     /*************************************************************************/
     UWORD8 u1_yuv_ac_csbp;
+
     /*************************************************************************/
     /*               Arrangnment of DC CSBP                                  */
     /*        bits:  b7  b6  b5  b4  b3  b2  b1  b0                          */
@@ -81,14 +89,15 @@ typedef struct
 
     WORD8 i1_ref_idx[4];
     UWORD8 u1_mv[4][4];
+
 } mb_info_ctxt_t;
 
 
 /**
- ******************************************************************************
- *  @brief      CSBP info for CABAC
- ******************************************************************************
- */
+*******************************************************************************
+*  @brief      CSBP info for CABAC
+*******************************************************************************
+*/
 typedef struct
 {
     /*************************************************************************/
@@ -123,47 +132,56 @@ typedef struct
     /*************************************************************************/
     UWORD8 u1_yuv_dc_csbp_top_mb;
     UWORD8 u1_yuv_dc_csbp_bot_mb;
+
 } cab_csbp_t;
 
 /**
- ******************************************************************************
- *  @brief      CABAC Encoding Environment
- ******************************************************************************
- */
-
+*******************************************************************************
+*  @brief      CABAC Encoding Environment
+*******************************************************************************
+*/
 typedef struct
 {
-    /** cabac interval start L  */
+    /**
+     * cabac interval start L
+     */
     UWORD32 u4_code_int_low;
 
-    /** cabac interval range R  */
+    /**
+     * cabac interval range R
+     */
     UWORD32 u4_code_int_range;
 
     /** bytes_outsanding; number of 0xFF bits that occur during renorm
-    *  These  will be accumulated till the carry bit is knwon
-    */
+     *  These  will be accumulated till the carry bit is knwon
+     */
     UWORD32  u4_out_standing_bytes;
 
     /** bits generated during renormalization
-    *   A byte is put to stream/u4_out_standing_bytes from u4_low(L) when
-    *   u4_bits_gen exceeds 8
-    */
+     *   A byte is put to stream/u4_out_standing_bytes from u4_low(L) when
+     *   u4_bits_gen exceeds 8
+     */
     UWORD32  u4_bits_gen;
+
 } encoding_envirnoment_t;
 
 
 /**
- ******************************************************************************
- *  @brief      CABAC Context structure : Variables to handle Cabac
- ******************************************************************************
- */
+*******************************************************************************
+*  @brief      CABAC Context structure : Variables to handle Cabac
+*******************************************************************************
+*/
 typedef struct
 {
 
-    /*  Base pointer to all the cabac contexts  */
+    /**
+     * Base pointer to all the cabac contexts
+     */
     bin_ctxt_model au1_cabac_ctxt_table[NUM_CABAC_CTXTS];
 
-
+    /**
+     * left csbp
+     */
     cab_csbp_t s_lft_csbp;
 
     /**
@@ -171,51 +189,72 @@ typedef struct
      */
     bitstrm_t *ps_bitstrm;
 
-    /* Pointer to mb_info_ctxt_t map_base */
+    /**
+     * Pointer to mb_info_ctxt_t map_base
+     */
     mb_info_ctxt_t *ps_mb_map_ctxt_inc_base;
 
-    /* Pointer to encoding_envirnoment_t */
+    /**
+     * Pointer to encoding_envirnoment_t
+     */
     encoding_envirnoment_t s_cab_enc_env;
 
     /* These things need to be updated at each MbLevel */
-
-    /* prev mb qp delta ctxt */
+    /**
+     * Prev mb_qp_delta_ctxt
+     */
     WORD8 i1_prev_mb_qp_delta_ctxt;
 
-    /* Pointer to mb_info_ctxt_t map */
+    /**
+     * Pointer to mb_info_ctxt_t map
+     */
     mb_info_ctxt_t *ps_mb_map_ctxt_inc;
 
-    /* Pointer to default mb_info_ctxt_t */
+    /**
+     * Pointer to default mb_info_ctxt_t
+     */
     mb_info_ctxt_t *ps_def_ctxt_mb_info;
 
-    /* Pointer to current mb_info_ctxt_t */
+    /**
+     * Pointer to current mb_info_ctxt_t
+     */
     mb_info_ctxt_t *ps_curr_ctxt_mb_info;
 
-    /* Pointer to left mb_info_ctxt_t */
+    /**
+     * Pointer to left mb_info_ctxt_t
+     */
     mb_info_ctxt_t *ps_left_ctxt_mb_info;
 
-    /* Pointer to top mb_info_ctxt_t  */
+    /**
+     * Pointer to top mb_info_ctxt_t
+     */
     mb_info_ctxt_t *ps_top_ctxt_mb_info;
 
-    /* Poniter to left csbp structure */
+    /**
+     * Pointer to csbp structures
+     */
     cab_csbp_t *ps_lft_csbp;
     UWORD8 *pu1_left_y_ac_csbp;
     UWORD8 *pu1_left_uv_ac_csbp;
     UWORD8 *pu1_left_yuv_dc_csbp;
 
-    /***************************************************************************/
-    /*       Ref_idx contexts  are stored in the following way                 */
-    /*  Array Idx 0,1 for reference indices in Forward direction               */
-    /*  Array Idx 2,3 for reference indices in backward direction              */
-    /***************************************************************************/
-    /* Dimensions for u1_left_ref_ctxt_inc_arr is [2][4] for Mbaff:Top and Bot */
+    /**************************************************************************/
+    /*       Ref_idx contexts  are stored in the following way                */
+    /*  Array Idx 0,1 for reference indices in Forward direction              */
+    /*  Array Idx 2,3 for reference indices in backward direction             */
+    /**************************************************************************/
+    /**
+     * Dimensions for u1_left_ref_ctxt_inc_arr is [2][4] for Mbaff:Top and Bot
+     */
     WORD8 i1_left_ref_idx_ctx_inc_arr[2][4];
     WORD8 *pi1_left_ref_idx_ctxt_inc;
 
-    /* Dimensions for u1_left_mv_ctxt_inc_arr is [2][4][4] for Mbaff case */
+    /**
+     * Dimensions for u1_left_mv_ctxt_inc_arr is [2][4][4] for Mbaff case
+     */
     UWORD8 u1_left_mv_ctxt_inc_arr[2][4][4];
     UWORD8 (*pu1_left_mv_ctxt_inc)[4];
 
 } cabac_ctxt_t;
 
-#endif /* IH264E_CABAC_STRUCTS_H_ */
+#endif /* _IH264E_CABAC_STRUCTS_H_ */

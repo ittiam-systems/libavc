@@ -30,19 +30,20 @@
 *  ittiam
 *
 * @par List of Functions:
-*  - ih264e_generate_nal_unit_header()
-*  - ih264e_generate_sps()
-*  - ih264e_generate_pps()
-*  - ih264e_generate_sei()
-*  - ih264e_generate_slice_header()
-*  - ih264e_get_level()
-*  - ih264e_populate_sps()
-*  - ih264e_populate_pps()
-*  - ih264e_populate_slice_header()
-*  - ih264e_add_filler_nal_unit()
+*  - ih264e_generate_nal_unit_header
+*  - ih264e_generate_vui
+*  - ih264e_generate_aud
+*  - ih264e_generate_sps
+*  - ih264e_generate_pps
+*  - ih264e_generate_slice_header
+*  - ih264e_populate_vui
+*  - ih264e_populate_sps
+*  - ih264e_populate_pps
+*  - ih264e_populate_slice_header
+*  - ih264e_add_filler_nal_unit
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -51,7 +52,7 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -59,40 +60,44 @@
 #include <assert.h>
 
 /* User Include Files */
+#include "ih264e_config.h"
 #include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
-#include "ih264e.h"
 #include "ithread.h"
-#include "ih264e_config.h"
-#include "ih264e_trace.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
+
 #include "ih264_debug.h"
-#include "ih264_defs.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
+#include "ih264_macros.h"
 #include "ih264_error.h"
+#include "ih264_defs.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_common_tables.h"
 #include "ih264_cabac_tables.h"
-#include "ih264e_defs.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
+
+#include "ih264e.h"
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
+#include "ih264e_utils.h"
 #include "ih264e_sei.h"
 #include "ih264e_encode_header.h"
-#include "ih264_common_tables.h"
-#include "ih264_macros.h"
-#include "ih264e_utils.h"
+#include "ih264e_trace.h"
 
 
 /*****************************************************************************/
@@ -1056,22 +1061,29 @@ WORD32 ih264e_generate_slice_header(bitstrm_t *ps_bitstrm,
 */
 IH264E_ERROR_T ih264e_populate_vui(codec_t *ps_codec)
 {
-
+    /* vui params */
     vui_t *ps_vui = &ps_codec->s_cfg.s_vui;
+
+    /* active sps params */
     sps_t *ps_sps = ps_codec->ps_sps_base + ps_codec->i4_sps_id;
 
-
     ps_vui->u1_nal_hrd_parameters_present_flag = 0;
+
     ps_vui->u1_vcl_hrd_parameters_present_flag = 0;
 
     ps_vui->u1_bitstream_restriction_flag = 1;
+
     ps_vui->u1_motion_vectors_over_pic_boundaries_flag = 1;
+
     ps_vui->u1_max_bytes_per_pic_denom = 0;
+
     ps_vui->u1_max_bits_per_mb_denom = 0;
+
     ps_vui->u1_log2_max_mv_length_horizontal = 16;
+
     ps_vui->u1_log2_max_mv_length_vertical = 16;
 
-    if(ps_codec->s_cfg.u4_num_bframes == 0)
+    if (ps_codec->s_cfg.u4_num_bframes == 0)
     {
         ps_vui->u1_num_reorder_frames = 0;
     }
@@ -1082,11 +1094,8 @@ IH264E_ERROR_T ih264e_populate_vui(codec_t *ps_codec)
 
     ps_vui->u1_max_dec_frame_buffering = ps_sps->u1_max_num_ref_frames;
 
-
-    return 0;
+    return IH264E_SUCCESS;
 }
-
-
 
 /**
 ******************************************************************************
@@ -1259,6 +1268,7 @@ IH264E_ERROR_T ih264e_populate_sps(codec_t *ps_codec, sps_t *ps_sps)
         ps_sps->i1_direct_8x8_inference_flag = 1;
     }
 
+
     /* cropping params */
     /*NOTE : Cropping values depend on the chroma format
      * For our case ,decoder interprets the cropping values as 2*num pixels
@@ -1365,6 +1375,7 @@ IH264E_ERROR_T ih264e_populate_pps(codec_t *ps_codec, pps_t *ps_pps)
     ps_pps->i1_redundant_pic_cnt_present_flag = 0;
 
     ps_pps->u1_slice_group_map_type = 0;
+
     return IH264E_SUCCESS;
 }
 

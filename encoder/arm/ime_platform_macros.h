@@ -48,4 +48,4 @@
                 ABS(src[3]-est[3])
 
 
-#endif /* _IH264_PLATFORM_MACROS_H_ */
+#endif /* _IME_PLATFORM_MACROS_H_ */

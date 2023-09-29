@@ -24,24 +24,32 @@
 *  ih264e_fmt_conv.h
 *
 * @brief
-*  The file contains extern declarations of color space conversion routines
+*  The file contains declarations of color space conversion routines
 *
 * @author
 *  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
 
-#ifndef IH264E_FMT_CONV_H_
-#define IH264E_FMT_CONV_H_
+#ifndef _IH264E_FMT_CONV_H_
+#define _IH264E_FMT_CONV_H_
+
+/*****************************************************************************/
+/* Constant Macros                                                           */
+/*****************************************************************************/
 
 #define COEFF1          13073
 #define COEFF2          -3207
 #define COEFF3          -6664
 #define COEFF4          16530
+
+/*****************************************************************************/
+/* Function Declarations                                                     */
+/*****************************************************************************/
 
 IH264E_ERROR_T ih264e_fmt_conv(codec_t *ps_codec,
                                pic_buf_t *ps_pic,
@@ -113,20 +121,19 @@ typedef void ih264e_fmt_conv_422i_to_420sp_ft(UWORD8 *pu1_y_buf,UWORD8 *pu1_u_bu
 
 
 /* C function declarations */
-ih264e_fmt_conv_420sp_to_rgba8888_ft    ih264e_fmt_conv_420sp_to_rgba8888;
-ih264e_fmt_conv_420sp_to_rgb565_ft      ih264e_fmt_conv_420sp_to_rgb565;
-ih264e_fmt_conv_420sp_to_420sp_ft       ih264e_fmt_conv_420sp_to_420sp;
-ih264e_fmt_conv_420sp_to_420p_ft        ih264e_fmt_conv_420sp_to_420p;
-ih264e_fmt_conv_420p_to_420sp_ft        ih264e_fmt_conv_420p_to_420sp;
-ih264e_fmt_conv_422i_to_420sp_ft        ih264e_fmt_conv_422i_to_420sp;
+ih264e_fmt_conv_420sp_to_rgba8888_ft ih264e_fmt_conv_420sp_to_rgba8888;
+ih264e_fmt_conv_420sp_to_rgb565_ft ih264e_fmt_conv_420sp_to_rgb565;
+ih264e_fmt_conv_420sp_to_420sp_ft ih264e_fmt_conv_420sp_to_420sp;
+ih264e_fmt_conv_420sp_to_420p_ft ih264e_fmt_conv_420sp_to_420p;
+ih264e_fmt_conv_420p_to_420sp_ft ih264e_fmt_conv_420p_to_420sp;
+ih264e_fmt_conv_422i_to_420sp_ft ih264e_fmt_conv_422i_to_420sp;
 
 /* A9Q function declarations */
-ih264e_fmt_conv_420sp_to_rgba8888_ft    ih264e_fmt_conv_420sp_to_rgba8888_a9q;
-ih264e_fmt_conv_420sp_to_420sp_ft       ih264e_fmt_conv_420sp_to_420sp_a9q;
-ih264e_fmt_conv_420sp_to_420p_ft        ih264e_fmt_conv_420sp_to_420p_a9q;
-ih264e_fmt_conv_420p_to_420sp_ft        ih264e_fmt_conv_420p_to_420sp_a9q;
-ih264e_fmt_conv_422i_to_420sp_ft        ih264e_fmt_conv_422i_to_420sp_a9q;
-
+ih264e_fmt_conv_420sp_to_rgba8888_ft ih264e_fmt_conv_420sp_to_rgba8888_a9q;
+ih264e_fmt_conv_420sp_to_420sp_ft ih264e_fmt_conv_420sp_to_420sp_a9q;
+ih264e_fmt_conv_420sp_to_420p_ft ih264e_fmt_conv_420sp_to_420p_a9q;
+ih264e_fmt_conv_420p_to_420sp_ft ih264e_fmt_conv_420p_to_420sp_a9q;
+ih264e_fmt_conv_422i_to_420sp_ft ih264e_fmt_conv_422i_to_420sp_a9q;
 
 /* A9A function declarations */
 ih264e_fmt_conv_420sp_to_rgba8888_ft ih264e_fmt_conv_420sp_to_rgba8888_a9a;
@@ -139,4 +146,4 @@ ih264e_fmt_conv_420sp_to_420p_ft ih264e_fmt_conv_420sp_to_420p_ssse31;
 /* SSE4 function declarations */
 ih264e_fmt_conv_420sp_to_420p_ft ih264e_fmt_conv_420sp_to_420p_sse42;
 
-#endif /* IH264E_FMT_CONV_H_ */
+#endif /* _IH264E_FMT_CONV_H_ */

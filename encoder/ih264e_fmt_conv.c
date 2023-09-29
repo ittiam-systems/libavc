@@ -30,17 +30,17 @@
 *  ittiam
 *
 * @par List of Functions:
-*  - ih264e_fmt_conv_420sp_to_rgb565()
-*  - ih264e_fmt_conv_420sp_to_rgba8888()
-*  - ih264e_fmt_conv_420sp_to_420sp()
-*  - ih264e_fmt_conv_420sp_to_420sp_swap_uv()
-*  - ih264e_fmt_conv_420sp_to_420p()
-*  - ih264e_fmt_conv_420p_to_420sp()
-*  - ih264e_fmt_conv_422i_to_420sp()
-*  - ih264e_fmt_conv()
+*  - ih264e_fmt_conv_420sp_to_rgb565
+*  - ih264e_fmt_conv_420sp_to_rgba8888
+*  - ih264e_fmt_conv_420sp_to_420sp
+*  - ih264e_fmt_conv_420sp_to_420sp_swap_uv
+*  - ih264e_fmt_conv_420sp_to_420p
+*  - ih264e_fmt_conv_420p_to_420sp
+*  - ih264e_fmt_conv_422i_to_420sp
+*  - ih264e_fmt_conv
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -49,42 +49,45 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System Include files */
+/* System Include Files */
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
-/* User Include files */
+/* User Include Files */
 #include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
-#include "ih264e.h"
 #include "ithread.h"
-#include "ih264_defs.h"
+
 #include "ih264_debug.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
+#include "ih264_macros.h"
 #include "ih264_error.h"
+#include "ih264_defs.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
 #include "ih264_cabac_tables.h"
-#include "ih264_macros.h"
 #include "ih264_platform_macros.h"
-#include "ih264_buf_mgr.h"
-#include "ih264e_defs.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
+
+#include "ih264e.h"
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264e_fmt_conv.h"
@@ -94,6 +97,45 @@
 /* Function Definitions                                                      */
 /*****************************************************************************/
 
+/**
+*******************************************************************************
+*
+* @brief Function used to perform color space conversion from 420SP to RGB565
+*
+* @par   Description
+* Function used to perform color space conversion from 420SP to RGB565
+*
+* @param[in] pu1_y_src
+*  Input Y pointer
+*
+* @param[in] pu1_uv_src
+*  Input UV pointer
+*
+* @param[in] pu2_rgb_dst
+*  Output RGB pointer
+*
+* @param[in] wd
+*  Width
+*
+* @param[in] ht
+*  Height
+*
+* @param[in] src_y_strd
+*  Input Y Stride
+*
+* @param[in] src_uv_strd
+*  Input UV stride
+*
+* @param[in] dst_strd
+*  Output stride
+*
+* @param[in] is_u_first
+*  Flag to indicate chroma ordering
+*
+* @returns none
+*
+*******************************************************************************
+*/
 void ih264e_fmt_conv_420sp_to_rgb565(UWORD8 *pu1_y_src,
                                      UWORD8 *pu1_uv_src,
                                      UWORD16 *pu2_rgb_dst,
@@ -207,6 +249,45 @@ void ih264e_fmt_conv_420sp_to_rgb565(UWORD8 *pu1_y_src,
 
 }
 
+/**
+*******************************************************************************
+*
+* @brief Function used to perform color space conversion from 420SP to RGBA888
+*
+* @par   Description
+* Function used to perform color space conversion from 420SP to RGBA888
+*
+* @param[in] pu1_y_src
+*  Input Y pointer
+*
+* @param[in] pu1_uv_src
+*  Input UV pointer
+*
+* @param[in] pu4_rgba_dst
+*  Output RGB pointer
+*
+* @param[in] wd
+*  Width
+*
+* @param[in] ht
+*  Height
+*
+* @param[in] src_y_strd
+*  Input Y Stride
+*
+* @param[in] src_uv_strd
+*  Input UV stride
+*
+* @param[in] dst_strd
+*  Output stride
+*
+* @param[in] is_u_first
+*  Flag to indicate chroma ordering
+*
+* @returns none
+*
+*******************************************************************************
+*/
 void ih264e_fmt_conv_420sp_to_rgba8888(UWORD8 *pu1_y_src,
                                        UWORD8 *pu1_uv_src,
                                        UWORD32 *pu4_rgba_dst,
@@ -350,10 +431,6 @@ void ih264e_fmt_conv_420sp_to_rgba8888(UWORD8 *pu1_y_src,
 *
 * @returns None
 *
-* @remarks In case there is a need to perform partial frame copy then
-* by passion appropriate source and destination pointers and appropriate
-* values for wd and ht it can be done
-*
 *******************************************************************************
 */
 void ih264e_fmt_conv_420sp_to_420sp(UWORD8 *pu1_y_src,
@@ -407,7 +484,48 @@ void ih264e_fmt_conv_420sp_to_420sp(UWORD8 *pu1_y_src,
     return;
 }
 
-
+/**
+*******************************************************************************
+*
+* @brief Function used for copying a 420SP buffer and interchange chroma planes
+*
+* @par   Description
+*  Function used for copying a 420SP buffer and interchange chroma planes
+*
+* @param[in] pu1_y_src
+*  Input Y pointer
+*
+* @param[in] pu1_uv_src
+*  Input UV pointer (UV is interleaved either in UV or VU format)
+*
+* @param[in] pu1_y_dst
+*  Output Y pointer
+*
+* @param[in] pu1_uv_dst
+*  Output UV pointer (UV is interleaved in the opp. format as that of input)
+*
+* @param[in] wd
+*  Width
+*
+* @param[in] ht
+*  Height
+*
+* @param[in] src_y_strd
+*  Input Y Stride
+*
+* @param[in] src_uv_strd
+*  Input UV stride
+*
+* @param[in] dst_y_strd
+*  Output Y stride
+*
+* @param[in] dst_uv_strd
+*  Output UV stride
+*
+* @returns None
+*
+*******************************************************************************
+*/
 void ih264e_fmt_conv_420sp_to_420sp_swap_uv(UWORD8 *pu1_y_src,
                                             UWORD8 *pu1_uv_src,
                                             UWORD8 *pu1_y_dst,
@@ -464,6 +582,59 @@ void ih264e_fmt_conv_420sp_to_420sp_swap_uv(UWORD8 *pu1_y_src,
     return;
 }
 
+/**
+*******************************************************************************
+*
+* @brief Function used to perform color space conversion from 420SP to 420P
+*
+* @par   Description
+* Function used to perform color space conversion from 420SP to 420P
+*
+* @param[in] pu1_y_src
+*  Input Y pointer
+*
+* @param[in] pu1_uv_src
+*  Input UV pointer (UV is interleaved either in UV or VU format)
+*
+* @param[in] pu1_y_dst
+*  Output Y pointer
+*
+* @param[in] pu1_u_dst
+*  Output U pointer
+*
+* @param[in] pu1_v_dst
+*  Output V pointer
+*
+* @param[in] wd
+*  Width
+*
+* @param[in] ht
+*  Height
+*
+* @param[in] src_y_strd
+*  Input Y Stride
+*
+* @param[in] src_uv_strd
+*  Input UV stride
+*
+* @param[in] dst_y_strd
+*  Output Y stride
+*
+* @param[in] dst_uv_strd
+*  Output UV stride
+*
+* @param[in] is_u_first
+*  Flag to indicate chroma ordering
+*
+* @param[in] disable_luma_copy
+*  Flag to indicate if only UV copy needs to be done
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264e_fmt_conv_420sp_to_420p(UWORD8 *pu1_y_src,
                                    UWORD8 *pu1_uv_src,
                                    UWORD8 *pu1_y_dst,
@@ -585,9 +756,7 @@ void ih264e_fmt_conv_420sp_to_420p(UWORD8 *pu1_y_src,
 *
 * @returns none
 *
-* @remarks In case there is a need to perform partial frame copy then
-* by passion appropriate source and destination pointers and appropriate
-* values for wd and ht it can be done
+* @remarks none
 *
 *******************************************************************************
 */
@@ -615,7 +784,6 @@ void ih264e_fmt_conv_420p_to_420sp(UWORD8 *pu1_y_src,
 
     if (0 == convert_uv_only)
     {
-
         /* Copy Y buffer */
         pu1_dst = (UWORD8 *) pu1_y_dst;
         pu1_src = (UWORD8 *) pu1_y_src;
@@ -693,8 +861,8 @@ void ih264e_fmt_conv_420p_to_420sp(UWORD8 *pu1_y_src,
 * @returns None
 *
 * @remarks For conversion
-* pu1_v_buf = pu1_u_buf+1
-* u4_u_stride = u4_v_stride
+*  pu1_v_buf = pu1_u_buf+1
+*  u4_u_stride = u4_v_stride
 *
 * The extra parameters are for maintaining API with assembly function
 *
@@ -752,11 +920,17 @@ void ih264e_fmt_conv_422i_to_420sp(UWORD8 *pu1_y_buf,
 /**
 *******************************************************************************
 *
-* @brief Function used from format conversion or frame copy
+* @brief Function used for format conversion or frame copy
 *
 * @par   Description
 * Function used from copying or converting a reference frame to display buffer
 * in non shared mode
+*
+* @param[in] ps_codec
+*  Codec ctxt
+*
+* @param[in] ps_pic
+*  Reference pic ctxt
 *
 * @param[in] pu1_y_dst
 *  Output Y pointer
@@ -773,19 +947,15 @@ void ih264e_fmt_conv_422i_to_420sp(UWORD8 *pu1_y_buf,
 * @param[in] u4_dst_u_strd
 *  Stride of destination  U/V buffer
 *
-* @param[in] blocking
-*  To indicate whether format conversion should wait till frame is reconstructed
-*  and then return after complete copy is done. To be set to 1 when called at the
-*  end of frame processing and set to 0 when called between frame processing modules
-*  in order to utilize available MCPS
+* @param[in] cur_row
+*  Start row of fmt conversion
+*
+* @param[in] num_rows
+*  number of rows to process
 *
 * @returns error status
 *
-* @remarks
-* Assumes that the stride of U and V buffers are same.
-* This is correct in most cases
-* If a case comes where this is not true we need to modify the fmt conversion
-* functions called inside also
+* @remarks Assumes that the stride of U and V buffers are same.
 *
 *******************************************************************************
 */
@@ -810,13 +980,11 @@ IH264E_ERROR_T ih264e_fmt_conv(codec_t *ps_codec,
     UWORD8 *pu1_chroma;
     WORD32 dst_stride, wd;
 
-
     if (0 == num_rows)
         return ret;
 
     pu1_luma = ps_pic->pu1_luma;
     pu1_chroma = ps_pic->pu1_chroma;
-
 
     dst_stride = ps_codec->s_cfg.u4_wd;
     wd = ps_codec->s_cfg.u4_disp_wd;

@@ -17,25 +17,23 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-/*****************************************************************************/
-/*                                                                           */
-/*  File Name         : ih264e.h                                    */
-/*                                                                           */
-/*  Description       : This file contains all the necessary structure and   */
-/*                      enumeration definitions needed for the Application   */
-/*                      Program Interface(API) of the Ittiam MPEG4        */
-/*                      Encoder on Cortex A8 - Neon platform                 */
-/*                                                                           */
-/*  List of Functions : ih264e_api_function                              */
-/*                                                                           */
-/*  Issues / Problems : None                                                 */
-/*                                                                           */
-/*  Revision History  :                                                      */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         26 08 2010   100239(RCY)     Draft                                */
-/*                                                                           */
-/*****************************************************************************/
+
+/**
+******************************************************************************
+* @file
+*  ih264e.h
+*
+* @brief
+*  This file contains all the necessary structure and enumeration definitions
+*  needed for the Application Program Interface(API) of the Ittiam H264 Encoder
+*
+* @author
+*  ittiam
+*
+* @remarks
+*  none
+******************************************************************************
+*/
 
 #ifndef _IH264E_H_
 #define _IH264E_H_
@@ -46,10 +44,17 @@ extern "C" {
 
 #include "iv2.h"
 #include "ive2.h"
+
 /*****************************************************************************/
-/* API Function Prototype                                                    */
+/* Constant Macros                                                           */
 /*****************************************************************************/
-IV_STATUS_T ih264e_api_function(iv_obj_t *ps_handle, void *pv_api_ip,void *pv_api_op);
+
+
+/*****************************************************************************/
+/* Function Declarations                                                     */
+/*****************************************************************************/
+IV_STATUS_T ih264e_api_function(iv_obj_t *ps_handle, void *pv_api_ip,
+                                void *pv_api_op);
 
 /*****************************************************************************/
 /* Enums                                                                     */
@@ -59,6 +64,14 @@ typedef enum
     IH264E_CMD_CTL_SET_ME_INFO_ENABLE,
 }IH264E_CMD_CTL_SUB_CMDS;
 
+/* NOTE: Ensure this enum values are not greater than 8 bits as this is being
+ * assigned to WORD8 */
+typedef enum
+{
+    INTRA16x16 = 0,
+    INTRA4x4,
+    INTER16x16,
+}IV_MB_TYPE_T;
 
 /*****************************************************************************/
 /* Extended Structures                                                       */
@@ -67,30 +80,23 @@ typedef enum
 /*****************************************************************************/
 /*  Get Number of Memory Records                                             */
 /*****************************************************************************/
-
-
 typedef struct
 {
     iv_num_mem_rec_ip_t                    s_ive_ip;
 }ih264e_num_mem_rec_ip_t;
-
 
 typedef struct
 {
     iv_num_mem_rec_op_t                    s_ive_op;
 }ih264e_num_mem_rec_op_t;
 
-
 /*****************************************************************************/
 /*  Fill Memory Records                                                      */
 /*****************************************************************************/
-
-
 typedef struct
 {
     iv_fill_mem_rec_ip_t                   s_ive_ip;
 }ih264e_fill_mem_rec_ip_t;
-
 
 typedef struct
 {
@@ -100,35 +106,28 @@ typedef struct
 /*****************************************************************************/
 /*  Retrieve Memory Records                                                  */
 /*****************************************************************************/
-
-
 typedef struct
 {
     iv_retrieve_mem_rec_ip_t               s_ive_ip;
 }ih264e_retrieve_mem_rec_ip_t;
-
 
 typedef struct
 {
     iv_retrieve_mem_rec_op_t               s_ive_op;
 }ih264e_retrieve_mem_rec_op_t;
 
-
 /*****************************************************************************/
 /*   Initialize encoder                                                      */
 /*****************************************************************************/
-
 typedef struct
 {
     ive_init_ip_t                           s_ive_ip;
 }ih264e_init_ip_t;
 
-
 typedef struct
 {
     ive_init_op_t                           s_ive_op;
 }ih264e_init_op_t;
-
 
 /*****************************************************************************/
 /*   Queue Input raw buffer - Send the YUV buffer to be encoded              */
@@ -156,7 +155,6 @@ typedef struct
     ive_dequeue_inp_op_t                      s_ive_op;
 }ih264e_dequeue_inp_op_t;
 
-
 /*****************************************************************************/
 /*   Queue Output bitstream buffer - Send the bistream buffer to be filled   */
 /*****************************************************************************/
@@ -183,7 +181,6 @@ typedef struct
     ive_dequeue_out_op_t                      s_ive_op;
 }ih264e_dequeue_out_op_t;
 
-
 /*****************************************************************************/
 /* Get Recon data - Get the reconstructed data from encoder                  */
 /*****************************************************************************/
@@ -196,16 +193,14 @@ typedef struct
 {
     ive_get_recon_op_t                        s_ive_op;
 }ih264e_get_recon_op_t;
+
 /*****************************************************************************/
 /*   Video control  Flush                                                    */
 /*****************************************************************************/
-
-
 typedef struct
 {
     ive_ctl_flush_ip_t                      s_ive_ip;
 }ih264e_ctl_flush_ip_t;
-
 
 typedef struct
 {
@@ -215,50 +210,36 @@ typedef struct
 /*****************************************************************************/
 /*   Video control reset                                                     */
 /*****************************************************************************/
-
-
 typedef struct
 {
     ive_ctl_reset_ip_t                      s_ive_ip;
 }ih264e_ctl_reset_ip_t;
-
 
 typedef struct
 {
     ive_ctl_reset_op_t                      s_ive_op;
 }ih264e_ctl_reset_op_t;
 
-
 /*****************************************************************************/
 /*   Video control:Get Buf Info                                              */
 /*****************************************************************************/
-
-
 typedef struct
 {
     ive_ctl_getbufinfo_ip_t             s_ive_ip;
 }ih264e_ctl_getbufinfo_ip_t;
-
-
 
 typedef struct
 {
     ive_ctl_getbufinfo_op_t             s_ive_op;
 }ih264e_ctl_getbufinfo_op_t;
 
-
-
 /*****************************************************************************/
 /*   Video control:Get Version Info                                          */
 /*****************************************************************************/
-
-
 typedef struct
 {
     ive_ctl_getversioninfo_ip_t         s_ive_ip;
 }ih264e_ctl_getversioninfo_ip_t;
-
-
 
 typedef struct
 {
@@ -266,16 +247,12 @@ typedef struct
 }ih264e_ctl_getversioninfo_op_t;
 
 /*****************************************************************************/
-/*   Video control:Set default params                                       */
+/*   Video control:Set default params                                        */
 /*****************************************************************************/
-
-
 typedef struct
 {
     ive_ctl_setdefault_ip_t         s_ive_ip;
 }ih264e_ctl_setdefault_ip_t;
-
-
 
 typedef struct
 {
@@ -315,11 +292,11 @@ typedef struct
 {
     ive_ctl_set_frame_rate_ip_t     s_ive_ip;
 }ih264e_ctl_set_frame_rate_ip_t;
+
 typedef struct
 {
     ive_ctl_set_frame_rate_op_t     s_ive_op;
 }ih264e_ctl_set_frame_rate_op_t;
-
 
 /*****************************************************************************/
 /*   Video control  Set Bitrate                                              */
@@ -333,7 +310,6 @@ typedef struct
 {
     ive_ctl_set_bitrate_op_t        s_ive_op;
 }ih264e_ctl_set_bitrate_op_t;
-
 
 /*****************************************************************************/
 /*   Video control  Set Frame type                                           */
@@ -477,7 +453,6 @@ typedef struct
 {
     ive_video_encode_op_t s_ive_op;
 }ih264e_video_encode_op_t;
-
 
 /*****************************************************************************/
 /*   Video usability information                                             */
@@ -910,14 +885,6 @@ typedef struct
 
 } ih264e_ctl_set_sei_sii_params_op_t;
 
-/* The enum values should not have greater than 8 bits as this is assigned to WORD8 */
-typedef enum
-{
-    INTRA16x16 = 0,
-    INTRA4x4,
-    INTER16x16
-}IV_MB_TYPE_T;
-
 /*****************************************************************************/
 /*   Pic info structures                                                     */
 /*****************************************************************************/
@@ -1024,11 +991,10 @@ typedef struct
         WORD8                                       ai1_intra_mode[16];
     };
 
-
-
 }ih264e_mb_info4_t;
 
-/* Add any new structures to the following union. It is used to calculate the max size needed for allocation of memory */
+/* Add any new structures to the following union. It is used to calculate the
+ * max size needed for allocation of memory */
 typedef struct
 {
     union
@@ -1042,5 +1008,6 @@ typedef struct
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */
+
 #endif
 #endif /* _IH264E_H_ */

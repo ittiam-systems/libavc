@@ -34,110 +34,17 @@
 *******************************************************************************
 */
 
-#ifndef IH264E_PLATFORM_MACROS_H_
-#define IH264E_PLATFORM_MACROS_H_
+#ifndef _IH264E_PLATFORM_MACROS_H_
+#define _IH264E_PLATFORM_MACROS_H_
 
 /*****************************************************************************/
-/* Extern Function Declarations                                              */
+/* Function Declarations                                                     */
 /*****************************************************************************/
 
-/**
-*******************************************************************************
-*
-* @brief Initialize the intra/inter/transform/deblk function pointers of
-* codec context
-*
-* @par Description: the current routine initializes the function pointers of
-* codec context basing on the architecture in use
-*
-* @param[in] ps_codec
-*  Codec context pointer
-*
-* @returns  none
-*
-* @remarks none
-*
-*******************************************************************************
-*/
 void ih264e_init_function_ptr_neon_a9q(codec_t *ps_codec);
-
-/**
-*******************************************************************************
-*
-* @brief Initialize the intra/inter/transform/deblk function pointers of
-* codec context
-*
-* @par Description: the current routine initializes the function pointers of
-* codec context basing on the architecture in use
-*
-* @param[in] ps_codec
-*  Codec context pointer
-*
-* @returns  none
-*
-* @remarks none
-*
-*******************************************************************************
-*/
 void ih264e_init_function_ptr_neon_av8(codec_t *ps_codec);
-
-/**
-*******************************************************************************
-*
-* @brief Initialize the intra/inter/transform/deblk function pointers of
-* codec context
-*
-* @par Description: the current routine initializes the function pointers of
-* codec context basing on the architecture in use
-*
-* @param[in] ps_codec
-*  Codec context pointer
-*
-* @returns  none
-*
-* @remarks none
-*
-*******************************************************************************
-*/
 void ih264e_init_function_ptr_generic(codec_t *ps_codec);
-
-/**
-*******************************************************************************
-*
-* @brief Initialize the intra/inter/transform/deblk function pointers of
-* codec context
-*
-* @par Description: the current routine initializes the function pointers of
-* codec context basing on the architecture in use
-*
-* @param[in] ps_codec
-*  Codec context pointer
-*
-* @returns  none
-*
-* @remarks none
-*
-*******************************************************************************
-*/
 void ih264e_init_function_ptr(void *pv_codec);
-
-/**
-*******************************************************************************
-*
-* @brief Determine the architecture of the encoder executing environment
-*
-* @par Description: This routine returns the architecture of the enviro-
-* ment in which the current encoder is being tested
-*
-* @param[in] void
-*
-* @returns  IV_ARCH_T
-*  architecture
-*
-* @remarks none
-*
-*******************************************************************************
-*/
 IV_ARCH_T ih264e_default_arch(void);
 
-#endif /* IH264E_PLATFORM_MACROS_H_ */
+#endif /* _IH264E_PLATFORM_MACROS_H_ */

@@ -30,20 +30,21 @@
 *  ittiam
 *
 * @par List of Functions:
-*  - ih264e_get_min_level()
-*  - ih264e_get_lvl_idx()
-*  - ih264e_get_dpb_size()
-*  - ih264e_get_total_pic_buf_size()
-*  - ih264e_get_pic_mv_bank_size()
-*  - ih264e_pic_buf_mgr_add_bufs()
-*  - ih264e_mv_buf_mgr_add_bufs()
-*  - ih264e_init_quant_params()
-*  - ih264e_init_air_map()
-*  - ih264e_codec_init()
-*  - ih264e_pic_init()
+*  - ih264e_input_queue_update
+*  - ih264e_get_min_level
+*  - ih264e_get_lvl_idx
+*  - ih264e_get_dpb_size
+*  - ih264e_get_total_pic_buf_size
+*  - ih264e_get_pic_mv_bank_size
+*  - ih264e_pic_buf_mgr_add_bufs
+*  - ih264e_mv_buf_mgr_add_bufs
+*  - ih264e_init_quant_params
+*  - ih264e_init_air_map
+*  - ih264e_codec_init
+*  - ih264e_pic_init
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -52,139 +53,147 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* system include files */
+/* System Include Files */
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
-/* user include files */
+/* User Include Files */
+#include "ih264e_config.h"
 #include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
-#include "ih264e.h"
 #include "ithread.h"
-#include "ih264_defs.h"
-#include "ih264_size_defs.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
-#include "psnr.h"
+
+#include "ih264_debug.h"
+#include "ih264_macros.h"
 #include "ih264_error.h"
-#include "ih264_structs.h"
-#include "ih264_trans_quant_itrans_iquant.h"
-#include "ih264_inter_pred_filters.h"
+#include "ih264_defs.h"
 #include "ih264_mem_fns.h"
 #include "ih264_padding.h"
+#include "ih264_structs.h"
+#include "ih264_size_defs.h"
+#include "ih264_trans_quant_itrans_iquant.h"
+#include "ih264_inter_pred_filters.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
-#include "ih264_cabac_tables.h"
-#include "ih264_macros.h"
 #include "ih264_common_tables.h"
-#include "ih264_debug.h"
 #include "ih264_trans_data.h"
-#include "ih264e_defs.h"
-#include "ih264e_globals.h"
+#include "ih264_cavlc_tables.h"
+#include "ih264_cabac_tables.h"
 #include "ih264_buf_mgr.h"
+#include "ih264_list.h"
 #include "ih264_dpb_mgr.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+#include "ime.h"
+#include "ime_statistics.h"
+
+#include "irc_mem_req_and_acq.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
+#include "irc_rate_control_api.h"
+
+#include "psnr.h"
+
+#include "ih264e.h"
+#include "ih264e_error.h"
+#include "ih264e_version.h"
+#include "ih264e_defs.h"
+#include "ih264e_globals.h"
+#include "ih264e_time_stamp.h"
+#include "ih264e_modify_frm_rate.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
-#include "ih264e_cabac.h"
+#include "ih264e_me.h"
 #include "ih264e_utils.h"
-#include "ih264e_config.h"
+#include "ih264e_core_coding.h"
+#include "ih264e_encode_header.h"
+#include "ih264e_cavlc.h"
+#include "ih264e_cabac.h"
+#include "ih264e_master.h"
+#include "ih264e_process.h"
+#include "ih264e_fmt_conv.h"
 #include "ih264e_statistics.h"
 #include "ih264e_trace.h"
-#include "ih264_list.h"
-#include "ih264e_encode_header.h"
-#include "ih264e_me.h"
-#include "ime.h"
-#include "ih264e_core_coding.h"
-#include "ih264e_rc_mem_interface.h"
-#include "ih264e_time_stamp.h"
-#include "ih264e_debug.h"
-#include "ih264e_process.h"
-#include "ih264e_master.h"
-#include "irc_rate_control_api.h"
-#include "ime_statistics.h"
+
 
 /*****************************************************************************/
 /* Function Definitions                                                      */
 /*****************************************************************************/
 
 /**
- *******************************************************************************
- *
- * @brief
- *  Queues the current buffer, gets back a another buffer for encoding with corrent
- *  picture type
- *
- * @par Description:
- *      This function performs 3 distinct but related functions.
- *      1) Maintains an input queue [Note the the term queue donot imply a
- *         first-in first-out logic here] that queues input and dequeues them so
- *         that input frames can be encoded at any predetermined encoding order
- *      2) Uses RC library to decide which frame must be encoded in current pass
- *         and which picture type it must be encoded to.
- *      3) Uses RC library to decide the QP at which current frame has to be
- *         encoded
- *      4) Determines if the current picture must be encoded or not based on
- *         PRE-ENC skip
- *
- *     Input queue is used for storing input buffers till they are used for
- *     encoding. This queue is maintained at ps_codec->as_inp_list. Whenever a
- *     valid input comes, it is added to the end of queue. This same input is
- *     added to RC queue using the identifier as ps_codec->i4_pic_cnt. Hence any
- *     pic from RC can be located in the input queue easily.
- *
- *     The dequeue operation does not start till we have ps_codec->s_cfg.u4_max_num_bframes
- *     frames in the queue. THis is done in order to ensure that once output starts
- *     we will have a constant stream of output with no gaps.
- *
- *     THe output frame order is governed by RC library. When ever we dequeue a
- *     buffer from RC library, it ensures that we will get them in encoding order
- *     With the output of RC library, we can use the picture id to dequeue the
- *     corresponding buffer from input queue and encode it.
- *
- *     Condition at the end of stream.
- *     -------------------------------
- *      At the last valid buffer from the app, we will get ps_ive_ip->u4_is_last
- *      to be set. This will the given to lib when appropriate input buffer is
- *      given to encoding.
- *
- *      Since we have to output is not in sync with input, we will have frames to
- *      encode even after we recive the last vaild input buffer. Hence we have to
- *      make sure that we donot queue any new buffers once we get the flag [It may
- *      mess up GOP ?]. This is acheived by setting ps_codec->i4_last_inp_buff_received
- *      to act as a permenent marker for last frame recived [This may not be needed,
- *      because in our current app, all buffers after the last are marked as last.
- *      But can we rely on that?] . Hence after this flgag is set no new buffers are
- *      queued.
- *
- * @param[in] ps_codec
- *   Pointer to codec descriptor
- *
- * @param[in] ps_ive_ip
- *   Current input buffer to the encoder
- *
- * @param[out] ps_inp
- *   Buffer to be encoded in the current pass
- *
- * @returns
- *   Flag indicating if we have a pre-enc skip or not
- *
- * @remarks
- * TODO (bpic)
- *  The check for null ans is last is redudent.
- *  Need to see if we can remove it
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Queues the current buffer, gets back a another buffer for encoding with
+*  current picture type
+*
+* @par Description:
+*  This function performs 3 distinct but related functions.
+*  1) Maintains an input queue [Note the the term queue do not imply a first-in
+*  first-out logic here] that queues input and dequeues them so that input
+*  frames can be encoded at any predetermined encoding order
+*  2) Uses RC library to decide which frame must be encoded in current pass
+*  and which picture type it must be encoded to.
+*  3) Uses RC library to decide the QP at which current frame has to be encoded
+*  4) Determines if the current picture must be encoded or not based on PRE-ENC
+*  skip
+*
+*  Input queue is used for storing input buffers till they are used for
+*  encoding. This queue is maintained at ps_codec->as_inp_list. Whenever a
+*  valid input comes, it is added to the end of queue. This same input is
+*  added to RC queue using the identifier as ps_codec->i4_pic_cnt. Hence any
+*  pic from RC can be located in the input queue easily.
+*
+*  The dequeue operation does not start till we have ps_codec->s_cfg.u4_max_num_bframes
+*  frames in the queue. This is done in order to ensure that once output
+*  starts we will have a constant stream of output with no gaps.
+*
+*  The output frame order is governed by RC library. When ever we dequeue a
+*  buffer from RC library, it ensures that we will get them in encoding order
+*  With the output of RC library, we can use the picture id to dequeue the
+*  corresponding buffer from input queue and encode it.
+*
+*  Condition at the end of stream:
+*  -------------------------------
+*  At the last valid buffer from the app, we will get ps_ive_ip->u4_is_last
+*  to be set. This will the given to lib when appropriate input buffer is
+*  given to encoding.
+*
+*  Since we have to output is not in sync with input, we will have frames to
+*  encode even after we receive the last valid input buffer. Hence we have to
+*  make sure that we do not queue any new buffers once we get the flag [It may
+*  mess up GOP ?]. This is achieved by setting ps_codec->i4_last_inp_buff_received
+*  to act as a permanent marker for last frame received [This may not be needed,
+*  because in our current app, all buffers after the last are marked as last.
+*  But can we rely on that?] . Hence after this flag is set no new buffers are
+*  queued.
+*
+* @param[in] ps_codec
+*  Pointer to codec descriptor
+*
+* @param[in] ps_ive_ip
+*  Current input buffer to the encoder
+*
+* @param[out] ps_inp
+*  Buffer to be encoded in the current pass
+*
+* @returns
+*  Flag indicating if we have a pre-enc skip or not
+*
+* @remarks
+*  TODO (bpic) : The check for null and is last is redundant. Need to see if we
+*  can remove it
+*
+*******************************************************************************
+*/
 WORD32 ih264e_input_queue_update(codec_t *ps_codec,
                                  ive_video_encode_ip_t *ps_ive_ip,
                                  inp_buf_t *ps_enc_buff)
@@ -233,7 +242,7 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
     }
 
     /***************************************************************************
-     *Queue the input to the queue
+     * Queue the input to the queue
      **************************************************************************/
     ps_inp_buf = &(ps_codec->as_inp_list[ps_codec->i4_pic_cnt
                                          % MAX_NUM_INP_FRAMES]);
@@ -344,7 +353,6 @@ WORD32 ih264e_input_queue_update(codec_t *ps_codec,
     /***************************************************************************
      * Now retrieve the correct picture from the queue
      **************************************************************************/
-
     /* Mark the skip flag   */
     i4_skip = 0;
     ctxt_sel = ps_codec->i4_encode_api_call_cnt % MAX_CTXT_SETS;
@@ -486,6 +494,7 @@ WORD32 ih264e_get_min_level(WORD32 wd, WORD32 ht)
     WORD32 lvl_idx = MAX_LEVEL, i;
     WORD32 pic_size = wd * ht;
     WORD32 max = MAX(wd, ht);
+
     for (i = 0; i < MAX_LEVEL; i++)
     {
         if ((pic_size <= gai4_ih264_max_luma_pic_size[i]) &&
@@ -495,7 +504,6 @@ WORD32 ih264e_get_min_level(WORD32 wd, WORD32 ht)
             break;
         }
     }
-
     return gai4_ih264_levels[lvl_idx];
 }
 
@@ -662,7 +670,6 @@ WORD32 ih264e_get_dpb_size(WORD32 level, WORD32 pic_size)
 * @returns  Total picture buffer size
 *
 * @remarks
-*
 *
 *******************************************************************************
 */
@@ -1092,8 +1099,8 @@ void ih264e_init_quant_params(process_ctxt_t *ps_proc, int qp)
 *  Initialize AIR mb frame Map
 *
 * @par Description:
-*  Initialize AIR mb frame map
-*  MB frame map indicates which frame an Mb should be coded as intra according to AIR
+*  Initialize AIR mb frame map.  MB frame map indicates which MB in a frame
+*  should be coded as intra according to AIR
 *
 * @param[in] ps_codec
 *  Pointer to codec context
@@ -1101,7 +1108,6 @@ void ih264e_init_quant_params(process_ctxt_t *ps_proc, int qp)
 * @returns  error_status
 *
 * @remarks
-*
 *
 *******************************************************************************
 */
@@ -1152,6 +1158,120 @@ IH264E_ERROR_T ih264e_init_air_map(codec_t *ps_codec)
 /**
 *******************************************************************************
 *
+* @brief Speed preset side effects
+*
+* @par Description:
+*  Force apply the configuration options basing on the configured speed preset
+*
+* @param[in] ps_codec
+*  Pointer to codec context
+*
+* @returns none
+*
+* @remarks
+*
+*******************************************************************************
+*/
+void ih264e_speed_preset_side_effects(codec_t *ps_codec)
+{
+    cfg_params_t *ps_cfg = &ps_codec->s_cfg;
+
+    if (ps_cfg->u4_enc_speed_preset == IVE_SLOWEST)
+    {/* high quality */
+        /* enable diamond search */
+        ps_cfg->u4_me_speed_preset = DMND_SRCH;
+        ps_cfg->u4_enable_fast_sad = 0;
+
+        /* disable intra 4x4 */
+        ps_cfg->u4_enable_intra_4x4 = 1;
+        ps_codec->luma_energy_compaction[1] =
+                        ih264e_code_luma_intra_macroblock_4x4_rdopt_on;
+
+        /* sub pel off */
+        ps_cfg->u4_enable_hpel = 1;
+
+        /* deblocking off */
+        ps_cfg->u4_disable_deblock_level = DISABLE_DEBLK_LEVEL_0;
+
+        /* disabled intra inter gating in Inter slices */
+        ps_codec->u4_inter_gate = 0;
+    }
+    else if (ps_cfg->u4_enc_speed_preset == IVE_NORMAL)
+    {/* normal */
+        /* enable diamond search */
+        ps_cfg->u4_me_speed_preset = DMND_SRCH;
+        ps_cfg->u4_enable_fast_sad = 0;
+
+        /* disable intra 4x4 */
+        ps_cfg->u4_enable_intra_4x4 = 1;
+
+        /* sub pel off */
+        ps_cfg->u4_enable_hpel = 1;
+
+        /* deblocking off */
+        ps_cfg->u4_disable_deblock_level = DISABLE_DEBLK_LEVEL_0;
+
+        /* disabled intra inter gating in Inter slices */
+        ps_codec->u4_inter_gate = 0;
+    }
+    else if (ps_cfg->u4_enc_speed_preset == IVE_FAST)
+    {/* fast */
+         /* enable diamond search */
+         ps_cfg->u4_me_speed_preset = DMND_SRCH;
+         ps_cfg->u4_enable_fast_sad = 0;
+
+         /* disable intra 4x4 */
+         ps_cfg->u4_enable_intra_4x4 = 0;
+
+         /* sub pel off */
+         ps_cfg->u4_enable_hpel = 1;
+
+         /* deblocking off */
+         ps_cfg->u4_disable_deblock_level = DISABLE_DEBLK_LEVEL_0;
+
+         /* disabled intra inter gating in Inter slices */
+         ps_codec->u4_inter_gate = 1;
+     }
+    else if (ps_cfg->u4_enc_speed_preset == IVE_HIGH_SPEED)
+    {/* high speed */
+        /* enable diamond search */
+        ps_cfg->u4_me_speed_preset = DMND_SRCH;
+        ps_cfg->u4_enable_fast_sad = 0;
+
+        /* disable intra 4x4 */
+        ps_cfg->u4_enable_intra_4x4 = 0;
+
+        /* sub pel off */
+        ps_cfg->u4_enable_hpel = 0;
+
+        /* deblocking off */
+        ps_cfg->u4_disable_deblock_level = DISABLE_DEBLK_LEVEL_4;
+
+        /* disabled intra inter gating in Inter slices */
+        ps_codec->u4_inter_gate = 0;
+    }
+    else if (ps_cfg->u4_enc_speed_preset == IVE_FASTEST)
+    {/* fastest */
+        /* enable diamond search */
+        ps_cfg->u4_me_speed_preset = DMND_SRCH;
+
+        /* disable intra 4x4 */
+        ps_cfg->u4_enable_intra_4x4 = 0;
+
+        /* sub pel off */
+        ps_cfg->u4_enable_hpel = 0;
+
+        /* deblocking off */
+        ps_cfg->u4_disable_deblock_level = DISABLE_DEBLK_LEVEL_4;
+
+        /* disabled intra inter gating in Inter slices */
+        ps_codec->u4_inter_gate = 1;
+    }
+}
+
+/**
+*******************************************************************************
+*
 * @brief
 *  Codec level initializations
 *
@@ -1169,7 +1289,6 @@ IH264E_ERROR_T ih264e_init_air_map(codec_t *ps_codec)
 *
 * @remarks
 *
-*
 *******************************************************************************
 */
 IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec)
@@ -1180,97 +1299,7 @@ IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec)
     /* encoder presets */
     if (ps_codec->s_cfg.u4_enc_speed_preset != IVE_CONFIG)
     {
-        if (ps_codec->s_cfg.u4_enc_speed_preset == IVE_SLOWEST)
-        {/* high quality */
-            /* enable diamond search */
-            ps_codec->s_cfg.u4_me_speed_preset = DMND_SRCH;
-            ps_codec->s_cfg.u4_enable_fast_sad = 0;
-
-            /* disable intra 4x4 */
-            ps_codec->s_cfg.u4_enable_intra_4x4 = 1;
-            ps_codec->luma_energy_compaction[1] =
-                            ih264e_code_luma_intra_macroblock_4x4_rdopt_on;
-
-            /* sub pel off */
-            ps_codec->s_cfg.u4_enable_hpel = 1;
-
-            /* deblocking off */
-            ps_codec->s_cfg.u4_disable_deblock_level = DISABLE_DEBLK_LEVEL_0;
-
-            /* disabled intra inter gating in Inter slices */
-            ps_codec->u4_inter_gate = 0;
-        }
-        else if (ps_codec->s_cfg.u4_enc_speed_preset == IVE_NORMAL)
-        {/* normal */
-            /* enable diamond search */
-            ps_codec->s_cfg.u4_me_speed_preset = DMND_SRCH;
-            ps_codec->s_cfg.u4_enable_fast_sad = 0;
-
-            /* disable intra 4x4 */
-            ps_codec->s_cfg.u4_enable_intra_4x4 = 1;
-
-            /* sub pel off */
-            ps_codec->s_cfg.u4_enable_hpel = 1;
-
-            /* deblocking off */
-            ps_codec->s_cfg.u4_disable_deblock_level = DISABLE_DEBLK_LEVEL_0;
-
-            /* disabled intra inter gating in Inter slices */
-            ps_codec->u4_inter_gate = 0;
-        }
-        else if (ps_codec->s_cfg.u4_enc_speed_preset == IVE_FAST)
-         {/* normal */
-             /* enable diamond search */
-             ps_codec->s_cfg.u4_me_speed_preset = DMND_SRCH;
-             ps_codec->s_cfg.u4_enable_fast_sad = 0;
-
-             /* disable intra 4x4 */
-             ps_codec->s_cfg.u4_enable_intra_4x4 = 0;
-
-             /* sub pel off */
-             ps_codec->s_cfg.u4_enable_hpel = 1;
-
-             /* deblocking off */
-             ps_codec->s_cfg.u4_disable_deblock_level = DISABLE_DEBLK_LEVEL_0;
-
-             /* disabled intra inter gating in Inter slices */
-             ps_codec->u4_inter_gate = 1;
-         }
-        else if (ps_codec->s_cfg.u4_enc_speed_preset == IVE_HIGH_SPEED)
-        {/* fast */
-            /* enable diamond search */
-            ps_codec->s_cfg.u4_me_speed_preset = DMND_SRCH;
-            ps_codec->s_cfg.u4_enable_fast_sad = 0;
-
-            /* disable intra 4x4 */
-            ps_codec->s_cfg.u4_enable_intra_4x4 = 0;
-
-            /* sub pel off */
-            ps_codec->s_cfg.u4_enable_hpel = 0;
-
-            /* deblocking off */
-            ps_codec->s_cfg.u4_disable_deblock_level = DISABLE_DEBLK_LEVEL_4;
-
-            /* disabled intra inter gating in Inter slices */
-            ps_codec->u4_inter_gate = 0;
-        }
-        else if (ps_codec->s_cfg.u4_enc_speed_preset == IVE_FASTEST)
-        {/* fastest */
-            /* enable diamond search */
-            ps_codec->s_cfg.u4_me_speed_preset = DMND_SRCH;
-
-            /* disable intra 4x4 */
-            ps_codec->s_cfg.u4_enable_intra_4x4 = 0;
-
-            /* sub pel off */
-            ps_codec->s_cfg.u4_enable_hpel = 0;
-
-            /* deblocking off */
-            ps_codec->s_cfg.u4_disable_deblock_level = DISABLE_DEBLK_LEVEL_4;
-
-            /* disabled intra inter gating in Inter slices */
-            ps_codec->u4_inter_gate = 1;
-        }
+        ih264e_speed_preset_side_effects(ps_codec);
     }
 
     /*****************************************************************
@@ -1368,7 +1397,6 @@ IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec)
 
     DEBUG_HISTOGRAM_INIT();
 
-
     /* Init dependecy vars */
     ps_codec->i4_last_inp_buff_received = 0;
 
@@ -1402,7 +1430,6 @@ IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec)
 * @returns  error_status
 *
 * @remarks
-*
 *
 *******************************************************************************
 */
@@ -1496,7 +1523,6 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
         ps_codec->u4_is_idr = 1;
 
         ps_codec->i4_restore_frame_num = ps_codec->i4_frame_num;
-
         /* reset frame num */
         ps_codec->i4_frame_num = 0;
 
@@ -1597,9 +1623,8 @@ IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf)
      *      note that i4_pic_cnt == -1 is used to filter uninit ref pics.
      *      Now since we only have max two ref pics, we will always find max 2
      *      ref pics.
-
      *
-     *  2) 3) Self explanatory
+     *  2), 3) Self explanatory
      ***************************************************************************/
     {
         /* Search for buffs with maximum pic cnt */
@@ -2282,3 +2307,4 @@ void ih264e_compute_quality_stats(process_ctxt_t *ps_proc)
                 ps_codec->s_global_quality_stats.total_frames;
     }
 }
+

@@ -24,7 +24,7 @@
 *  ih264e_deblk.h
 *
 * @brief
-*  This file contains extern declarations of deblocking routines
+*  This file contains declarations of deblocking routines
 *
 * @author
 *  ittiam
@@ -34,8 +34,8 @@
 ******************************************************************************
 */
 
-#ifndef IH264E_DEBLK_H_
-#define IH264E_DEBLK_H_
+#ifndef _IH264E_DEBLK_H_
+#define _IH264E_DEBLK_H_
 
 /*****************************************************************************/
 /* Constant Macros                                                           */
@@ -43,9 +43,9 @@
 
 /**
 ******************************************************************************
- *  @brief  masks to extract csbp
+*  @brief  masks to extract csbp
 ******************************************************************************
- */
+*/
 #define CSBP_LEFT_BLOCK_MASK  0x1111
 #define CSBP_RIGHT_BLOCK_MASK 0x8888
 
@@ -54,46 +54,8 @@
 /* Function Declarations                                                     */
 /*****************************************************************************/
 
-/**
-*******************************************************************************
-*
-* @brief This function computes blocking strength for an mb
-*
-* @par Description:
-*  This function computes blocking strength for an mb
-*
-* @param[in] ps_proc
-*  process context
-*
-* @returns  none
-*
-* @remarks In this module it is assumed that their is only single reference
-* frame and is always the most recently used anchor frame
-*
-*******************************************************************************
-*/
 void ih264e_compute_bs(process_ctxt_t * ps_proc);
 
-/**
-*******************************************************************************
-*
-* @brief This function performs deblocking on an mb
-*
-* @par Description:
-*  This function performs deblocking on an mb
-*
-* @param[in] ps_proc
-*  process context corresponding to the job
-*
-* @param[in] ps_deblk
-*  pointer to deblock context
-*
-* @returns  none
-*
-* @remarks none
-*
-*******************************************************************************
-*/
 void ih264e_deblock_mb(process_ctxt_t *ps_proc, deblk_ctxt_t * ps_deblk);
 
-#endif /* IH264E_DEBLK_H_ */
+#endif /* _IH264E_DEBLK_H_ */

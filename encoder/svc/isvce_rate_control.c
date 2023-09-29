@@ -49,7 +49,6 @@
 /*****************************************************************************/
 
 #include "ih264_typedefs.h"
-#include "irc_datatypes.h"
 #include "iv2.h"
 #include "ive2.h"
 #include "isvce.h"

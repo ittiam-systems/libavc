@@ -126,11 +126,9 @@ static UWORD8 find_model_coeffs(UWORD32 *pi4_res_bits,
     float x0, y0;
     float model_coeff_a = 0.0, model_coeff_b = 0.0, model_coeff_c = 0.0;
 
-#if !(ENABLE_QUAD_RC_MODEL||ENABLE_LIN_MODEL_WITH_INTERCEPT)
     UNUSED(pu1_num_skips);
     UNUSED(pmc_model_coeff);
     UNUSED(pmc_model_coeff_lin);
-#endif
 
     for(i = 0; i < u1_num_frms; i++)
     {

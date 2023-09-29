@@ -24,24 +24,24 @@
 *  ih264e_statistics.h
 *
 * @brief
-*  Contains macros for generating stats about h264 encoder
+*  Contains macros for collecting stats during encoding process
 *
 * @author
 *  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
 
-#ifndef IH264E_STATISTICS_H_
-#define IH264E_STATISTICS_H_
+#ifndef _IH264E_STATISTICS_H_
+#define _IH264E_STATISTICS_H_
 
 #if  CAVLC_LEVEL_STATS
 
 /*****************************************************************************/
-/* Extern global declarations                                                */
+/* Global Tables                                                             */
 /*****************************************************************************/
 
 /**
@@ -65,7 +65,7 @@ extern UWORD32 gu4_cavlc_level_bin_else_where;
 extern UWORD32 gu4_cavlc_level_lut_hit_rate;
 
 /*****************************************************************************/
-/* Extern function declarations                                              */
+/* Function declarations                                                     */
 /*****************************************************************************/
 
 /**
@@ -104,7 +104,7 @@ void print_cavlc_level_stats(void);
 #if  GATING_STATS
 
 /*****************************************************************************/
-/* Extern global declarations                                                */
+/* global declarations                                                       */
 /*****************************************************************************/
 
 /**
@@ -118,7 +118,7 @@ void print_cavlc_level_stats(void);
 extern UWORD32 gu4_mb_gated_cnt;
 
 /*****************************************************************************/
-/* Extern function declarations                                              */
+/* function declarations                                                     */
 /*****************************************************************************/
 
 /**
@@ -138,4 +138,4 @@ void print_gating_stats(void);
 #endif
 
 
-#endif /* IH264E_STATISTICS_H_ */
+#endif /* _IH264E_STATISTICS_H_ */

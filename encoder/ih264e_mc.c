@@ -19,93 +19,98 @@
 */
 
 /**
- *******************************************************************************
- * @file
- *  ih264e_mc.c
- *
- * @brief
- *  Contains definition of functions for motion compensation
- *
- * @author
- *  ittiam
- *
- * @par List of Functions:
- *  - ih264e_motion_comp_luma()
- *  - ih264e_motion_comp_chroma()
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @file
+*  ih264e_mc.c
+*
+* @brief
+*  Contains definition of functions for motion compensation
+*
+* @author
+*  ittiam
+*
+* @par List of Functions:
+*  - ih264e_motion_comp_luma
+*  - ih264e_motion_comp_chroma
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 
 /*****************************************************************************/
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 
-/* User include files */
+/* User Include Files */
 #include "ih264_typedefs.h"
-#include "ih264_defs.h"
 #include "iv2.h"
 #include "ive2.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
-#include "ih264_structs.h"
-#include "ih264_inter_pred_filters.h"
+
+#include "ih264_defs.h"
 #include "ih264_mem_fns.h"
 #include "ih264_padding.h"
+#include "ih264_structs.h"
+#include "ih264_trans_quant_itrans_iquant.h"
+#include "ih264_inter_pred_filters.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
-#include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_cabac_tables.h"
-#include "ih264e_defs.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
+
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264e_mc.h"
 #include "ih264e_half_pel.h"
+
 
 /*****************************************************************************/
 /* Function Definitions                                                      */
 /*****************************************************************************/
 
 /**
- ******************************************************************************
- *
- * @brief
- *  performs motion compensation for a luma mb for the given mv.
- *
- * @par Description
- *  This routine performs motion compensation of an inter mb. When the inter
- *  mb mode is P16x16, there is no need to copy 16x16 unit from reference buffer
- *  to pred buffer. In this case the function returns pointer and stride of the
- *  ref. buffer and this info is used in place of pred buffer else where.
- *  In other cases, the pred buffer is populated via copy / filtering + copy
- *  (q pel cases) and returned.
- *
- * @param[in] ps_proc
- *  pointer to current proc ctxt
- *
- * @param[out] pu1_pseudo_pred
- *  pseudo prediction buffer
- *
- * @param[out] u4_pseudo_pred_strd
- *  pseudo pred buffer stride
- *
- * @return  none
- *
- * @remarks Assumes half pel buffers for the entire frame are populated.
- *
- ******************************************************************************
- */
+******************************************************************************
+*
+* @brief
+*  performs motion compensation for a luma mb for the given mv.
+*
+* @par Description
+*  This routine performs motion compensation of an inter mb. When the inter
+*  mb mode is P16x16, there is no need to copy 16x16 unit from reference buffer
+*  to pred buffer. In this case the function returns pointer and stride of the
+*  ref. buffer and this info is used in place of pred buffer else where.
+*  In other cases, the pred buffer is populated via copy / filtering + copy
+*  (q pel cases) and returned.
+*
+* @param[in] ps_proc
+*  pointer to current proc ctxt
+*
+* @param[out] pu1_pseudo_pred
+*  pseudo prediction buffer
+*
+* @param[out] u4_pseudo_pred_strd
+*  pseudo pred buffer stride
+*
+* @return  none
+*
+* @remarks Assumes half pel buffers for the entire frame are populated.
+*
+******************************************************************************
+*/
 void ih264e_motion_comp_luma(process_ctxt_t *ps_proc, UWORD8 **pu1_pseudo_pred,
                              WORD32 *pi4_pseudo_pred_strd)
 {
@@ -161,7 +166,7 @@ void ih264e_motion_comp_luma(process_ctxt_t *ps_proc, UWORD8 **pu1_pseudo_pred,
                     ps_me_ctxt->u4_subpel_buf_strd;
 
     for (u4_num_prtn = 0; u4_num_prtn < ps_proc->u4_num_sub_partitions;
-                    u4_num_prtn++)
+         u4_num_prtn++)
     {
         mv_t *ps_curr_mv;
 
@@ -255,7 +260,8 @@ void ih264e_motion_comp_luma(process_ctxt_t *ps_proc, UWORD8 **pu1_pseudo_pred,
             }
             /*
              * Copying half pel or full pel to prediction buffer
-             * Currently ps_proc->u4_num_sub_partitions will always be 1 as we only support 16x16 in P mbs
+             * Currently ps_proc->u4_num_sub_partitions will always be 1 as we
+             * only support 16x16 in P mbs
              */
             else
             {
@@ -265,30 +271,29 @@ void ih264e_motion_comp_luma(process_ctxt_t *ps_proc, UWORD8 **pu1_pseudo_pred,
                                                   i4_pred_strd, ht, wd, NULL,
                                                   0);
             }
-
         }
     }
 }
 
 /**
- ******************************************************************************
- *
- * @brief
- *  performs motion compensation for chroma mb
- *
- * @par   Description
- *  Copies a MB of data from the reference buffer (Full pel, half pel or q pel)
- *  according to the motion vectors given
- *
- * @param[in] ps_proc
- *  pointer to current proc ctxt
- *
- * @return  none
- *
- * @remarks Assumes half pel and quarter pel buffers for the entire frame are
- *  populated.
- ******************************************************************************
- */
+******************************************************************************
+*
+* @brief
+*  performs motion compensation for chroma mb
+*
+* @par   Description
+*  Copies a MB of data from the reference buffer (Full pel, half pel or q pel)
+*  according to the motion vectors given
+*
+* @param[in] ps_proc
+*  pointer to current proc ctxt
+*
+* @return  none
+*
+* @remarks Assumes half pel and quarter pel buffers for the entire frame are
+*  populated.
+******************************************************************************
+*/
 void ih264e_motion_comp_chroma(process_ctxt_t *ps_proc)
 {
     /* codec context */
@@ -329,7 +334,7 @@ void ih264e_motion_comp_chroma(process_ctxt_t *ps_proc)
     UWORD8 u1_dx, u1_dy;
 
     for (u4_num_prtn = 0; u4_num_prtn < ps_proc->u4_num_sub_partitions;
-                    u4_num_prtn++)
+         u4_num_prtn++)
     {
         mv_t *ps_curr_mv;
 

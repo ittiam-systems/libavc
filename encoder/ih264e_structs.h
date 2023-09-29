@@ -30,25 +30,23 @@
 *  Harish
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
 
-#ifndef IH264E_STRUCTS_H_
-#define IH264E_STRUCTS_H_
+#ifndef _IH264E_STRUCTS_H_
+#define _IH264E_STRUCTS_H_
 
 /*****************************************************************************/
 /* Structure definitions                                                    */
 /*****************************************************************************/
 
-/* Early declaration of structs */
 typedef struct _codec_t codec_t;
 typedef struct _proc_t process_ctxt_t;
 
-
 /*****************************************************************************/
-/* Extern Function type definitions                                          */
+/* Function type definitions                                                 */
 /*****************************************************************************/
 
 /**
@@ -2874,4 +2872,4 @@ struct _codec_t
 
 };
 
-#endif /* IH264E_STRUCTS_H_ */
+#endif /* _IH264E_STRUCTS_H_ */

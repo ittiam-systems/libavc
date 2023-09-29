@@ -19,82 +19,86 @@
 */
 
 /**
- *******************************************************************************
- * @file
- *  ih264e_me.c
- *
- * @brief
- *  Contains definition of functions for motion estimation
- *
- * @author
- *  ittiam
- *
- * @par List of Functions:
- *  - ih264e_init_mv_bits()
- *  - ih264e_skip_analysis_chroma()
- *  - ih264e_skip_analysis_luma()
- *  - ih264e_analyse_skip()
- *  - ih264e_get_search_candidates()
- *  - ih264e_find_skip_motion_vector()
- *  - ih264e_get_mv_predictor()
- *  - ih264e_mv_pred()
- *  - ih264e_mv_pred_me()
- *  - ih264e_init_me()
- *  - ih264e_compute_me()
- *  - ih264e_compute_me_nmb()
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @file
+*  ih264e_me.c
+*
+* @brief
+*  Contains definition of functions for motion estimation
+*
+* @author
+*  ittiam
+*
+* @par List of Functions:
+*  - ih264e_init_mv_bits
+*  - ih264e_get_search_candidates
+*  - ih264e_find_pskip_params
+*  - ih264e_find_pskip_params_me
+*  - ih264e_get_mv_predictor
+*  - ih264e_mv_pred
+*  - ih264e_mv_pred_me
+*  - ih264e_compute_me_single_reflist
+*  - ih264e_compute_me_nmb
+*  - ih264e_find_bskip_params_me
+*  - ih264e_find_bskip_params
+*  - ih264e_evaluate_bipred
+*  - ih264e_compute_me_multi_reflist
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 
 /*****************************************************************************/
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <assert.h>
 #include <limits.h>
 
-/* User include files */
+/* User Include Files */
 #include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
 #include "ithread.h"
-#include "ih264_platform_macros.h"
+
+#include "ih264_debug.h"
+#include "ih264_macros.h"
 #include "ih264_defs.h"
-#include "ime_defs.h"
-#include "ime_distortion_metrics.h"
-#include "ime_structs.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
 #include "ih264_cabac_tables.h"
-#include "ih264e_defs.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
+#include "ih264_platform_macros.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+#include "ime.h"
+#include "ime_statistics.h"
+
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
+
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
+#include "ih264e_globals.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
-#include "ih264e_globals.h"
-#include "ih264_macros.h"
+#include "ih264e_mc.h"
 #include "ih264e_me.h"
-#include "ime.h"
-#include "ih264_debug.h"
+#include "ih264e_half_pel.h"
 #include "ih264e_intra_modes_eval.h"
 #include "ih264e_core_coding.h"
-#include "ih264e_mc.h"
-#include "ih264e_debug.h"
-#include "ih264e_half_pel.h"
-#include "ime_statistics.h"
 #include "ih264e_platform_macros.h"
 
 
@@ -116,7 +120,7 @@
 *  length of the codeword for all mv's
 *
 * @remarks The length of the code words are derived from signed exponential
-* goloumb codes.
+*  goloumb codes.
 *
 *******************************************************************************
 */
@@ -164,43 +168,26 @@ void ih264e_init_mv_bits(me_ctxt_t *ps_me_ctxt)
     }
 }
 
-
-
 /**
 *******************************************************************************
 *
 * @brief Determines the valid candidates for which the initial search shall happen.
 * The best of these candidates is used to center the diamond pixel search.
 *
-* @par Description: The function sends the skip, (0,0), left, top and top-right
+* @par Description The function sends the skip, (0,0), left, top and top-right
 * neighbouring MBs MVs. The left, top and top-right MBs MVs are used because
 * these are the same MVs that are used to form the MV predictor. This initial MV
 * search candidates need not take care of slice boundaries and hence neighbor
 * availability checks are not made here.
 *
-* @param[in] ps_left_mb_pu
-*  pointer to left mb motion vector info
+* @param[in] ps_proc
+*  Pointer to process context
 *
-* @param[in] ps_top_mb_pu
-*  pointer to top & top right mb motion vector info
-*
-* @param[in] ps_top_left_mb_pu
-*  pointer to top left mb motion vector info
-*
-* @param[out] ps_skip_mv
-*  pointer to skip motion vectors for the curr mb
-*
-* @param[in] i4_mb_x
-*  mb index x
-*
-* @param[in] i4_mb_y
-*  mb index y
-*
-* @param[in] i4_wd_mbs
-*  pic width in mbs
-*
-* @param[in] ps_motionEst
+* @param[in] ps_me_ctxt
 *  pointer to me context
+*
+* @param[in] i4_ref_list
+*  Current active reference list
 *
 * @returns  The list of MVs to be used of priming the full pel search and the
 * number of such MVs
@@ -319,7 +306,6 @@ static void ih264e_get_search_candidates(process_ctxt_t *ps_proc,
         }
     }
 
-
     /********************************************************************/
     /*                            MV Prediction                         */
     /********************************************************************/
@@ -371,21 +357,15 @@ static void ih264e_get_search_candidates(process_ctxt_t *ps_proc,
 *
 * @par Description:
 *  The function updates the skip motion vector and checks if the current
-*  MB can be a skip PSKIP mB or not
+*  MB can be a PSKIP MB or not
 *
 * @param[in] ps_proc
 *  Pointer to process context
 *
-* @param[in] u4_for_me
-*  Flag to indicate function is called for ME or not
-*
-* @param[out] i4_ref_list
-*  Current active refernce list
+* @param[in] i4_ref_list
+*  Current active reference list
 *
 * @returns Flag indicating if the current MB can be marked as skip
-*
-* @remarks The code implements the logic as described in sec 8.4.1.2.2 in H264
-*   specification.
 *
 *******************************************************************************
 */
@@ -402,7 +382,7 @@ WORD32 ih264e_find_pskip_params(process_ctxt_t *ps_proc, WORD32 i4_reflist)
 
     UNUSED(i4_reflist);
 
-    ps_left_mb_pu = &ps_proc->s_left_mb_pu ;
+    ps_left_mb_pu = &ps_proc->s_left_mb_pu;
     ps_top_mb_pu = ps_proc->ps_top_row_pu + ps_proc->i4_mb_x;
 
     if ((!ps_proc->ps_ngbr_avbl->u1_mb_a) ||
@@ -418,7 +398,6 @@ WORD32 ih264e_find_pskip_params(process_ctxt_t *ps_proc, WORD32 i4_reflist)
           (ps_top_mb_pu->s_me_info[PRED_L0].s_mv.i2_mvy == 0)
        )
      )
-
     {
         ps_skip_mv->i2_mvx = 0;
         ps_skip_mv->i2_mvy = 0;
@@ -429,7 +408,7 @@ WORD32 ih264e_find_pskip_params(process_ctxt_t *ps_proc, WORD32 i4_reflist)
         ps_skip_mv->i2_mvy = ps_proc->ps_pred_mv[PRED_L0].s_mv.i2_mvy;
     }
 
-    if ( (ps_proc->ps_pu->s_me_info[PRED_L0].s_mv.i2_mvx == ps_skip_mv->i2_mvx)
+    if ((ps_proc->ps_pu->s_me_info[PRED_L0].s_mv.i2_mvx == ps_skip_mv->i2_mvx)
      && (ps_proc->ps_pu->s_me_info[PRED_L0].s_mv.i2_mvy == ps_skip_mv->i2_mvy))
     {
         return 1;
@@ -445,21 +424,15 @@ WORD32 ih264e_find_pskip_params(process_ctxt_t *ps_proc, WORD32 i4_reflist)
 *
 * @par Description:
 *  The function updates the skip motion vector and checks if the current
-*  MB can be a skip PSKIP mB or not
+*  MB can be a PSKIP MB or not
 *
 * @param[in] ps_proc
 *  Pointer to process context
 *
-* @param[in] u4_for_me
-*  Flag to dincate fucntion is called for ME or not
-*
-* @param[out] i4_ref_list
-*  Current active refernce list
+* @param[in] i4_ref_list
+*  Current active reference list
 *
 * @returns Flag indicating if the current MB can be marked as skip
-*
-* @remarks The code implements the logic as described in sec 8.4.1.2.2 in H264
-*   specification.
 *
 *******************************************************************************
 */
@@ -492,7 +465,6 @@ WORD32 ih264e_find_pskip_params_me(process_ctxt_t *ps_proc, WORD32 i4_reflist)
           (ps_top_mb_pu->s_me_info[PRED_L0].s_mv.i2_mvy == 0)
         )
      )
-
     {
         ps_skip_mv->i2_mvx = 0;
         ps_skip_mv->i2_mvy = 0;
@@ -505,7 +477,6 @@ WORD32 ih264e_find_pskip_params_me(process_ctxt_t *ps_proc, WORD32 i4_reflist)
 
     return PRED_L0;
 }
-
 
 /**
 *******************************************************************************
@@ -525,6 +496,9 @@ WORD32 ih264e_find_pskip_params_me(process_ctxt_t *ps_proc, WORD32 i4_reflist)
 * @param[out] ps_pred_mv
 *  pointer to candidate predictors for the current block
 *
+* @param[in] i4_ref_list
+*  Current active reference list
+*
 * @returns  The x & y components of the MV predictor.
 *
 * @remarks The code implements the logic as described in sec 8.4.1.3 in H264
@@ -539,7 +513,6 @@ void ih264e_get_mv_predictor(enc_pu_t *ps_left_mb_pu,
                              enc_pu_mv_t *ps_pred_mv,
                              WORD32 i4_ref_list)
 {
-
     /* Indicated the current ref */
     WORD8 i1_ref_idx;
 
@@ -607,6 +580,9 @@ void ih264e_get_mv_predictor(enc_pu_t *ps_left_mb_pu,
 * @param[in] ps_proc
 *  Process context corresponding to the job
 *
+* @param[in] i4_slice_type
+*  slice type
+*
 * @returns  none
 *
 * @remarks none
@@ -617,7 +593,6 @@ void ih264e_get_mv_predictor(enc_pu_t *ps_left_mb_pu,
 */
 void ih264e_mv_pred(process_ctxt_t *ps_proc, WORD32 i4_slice_type)
 {
-
     /* left mb motion vector */
     enc_pu_t *ps_left_mb_pu;
 
@@ -701,7 +676,6 @@ void ih264e_mv_pred(process_ctxt_t *ps_proc, WORD32 i4_slice_type)
 
         ih264e_get_mv_predictor(ps_left_mb_pu, ps_top_row_pu, &ps_pred_mv[i4_reflist], i4_reflist);
     }
-
 }
 
 /**
@@ -713,6 +687,9 @@ void ih264e_mv_pred(process_ctxt_t *ps_proc, WORD32 i4_slice_type)
 *
 * @param[in] ps_proc
 *  Process context corresponding to the job
+*
+* @param[in] i4_ref_list
+*  Current active reference list
 *
 * @returns  none
 *
@@ -758,7 +735,6 @@ void ih264e_mv_pred_me(process_ctxt_t *ps_proc, WORD32 i4_ref_list)
      * Before performing mv prediction prepare the ngbr information and
      * reset motion vectors basing on their availability
      */
-
     if (!ps_ngbr_avbl->u1_mb_a || (ps_left_mb_pu->b2_pred_mode == i4_cmpl_predmode))
     {
         /* left mv */
@@ -841,6 +817,7 @@ void ih264e_init_me(process_ctxt_t *ps_proc)
 
     /* src ptr */
     ps_me_ctxt->pu1_src_buf_luma = ps_proc->pu1_src_buf_luma;
+
     /* src stride */
     ps_me_ctxt->i4_src_strd = ps_proc->i4_src_strd;
 
@@ -938,9 +915,9 @@ void ih264e_compute_me_single_reflist(process_ctxt_t *ps_proc)
     /* Get the seed motion vector candidates                    */
     ih264e_get_search_candidates(ps_proc, ps_me_ctxt, PRED_L0);
 
-    /* ****************************************************************
-     *Evaluate the SKIP for current list
-     * ****************************************************************/
+    /*****************************************************************
+     * Evaluate the SKIP for current list
+     *****************************************************************/
     s_skip_mbpart.s_mv_curr.i2_mvx = 0;
     s_skip_mbpart.s_mv_curr.i2_mvy = 0;
     s_skip_mbpart.i4_mb_cost = INT_MAX;
@@ -985,9 +962,9 @@ void ih264e_compute_me_single_reflist(process_ctxt_t *ps_proc)
         if (ps_me_ctxt->u4_enable_hpel)
         {
             /* moving src pointer to the converged motion vector location*/
-            pu1_hpel_src =   ps_me_ctxt->apu1_ref_buf_luma[PRED_L0]
-                             + (ps_me_ctxt->as_mb_part[PRED_L0].s_mv_curr.i2_mvx >> 2)
-                             + (ps_me_ctxt->as_mb_part[PRED_L0].s_mv_curr.i2_mvy >> 2)* i4_rec_strd;
+            pu1_hpel_src = ps_me_ctxt->apu1_ref_buf_luma[PRED_L0]
+                           + (ps_me_ctxt->as_mb_part[PRED_L0].s_mv_curr.i2_mvx >> 2)
+                           + (ps_me_ctxt->as_mb_part[PRED_L0].s_mv_curr.i2_mvy >> 2) * i4_rec_strd;
 
             ps_me_ctxt->apu1_subpel_buffs[0] = ps_proc->apu1_subpel_buffs[0];
             ps_me_ctxt->apu1_subpel_buffs[1] = ps_proc->apu1_subpel_buffs[1];
@@ -1083,7 +1060,6 @@ void ih264e_compute_me_single_reflist(process_ctxt_t *ps_proc)
         ps_proc->ps_cur_mb->u4_min_sad_reached = 1;
         ps_proc->ps_cur_mb->u4_min_sad = ps_me_ctxt->i4_min_sad;
     }
-
 }
 
 /**
@@ -1092,11 +1068,14 @@ void ih264e_compute_me_single_reflist(process_ctxt_t *ps_proc)
 * @brief This function performs motion estimation for the current NMB
 *
 * @par Description:
-* Intializes input and output pointers required by the function ih264e_compute_me
-* and calls the function ih264e_compute_me in a loop to process NMBs.
+*  Intializes input and output pointers required by the function ih264e_compute_me
+*  and calls the function ih264e_compute_me in a loop to process NMBs.
 *
 * @param[in] ps_proc
 *  Process context corresponding to the job
+*
+* @param[in] u4_nmb_count
+*  Number of mb's to process
 *
 * @returns
 *
@@ -1221,7 +1200,6 @@ void ih264e_compute_me_nmb(process_ctxt_t *ps_proc, UWORD32 u4_nmb_count)
         ps_proc->pu4_mb_pu_cnt += 1;
     }
 
-
     ps_proc->ps_pu = ps_pu_begin;
     ps_proc->i4_mb_x = ps_proc->i4_mb_x - u4_nmb_count;
 
@@ -1240,7 +1218,6 @@ void ih264e_compute_me_nmb(process_ctxt_t *ps_proc, UWORD32 u4_nmb_count)
     ps_proc->apu1_ref_buf_chroma[0] -= MB_SIZE * u4_nmb_count;
     ps_proc->apu1_ref_buf_chroma[1] -= MB_SIZE * u4_nmb_count;
 
-
     ps_proc->pu4_mb_pu_cnt -= u4_nmb_count;
 }
 
@@ -1257,11 +1234,8 @@ void ih264e_compute_me_nmb(process_ctxt_t *ps_proc, UWORD32 u4_nmb_count)
 * @param[in] ps_proc
 *  Pointer to process context
 *
-* @param[in] u4_for_me
-*  Dummy
-*
 * @param[in] i4_reflist
-*  Dummy
+*  Current active reference list
 *
 * @returns Flag indicating if the current Mb can be skip or not
 *
@@ -1271,7 +1245,8 @@ void ih264e_compute_me_nmb(process_ctxt_t *ps_proc, UWORD32 u4_nmb_count)
 *
 *   Need to add condition for this fucntion to be used in ME
 *
-*******************************************************************************/
+*******************************************************************************
+*/
 WORD32 ih264e_find_bskip_params_me(process_ctxt_t *ps_proc, WORD32 i4_reflist)
 {
     /* Colzero for co-located MB */
@@ -1459,10 +1434,7 @@ WORD32 ih264e_find_bskip_params_me(process_ctxt_t *ps_proc, WORD32 i4_reflist)
 * @param[in] ps_proc
 *  Pointer to process context
 *
-* @param[in] u4_for_me
-*  Dummy
-*
-* @param[in] u4_for_me
+* @param[in] i4_reflist
 *  Dummy
 *
 * @returns Flag indicating if the current Mb can be skip or not
@@ -1473,6 +1445,7 @@ WORD32 ih264e_find_bskip_params_me(process_ctxt_t *ps_proc, WORD32 i4_reflist)
 *******************************************************************************/
 WORD32 ih264e_find_bskip_params(process_ctxt_t *ps_proc, WORD32 i4_reflist)
 {
+    /* Colzero for co-located MB */
     WORD32 i4_colzeroflag;
 
     /* motion vectors */
@@ -1496,7 +1469,7 @@ WORD32 ih264e_find_bskip_params(process_ctxt_t *ps_proc, WORD32 i4_reflist)
     UNUSED(i4_reflist);
 
     /**************************************************************************
-     *Find co-locates parameters
+     * Find co-locates parameters
      *      See sec 8.4.1.2.1  for reference
      **************************************************************************/
     {
@@ -1651,18 +1624,18 @@ WORD32 ih264e_find_bskip_params(process_ctxt_t *ps_proc, WORD32 i4_reflist)
 *  This function determines the position in the search window at which the motion
 *  estimation should begin in order to minimise the number of search iterations.
 *
-* @param[in] ps_mb_part
+* @param[in] ps_me_ctxt
+*  pointer to me context
+*
+* @param[in] ps_proc
+*  process context
+*
+* @param[in] ps_mb_ctxt_bi
 *  pointer to current mb partition ctxt with respect to ME
-*
-* @param[in] u4_lambda_motion
-*  lambda motion
-*
-* @param[in] u4_fast_flag
-*  enable/disable fast sad computation
 *
 * @returns  mv pair & corresponding distortion and cost
 *
-* @remarks Currently onyl 4 search candiates are supported
+* @remarks Currently only 4 search candiates are supported
 *
 *******************************************************************************
 */
@@ -1688,6 +1661,7 @@ void ih264e_evaluate_bipred(me_ctxt_t *ps_me_ctxt,
     u4_fast_sad = ps_me_ctxt->u4_enable_fast_sad;
 
     i4_dest_buff = 0;
+
     for (i = 0; i < ps_me_ctxt->u4_num_candidates[PRED_BI]; i += 2)
     {
         pu1_dst_buf = ps_me_ctxt->apu1_subpel_buffs[i4_dest_buff];
@@ -1902,10 +1876,10 @@ void ih264e_compute_me_multi_reflist(process_ctxt_t *ps_proc)
             /********************************************************************/
             ime_full_pel_motion_estimation_16x16(ps_me_ctxt, i4_reflist);
 
-            DEBUG_MV_HISTOGRAM_ADD((ps_me_ctxt->s_mb_part.s_mv_curr.i2_mvx >> 2),
-                                   (ps_me_ctxt->s_mb_part.s_mv_curr.i2_mvy >> 2));
+            DEBUG_MV_HISTOGRAM_ADD((ps_me_ctxt->as_mb_part[i4_reflist].s_mv_curr.i2_mvx >> 2),
+                                   (ps_me_ctxt->as_mb_part[i4_reflist].s_mv_curr.i2_mvy >> 2));
 
-            DEBUG_SAD_HISTOGRAM_ADD(ps_me_ctxt->s_mb_part.i4_mb_distortion, 1);
+            DEBUG_SAD_HISTOGRAM_ADD(ps_me_ctxt->as_mb_part[i4_reflist].i4_mb_distortion, 1);
 
             /* Scale the MV to qpel resolution */
             ps_me_ctxt->as_mb_part[i4_reflist].s_mv_curr.i2_mvx <<= 2;

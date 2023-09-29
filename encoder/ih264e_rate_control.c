@@ -30,16 +30,16 @@
 *  ittiam
 *
 * @par List of Functions:
-*  - ih264e_rc_init()
-*  - ih264e_rc_get_picture_details()
-*  - ih264e_rc_pre_enc()
-*  - ih264e_update_rc_mb_info()
-*  - ih264e_rc_get_buffer_status()
-*  - ih264e_rc_post_enc()
-*  - ih264e_update_rc_bits_info()
+*  - ih264e_rc_init
+*  - ih264e_rc_get_picture_details
+*  - ih264e_update_rc_framerates
+*  - ih264e_update_rc_mb_info
+*  - ih264e_rc_get_buffer_status
+*  - ih264e_rc_post_enc
+*  - ih264e_update_rc_bits_info
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -48,7 +48,7 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -56,69 +56,48 @@
 #include <limits.h>
 #include <assert.h>
 
-/* User include files */
-#include "irc_datatypes.h"
+/* User Include Files */
+#include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
-#include "ih264e.h"
-#include "ih264_defs.h"
+
 #include "ih264_macros.h"
+#include "ih264_defs.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
 #include "ih264_common_tables.h"
 #include "ih264_cabac_tables.h"
-#include "ih264e_defs.h"
-#include "ih264e_globals.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
 #include "irc_mem_req_and_acq.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
 #include "irc_rate_control_api.h"
-#include "ih264e_time_stamp.h"
-#include "ih264e_modify_frm_rate.h"
-#include "ih264e_rate_control.h"
+
+#include "ih264e.h"
 #include "ih264e_error.h"
+#include "ih264e_defs.h"
+#include "ih264e_globals.h"
+#include "ih264e_rate_control.h"
 #include "ih264e_bitstream.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264e_utils.h"
-#include "irc_trace_support.h"
+#include "ih264e_time_stamp.h"
+#include "ih264e_modify_frm_rate.h"
 
 
 /*****************************************************************************/
 /* Function Definitions                                                      */
 /*****************************************************************************/
-
-/**
-*******************************************************************************
-*
-* @brief This function does nothing
-*
-* @par Description
-*  This function does nothing
-*
-* @param[in] variadic function
-
-* @returns none
-*
-* @remarks This function is used by the rc library for debugging purposes.
-*  However this function was not part of rc library. So this is defined here
-*  to resolve link issues.
-*
-*******************************************************************************
-*/
-int trace_printf(const WORD8 *format, ...)
-{
-    UNUSED(format);
-    return(0);
-};
 
 /**
 *******************************************************************************
@@ -299,12 +278,13 @@ picture_type_e ih264e_rc_get_picture_details(void *pv_rc_api,
 /**
 *******************************************************************************
 *
-* @brief  Function to get rate control output before encoding
+* @brief  Function to catch frame skips before encoding due to source framerate
+* pulldown
 *
 * @par Description
-*  This function is called before queing the current frame. It decides if we should
-*  skip the current iput buffer due to frame rate mismatch. It also updates RC about
-*  the acehivble frame rate
+*  This function is called before queuing the current frame. It decides if we
+*  should skip the current input buffer due to frame rate mismatch. It also
+*  updates RC about the framerate pulldown
 *
 * @param[in] ps_rate_control_api
 *  Handle to rate control api
@@ -317,18 +297,6 @@ picture_type_e ih264e_rc_get_picture_details(void *pv_rc_api,
 *
 * @param[in] ps_frame_time
 *  Handle to frame time context
-*
-* @param[in] i4_delta_time_stamp
-*  Time stamp difference between frames
-*
-* @param[in] i4_total_mb_in_frame
-*  Total Macro Blocks in frame
-*
-* @param[in/out] pe_vop_coding_type
-*  Picture coding type(I/P/B)
-*
-* @param[in/out] pu1_frame_qp
-*  QP for current frame
 *
 * @returns
 *  Skip or queue the current frame
@@ -425,9 +393,12 @@ void ih264e_update_rc_mb_info(frame_info_t *ps_frame_info, void *pv_proc)
     ps_frame_info->num_mbs[mb_type]++;
 
     /* cost */
-    if (ps_proc->i4_mb_intra_cost != INT_MAX) {
+    if (ps_proc->i4_mb_intra_cost != INT_MAX)
+    {
         ps_frame_info->intra_mb_cost_sum += ps_proc->i4_mb_intra_cost;
-    } else {
+    }
+    else
+    {
         /* codec context */
         codec_t *ps_codec = ps_proc->ps_codec;
 
@@ -510,7 +481,7 @@ void ih264e_rc_get_buffer_status(void *pv_rc_api,
 * @par Description
 *  This function is used to update the rate control module after the current
 *  frame encoding is done with details such as bits consumed, SAD for I/P/B,
-*  intra cost ,mb type and other
+*  intra cost, mb type and other
 *
 * @param[in] ps_rate_control_api
 *  Handle to rate control api context
@@ -536,7 +507,7 @@ void ih264e_rc_get_buffer_status(void *pv_rc_api,
 * @param[in] i4_is_first_frame
 *  Is first frame
 *
-* @param[in] pi4_is_post_encode_skip
+* @param[out] pi4_is_post_encode_skip
 *  Post encoding skip flag
 *
 * @param[in] u1_frame_qp
@@ -548,7 +519,9 @@ void ih264e_rc_get_buffer_status(void *pv_rc_api,
 * @param[in] pi4_avg_activity
 *  Average activity
 *
-* @returns
+* @returns In case of underflow, number of stuffing bytes to be added and in
+*  case of overflow, flag signalling the encoder to avoid this frame from
+*  sending
 *
 * @remarks
 *
@@ -707,10 +680,12 @@ WORD32 ih264e_rc_post_enc(void * ps_rate_control_api,
 /**
 *******************************************************************************
 *
-* @brief Function to update bits consumed info to rate control context
+* @brief Function to update total header and texture bits consumed information
+*  to rate control context
 *
 * @par Description
-*  Function to update bits consume info to rate control context
+*  Function to update total header and texture bits consumed information
+*  to rate control context
 *
 * @param[in] ps_frame_info
 *  Frame info context
@@ -718,8 +693,7 @@ WORD32 ih264e_rc_post_enc(void * ps_rate_control_api,
 * @param[in] ps_entropy
 *  Entropy context
 *
-* @returns
-*  total bits consumed by the frame
+* @returns none
 *
 * @remarks
 *

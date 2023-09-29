@@ -20,11 +20,10 @@
 /**
 *******************************************************************************
 * @file
-*  ihevc_typedefs.h
+*  ime_defs.h
 *
 * @brief
-*  Type definitions used in the code
-*
+*  Constant definitions used in the code
 *
 * @remarks
 *  None
@@ -34,13 +33,14 @@
 #ifndef _IME_DEFS_H_
 #define _IME_DEFS_H_
 
-
-/* Macros to Label candidates */
-#define     SKIP_CAND 0
-#define     ZERO_CAND 1
-#define     LEFT_CAND 2
-#define     TOP_CAND  3
-#define     TOPR_CAND 4
+/*****************************************************************************/
+/* Constant Macros                                                           */
+/*****************************************************************************/
+#define SKIP_CAND 0
+#define ZERO_CAND 1
+#define LEFT_CAND 2
+#define TOP_CAND 3
+#define TOPR_CAND 4
 
 #define NONE 0
 #define LEFT 1

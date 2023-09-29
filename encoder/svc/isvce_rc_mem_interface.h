@@ -43,7 +43,7 @@
 #ifndef _ISVCE_RC_MEM_INTERFACE_H_
 #define _ISVCE_RC_MEM_INTERFACE_H_
 
-#include "ih264e_rc_mem_interface.h"
+#include "irc_mem_req_and_acq.h"
 
 /**
  ***************************************************************************

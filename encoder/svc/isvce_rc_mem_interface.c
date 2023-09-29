@@ -83,6 +83,7 @@
 #include "ih264e_error.h"
 #include "isvce_defs.h"
 #include "ih264e_bitstream.h"
+#include "irc_mem_req_and_acq.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
 #include "isvce_rate_control.h"

@@ -20,17 +20,20 @@
 /**
 *******************************************************************************
 * @file
-*  ihevc_typedefs.h
+*  ime_typedefs.h
 *
 * @brief
-*  Type definitions used in the code
+*  Type definitions used in the software
 *
+* @author
+*  Ittiam
 *
 * @remarks
 *  None
 *
 *******************************************************************************
 */
+
 #ifndef _IME_TYPEDEFS_H_
 #define _IME_TYPEDEFS_H_
 
@@ -47,4 +50,4 @@ typedef long     WORD64;
 
 typedef char            CHAR;
 
-#endif /*_IME_TYPEDEFS_H_*/
+#endif /* _IME_TYPEDEFS_H_ */

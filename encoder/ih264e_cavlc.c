@@ -31,15 +31,16 @@
 *  ittiam
 *
 * @par List of Functions:
-*  - ih264e_compute_zeroruns_and_trailingones()
-*  - ih264e_write_coeff4x4_cavlc()
-*  - ih264e_write_coeff8x8_cavlc()
-*  - ih264e_encode_residue()
-*  - ih264e_write_islice_mb_cavlc()
-*  - ih264e_write_pslice_mb_cavlc()
+*  - ih264e_compute_zeroruns_and_trailingones
+*  - ih264e_write_coeff4x4_cavlc
+*  - ih264e_write_coeff8x8_cavlc
+*  - ih264e_encode_residue
+*  - ih264e_write_islice_mb_cavlc
+*  - ih264e_write_pslice_mb_cavlc
+*  - ih264e_write_bslice_mb_cavlc
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -48,41 +49,44 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <assert.h>
 #include <limits.h>
 
-/* User include files */
+/* User Include Files */
 #include "ih264e_config.h"
 #include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
+
 #include "ih264_debug.h"
 #include "ih264_macros.h"
-#include "ih264_defs.h"
-#include "ih264e_defs.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
 #include "ih264_error.h"
+#include "ih264_defs.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_cavlc_tables.h"
 #include "ih264_cabac_tables.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
-#include "ih264e_rate_control.h"
+
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
 #include "ih264e_encode_header.h"
-#include "ih264_cavlc_tables.h"
 #include "ih264e_cavlc.h"
 #include "ih264e_statistics.h"
 #include "ih264e_trace.h"
@@ -117,7 +121,7 @@
 *  Bits 16-24 contains total number of zeros.
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */

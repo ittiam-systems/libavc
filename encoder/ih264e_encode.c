@@ -31,9 +31,9 @@
 *  ittiam
 *
 * List of Functions
-*  - ih264e_join_threads()
-*  - ih264e_wait_for_thread()
-*  - ih264e_encode()
+*  - ih264e_join_threads
+*  - ih264e_wait_for_thread
+*  - ih264e_encode
 *
 ******************************************************************************
 */
@@ -50,49 +50,54 @@
 #include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
-/* User Include files */
+
+/* User Include Files */
 #include "ih264e_config.h"
 #include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
-#include "ih264e.h"
 #include "ithread.h"
-#include "ih264_defs.h"
-#include "ih264_macros.h"
+
 #include "ih264_debug.h"
-#include "ih264_structs.h"
-#include "ih264_platform_macros.h"
+#include "ih264_macros.h"
 #include "ih264_error.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
-#include "ih264_trans_quant_itrans_iquant.h"
-#include "ih264_inter_pred_filters.h"
+#include "ih264_defs.h"
 #include "ih264_mem_fns.h"
 #include "ih264_padding.h"
+#include "ih264_structs.h"
+#include "ih264_trans_quant_itrans_iquant.h"
+#include "ih264_inter_pred_filters.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
 #include "ih264_cabac_tables.h"
+#include "ih264_buf_mgr.h"
 #include "ih264_list.h"
-#include "ih264e_error.h"
-#include "ih264e_defs.h"
-#include "ih264e_bitstream.h"
+#include "ih264_dpb_mgr.h"
+#include "ih264_platform_macros.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
 #include "irc_mem_req_and_acq.h"
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
-#include "ih264e_rate_control.h"
+
+#include "ih264e.h"
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
 #include "ih264e_time_stamp.h"
+#include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
+#include "ih264e_utils.h"
+#include "ih264e_encode_header.h"
 #include "ih264e_master.h"
 #include "ih264e_process.h"
-#include "ih264_buf_mgr.h"
-#include "ih264_dpb_mgr.h"
-#include "ih264e_utils.h"
 #include "ih264e_fmt_conv.h"
 #include "ih264e_statistics.h"
 #include "ih264e_trace.h"
-#include "ih264e_debug.h"
 #ifdef LOGO_EN
 #include "ih264e_ittiam_logo.h"
 #endif
@@ -599,7 +604,6 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
     }
 
-
    /****************************************************************************
    * RECON
    *    Since we have forward dependent frames, we cannot return recon in encoding
@@ -715,7 +719,6 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
         }
     }
 
-
     /***************************************************************************
      * Free reference buffers:
      * In case of a post enc skip, we have to ensure that those pics will not
@@ -794,7 +797,6 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
         }
     }
 
-
     /**************************************************************************
      * Signaling to APP
      *  1) If we valid a valid output mark it so
@@ -822,7 +824,6 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
         /* Set the time stamps of the encodec input */
         ps_video_encode_op->s_ive_op.u4_timestamp_low = s_inp_buf.u4_timestamp_low;
         ps_video_encode_op->s_ive_op.u4_timestamp_high = s_inp_buf.u4_timestamp_high;
-
 
         switch (ps_codec->pic_type)
         {

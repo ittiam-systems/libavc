@@ -20,11 +20,10 @@
 /**
 *******************************************************************************
 * @file
-*  ihevc_typedefs.h
+*  ime_macros.h
 *
 * @brief
-*  Type definitions used in the code
-*
+*  definitions used in the code
 *
 * @remarks
 *  None
@@ -34,7 +33,7 @@
 #ifndef _IME_MACROS_H_
 #define _IME_MACROS_H_
 
-#define ABS(x)          ((x) < 0 ? (-(x)) : (x))
+#define ABS(x) ((x) < 0 ? (-(x)) : (x))
 #define MAX(a,b) ((a > b)?(a):(b))
 #define MIN(a,b) ((a < b)?(a):(b))
 

@@ -114,6 +114,7 @@
 #include "ime_structs.h"
 /* Dependencies of 'ih264e_utils.h' */
 #include "ih264e_defs.h"
+#include "irc_mem_req_and_acq.h"
 #include "ih264e_rc_mem_interface.h"
 #include "ih264e_structs.h"
 #include "ih264e_utils.h"

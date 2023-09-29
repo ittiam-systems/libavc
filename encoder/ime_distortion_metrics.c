@@ -20,7 +20,7 @@
 
 /**
 ******************************************************************************
-* @file ih264e_distortion_metrics.c
+* @file ime_distortion_metrics.c
 *
 * @brief
 *  This file contains definitions of routines that compute distortion
@@ -43,7 +43,6 @@
 *  - ime_compute_satqd_16x16_lumainter()
 *  - ime_compute_satqd_8x16_chroma()
 *  - ime_compute_satqd_16x16_lumaintra()
-*
 *
 * @remarks
 *  None
@@ -541,7 +540,6 @@ void ime_compute_sad_16x16_fast(UWORD8 *pu1_src,
                                 WORD32 i4_max_sad,
                                 WORD32 *pi4_mb_distortion)
 {
-
     WORD32 i4_sad = 0;
     UWORD32 u4_src_offset = 2 * src_strd - 16;
     UWORD32 u4_est_offset = 2 * est_strd - 16;
@@ -607,7 +605,6 @@ void ime_compute_sad_16x16_fast(UWORD8 *pu1_src,
 *
 ******************************************************************************
  */
-
 void ime_compute_sad_8x8(UWORD8 *pu1_src,
                          UWORD8 *pu1_est,
                          WORD32 src_strd,
@@ -673,15 +670,12 @@ void ime_compute_sad_8x8(UWORD8 *pu1_src,
 *
 ******************************************************************************
 */
-void ime_compute_sad_4x4
-        (
-            UWORD8 *pu1_src,
-            UWORD8 *pu1_est,
-            WORD32 src_strd,
-            WORD32 est_strd,
-            WORD32 i4_max_sad,
-            WORD32 *pi4_mb_distortion
-        )
+void ime_compute_sad_4x4(UWORD8 *pu1_src,
+                         UWORD8 *pu1_est,
+                         WORD32 src_strd,
+                         WORD32 est_strd,
+                         WORD32 i4_max_sad,
+                         WORD32 *pi4_mb_distortion)
 {
     WORD32 i4_sad = 0;
 
@@ -703,12 +697,10 @@ void ime_compute_sad_4x4
     *pi4_mb_distortion = i4_sad;
 }
 
-
 /**
 ******************************************************************************
 *
 *  @brief computes distortion (SAD) between 2 16x8  blocks
-*
 *
 *  @par   Description
 *   This functions computes SAD between 2 16x8 blocks. There is a provision
@@ -737,15 +729,12 @@ void ime_compute_sad_4x4
 *
 ******************************************************************************
 */
-void ime_compute_sad_16x8
-        (
-            UWORD8 *pu1_src,
-            UWORD8 *pu1_est,
-            WORD32 src_strd,
-            WORD32 est_strd,
-            WORD32 i4_max_sad,
-            WORD32 *pi4_mb_distortion
-        )
+void ime_compute_sad_16x8(UWORD8 *pu1_src,
+                          UWORD8 *pu1_est,
+                          WORD32 src_strd,
+                          WORD32 est_strd,
+                          WORD32 i4_max_sad,
+                          WORD32 *pi4_mb_distortion)
 {
     WORD32 i4_sad = 0;
     UWORD32 u4_src_offset = src_strd - 16;
@@ -870,133 +859,125 @@ void ime_compute_sad_16x16_ea8(UWORD8 *pu1_src,
     return;
 }
 
-
 /**
 *******************************************************************************
 *
-* @brief This function computes SAD between two 16x16 blocks
-*        It also computes if the block will be zero after H264 transform and quant for
-*        Intra 16x16 blocks
+* @brief This function computes SAD between two 16x16 blocks. It also computes
+* if the block will be zero after H264 transform and quant
 *
 * @param[in] pu1_src
 *  UWORD8 pointer to the source
 *
-* @param[out] pu1_dst
-*  UWORD8 pointer to the destination
+* @param[out] pu1_est
+*  UWORD8 pointer to the estimated block
 *
-* @param[in] src_strd
-*  integer source stride
+* @param[in] i4_src_strd
+*  source stride
 *
-* @param[in] dst_strd
-*  integer destination stride
+* @param[in] i4_est_strd
+*  est buffer stride
 *
 * @param[in] pu2_thrsh
-*  Threshold for each element of transofrmed quantized block
+*  Threshold for each element of transformed quantized block
 *
 * @param[out] pi4_mb_distortion
-*  integer evaluated sad
+*  evaluated sad
 *
 * @param[out] pu4_is_zero
-*  Poitner to store if the block is zero after transform and quantization
+*  Pointer to store if the block is zero after transform and quantization
 *
 * @remarks
 *
 ******************************************************************************
 */
 void ime_compute_satqd_16x16_lumainter(UWORD8 *pu1_src,
-                                         UWORD8 *pu1_est,
-                                         WORD32 src_strd,
-                                         WORD32 est_strd,
-                                         UWORD16 *pu2_thrsh,
-                                         WORD32 *pi4_mb_distortion,
-                                         UWORD32 *pu4_is_non_zero)
+                                       UWORD8 *pu1_est,
+                                       WORD32 i4_src_strd,
+                                       WORD32 i4_est_strd,
+                                       UWORD16 *pu2_thrsh,
+                                       WORD32 *pi4_mb_distortion,
+                                       UWORD32 *pu4_is_non_zero)
 {
-    UWORD32 i,j;
-    WORD16 s1,s2,s3,s4,sad_1,sad_2,ls1,ls2,ls3,ls4,ls5,ls6,ls7,ls8;
-    UWORD8 *pu1_src_lp,*pu1_est_lp;
+    WORD32 i, j;
+    WORD16 s1, s2, s3, s4;
+    WORD16 sad_1, sad_2;
+    WORD16 ls1, ls2, ls3, ls4, ls5, ls6, ls7, ls8;
+    UWORD8 *pu1_src_lp, *pu1_est_lp;
     UWORD32 sad = 0;
 
     (*pi4_mb_distortion) = 0;
-    for(i=0;i<4;i++)
+
+    for (i = 0; i < 4; i++)
     {
-        for(j=0;j<4;j++)
+        for (j = 0; j < 4; j++)
         {
-            pu1_src_lp = pu1_src + 4*j;
-            pu1_est_lp = pu1_est + 4*j;
+            pu1_src_lp = pu1_src + 4 * j;
+            pu1_est_lp = pu1_est + 4 * j;
 
-            s1 = ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0])+ ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
-            s4 = ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1])+ ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
+            s1 = ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0]) + ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
+            s4 = ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1]) + ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
 
-            pu1_src_lp += src_strd;
-            pu1_est_lp += est_strd;
+            pu1_src_lp += i4_src_strd;
+            pu1_est_lp += i4_est_strd;
 
-            s2 = ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0])+ ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
-            s3 = ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1])+ ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
+            s2 = ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0]) + ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
+            s3 = ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1]) + ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
 
-            pu1_src_lp += src_strd;
-            pu1_est_lp += est_strd;
+            pu1_src_lp += i4_src_strd;
+            pu1_est_lp += i4_est_strd;
 
-            s2 += ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0])+ ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
-            s3 += ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1])+ ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
+            s2 += ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0]) + ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
+            s3 += ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1]) + ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
 
-            pu1_src_lp += src_strd;
-            pu1_est_lp += est_strd;
+            pu1_src_lp += i4_src_strd;
+            pu1_est_lp += i4_est_strd;
 
-            s1 += ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0])+ ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
-            s4 += ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1])+ ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
+            s1 += ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0]) + ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
+            s4 += ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1]) + ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
 
-            sad_1 = s1+s2+s3+s4;
+            sad_1 = s1 + s2 + s3 + s4;
 
-            if(sad == 0)
+            if (sad == 0)
             {
-                sad_2 = sad_1<<1;
+                sad_2 = sad_1 << 1;
 
-                ls1 = sad_2 -(s2 + s3);
-                ls2 = sad_2 -(s1 + s4);
-                ls3 = sad_2 -(s3 + s4);
-                ls4 = sad_2 -(s3 - (s1<<1));
-                ls5 = sad_2 -(s4 - (s2<<1));
-                ls6 = sad_2 -(s1 + s2);
-                ls7 = sad_2 -(s2 - (s4<<1));
-                ls8 = sad_2 -(s1 - (s3<<1));
+                ls1 = sad_2 - (s2 + s3);
+                ls2 = sad_2 - (s1 + s4);
+                ls3 = sad_2 - (s3 + s4);
+                ls4 = sad_2 - (s3 - (s1 << 1));
+                ls5 = sad_2 - (s4 - (s2 << 1));
+                ls6 = sad_2 - (s1 + s2);
+                ls7 = sad_2 - (s2 - (s4 << 1));
+                ls8 = sad_2 - (s1 - (s3 << 1));
 
-                if(
-                        pu2_thrsh[8] <= sad_1   ||
-                        pu2_thrsh[0] <=  ls2    ||
-                        pu2_thrsh[1] <=  ls1    ||
-                        pu2_thrsh[2] <=  ls8    ||
-                        pu2_thrsh[3] <=  ls5    ||
-
-                        pu2_thrsh[4] <=  ls6    ||
-                        pu2_thrsh[5] <=  ls3    ||
-                        pu2_thrsh[6] <=  ls7    ||
-                        pu2_thrsh[7] <=  ls4
-
-                )sad = 1;
+                if (pu2_thrsh[8] <= sad_1 ||
+                    pu2_thrsh[0] <= ls2 || pu2_thrsh[1] <= ls1 ||
+                    pu2_thrsh[2] <= ls8 || pu2_thrsh[3] <= ls5 ||
+                    pu2_thrsh[4] <= ls6 || pu2_thrsh[5] <= ls3 ||
+                    pu2_thrsh[6] <= ls7 || pu2_thrsh[7] <= ls4) {
+                  sad = 1;
+                }
             }
             (*pi4_mb_distortion) += sad_1;
         }
-        pu1_src +=  (src_strd *4);
-        pu1_est +=  (est_strd *4);
+        pu1_src +=  (i4_src_strd * 4);
+        pu1_est +=  (i4_est_strd * 4);
     }
     *pu4_is_non_zero = sad;
 }
 
-
 /**
 ******************************************************************************
 *
-* @brief computes distortion (SAD and SAQTD) between 2 16x8 (interleaved) chroma blocks
+* @brief computes distortion (SAD and SAQTD) between 2 16x8 (interleaved) chroma
+*  blocks
 *
-*
-* @par   Description
-*   This functions computes SAD between2 16x8 chroma blocks(interleaved)
-*   It also checks if the SATDD(Sum of absolute transformed wuqntized differnce beteern the blocks
-*   If SAQTD is zero, it gives back zero
-*   Other wise sad is retrned
-*   There is no provison for early exit
-*
-*   The transform done here is the transform for chroma blocks in H264
+* @par Description
+*  This functions computes SAD between2 16x8 chroma blocks(interleaved).  It
+*  also checks if the SATQD, Sum of absolute transformed quantized difference
+*  between the blocks. If SAQTD is zero, it gives back zero Other wise sad is
+*  returned. There is no provison for early exit. The transform done here is
+*  the transform for chroma blocks in H264
 *
 * @param[in] pu1_src
 *  UWORD8 pointer to the source
@@ -1017,90 +998,73 @@ void ime_compute_satqd_16x16_lumainter(UWORD8 *pu1_src,
 *  integer evaluated sad
 *
 * @remarks
-* Fucntion code is nit updated.
-* Will require debugging and minor modifications
 *
 ******************************************************************************
 */
 void ime_compute_satqd_8x16_chroma(UWORD8 *pu1_src,
-                                     UWORD8 *pu1_est,
-                                     WORD32 src_strd,
-                                     WORD32 est_strd,
-                                     WORD32 max_sad,
-                                     UWORD16 *thrsh)
+                                   UWORD8 *pu1_est,
+                                   WORD32 src_strd,
+                                   WORD32 est_strd,
+                                   WORD32 max_sad,
+                                   UWORD16 *thrsh)
 {
-    WORD32 i,j,plane;
-    WORD16 s1,s2,s3,s4,sad_1,sad_2,ls1,ls2,ls3,ls4,ls5,ls6,ls7,ls8;
-    UWORD8 *pu1_src_lp,*pu1_est_lp,*pu1_src_plane,*pu1_est_plane;
-    WORD32 sad =0;
-    UNUSED(max_sad);
+    WORD32 i, j, plane;
+    WORD16 s1, s2, s3, s4;
+    WORD16 sad_1, sad_2;
+    WORD16 ls1, ls2, ls3, ls4, ls5, ls6, ls7, ls8;
+    UWORD8 *pu1_src_lp, *pu1_est_lp, *pu1_src_plane, *pu1_est_plane;
+    WORD32 sad = 0;
 
+    UNUSED(max_sad);
     pu1_src_plane = pu1_src;
     pu1_est_plane = pu1_est;
 
-    for(plane =0;plane<2;plane++)
+    for (plane = 0; plane < 2; plane++)
     {
-        for(i=0;i<4;i++)
+        for (i = 0; i < 4; i++)
         {
-            for(j=0;j<4;j++)
+            for (j = 0; j < 4; j++)
             {
-                pu1_src_lp = pu1_src + 8*j;
-                pu1_est_lp = pu1_est + 8*j;
+                pu1_src_lp = pu1_src + 8 * j;
+                pu1_est_lp = pu1_est + 8 * j;
 
-                s1 = ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0])+ ABS((WORD16)pu1_src_lp[6] - (WORD16)pu1_est_lp[6]);
-                s4 = ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2])+ ABS((WORD16)pu1_src_lp[4] - (WORD16)pu1_est_lp[4]);
-
-                pu1_src_lp += src_strd;
-                pu1_est_lp += est_strd;
-
-                s2 = ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0])+ ABS((WORD16)pu1_src_lp[6] - (WORD16)pu1_est_lp[6]);
-                s3 = ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2])+ ABS((WORD16)pu1_src_lp[4] - (WORD16)pu1_est_lp[4]);
+                s1 = ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0]) + ABS((WORD16)pu1_src_lp[6] - (WORD16)pu1_est_lp[6]);
+                s4 = ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]) + ABS((WORD16)pu1_src_lp[4] - (WORD16)pu1_est_lp[4]);
 
                 pu1_src_lp += src_strd;
                 pu1_est_lp += est_strd;
 
-                s2 += ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0])+ ABS((WORD16)pu1_src_lp[6] - (WORD16)pu1_est_lp[6]);
-                s3 += ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2])+ ABS((WORD16)pu1_src_lp[4] - (WORD16)pu1_est_lp[4]);
+                s2 = ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0]) + ABS((WORD16)pu1_src_lp[6] - (WORD16)pu1_est_lp[6]);
+                s3 = ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]) + ABS((WORD16)pu1_src_lp[4] - (WORD16)pu1_est_lp[4]);
 
                 pu1_src_lp += src_strd;
                 pu1_est_lp += est_strd;
 
-                s1 += ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0])+ ABS((WORD16)pu1_src_lp[6] - (WORD16)pu1_est_lp[6]);
-                s4 += ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2])+ ABS((WORD16)pu1_src_lp[4] - (WORD16)pu1_est_lp[4]);
+                s2 += ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0]) + ABS((WORD16)pu1_src_lp[6] - (WORD16)pu1_est_lp[6]);
+                s3 += ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]) + ABS((WORD16)pu1_src_lp[4] - (WORD16)pu1_est_lp[4]);
 
-                sad_1 = s1+s2+s3+s4;
-                sad_2 = sad_1<<1;
+                pu1_src_lp += src_strd;
+                pu1_est_lp += est_strd;
 
-                ls1 = sad_2 -(s2 + s3);
-                ls2 = sad_2 -(s1 + s4);
-                ls3 = sad_2 -(s3 + s4);
-                ls4 = sad_2 -(s3 - (s1<<1));
-                ls5 = sad_2 -(s4 - (s2<<1));
-                ls6 = sad_2 -(s1 + s2);
-                ls7 = sad_2 -(s2 - (s4<<1));
-                ls8 = sad_2 -(s1 - (s3<<1));
+                s1 += ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0]) + ABS((WORD16)pu1_src_lp[6] - (WORD16)pu1_est_lp[6]);
+                s4 += ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]) + ABS((WORD16)pu1_src_lp[4] - (WORD16)pu1_est_lp[4]);
 
-                if(
-                        //thrsh[0] >  sad_1     && Chroma Dc is checked later
-                        thrsh[1] >  ls1     &&
-                        thrsh[2] >  sad_1   &&
-                        thrsh[3] >  ls2     &&
+                sad_1 = s1 + s2 + s3 + s4;
+                sad_2 = sad_1 << 1;
 
-                        thrsh[4] >  ls3     &&
-                        thrsh[5] >  ls4     &&
-                        thrsh[6] >  ls3     &&
-                        thrsh[7] >  ls5     &&
+                ls1 = sad_2 - (s2 + s3);
+                ls2 = sad_2 - (s1 + s4);
+                ls3 = sad_2 - (s3 + s4);
+                ls4 = sad_2 - (s3 - (s1 << 1));
+                ls5 = sad_2 - (s4 - (s2 << 1));
+                ls6 = sad_2 - (s1 + s2);
+                ls7 = sad_2 - (s2 - (s4 << 1));
+                ls8 = sad_2 - (s1 - (s3 << 1));
 
-                        thrsh[8] >  sad_1   &&
-                        thrsh[9] >  ls1     &&
-                        thrsh[10]>  sad_1   &&
-                        thrsh[11]>  ls2     &&
-
-                        thrsh[12]>  ls6     &&
-                        thrsh[13]>  ls7     &&
-                        thrsh[14]>  ls6     &&
-                        thrsh[15]>  ls8
-                )
+                if (thrsh[1] > ls1 && thrsh[2] > sad_1 && thrsh[3] > ls2 &&
+                    thrsh[4] > ls3 && thrsh[5] > ls4 && thrsh[6] > ls3 && thrsh[7] > ls5 &&
+                    thrsh[8] > sad_1 && thrsh[9] > ls1 && thrsh[10] > sad_1 && thrsh[11] > ls2 &&
+                    thrsh[12] > ls6 && thrsh[13] > ls7 && thrsh[14] > ls6 && thrsh[15] > ls8)
                 {
                     /*set current sad to be zero*/
                 }
@@ -1112,15 +1076,16 @@ void ime_compute_satqd_8x16_chroma(UWORD8 *pu1_src,
             pu1_src +=  (src_strd *4);
             pu1_est +=  (est_strd *4);
         }
-        if(sad < (thrsh[0]<<1))sad = 0;
-        else return ;
+        if (sad < (thrsh[0] << 1))
+            sad = 0;
+        else
+            return;
 
-        pu1_src = pu1_src_plane+1;
-        pu1_est = pu1_est_plane+1;
+        pu1_src = pu1_src_plane + 1;
+        pu1_est = pu1_est_plane + 1;
     }
     return ;
 }
-
 
 /**
 ******************************************************************************
@@ -1128,13 +1093,11 @@ void ime_compute_satqd_8x16_chroma(UWORD8 *pu1_src,
 * @brief computes distortion (SAD and SAQTD) between 2 16x16 blocks
 *
 * @par   Description
-*   This functions computes SAD between 2 16x16 blocks.
-*   It also checks if the SATDD(Sum of absolute transformed wuqntized differnce beteern the blocks
-*   If SAQTD is zero, it gives back zero
-*   Other wise sad is retrned
-*   There is no provison for early exit
-*
-*   The transform done here is the transform for inter 16x16 blocks in H264
+*  This functions computes SAD between2 16x8 chroma blocks(interleaved).  It
+*  also checks if the SATQD, Sum of absolute transformed quantized difference
+*  between the blocks. If SAQTD is zero, it gives back zero Other wise sad is
+*  returned. There is no provison for early exit. The transform done here is the
+*  transform for intra 16x16 blocks in H264
 *
 * @param[in] pu1_src
 *  UWORD8 pointer to the source
@@ -1159,80 +1122,76 @@ void ime_compute_satqd_8x16_chroma(UWORD8 *pu1_src,
 ******************************************************************************
 */
 void ime_compute_satqd_16x16_lumaintra(UWORD8 *pu1_src,
-                                         UWORD8 *pu1_est,
-                                         WORD32 src_strd,
-                                         WORD32 est_strd,
-                                         WORD32 max_sad,
-                                         UWORD16 *thrsh,
-                                         WORD32 *pi4_mb_distortion,
-                                         UWORD8 *sig_nz_sad)
+                                       UWORD8 *pu1_est,
+                                       WORD32 src_strd,
+                                       WORD32 est_strd,
+                                       WORD32 max_sad,
+                                       UWORD16 *thrsh,
+                                       WORD32 *pi4_mb_distortion,
+                                       UWORD8 *sig_nz_sad)
 {
-    UWORD32 i,j;
-    WORD16 s1[4],s2[4],s3[4],s4[4],sad[4];
-    UWORD8 *pu1_src_lp,*pu1_est_lp;
+    UWORD32 i, j;
+    WORD16 s1[4], s2[4], s3[4], s4[4], sad[4];
+    UWORD8 *pu1_src_lp, *pu1_est_lp;
     UWORD8 *sig_sad_dc;
     UWORD32 nz_sad_sig = 0;
-    UNUSED(max_sad);
-    *pi4_mb_distortion =0;
 
+    UNUSED(max_sad);
+    *pi4_mb_distortion = 0;
     sig_sad_dc = sig_nz_sad;
     sig_nz_sad++;
 
-    for(i=0;i<4;i++)
+    for (i = 0; i < 4; i++)
     {
-        for(j=0;j<4;j++)
+        for (j = 0; j < 4; j++)
         {
-            pu1_src_lp = pu1_src + 4*j;
-            pu1_est_lp = pu1_est + 4*j;
+            pu1_src_lp = pu1_src + 4 * j;
+            pu1_est_lp = pu1_est + 4 * j;
 
-            s1[j] = ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0])+ ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
-            s4[j] = ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1])+ ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
-
-            pu1_src_lp += src_strd;
-            pu1_est_lp += est_strd;
-
-            s2[j] = ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0])+ ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
-            s3[j] = ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1])+ ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
+            s1[j] = ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0]) + ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
+            s4[j] = ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1]) + ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
 
             pu1_src_lp += src_strd;
             pu1_est_lp += est_strd;
 
-            s2[j] += ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0])+ ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
-            s3[j] += ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1])+ ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
+            s2[j] = ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0]) + ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
+            s3[j] = ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1]) + ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
 
             pu1_src_lp += src_strd;
             pu1_est_lp += est_strd;
 
-            s1[j] += ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0])+ ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
-            s4[j] += ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1])+ ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
+            s2[j] += ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0]) + ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
+            s3[j] += ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1]) + ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
 
-            sad[j] = ((s1[j]+s2[j]+s3[j]+s4[j])<<1);
+            pu1_src_lp += src_strd;
+            pu1_est_lp += est_strd;
+
+            s1[j] += ABS((WORD16)pu1_src_lp[0] - (WORD16)pu1_est_lp[0]) + ABS((WORD16)pu1_src_lp[3] - (WORD16)pu1_est_lp[3]);
+            s4[j] += ABS((WORD16)pu1_src_lp[1] - (WORD16)pu1_est_lp[1]) + ABS((WORD16)pu1_src_lp[2] - (WORD16)pu1_est_lp[2]);
+
+            sad[j] = ((s1[j] + s2[j] + s3[j] + s4[j]) << 1);
         }
 
-        for(j=0;j<4;j++)
+        for (j = 0; j < 4; j++)
         {
 
-            if(
-                    //thrsh[0] > (sad[j] >> 1) &&Dc goes in the other part
-                    thrsh[1] > (sad[j] -(s2[j] + s3[j])) &&
-                    thrsh[2] > (sad[j]>>1) &&
-                    thrsh[3] > (sad[j] -(s1[j] + s4[j])) &&
+            if (thrsh[1] > (sad[j] - (s2[j] + s3[j])) && thrsh[2] > (sad[j] >> 1)
+                && thrsh[3] > (sad[j] - (s1[j] + s4[j])) &&
 
-                    thrsh[4] > (sad[j] -(s3[j] + s4[j])) &&
-                    thrsh[5] > (sad[j] -(s3[j] - (s1[j]<<1))) &&
-                    thrsh[6] > (sad[j] -(s3[j] + s4[j])) &&
-                    thrsh[7] > (sad[j] -(s4[j] - (s2[j]<<1))) &&
+                thrsh[4] > (sad[j] - (s3[j] + s4[j]))
+                && thrsh[5] > (sad[j] - (s3[j] - (s1[j] << 1)))
+                && thrsh[6] > (sad[j] - (s3[j] + s4[j]))
+                && thrsh[7] > (sad[j] - (s4[j] - (s2[j] << 1))) &&
 
-                    thrsh[8] > (sad[j]>>1) &&
-                    thrsh[9] > (sad[j] -(s2[j] + s3[j])) &&
-                    thrsh[10]> (sad[j]>>1) &&
-                    thrsh[11]> (sad[j] -(s1[j] + s4[j])) &&
+                thrsh[8] > (sad[j] >> 1)
+                && thrsh[9] > (sad[j] - (s2[j] + s3[j]))
+                && thrsh[10] > (sad[j] >> 1)
+                && thrsh[11] > (sad[j] - (s1[j] + s4[j])) &&
 
-                    thrsh[12]> (sad[j] -(s1[j] + s2[j])) &&
-                    thrsh[13]> (sad[j] -(s2[j] - (s4[j]<<1))) &&
-                    thrsh[14]> (sad[j] -(s1[j] + s2[j])) &&
-                    thrsh[15]> (sad[j] -(s1[j] - (s3[j]<<1)))
-            )
+                thrsh[12] > (sad[j] - (s1[j] + s2[j]))
+                && thrsh[13] > (sad[j] - (s2[j] - (s4[j] << 1)))
+                && thrsh[14] > (sad[j] - (s1[j] + s2[j]))
+                && thrsh[15] > (sad[j] - (s1[j] - (s3[j] << 1))))
             {
                 //sad[j] = 0;   /*set current sad to be zero*/
                 sig_nz_sad[j] = 0;/*Signal that the sad is zero*/
@@ -1243,21 +1202,25 @@ void ime_compute_satqd_16x16_lumaintra(UWORD8 *pu1_src,
                 nz_sad_sig = 1;
             }
 
-            (*pi4_mb_distortion) += (sad[j]>>1);
-            //if((*pi4_mb_distortion) >= max_sad)return; /*return or some thing*/
+            (*pi4_mb_distortion) += (sad[j] >> 1);
+            //if ((*pi4_mb_distortion) >= max_sad)return; /*return or some thing*/
         }
 
         sig_nz_sad += 4;
-        pu1_src +=  (src_strd *4);
-        pu1_est +=  (est_strd *4);
+        pu1_src += (src_strd * 4);
+        pu1_est += (est_strd * 4);
     }
 
-    if((*pi4_mb_distortion) < thrsh[0]<<2)
+    if ((*pi4_mb_distortion) < thrsh[0] << 2)
     {
         *sig_sad_dc = 0;
-        if(nz_sad_sig == 0)(*pi4_mb_distortion) = 0;
+        if (nz_sad_sig == 0)
+            (*pi4_mb_distortion) = 0;
     }
-    else *sig_sad_dc = 1;
+    else
+    {
+        *sig_sad_dc = 1;
+    }
 }
 
 

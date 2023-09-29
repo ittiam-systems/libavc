@@ -20,16 +20,21 @@
 /**
  *******************************************************************************
  * @file
- *  ih264e_me.c
+ *  ime.c
  *
  * @brief
- *
+ *  This file contains functions needed for computing motion vectors of a
+ *  16x16 block
  *
  * @author
  *  Ittiam
  *
  * @par List of Functions:
- *  -
+ *  - ime_diamond_search_16x16
+ *  - ime_evaluate_init_srchposn_16x16
+ *  - ime_full_pel_motion_estimation_16x16
+ *  - ime_sub_pel_motion_estimation_16x16
+ *  - ime_compute_skip_cost
  *
  * @remarks
  *  None
@@ -69,17 +74,11 @@
 *  point of the diamond grid, the function marks the candidate Mb partition as
 *  mv.
 *
-* @param[in] ps_mb_part
-*  pointer to current mb partition ctxt with respect to ME
-*
 * @param[in] ps_me_ctxt
 *  pointer to me context
 *
-* @param[in] u4_lambda_motion
-*  lambda motion
-*
-* @param[in] u4_enable_fast_sad
-*  enable/disable fast sad computation
+* @param[in] i4_reflist
+*  ref list
 *
 * @returns  mv pair & corresponding distortion and cost
 *
@@ -150,7 +149,7 @@ void ime_diamond_search_16x16(me_ctxt_t *ps_me_ctxt, WORD32 i4_reflist)
     i2_mv_u_x = i2_mvx;
     i2_mv_u_y = i2_mvy;
 
-    while (u4_num_layers--)
+    while (u4_num_layers)
     {
         /* FIXME : is this the write way to check for out of bounds ? */
         if ( (i2_mvx - 1 < i4_srch_range_w) ||
@@ -175,14 +174,14 @@ void ime_diamond_search_16x16(me_ctxt_t *ps_me_ctxt, WORD32 i4_reflist)
         DEBUG_SAD_HISTOGRAM_ADD(i4_sad[3], 2);
 
         /* compute cost */
-        i4_cost[0] = i4_sad[0] + u4_lambda_motion * ( pu1_mv_bits[ ((i2_mvx - 1) << 2) - ps_mb_part->s_mv_pred.i2_mvx]
-                                                                   + pu1_mv_bits[(i2_mvy << 2) - ps_mb_part->s_mv_pred.i2_mvy] );
-        i4_cost[1] = i4_sad[1] + u4_lambda_motion * ( pu1_mv_bits[ ((i2_mvx + 1) << 2) - ps_mb_part->s_mv_pred.i2_mvx]
-                                                                   + pu1_mv_bits[(i2_mvy << 2) - ps_mb_part->s_mv_pred.i2_mvy] );
-        i4_cost[2] = i4_sad[2] + u4_lambda_motion * ( pu1_mv_bits[ (i2_mvx << 2) - ps_mb_part->s_mv_pred.i2_mvx]
-                                                                   + pu1_mv_bits[((i2_mvy - 1) << 2) - ps_mb_part->s_mv_pred.i2_mvy] );
-        i4_cost[3] = i4_sad[3] + u4_lambda_motion * ( pu1_mv_bits[ (i2_mvx << 2) - ps_mb_part->s_mv_pred.i2_mvx]
-                                                                   + pu1_mv_bits[((i2_mvy + 1) << 2) - ps_mb_part->s_mv_pred.i2_mvy] );
+        i4_cost[0] = i4_sad[0] + (WORD32)(u4_lambda_motion * ( pu1_mv_bits[ ((i2_mvx - 1) << 2) - ps_mb_part->s_mv_pred.i2_mvx]
+                                                                   + pu1_mv_bits[(i2_mvy << 2) - ps_mb_part->s_mv_pred.i2_mvy] ));
+        i4_cost[1] = i4_sad[1] + (WORD32)(u4_lambda_motion * ( pu1_mv_bits[ ((i2_mvx + 1) << 2) - ps_mb_part->s_mv_pred.i2_mvx]
+                                                                   + pu1_mv_bits[(i2_mvy << 2) - ps_mb_part->s_mv_pred.i2_mvy] ));
+        i4_cost[2] = i4_sad[2] + (WORD32)(u4_lambda_motion * ( pu1_mv_bits[ (i2_mvx << 2) - ps_mb_part->s_mv_pred.i2_mvx]
+                                                                   + pu1_mv_bits[((i2_mvy - 1) << 2) - ps_mb_part->s_mv_pred.i2_mvy] ));
+        i4_cost[3] = i4_sad[3] + (WORD32)(u4_lambda_motion * ( pu1_mv_bits[ (i2_mvx << 2) - ps_mb_part->s_mv_pred.i2_mvx]
+                                                                   + pu1_mv_bits[((i2_mvy + 1) << 2) - ps_mb_part->s_mv_pred.i2_mvy] ));
 
 
         if (i4_cost_least > i4_cost[0])
@@ -231,8 +230,7 @@ void ime_diamond_search_16x16(me_ctxt_t *ps_me_ctxt, WORD32 i4_reflist)
             i2_mvx = i2_mv_u_x;
             i2_mvy = i2_mv_u_y;
         }
-
-
+        u4_num_layers--;
     }
 
     if (i4_cost_least < ps_mb_part->i4_mb_cost)
@@ -256,14 +254,11 @@ void ime_diamond_search_16x16(me_ctxt_t *ps_me_ctxt, WORD32 i4_reflist)
 *  This function determines the position in the search window at which the motion
 *  estimation should begin in order to minimise the number of search iterations.
 *
-* @param[in] ps_mb_part
-*  pointer to current mb partition ctxt with respect to ME
+* @param[in] ps_me_ctxt
+*  pointer to me context
 *
-* @param[in] u4_lambda_motion
-*  lambda motion
-*
-* @param[in] u4_fast_flag
-*  enable/disable fast sad computation
+* @param[in] i4_reflist
+*  ref list
 *
 * @returns  mv pair & corresponding distortion and cost
 *
@@ -339,9 +334,10 @@ void ime_evaluate_init_srchposn_16x16
             ps_me_ctxt->pf_ime_compute_sad_16x16[u4_enable_fast_sad](pu1_curr_mb, pu1_ref, i4_src_strd, i4_ref_strd, i4_mb_cost_least, &i4_mb_distortion);
 
             DEBUG_SAD_HISTOGRAM_ADD(i4_mb_distortion, 3);
+
             /* compute cost */
-            i4_mb_cost = i4_mb_distortion + u4_lambda_motion * ( pu1_mv_bits[ (ps_mv_list[i].i2_mvx << 2) - ps_mb_part->s_mv_pred.i2_mvx]
-                            + pu1_mv_bits[(ps_mv_list[i].i2_mvy << 2) - ps_mb_part->s_mv_pred.i2_mvy] );
+            i4_mb_cost = i4_mb_distortion + (WORD32)(u4_lambda_motion * ( pu1_mv_bits[ (ps_mv_list[i].i2_mvx << 2) - ps_mb_part->s_mv_pred.i2_mvx]
+                            + pu1_mv_bits[(ps_mv_list[i].i2_mvy << 2) - ps_mb_part->s_mv_pred.i2_mvy] ));
 
             if (i4_mb_cost < i4_mb_cost_least)
             {
@@ -371,16 +367,14 @@ void ime_evaluate_init_srchposn_16x16
 * range
 *
 * @par Description:
-*  This function begins by computing the mv predict vector for the current mb.
-*  This is used for cost computations. Further basing on the algo. chosen, it
-*  looks through a set of candidate vectors that best represent the mb a least
-*  cost and returns this information.
-*
-* @param[in] ps_proc
-*  pointer to current proc ctxt
+*  For a given algorithm (diamond, Hex, nStep, ...) chosen, it searches for the
+*  best matching full pixel predictor within the search range
 *
 * @param[in] ps_me_ctxt
 *  pointer to me context
+*
+* @param[in] i4_reflist
+*  ref list
 *
 * @returns  mv pair & corresponding distortion and cost
 *
@@ -437,16 +431,15 @@ void ime_full_pel_motion_estimation_16x16
 * @par Description:
 *  This function begins by searching across all sub pixel sample points
 *  around the full pel motion vector. The vector with least cost is chosen as
-*  the mv for the current mb. If the skip mode is not evaluated while analysing
-*  the initial search candidates then analyse it here and update the mv.
-*
-* @param[in] ps_proc
-*  pointer to current proc ctxt
+*  the mv for the current mb.
 *
 * @param[in] ps_me_ctxt
 *  pointer to me context
 *
-* @returns none
+* @param[in] i4_reflist
+*  ref list
+*
+* @returns mv pair & corresponding distortion and cost
 *
 * @remarks none
 *
@@ -564,8 +557,8 @@ void ime_sub_pel_motion_estimation_16x16
         i4_mb_distortion = ai4_sad[i];
 
         /* compute cost */
-        i4_mb_cost = i4_mb_distortion + u4_lambda_motion * ( pu1_mv_bits[ mv_x_tmp - ps_mb_part->s_mv_pred.i2_mvx]
-                        + pu1_mv_bits[mv_y_tmp - ps_mb_part->s_mv_pred.i2_mvy] );
+        i4_mb_cost = i4_mb_distortion + (WORD32)(u4_lambda_motion * ( pu1_mv_bits[ mv_x_tmp - ps_mb_part->s_mv_pred.i2_mvx]
+                        + pu1_mv_bits[mv_y_tmp - ps_mb_part->s_mv_pred.i2_mvy] ));
 
         if (i4_mb_cost < i4_mb_cost_least)
         {
@@ -598,8 +591,8 @@ void ime_sub_pel_motion_estimation_16x16
         i4_mb_distortion = ai4_sad[2 + i];
 
         /* compute cost */
-        i4_mb_cost = i4_mb_distortion + u4_lambda_motion * ( pu1_mv_bits[ mv_x_tmp - ps_mb_part->s_mv_pred.i2_mvx]
-                        + pu1_mv_bits[mv_y_tmp - ps_mb_part->s_mv_pred.i2_mvy] );
+        i4_mb_cost = i4_mb_distortion + (WORD32)(u4_lambda_motion * ( pu1_mv_bits[ mv_x_tmp - ps_mb_part->s_mv_pred.i2_mvx]
+                        + pu1_mv_bits[mv_y_tmp - ps_mb_part->s_mv_pred.i2_mvy] ));
 
         if (i4_mb_cost < i4_mb_cost_least)
         {
@@ -635,8 +628,8 @@ void ime_sub_pel_motion_estimation_16x16
             i4_mb_distortion = ai4_sad[4 + i + 2 * j];
 
             /* compute cost */
-            i4_mb_cost = i4_mb_distortion + u4_lambda_motion * ( pu1_mv_bits[ mv_x_tmp - ps_mb_part->s_mv_pred.i2_mvx]
-                            + pu1_mv_bits[mv_y_tmp - ps_mb_part->s_mv_pred.i2_mvy] );
+            i4_mb_cost = i4_mb_distortion + (WORD32)(u4_lambda_motion * ( pu1_mv_bits[ mv_x_tmp - ps_mb_part->s_mv_pred.i2_mvx]
+                            + pu1_mv_bits[mv_y_tmp - ps_mb_part->s_mv_pred.i2_mvy] ));
 
             if (i4_mb_cost < i4_mb_cost_least)
             {
@@ -686,7 +679,7 @@ void ime_sub_pel_motion_estimation_16x16
 * @remarks
 * NOTE: while computing the skip cost, do not enable early exit from compute
 * sad function because, a negative bias gets added later
-* Note tha the last ME candidate in me ctxt is taken as skip motion vector
+* Note that the last ME candidate in me ctxt is taken as skip motion vector
 *
 *******************************************************************************
 */

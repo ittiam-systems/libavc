@@ -71,7 +71,7 @@ UWORD8 irc_get_frame_level_init_qp(rate_control_handle *ps_rate_control_api, rc_
     if((e_rc_type != VBR_STORAGE) && (e_rc_type != VBR_STORAGE_DVD_COMP) &&
        (e_rc_type != CBR_NLDRC) && (e_rc_type != CONST_QP) && (e_rc_type != VBR_STREAMING))
     {
-        trace_printf(
+        TRACE_PRINTF(
             (const WORD8 *) (const WORD8 *) " Only VBR,NLDRC and CONST QP supported for now \n");
         return (0);
     }

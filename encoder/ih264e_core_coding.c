@@ -19,70 +19,82 @@
 */
 
 /**
- *******************************************************************************
- * @file
- *  ih264e_core_coding.c
- *
- * @brief
- *  This file contains routines that perform luma and chroma core coding for
- *  intra macroblocks
- *
- * @author
- *  ittiam
- *
- * @par List of Functions:
- *  - ih264e_pack_l_mb_i16()
- *  - ih264e_pack_c_mb_i8()
- *  - ih264e_code_luma_intra_macroblock_16x16()
- *  - ih264e_code_luma_intra_macroblock_4x4()
- *  - ih264e_code_chroma_intra_macroblock_8x8()
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @file
+*  ih264e_core_coding.c
+*
+* @brief
+*  This file contains routines that perform luma and chroma core coding of
+*  H264 macroblocks
+*
+* @author
+*  ittiam
+*
+* @par List of Functions:
+*  - ih264e_luma_16x16_resi_trans_dctrans_quant
+*  - ih264e_luma_16x16_idctrans_iquant_itrans_recon
+*  - ih264e_chroma_8x8_resi_trans_dctrans_quant
+*  - ih264e_chroma_8x8_idctrans_iquant_itrans_recon
+*  - ih264e_pack_l_mb_i16
+*  - ih264e_pack_l_mb
+*  - ih264e_pack_c_mb_i8
+*  - ih264e_code_luma_intra_macroblock_16x16
+*  - ih264e_code_luma_intra_macroblock_4x4
+*  - ih264e_code_luma_intra_macroblock_4x4_rdopt_on
+*  - ih264e_code_chroma_intra_macroblock_8x8
+*  - ih264e_code_luma_inter_macroblock_16x16
+*  - ih264e_code_chroma_inter_macroblock_8x8
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 
 /*****************************************************************************/
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
-/* User include files */
+/* User Include Files */
 #include "ih264e_config.h"
 #include "ih264_typedefs.h"
-#include "ih264_platform_macros.h"
 #include "iv2.h"
 #include "ive2.h"
+
 #include "ih264_macros.h"
 #include "ih264_defs.h"
-#include "ih264e_defs.h"
-#include "ih264_trans_data.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_trans_data.h"
 #include "ih264_cabac_tables.h"
+#include "ih264_platform_macros.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
+
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
+#include "ih264e_globals.h"
 #include "ih264e_rate_control.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
-#include "ih264e_globals.h"
-#include "ih264e_core_coding.h"
 #include "ih264e_mc.h"
+#include "ih264e_core_coding.h"
 
 
 /*****************************************************************************/
@@ -222,8 +234,8 @@ void ih264e_luma_16x16_resi_trans_dctrans_quant(codec_t *ps_codec,
 *
 * @param[in] pi2_src
 *  Input data, 16x16 size
-*  First 16 mem locations will have the Dc coffs in rater scan order in linear fashion
-*  after a stride 1st AC clock will be present again in raster can order
+*  First 16 mem locations will have the Dc coffs in raster scan order in linear
+*  fashion after a stride 1st AC clock will be present again in raster can order
 *  Then each AC block of the 16x16 block will follow in raster scan order
 *
 * @param[in] pu1_pred
@@ -252,17 +264,17 @@ void ih264e_luma_16x16_resi_trans_dctrans_quant(codec_t *ps_codec,
 * @param[in] qp_div
 *  QP/6
 *
-* @param[in] pi4_tmp
-*  Input temporary buffer
-*  needs to be at least 20 in size
-*
-* @param[in] pu4_cntrl
+* @param[in] u4_cntrl
 *  Controls the transform path
 *  total Last 17 bits are used
 *  the 16th th bit will correspond to DC block
 *  and 32-17 will correspond to the ac blocks in raster scan order
 *  bit equaling zero indicates that the entire 4x4 block is zero for DC
-*  For AC blocks a bit equaling zero will mean that all 15 AC coffs of the block is nonzero
+*  For AC blocks a bit equaling zero will mean that all 15 AC coffs of the block
+*  is nonzero
+*
+* @param[in] u4_dc_trans_flag
+*  Differentiates intra vs inter
 *
 * @param[in] pi4_tmp
 *  Input temporary buffer
@@ -457,7 +469,7 @@ void ih264e_luma_16x16_idctrans_iquant_itrans_recon(codec_t *ps_codec,
 * @param[in] pred_strd
 *  Prediction stride
 *
-* @param[in] dst_strd
+* @param[in] out_strd
 *  Destination stride
 *
 * @param[in] pu2_scale_matrix
@@ -472,17 +484,12 @@ void ih264e_luma_16x16_idctrans_iquant_itrans_recon(codec_t *ps_codec,
 * @param[in] u4_round_factor
 *  Round factor for quant
 *
-* @param[out] pu1_nnz
+* @param[out] pu1_nnz_c
 *  Memory to store the non-zeros after transform
 *  The first byte will be the nnz od DC block for U plane
 *  From the next byte the AC nnzs will be storerd in raster scan order
 *  The fifth byte will be nnz of Dc block of V plane
 *  Then Ac blocks will follow
-*
-* @param u4_dc_flag
-*  Signals if Dc transform is to be done or not
-*   1 -> Dc transform will be done
-*   0 -> Dc transform will not be done
 *
 * @remarks
 *
@@ -547,11 +554,12 @@ void ih264e_chroma_8x8_resi_trans_dctrans_quant(codec_t *ps_codec,
 
 /**
 *******************************************************************************
-* @brief
-*  This function performs the inverse transform with process for chroma MB of H264
+* @brief Does inverse DC transform, inverse quantization inverse transform for
+* chroma MB
 *
 * @par Description:
-*  Does inverse DC transform ,inverse quantization inverse transform
+*  Does inverse DC transform, inverse quantization inverse transform for
+*  chroma MB
 *
 * @param[in] pi2_src
 *  Input data, 16x16 size
@@ -585,22 +593,23 @@ void ih264e_chroma_8x8_resi_trans_dctrans_quant(codec_t *ps_codec,
 * @param[in] qp_div
 *  QP/6
 *
+* @param[in] u4_cntrl
+*  Controls the transform path
+*  the 15 th bit will correspond to DC block of U plane, 14th will indicate the
+*  V plane Dc block. 32-28 bits will indicate AC blocks of U plane in raster
+*  scan order. 27-23 bits will indicate AC blocks of V plane in rater scan order.
+*  The bit 1 implies that there is at least one non zero coeff in a block
+*
 * @param[in] pi4_tmp
 *  Input temporary buffer
-*  needs to be at least COFF_CNT_SUB_BLK_4x4 + Number of Dc cofss for chroma * number of planes
-*  in size
-*
-* @param[in] pu4_cntrl
-*  Controls the transform path
-*  the 15 th bit will correspond to DC block of U plane , 14th will indicate the V plane Dc block
-*  32-28 bits will indicate AC blocks of U plane in raster scan order
-*  27-23 bits will indicate AC blocks of V plane in rater scan order
-*  The bit 1 implies that there is at least one non zero coeff in a block
+*  needs to be at least COFF_CNT_SUB_BLK_4x4 + (Number of Dc coeffs for chroma *
+*  number of planes) in size
 *
 * @returns
 *  none
 *
 * @remarks
+*
 *******************************************************************************
 */
 void ih264e_chroma_8x8_idctrans_iquant_itrans_recon(codec_t *ps_codec,
@@ -649,8 +658,8 @@ void ih264e_chroma_8x8_idctrans_iquant_itrans_recon(codec_t *ps_codec,
     if (u4_cntrl & CNTRL_FLAG_DCBLK_MASK_CHROMA)
     {
         UWORD32 cntr, u4_dc_cntrl;
-        /* Do inv hadamard for u an v block */
 
+        /* Do inv hadamard for u an v block */
         ps_codec->pf_ihadamard_scaling_2x2_uv(pi2_src, pi2_src, pu2_iscale_mat,
                                               pu2_weigh_mat, qp_div, NULL);
         /*
@@ -1085,11 +1094,9 @@ void ih264e_pack_l_mb(WORD16 *pi2_res_mb,
         /* Decide if the 8x8 unit has to be sent for entropy coding? */
         if ((b4+1) % 4 == 0)
         {
-            if ( u4_thres_resi && (u4_b8_coeff_cost <= LUMA_SUB_BLOCK_SKIP_THRESHOLD) &&
-                            (*u1_cbp_l & (1 << b8)) )
+            if (u4_thres_resi && (u4_b8_coeff_cost <= LUMA_SUB_BLOCK_SKIP_THRESHOLD) &&
+                            (*u1_cbp_l & (1 << b8)))
             {
-
-
                 /*
                  * When we want to reset the full 8x8 block, we have to reset
                  * both the dc and ac coeff bits hence we have the symmetric
@@ -1479,7 +1486,6 @@ void ih264e_pack_c_mb(WORD16 *pi2_res_mb,
 *
 *******************************************************************************
 */
-
 UWORD8 ih264e_code_luma_intra_macroblock_16x16(process_ctxt_t *ps_proc)
 {
     /* Codec Context */
@@ -2091,7 +2097,7 @@ UWORD8 ih264e_code_chroma_intra_macroblock_8x8(process_ctxt_t *ps_proc)
 /**
 *******************************************************************************
 *
-* @brief performs luma core coding when  mode is inter
+* @brief performs luma core coding when mode is inter
 *
 * @par Description:
 *  If the current mb is to be coded as inter the mb is predicted based on the
@@ -2103,14 +2109,12 @@ UWORD8 ih264e_code_chroma_intra_macroblock_8x8(process_ctxt_t *ps_proc)
 * @param[in] ps_proc_ctxt
 *  pointer to the current macro block context
 *
-* @returns u1_cbp_l
-*  coded block pattern luma
+* @returns coded block pattern luma
 *
 * @remarks none
 *
 *******************************************************************************
 */
-
 UWORD8 ih264e_code_luma_inter_macroblock_16x16(process_ctxt_t *ps_proc)
 {
     /* Codec Context */
@@ -2241,18 +2245,16 @@ UWORD8 ih264e_code_luma_inter_macroblock_16x16(process_ctxt_t *ps_proc)
 * @brief performs chroma core coding for inter macro blocks
 *
 * @par Description:
-*  If the current mb is to be coded as inter predicted mb,based on the sub mb partitions
-*  and corresponding motion vectors generated by ME  ,prediction is done.
+*  If the current mb is to be coded as inter predicted mb, based on the sub mb
+*  partitions and corresponding motion vectors generated by ME, prediction is done.
 *  Then, error is computed between the input blk and the estimated blk.
-*  This error is transformed , quantized. The quantized coefficients
-*  are packed in scan order for
-*  entropy coding.
+*  This error is transformed, quantized. The quantized coefficients
+*  are packed in scan order for entropy coding.
 *
 * @param[in] ps_proc_ctxt
 *  pointer to the current macro block context
 *
-* @returns u1_cbp_l
-*  coded block pattern chroma
+* @returns coded block pattern chroma
 *
 * @remarks none
 *

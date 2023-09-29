@@ -21,28 +21,23 @@
 /**
 ******************************************************************************
 * @file
-*  ih264e_rc_mem_interface.h
+*  irc_mem_req_and_acq.h
 *
 * @brief
-*  This file contains function declaration and structures for rate control
+*  This file contains interface definitions for allocating rate control
 *  memtabs
 *
 * @author
 *  ittiam
 *
 * @remarks
-*  The rate control library is a global library across various codecs. It
-*  anticipates certain structures definitions. Those definitions are to be
-*  imported from global workspace. Instead of that, the structures needed for
-*  rc library are copied in to this file and exported to rc library. If the
-*  structures / enums / ... in the global workspace change, this file also needs
-*  to be modified accordingly.
+*  none
 *
-******************************************************************************
+*******************************************************************************
 */
-#ifndef IH264E_RC_MEM_INTERFACE_H_
-#define IH264E_RC_MEM_INTERFACE_H_
 
+#ifndef _RC_MEM_REQ_AND_ACQ_H_
+#define _RC_MEM_REQ_AND_ACQ_H_
 
 /*****************************************************************************/
 /* Function Macros                                                           */
@@ -90,13 +85,10 @@ typedef enum
     FILL_BASE =3
 }ITT_FUNC_TYPE_E;
 
-
 /*****************************************************************************/
 /* Structures                                                                */
 /*****************************************************************************/
 
-/*NOTE : This should be an exact replica of IALG_MemRec, any change in IALG_MemRec
-         must be replicated here*/
 typedef struct
 {
     /* Size in bytes */
@@ -115,65 +107,20 @@ typedef struct
     void *pv_base;
 } itt_memtab_t;
 
-
 /*****************************************************************************/
-/* Extern Function Declarations                                              */
+/* Function Declarations                                                     */
 /*****************************************************************************/
 
-/**
-******************************************************************************
-*
-* @brief This function fills memory record attributes
-*
-* @par   Description
-*  This function fills memory record attributes
-*
-* @param[in] ps_mem_tab
-*  pointer to mem records
-*
-* @param[in] u4_size
-*  size of the record
-*
-* @param[in] i4_alignment
-*  memory alignment size
-*
-* @param[in] e_usage
-*  usage
-*
-* @param[in] e_mem_region
-*  mem region
-*
-* @return void
-*
-******************************************************************************
-*/
-void fill_memtab(itt_memtab_t *ps_mem_tab, WORD32 u4_size, WORD32 i4_alignment,
-                 ITT_MEM_USAGE_TYPE_E e_usage, ITT_MEM_REGION_E e_mem_region);
+void fill_memtab(itt_memtab_t *ps_mem_tab,
+                 WORD32 u4_size,
+                 WORD32 i4_alignment,
+                 ITT_MEM_USAGE_TYPE_E e_usage,
+                 ITT_MEM_REGION_E e_mem_region);
 
-/**
-******************************************************************************
-*
-* @brief This function fills memory record attributes
-*
-* @par   Description
-*  This function fills memory record attributes
-*
-* @param[in] ps_mem_tab
-*  pointer to mem records
-*
-* @param[in] ptr_to_be_filled
-*  handle to the memory record storage space
-*
-* @param[in] e_func_type
-*  enum that dictates fill memory records or use memory records
-*
-* @return void
-*
-******************************************************************************
-*/
-WORD32 use_or_fill_base(itt_memtab_t *ps_mem_tab, void **ptr_to_be_filled,
+WORD32 use_or_fill_base(itt_memtab_t *ps_mem_tab,
+                        void **ptr_to_be_filled,
                         ITT_FUNC_TYPE_E e_func_type);
 
 
-#endif // IH264E_RC_MEM_INTERFACE_H_
+#endif // _RC_MEM_REQ_AND_ACQ_H_
 

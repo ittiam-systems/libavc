@@ -26,15 +26,21 @@
 * @brief
 *  Contains all leaf level functions for CABAC entropy coding.
 *
-*
 * @author
-* Doney Alex
+*  ittiam
 *
 * @par List of Functions:
-*
+*  - ih264e_cabac_UEGk0_binarization
+*  - ih264e_get_cabac_context
+*  - ih264e_cabac_put_byte
+*  - ih264e_cabac_encode_bin
+*  - ih264e_encode_decision_bins
+*  - ih264e_cabac_encode_terminate
+*  - ih264e_cabac_encode_bypass_bin
+*  - ih264e_cabac_encode_bypass_bins
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -43,44 +49,47 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <assert.h>
 #include <limits.h>
 #include <string.h>
 
-/* User include files */
+/* User Include Files */
 #include "ih264e_config.h"
 #include "ih264_typedefs.h"
 #include "iv2.h"
 #include "ive2.h"
+
 #include "ih264_debug.h"
-#include "ih264_defs.h"
-#include "ih264e_defs.h"
 #include "ih264_macros.h"
-#include "ih264e_error.h"
-#include "ih264e_bitstream.h"
-#include "ime_distortion_metrics.h"
-#include "ime_defs.h"
-#include "ime_structs.h"
 #include "ih264_error.h"
+#include "ih264_defs.h"
+#include "ih264_mem_fns.h"
+#include "ih264_padding.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
-#include "ih264_padding.h"
-#include "ih264_platform_macros.h"
 #include "ih264_intra_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_cavlc_tables.h"
 #include "ih264_cabac_tables.h"
+#include "ih264_platform_macros.h"
+
+#include "ime_defs.h"
+#include "ime_distortion_metrics.h"
+#include "ime_structs.h"
+
 #include "irc_cntrl_param.h"
 #include "irc_frame_info_collector.h"
-#include "ih264e_rate_control.h"
+
+#include "ih264e_error.h"
+#include "ih264e_defs.h"
+#include "ih264e_bitstream.h"
 #include "ih264e_cabac_structs.h"
 #include "ih264e_structs.h"
-#include "ih264e_cabac.h"
 #include "ih264e_encode_header.h"
-#include "ih264_cavlc_tables.h"
+#include "ih264e_cabac.h"
 #include "ih264e_statistics.h"
 #include "ih264e_trace.h"
 
@@ -89,29 +98,26 @@
 /* Function Definitions                                                      */
 /*****************************************************************************/
 
-
 /**
- *******************************************************************************
- *
- * @brief
- *  k-th order Exp-Golomb (UEGk) binarization process: Implements concatenated
- *   unary/ k-th order Exp-Golomb  (UEGk) binarization process,
- *   where k = 0 as defined in 9.3.2.3 of  ITU_T_H264-201402
- *
- * @param[in] i2_sufs
- *  Suffix bit string
- *
- * @param[in] pi1_bins_len
- *  Pointer to length of tthe string
- *
- * @returns Binarized value
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
-
+*******************************************************************************
+*
+* @brief
+*  k-th order Exp-Golomb (UEGk) binarization process: Implements concatenated
+*  unary/ k-th order Exp-Golomb  (UEGk) binarization process, where k = 0 as
+*  defined in 9.3.2.3 of  ITU_T_H264-201402
+*
+* @param[in] i2_sufs
+*  Suffix bit string
+*
+* @param[in] pi1_bins_len
+*  Pointer to length of tthe string
+*
+* @returns Binarized value
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 UWORD32 ih264e_cabac_UEGk0_binarization(WORD16 i2_sufs, WORD8 *pi1_bins_len)
 {
     WORD32 unary_length;
@@ -135,33 +141,29 @@ UWORD32 ih264e_cabac_UEGk0_binarization(WORD16 i2_sufs, WORD8 *pi1_bins_len)
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  Get cabac context for the MB :calculates the pointers to Top and   left
- *          cabac neighbor context depending upon neighbor  availability.
- *
- * @param[in] ps_ent_ctxt
- *  Pointer to entropy context structure
- *
- * @param[in] u4_mb_type
- *  Type of MB
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Get cabac context for the MB :calculates the pointers to Top and left
+*  cabac neighbor context depending upon neighbor  availability.
+*
+* @param[in] ps_ent_ctxt
+*  Pointer to entropy context structure
+*
+* @param[in] u4_mb_type
+*  Type of MB
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264e_get_cabac_context(entropy_ctxt_t *ps_ent_ctxt, WORD32 u4_mb_type)
 {
-
-    /* CABAC context */
     cabac_ctxt_t *ps_cabac_ctxt = ps_ent_ctxt->ps_cabac;
     mb_info_ctxt_t *ps_ctx_inc_mb_map;
     cab_csbp_t *ps_lft_csbp;
-
     WORD32 i4_lft_avail, i4_top_avail, i4_is_intra;
     WORD32 i4_mb_x, i4_mb_y;
     UWORD8 *pu1_slice_idx = ps_ent_ctxt->pu1_slice_idx;
@@ -222,29 +224,25 @@ void ih264e_get_cabac_context(entropy_ctxt_t *ps_ent_ctxt, WORD32 u4_mb_type)
         ps_cabac_ctxt->ps_curr_ctxt_mb_info->i1_ref_idx[3] = 0;
         memset(ps_cabac_ctxt->ps_curr_ctxt_mb_info->u1_mv, 0, 16);
     }
-
 }
 
-
-
 /**
- *******************************************************************************
- * @brief
- *  flushing at termination: Explained in flowchart 9-12(ITU_T_H264-201402).
- *
- *  @param[in]   ps_cabac_ctxt
- *  pointer to cabac context (handle)
- *
- * @returns  none
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  flushing at termination: Explained in flowchart 9-12(ITU_T_H264-201402).
+*
+* @param[in]   ps_cabac_ctxt
+*  pointer to cabac context (handle)
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 IH264E_ERROR_T ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
 {
-    /* bit stream ptr */
     bitstrm_t *ps_stream = ps_cabac_ctxt->ps_bitstrm;
     encoding_envirnoment_t *ps_cab_enc_env = &(ps_cabac_ctxt->s_cab_enc_env);
     UWORD32 u4_low = ps_cab_enc_env->u4_code_int_low;
@@ -328,30 +326,28 @@ IH264E_ERROR_T ih264e_cabac_flush(cabac_ctxt_t *ps_cabac_ctxt)
 }
 
 /**
- ******************************************************************************
- *
- *  @brief Puts new byte (and outstanding bytes) into bitstream after cabac
- *         renormalization
- *
- *  @par   Description
- *  1. Extract the leading byte of low(L)
- *  2. If leading byte=0xff increment outstanding bytes and return
- *     (as the actual bits depend on carry propogation later)
- *  3. If leading byte is not 0xff check for any carry propogation
- *  4. Insert the carry (propogated in previous byte) along with outstanding
- *     bytes (if any) and leading byte
- *
- *
- *  @param[in]   ps_cabac_ctxt
- *  pointer to cabac context (handle)
- *
- *  @return
- *
- ******************************************************************************
- */
+******************************************************************************
+*
+* @brief Puts new byte (and outstanding bytes) into bitstream after cabac
+*  renormalization
+*
+* @par   Description
+*  1. Extract the leading byte of low(L)
+*  2. If leading byte=0xff increment outstanding bytes and return
+*     (as the actual bits depend on carry propogation later)
+*  3. If leading byte is not 0xff check for any carry propogation
+*  4. Insert the carry (propogated in previous byte) along with outstanding
+*     bytes (if any) and leading byte
+*
+* @param[in]   ps_cabac_ctxt
+*  pointer to cabac context (handle)
+*
+* @returns none
+*
+******************************************************************************
+*/
 IH264E_ERROR_T ih264e_cabac_put_byte(cabac_ctxt_t *ps_cabac_ctxt)
 {
-    /* bit stream ptr */
     bitstrm_t *ps_stream = ps_cabac_ctxt->ps_bitstrm;
     encoding_envirnoment_t *ps_cab_enc_env = &(ps_cabac_ctxt->s_cab_enc_env);
     UWORD32 u4_low = ps_cab_enc_env->u4_code_int_low;
@@ -435,36 +431,32 @@ IH264E_ERROR_T ih264e_cabac_put_byte(cabac_ctxt_t *ps_cabac_ctxt)
     return status;
 }
 
-
-
-
- /**
- ******************************************************************************
- *
- *  @brief Codes a bin based on probablilty and mps packed context model
- *
- *  @par   Description
- *  1. Apart from encoding bin, context model is updated as per state transition
- *  2. Range and Low renormalization is done based on bin and original state
- *  3. After renorm bistream is updated (if required)
- *
- *  @param[in]   ps_cabac
- *  pointer to cabac context (handle)
- *
- *  @param[in]   bin
- *  bin(boolean) to be encoded
- *
- *  @param[in]  pu1_bin_ctxts
- *  index of cabac context model containing pState[bits 5-0] | MPS[bit6]
- *
- *  @return
- *
- ******************************************************************************
-  */
+/**
+******************************************************************************
+*
+* @brief Codes a bin based on probablilty and mps packed context model
+*
+* @par   Description
+*  1. Apart from encoding bin, context model is updated as per state transition
+*  2. Range and Low renormalization is done based on bin and original state
+*  3. After renorm bistream is updated (if required)
+*
+* @param[in]   ps_cabac
+*  pointer to cabac context (handle)
+*
+* @param[in]   bin
+*  bin(boolean) to be encoded
+*
+* @param[in]  pu1_bin_ctxts
+*  index of cabac context model containing pState[bits 5-0] | MPS[bit6]
+*
+*  @return none
+*
+******************************************************************************
+*/
 void ih264e_cabac_encode_bin(cabac_ctxt_t *ps_cabac, WORD32 bin,
                              bin_ctxt_model *pu1_bin_ctxts)
 {
-
     encoding_envirnoment_t *ps_cab_enc_env = &(ps_cabac->s_cab_enc_env);
     UWORD32 u4_range = ps_cab_enc_env->u4_code_int_range;
     UWORD32 u4_low = ps_cab_enc_env->u4_code_int_low;
@@ -473,6 +465,7 @@ void ih264e_cabac_encode_bin(cabac_ctxt_t *ps_cabac, WORD32 bin,
     UWORD8 u1_mps = !!((*pu1_bin_ctxts) & (0x40));
     WORD32 shift;
     UWORD32 u4_table_val;
+
     /* Sanity checks */
     ASSERT((bin == 0) || (bin == 1));
     ASSERT((u4_range >= 256) && (u4_range < 512));
@@ -503,64 +496,58 @@ void ih264e_cabac_encode_bin(cabac_ctxt_t *ps_cabac, WORD32 bin,
 
     (*pu1_bin_ctxts) = (u1_mps << 6) | state_mps;
 
-        /*****************************************************************/
-        /* Renormalization; calculate bits generated based on range(R)   */
-        /* Note : 6 <= R < 512; R is 2 only for terminating encode       */
-        /*****************************************************************/
-        GETRANGE(shift, u4_range);
-        shift   = 9 - shift;
-        u4_low   <<= shift;
-        u4_range <<= shift;
+    /*****************************************************************/
+    /* Renormalization; calculate bits generated based on range(R)   */
+    /* Note : 6 <= R < 512; R is 2 only for terminating encode       */
+    /*****************************************************************/
+    GETRANGE(shift, u4_range);
+    shift   = 9 - shift;
+    u4_low   <<= shift;
+    u4_range <<= shift;
 
-        /* bits to be inserted in the bitstream */
-        ps_cab_enc_env->u4_bits_gen += shift;
-        ps_cab_enc_env->u4_code_int_range = u4_range;
-        ps_cab_enc_env->u4_code_int_low   = u4_low;
+    /* bits to be inserted in the bitstream */
+    ps_cab_enc_env->u4_bits_gen += shift;
+    ps_cab_enc_env->u4_code_int_range = u4_range;
+    ps_cab_enc_env->u4_code_int_low   = u4_low;
 
-        /* generate stream when a byte is ready */
-        if (ps_cab_enc_env->u4_bits_gen > CABAC_BITS)
-        {
-            ih264e_cabac_put_byte(ps_cabac);
-        }
-
+    /* generate stream when a byte is ready */
+    if (ps_cab_enc_env->u4_bits_gen > CABAC_BITS)
+    {
+        ih264e_cabac_put_byte(ps_cabac);
+    }
 }
 
-
-
-
- /**
- *******************************************************************************
- *
- * @brief
- *  Encoding process for a binary decision :implements encoding process of a decision
- *  as defined in 9.3.4.2 . This function encodes multiple bins, of a symbol. Implements
- *  flowchart Figure 9-7( ITU_T_H264-201402)
- *
- * @param[in] u4_bins
- * array of bin values
- *
- * @param[in] i1_bins_len
- *  Length of bins, maximum 32
- *
- * @param[in] u4_ctx_inc
- *  CtxInc, byte0- bin0, byte1-bin1 ..
- *
- * @param[in] i1_valid_len
- *  valid length of bins, after that CtxInc is constant
- *
- * @param[in] pu1_bin_ctxt_type
- *  Pointer to binary contexts
-
- * @param[in] ps_cabac
- *  Pointer to cabac_context_structure
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+/**
+*******************************************************************************
+*
+* @brief Encoding process for a binary decision: implements encoding process of
+*  a decision as defined in 9.3.4.2. This function encodes multiple bins, of a
+*  symbol. Implements flowchart Figure 9-7( ITU_T_H264-201402)
+*
+* @param[in] u4_bins
+*  array of bin values
+*
+* @param[in] i1_bins_len
+*  Length of bins, maximum 32
+*
+* @param[in] u4_ctx_inc
+*  CtxInc, byte0- bin0, byte1-bin1 ..
+*
+* @param[in] i1_valid_len
+*  valid length of bins, after that CtxInc is constant
+*
+* @param[in] pu1_bin_ctxt_type
+*  Pointer to binary contexts
+*
+* @param[in] ps_cabac
+*  Pointer to cabac_context_structure
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264e_encode_decision_bins(UWORD32 u4_bins, WORD8 i1_bins_len,
                                  UWORD32 u4_ctx_inc, WORD8 i1_valid_len,
                                  bin_ctxt_model *pu1_bin_ctxt_type,
@@ -580,38 +567,29 @@ void ih264e_encode_decision_bins(UWORD32 u4_bins, WORD8 i1_bins_len,
         ih264e_cabac_encode_bin(ps_cabac, u1_bin,
                                 pu1_bin_ctxt_type + u1_ctx_inc);
     }
-
 }
 
-
-
-
-
-
 /**
- *******************************************************************************
- * @brief
- *  Encoding process for a binary decision before termination:Encoding process
- *  of a termination(9.3.4.5 :ITU_T_H264-201402) . Explained in flowchart 9-11.
- *
- * @param[in] ps_cabac
- *  Pointer to cabac structure
- *
- * @param[in] term_bin
- *  Symbol value, end of slice or not, term_bin is binary
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @brief
+*  Encoding process for a binary decision before termination:Encoding process
+*  of a termination(9.3.4.5:ITU_T_H264-201402). Explained in flowchart 9-11.
+*
+* @param[in] ps_cabac
+*  Pointer to cabac structure
+*
+* @param[in] term_bin
+*  Symbol value, end of slice or not, term_bin is binary
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264e_cabac_encode_terminate(cabac_ctxt_t *ps_cabac, WORD32 term_bin)
 {
-
     encoding_envirnoment_t *ps_cab_enc_env = &(ps_cabac->s_cab_enc_env);
-
     UWORD32 u4_range = ps_cab_enc_env->u4_code_int_range;
     UWORD32 u4_low = ps_cab_enc_env->u4_code_int_low;
     UWORD32 u4_rlps;
@@ -657,33 +635,28 @@ void ih264e_cabac_encode_terminate(cabac_ctxt_t *ps_cabac, WORD32 term_bin)
     {
         ih264e_cabac_flush(ps_cabac);
     }
-
 }
 
-
 /**
- *******************************************************************************
- * @brief
- * Bypass encoding process for binary decisions:  Explained (9.3.4.4 :ITU_T_H264-201402)
- * , flowchart 9-10.
- *
- *  @param[ino]  ps_cabac : pointer to cabac context (handle)
- *
- *  @param[in]   bin :  bypass bin(0/1) to be encoded
- *
- *  @returns
- *
- *  @remarks
- *  None
- *
- *******************************************************************************
- */
-
+*******************************************************************************
+* @brief Bypass encoding process for binary decisions.
+*  Explained (9.3.4.4 :ITU_T_H264-201402), flowchart 9-10.
+*
+* @param[ino]  ps_cabac
+*  pointer to cabac context (handle)
+*
+* @param[in]  bin
+*  bypass bin(0/1) to be encoded
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264e_cabac_encode_bypass_bin(cabac_ctxt_t *ps_cabac, WORD32 bin)
 {
-
     encoding_envirnoment_t *ps_cab_enc_env = &(ps_cabac->s_cab_enc_env);
-
     UWORD32 u4_range = ps_cab_enc_env->u4_code_int_range;
     UWORD32 u4_low = ps_cab_enc_env->u4_code_int_low;
 
@@ -707,40 +680,35 @@ void ih264e_cabac_encode_bypass_bin(cabac_ctxt_t *ps_cabac, WORD32 bin)
     {
         ih264e_cabac_put_byte(ps_cabac);
     }
-
 }
 
-
- /**
- ******************************************************************************
- *
- *  @brief Encodes a series of bypass bins (FLC bypass bins)
- *
- *  @par   Description
- *  This function is more optimal than calling ih264e_cabac_encode_bypass_bin()
- *  in a loop as cabac low, renorm and generating the stream (8bins at a time)
- *  can be done in one operation
- *
- *  @param[inout]ps_cabac
- *   pointer to cabac context (handle)
- *
- *  @param[in]   u4_bins
- *   syntax element to be coded (as FLC bins)
- *
- *  @param[in]   num_bins
- *   This is the FLC length for u4_sym
- *
- *  @return
- *
- ******************************************************************************
- */
-
+/**
+******************************************************************************
+*
+* @brief Encodes a series of bypass bins (FLC bypass bins)
+*
+* @par   Description
+*  This function is more optimal than calling ih264e_cabac_encode_bypass_bin()
+*  in a loop as cabac low, renorm and generating the stream (8bins at a time)
+*  can be done in one operation
+*
+* @param[inout]ps_cabac
+*  pointer to cabac context (handle)
+*
+* @param[in]   u4_bins
+*  syntax element to be coded (as FLC bins)
+*
+* @param[in]   num_bins
+*  This is the FLC length for u4_sym
+*
+* @return none
+*
+******************************************************************************
+*/
 void ih264e_cabac_encode_bypass_bins(cabac_ctxt_t *ps_cabac, UWORD32 u4_bins,
                                      WORD32 num_bins)
 {
-
     encoding_envirnoment_t *ps_cab_enc_env = &(ps_cabac->s_cab_enc_env);
-
     UWORD32 u4_range = ps_cab_enc_env->u4_code_int_range;
     WORD32 next_byte;
 
@@ -782,5 +750,4 @@ void ih264e_cabac_encode_bypass_bins(cabac_ctxt_t *ps_cabac, UWORD32 u4_bins,
         /*  insert the leading byte of low into stream */
         ih264e_cabac_put_byte(ps_cabac);
     }
-
 }

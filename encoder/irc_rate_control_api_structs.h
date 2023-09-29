@@ -16,7 +16,7 @@
  *
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
- */
+*/
 
 #ifndef _RATE_CONTROL_API_STRUCTS_H_
 #define _RATE_CONTROL_API_STRUCTS_H_

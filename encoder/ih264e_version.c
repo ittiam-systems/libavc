@@ -24,16 +24,16 @@
 *  ih264e_version.c
 *
 * @brief
-*  Contains version info for H264 encoder
+*  Contains version info of h264 encoder
 *
 * @author
 *  ittiam
 *
 * @par List of Functions:
-* - ih264e_get_version()
+* - ih264e_get_version
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -41,20 +41,16 @@
 /*****************************************************************************/
 /* File Includes                                                             */
 /*****************************************************************************/
-/* system include files */
+
+/* System Include Files */
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
-/* user include files */
+/* User Include Files */
 #include "ih264_typedefs.h"
 #include "iv2.h"
-#include "ive2.h"
-#include "ih264e.h"
-#include "ih264_defs.h"
-#include "ih264_debug.h"
-#include "ih264_structs.h"
 #include "ih264e_version.h"
 
 
@@ -73,7 +69,7 @@
 /**
  * Version string. First two digits signify major version and last two minor
  */
-#define CODEC_RELEASE_VER       "01.00"
+#define CODEC_RELEASE_VER       "01.02"
 /**
  * Vendor name
  */

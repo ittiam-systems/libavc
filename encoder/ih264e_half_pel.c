@@ -34,7 +34,7 @@
 *  - ih264e_sixtap_filter_2dvh_vert
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -43,24 +43,24 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 #include <assert.h>
 #include <limits.h>
 
-/* User include files */
+/* User Include Files */
 #include "ih264_typedefs.h"
-#include "ithread.h"
-#include "ih264_platform_macros.h"
-#include "ih264_defs.h"
-#include "ih264e_half_pel.h"
+
 #include "ih264_macros.h"
-#include "ih264e_debug.h"
-#include "ih264_inter_pred_filters.h"
+#include "ih264_defs.h"
 #include "ih264_mem_fns.h"
 #include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
+#include "ih264_inter_pred_filters.h"
 #include "ih264_deblk_edge_filters.h"
+#include "ih264_platform_macros.h"
+
+#include "ih264e_half_pel.h"
 
 
 /*****************************************************************************/
@@ -93,7 +93,7 @@
 * @returns
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -172,7 +172,7 @@ void ih264e_sixtapfilter_horz(UWORD8 *pu1_src,
 * @returns
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
