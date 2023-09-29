@@ -48,6 +48,14 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
+/* System include files */
+#include <stdio.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+#include <assert.h>
+
 /* User include files */
 #include "irc_datatypes.h"
 #include "iv2.h"
@@ -417,9 +425,16 @@ void ih264e_update_rc_mb_info(frame_info_t *ps_frame_info, void *pv_proc)
     ps_frame_info->num_mbs[mb_type]++;
 
     /* cost */
-    if (ps_proc->u4_is_intra)
-    {
-        ps_frame_info->intra_mb_cost_sum += ps_proc->i4_mb_cost;
+    if (ps_proc->i4_mb_intra_cost != INT_MAX) {
+        ps_frame_info->intra_mb_cost_sum += ps_proc->i4_mb_intra_cost;
+    } else {
+        /* codec context */
+        codec_t *ps_codec = ps_proc->ps_codec;
+
+        /* temp var */
+        WORD32 i4_mb_id = ps_proc->i4_mb_x + ps_proc->i4_mb_y * ps_proc->i4_wd_mbs;
+
+        ps_frame_info->intra_mb_cost_sum += ps_codec->pi4_mb_intra_cost[i4_mb_id];
     }
 }
 
@@ -581,16 +596,12 @@ WORD32 ih264e_rc_post_enc(void * ps_rate_control_api,
     i4_intra_frm_cost                    = irc_fi_get_total_intra_mb_cost(ps_frame_info);
     i4_avg_mb_activity                   = irc_fi_get_avg_activity(ps_frame_info);
     i4_total_hdr_bits                    = irc_fi_get_total_header_bits(ps_frame_info);
-    i4_total_texturebits                 = irc_fi_get_total_mb_texture_bits(ps_frame_info,MB_TYPE_INTRA);
-    i4_total_texturebits                 += irc_fi_get_total_mb_texture_bits(ps_frame_info,MB_TYPE_INTER);
+    ai4_mb_type_tex_bits[MB_TYPE_INTRA]  = irc_fi_get_total_mb_texture_bits(ps_frame_info,MB_TYPE_INTRA);
+    ai4_mb_type_tex_bits[MB_TYPE_INTER]  = irc_fi_get_total_mb_texture_bits(ps_frame_info,MB_TYPE_INTER);
+    i4_total_texturebits                 = ai4_mb_type_tex_bits[MB_TYPE_INTRA] + ai4_mb_type_tex_bits[MB_TYPE_INTER];
     i4_total_frame_bits                  = i4_total_hdr_bits + i4_total_texturebits ;
 
     *pi4_avg_activity = i4_avg_mb_activity;
-
-
-    /* Texture bits are not accumulated. Hence subtracting hdr bits from total bits */
-    ai4_mb_type_tex_bits[MB_TYPE_INTRA]  = 0;
-    ai4_mb_type_tex_bits[MB_TYPE_INTER]  = i4_total_frame_bits - i4_total_hdr_bits;
 
     /* Set post encode skip to zero */
     pi4_is_post_encode_skip[0]= 0;

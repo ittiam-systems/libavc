@@ -479,6 +479,10 @@ void ih264e_evaluate_intra16x16_modes_for_least_cost_rdoptoff(process_ctxt_t *ps
         ps_proc->i4_mb_distortion = i4_mb_distortion_least;
         ps_proc->u4_mb_type = I16x16;
     }
+    if (i4_mb_cost_least < ps_proc->i4_mb_intra_cost)
+    {
+        ps_proc->i4_mb_intra_cost = i4_mb_cost_least;
+    }
 
     return ;
 }
@@ -726,6 +730,10 @@ void ih264e_evaluate_intra8x8_modes_for_least_cost_rdoptoff(process_ctxt_t *ps_p
         ps_proc->i4_mb_cost = i4_total_cost;
         ps_proc->i4_mb_distortion = i4_total_distortion;
         ps_proc->u4_mb_type = I8x8;
+    }
+    if (i4_total_cost < ps_proc->i4_mb_intra_cost)
+    {
+        ps_proc->i4_mb_intra_cost = i4_total_cost;
     }
 
     return ;
@@ -997,6 +1005,10 @@ void ih264e_evaluate_intra4x4_modes_for_least_cost_rdoptoff(process_ctxt_t *ps_p
         ps_proc->i4_mb_cost = i4_total_cost;
         ps_proc->i4_mb_distortion = i4_total_distortion;
         ps_proc->u4_mb_type = I4x4;
+    }
+    if (i4_total_cost < ps_proc->i4_mb_intra_cost)
+    {
+        ps_proc->i4_mb_intra_cost = i4_total_cost;
     }
 
     return ;
@@ -1335,6 +1347,10 @@ void ih264e_evaluate_intra4x4_modes_for_least_cost_rdopton(process_ctxt_t *ps_pr
         ps_proc->i4_mb_cost = i4_total_cost;
         ps_proc->i4_mb_distortion = i4_total_distortion;
         ps_proc->u4_mb_type = I4x4;
+    }
+    if (i4_total_cost < ps_proc->i4_mb_intra_cost)
+    {
+        ps_proc->i4_mb_intra_cost = i4_total_cost;
     }
 
     return ;

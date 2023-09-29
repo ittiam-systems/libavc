@@ -3603,6 +3603,25 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
     DEBUG("\nMemory record Id %d = %d \n", MEM_REC_MVBITS, ps_mem_rec->u4_mem_size);
 
     /************************************************************************
+     *  Frame level Intra Cost Map. During intra/inter analysis preserve the*
+     *  intra mb cost for future complexity estimation.                     *
+     *  NOTE: The cost map is a overlay on the previous frame. In case if an*
+     *  mb is not intra analyzed, the cost here represents its collocated mb*
+     *  intra cost. This traversal can go till the latest I frame at worse  *
+     ************************************************************************/
+    ps_mem_rec = &ps_mem_rec_base[MEM_REC_INTRA_COST];
+    {
+        /* total size of the mem record */
+        WORD32 total_size = 0;
+
+        /* size in bytes to mb core coding status of an entire frame */
+        total_size = max_mb_cnt * sizeof(WORD32);
+
+        ps_mem_rec->u4_mem_size = total_size;
+    }
+    DEBUG("\nMemory record Id %d = %d \n", MEM_REC_INTRA_COST, ps_mem_rec->u4_mem_size);
+
+    /************************************************************************
      * Request memory for SPS                                               *
      ***********************************************************************/
     ps_mem_rec = &ps_mem_rec_base[MEM_REC_SPS];
@@ -4517,6 +4536,11 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
             /* init at zero mv */
             ps_mem_ctxt->pu1_mv_bits = pu1_buf + u4_max_srch_range;
         }
+    }
+
+    ps_mem_rec = &ps_mem_rec_base[MEM_REC_INTRA_COST];
+    {
+        ps_codec->pi4_mb_intra_cost = ps_mem_rec->pv_base;
     }
 
     ps_mem_rec = &ps_mem_rec_base[MEM_REC_SPS];

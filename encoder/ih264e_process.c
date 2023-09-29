@@ -1092,6 +1092,11 @@ WORD32 ih264e_update_proc_ctxt(process_ctxt_t *ps_proc)
             ih264_list_terminate(ps_codec->pv_entropy_jobq);
     }
 
+    /* update intra cost if valid */
+    if (ps_proc->i4_mb_intra_cost != INT_MAX) {
+        ps_codec->pi4_mb_intra_cost[(i4_mb_y * i4_wd_mbs) + i4_mb_x] = ps_proc->i4_mb_intra_cost;
+    }
+
     /* update proc map */
     pu1_proc_map[i4_mb_x] = 1;
 
@@ -1126,10 +1131,9 @@ WORD32 ih264e_update_proc_ctxt(process_ctxt_t *ps_proc)
     ps_proc->apu1_ref_buf_chroma[0] += MB_SIZE;
     ps_proc->apu1_ref_buf_chroma[1] += MB_SIZE;
 
-
-
     /* Reset cost, distortion params */
     ps_proc->i4_mb_cost = INT_MAX;
+    ps_proc->i4_mb_intra_cost = INT_MAX;
     ps_proc->i4_mb_distortion = SHRT_MAX;
 
     ps_proc->ps_pu += *ps_proc->pu4_mb_pu_cnt;
@@ -1473,6 +1477,7 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
 
     /* mb cost */
     ps_proc->i4_mb_cost = INT_MAX;
+    ps_proc->i4_mb_intra_cost = INT_MAX;
 
     /**********************/
     /* init deblk context */
