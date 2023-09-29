@@ -62,7 +62,7 @@
 * (from rate distortion optimization for video compression by sullivan).
 ******************************************************************************
 */
-const UWORD16 gu2_qp_lambda[52]=
+const UWORD8 gu1_qp_lambdaIP[52]=
 {
        0,      0,      0,      0,      0,      0,      0,      1,
        1,      1,      1,      1,      1,      1,      1,      1,
@@ -71,6 +71,26 @@ const UWORD16 gu2_qp_lambda[52]=
        9,     10,     12,     13,     15,     17,     19,     21,
       23,     26,     30,     33,     37,     42,     47,     53,
       59,     66,     74,     83,
+};
+
+/**
+******************************************************************************
+* @brief  lambda for varying quantizer scales that would be used to
+* compute the RD cost while deciding on the MB modes.
+* input  : qp
+* output : lambda
+* @remarks lambda = max(2, min(4, pow(2, (qp - 12)/6))) * gu1_qp_lambdaIP[]
+******************************************************************************
+*/
+const UWORD8 gu1_qp_lambdaB[52]=
+{
+        0,       0,       0,       0,       1,       1,       1,       1,
+        1,       1,       1,       1,       1,       1,       2,       2,
+        2,       2,       3,       3,       3,       4,       4,       5,
+        5,       6,       7,       8,      10,      11,      13,      15,
+       17,      20,      22,      26,      30,      33,      37,      42,
+       47,      53,      59,      66,      74,      83,      94,     105,
+      118,     132,     149,     167,
 };
 
 /**

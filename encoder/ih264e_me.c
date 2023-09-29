@@ -825,9 +825,14 @@ void ih264e_init_me(process_ctxt_t *ps_proc)
     ps_me_ctxt->apu1_ref_buf_luma[0] = ps_proc->apu1_ref_buf_luma[0];
     ps_me_ctxt->apu1_ref_buf_luma[1] = ps_proc->apu1_ref_buf_luma[1];
 
-    ps_me_ctxt->u4_lambda_motion = gu1_qp0[ps_me_ctxt->u1_mb_qp];
-
-
+    if (ps_codec->pic_type == PIC_B)
+    {
+        ps_me_ctxt->u4_lambda_motion = gu1_qp_lambdaB[ps_me_ctxt->u1_mb_qp];
+    }
+    else
+    {
+        ps_me_ctxt->u4_lambda_motion = gu1_qp_lambdaIP[ps_me_ctxt->u1_mb_qp];
+    }
 }
 
 
