@@ -1283,6 +1283,12 @@ IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec)
         ps_codec->i4_air_pic_cnt = -1;
     }
 
+    /*****************************************************************/
+    /*                    Initialize Intra Cost Map                  */
+    /*****************************************************************/
+    memset(ps_codec->pi4_mb_intra_cost, 0, ps_codec->s_cfg.i4_wd_mbs *
+           ps_codec->s_cfg.i4_ht_mbs * sizeof(*ps_codec->pi4_mb_intra_cost));
+
     /****************************************************/
     /*           INITIALIZE RATE CONTROL                */
     /****************************************************/

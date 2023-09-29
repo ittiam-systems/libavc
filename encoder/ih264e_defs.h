@@ -348,6 +348,11 @@ enum
     MEM_REC_MVBITS,
 
     /**
+     * Overlay Intra Cost Map
+     */
+    MEM_REC_INTRA_COST,
+
+    /**
      * Holds mem records passed to the codec.
      */
     MEM_REC_BACKUP,

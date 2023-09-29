@@ -1705,6 +1705,7 @@ struct _proc_t
      * mb cost
      */
     WORD32 i4_mb_cost;
+    WORD32 i4_mb_intra_cost;
 
     /********************************************************************/
     /* i4_ngbr_avbl_mb_16 - ngbr avbl of curr mb                        */
@@ -2584,6 +2585,12 @@ struct _codec_t
      * Stores the frames at which intra refresh should occur for a MB
      */
     UWORD16 *pu2_intr_rfrsh_map;
+
+    /*
+     * Intra MB Cost Map
+     * Stores the intra cost of all mb of a frame
+     */
+    WORD32 *pi4_mb_intra_cost;
 
     /*
      * Indicates if the current frame is used as a reference frame
