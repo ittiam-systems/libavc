@@ -1458,7 +1458,14 @@ IH264E_ERROR_T ih264e_init_proc_ctxt(process_ctxt_t *ps_proc)
     ps_proc->u4_mb_type = I16x16;
 
     /* lambda */
-    ps_proc->u4_lambda = gu1_qp0[ps_qp_params->u1_mb_qp];
+    if (ps_codec->pic_type == PIC_B)
+    {
+        ps_proc->u4_lambda = gu1_qp_lambdaB[ps_qp_params->u1_mb_qp];
+    }
+    else
+    {
+        ps_proc->u4_lambda = gu1_qp_lambdaIP[ps_qp_params->u1_mb_qp];
+    }
 
     /* mb distortion */
     ps_proc->i4_mb_distortion = SHRT_MAX;

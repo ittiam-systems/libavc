@@ -43,7 +43,8 @@
 /* Global Declarations                                                       */
 /*****************************************************************************/
 
-extern const UWORD16 gu2_qp_lambda[52];
+extern const UWORD8 gu1_qp_lambdaIP[52];
+extern const UWORD8 gu1_qp_lambdaB[52];
 extern const UWORD8 gu1_qp0[52];
 extern const UWORD8 u1_uev_codelength[32];
 extern const UWORD8 gu1_coeff_cost[6];
