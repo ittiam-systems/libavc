@@ -1295,8 +1295,8 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
                         return IV_FAIL;
                     }
 
-                    if (((ps_ip->s_ive_ip.u4_src_frame_rate * 1000) > DEFAULT_MAX_FRAMERATE)
-                                    || ((ps_ip->s_ive_ip.u4_tgt_frame_rate * 1000) > DEFAULT_MAX_FRAMERATE))
+                    if ((ps_ip->s_ive_ip.u4_src_frame_rate > DEFAULT_MAX_FRAMERATE)
+                                    || (ps_ip->s_ive_ip.u4_tgt_frame_rate > DEFAULT_MAX_FRAMERATE))
                     {
                         ps_op->s_ive_op.u4_error_code |= 1
                                         << IVE_UNSUPPORTEDPARAM;
@@ -2848,7 +2848,7 @@ static WORD32 ih264e_set_default_params(cfg_params_t *ps_cfg)
     ps_cfg->e_recon_color_fmt = IV_YUV_420P;
     ps_cfg->u4_enc_speed_preset = IVE_FASTEST;
     ps_cfg->e_rc_mode = DEFAULT_RC;
-    ps_cfg->u4_max_framerate = DEFAULT_MAX_FRAMERATE;
+    ps_cfg->u4_max_framerate = DEFAULT_MAX_FRAMERATE * 1000;
     ps_cfg->u4_max_bitrate = DEFAULT_MAX_BITRATE;
     ps_cfg->u4_num_bframes = DEFAULT_MAX_NUM_BFRAMES;
     ps_cfg->e_content_type = IV_PROGRESSIVE;
@@ -2862,8 +2862,8 @@ static WORD32 ih264e_set_default_params(cfg_params_t *ps_cfg)
     ps_cfg->u4_disp_ht = MAX_HT;
     ps_cfg->u4_wd = MAX_WD;
     ps_cfg->u4_ht = MAX_HT;
-    ps_cfg->u4_src_frame_rate = DEFAULT_SRC_FRAME_RATE;
-    ps_cfg->u4_tgt_frame_rate = DEFAULT_TGT_FRAME_RATE;
+    ps_cfg->u4_src_frame_rate = DEFAULT_SRC_FRAME_RATE * 1000;
+    ps_cfg->u4_tgt_frame_rate = DEFAULT_TGT_FRAME_RATE * 1000;
     ps_cfg->u4_target_bitrate = DEFAULT_BITRATE;
     ps_cfg->e_frame_type = IV_NA_FRAME;
     ps_cfg->e_enc_mode = IVE_ENC_MODE_DEFAULT;
@@ -2905,9 +2905,9 @@ static WORD32 ih264e_set_default_params(cfg_params_t *ps_cfg)
     ps_cfg->e_cmd = IVE_CMD_CT_NA;
     ps_cfg->i4_wd_mbs = ps_cfg->u4_max_wd >> 4;
     ps_cfg->i4_ht_mbs = ps_cfg->u4_max_ht >> 4;
-    ps_cfg->u4_entropy_coding_mode = CAVLC;
+    ps_cfg->u4_entropy_coding_mode = DEFAULT_ENTROPY_CODING_MODE;
     ps_cfg->u4_weighted_prediction = 0;
-    ps_cfg->u4_constrained_intra_pred = 0;
+    ps_cfg->u4_constrained_intra_pred = DEFAULT_CONSTRAINED_INTRAPRED;
     ps_cfg->u4_pic_info_type = 0;
     ps_cfg->u4_mb_info_type = 0;
     ps_cfg->s_vui.u1_video_signal_type_present_flag = 0;
@@ -4177,7 +4177,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
     ps_cfg->u4_max_level = ps_ip->s_ive_ip.u4_max_level;
     ps_cfg->e_inp_color_fmt = ps_ip->s_ive_ip.e_inp_color_fmt;
     ps_cfg->e_recon_color_fmt = ps_ip->s_ive_ip.e_recon_color_fmt;
-    ps_cfg->u4_max_framerate = ps_ip->s_ive_ip.u4_max_framerate;
+    ps_cfg->u4_max_framerate = ps_ip->s_ive_ip.u4_max_framerate * 1000;
     ps_cfg->u4_max_bitrate = ps_ip->s_ive_ip.u4_max_bitrate;
     ps_cfg->u4_num_bframes = ps_ip->s_ive_ip.u4_num_bframes;
     ps_cfg->e_content_type = ps_ip->s_ive_ip.e_content_type;
