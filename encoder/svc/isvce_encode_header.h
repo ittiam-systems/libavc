@@ -103,12 +103,12 @@
 *           in case of errors
 ******************************************************************************
 */
-#define RETURN_ENTROPY_IF_ERROR(ps_codec, ps_entropy, ctxt_sel) \
-    if(ps_entropy->i4_error_code != IH264E_SUCCESS)             \
-    {                                                           \
-        DATA_SYNC();                                            \
-        ps_codec->au4_entropy_thread_active[ctxt_sel] = 0;      \
-        return ps_entropy->i4_error_code;                       \
+#define RETURN_ENTROPY_IF_ERROR(ps_codec, ps_entropy, ctxt_sel)            \
+    if(ps_entropy->i4_error_code != IH264E_SUCCESS)                        \
+    {                                                                      \
+        DATA_SYNC();                                                       \
+        ps_codec->ae_entropy_thread_exit_state[ctxt_sel] = ERRONEOUS_EXIT; \
+        return ps_entropy->i4_error_code;                                  \
     }
 
 /*****************************************************************************/

@@ -2262,7 +2262,7 @@ static WORD32 isvce_init(isvce_codec_t *ps_codec)
     /* reset status flags */
     for(i = 0; i < MAX_CTXT_SETS; i++)
     {
-        ps_codec->au4_entropy_thread_active[i] = 0;
+        ps_codec->ae_entropy_thread_exit_state[i] = INACTIVE;
         ps_codec->ai4_pic_cnt[i] = -1;
 
         ps_codec->s_rate_control.pre_encode_skip[i] = 0;
