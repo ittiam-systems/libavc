@@ -2184,7 +2184,7 @@ typedef struct isvce_codec_t
     /**
      * Flag to determine if the entropy thread is active
      */
-    volatile UWORD32 au4_entropy_thread_active[MAX_CTXT_SETS];
+    volatile ISVCE_ENTROPY_THREAD_STATES_T ae_entropy_thread_exit_state[MAX_CTXT_SETS];
 
     /**
      * Mutex used to keep the entropy calls thread-safe

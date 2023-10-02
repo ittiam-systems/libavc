@@ -1122,7 +1122,7 @@ IH264E_ERROR_T isvce_entropy(isvce_process_ctxt_t *ps_proc)
     DATA_SYNC();
 
     /* allow threads to dequeue entropy jobs */
-    ps_codec->au4_entropy_thread_active[ctxt_sel] = 0;
+    ps_codec->ae_entropy_thread_exit_state[ctxt_sel] = INACTIVE;
 
     return ps_entropy->i4_error_code;
 }
@@ -2684,6 +2684,7 @@ WORD32 isvce_process_thread(void *pv_proc)
 
     IH264_ERROR_T ret = IH264_SUCCESS;
 
+    WORD32 ctxt_sel = ps_codec->i4_encode_api_call_cnt % MAX_CTXT_SETS;
     WORD32 error_status = IH264_SUCCESS;
     WORD32 is_blocking = 0;
 
@@ -2693,24 +2694,23 @@ WORD32 isvce_process_thread(void *pv_proc)
     {
         /* dequeue a job from the entropy queue */
         {
+            bool b_is_entropy_state_invalid = false;
             WORD32 retval = ithread_mutex_lock(ps_codec->pv_entropy_mutex);
-
-            /* codec context selector */
-            WORD32 ctxt_sel = ps_codec->i4_encode_api_call_cnt % MAX_CTXT_SETS;
-
-            volatile UWORD32 *pu4_buf = &ps_codec->au4_entropy_thread_active[ctxt_sel];
+            volatile ISVCE_ENTROPY_THREAD_STATES_T *pe_entropy_thread_state =
+                &ps_codec->ae_entropy_thread_exit_state[ctxt_sel];
 
             /* have the lock */
             if(retval == 0)
             {
-                if(*pu4_buf == 0)
+                if(*pe_entropy_thread_state == INACTIVE)
                 {
                     /* no entropy threads are active, try dequeuing a job from the entropy
                      * queue */
                     ret = ih264_list_dequeue(ps_proc->pv_entropy_jobq, &s_job, is_blocking);
+
                     if(IH264_SUCCESS == ret)
                     {
-                        *pu4_buf = 1;
+                        *pe_entropy_thread_state = IN_PROCESS;
                         ithread_mutex_unlock(ps_codec->pv_entropy_mutex);
                         goto WORKER;
                     }
@@ -2720,7 +2720,19 @@ WORD32 isvce_process_thread(void *pv_proc)
                         break;
                     }
                 }
+                else if(*pe_entropy_thread_state == ERRONEOUS_EXIT)
+                {
+                    b_is_entropy_state_invalid = true;
+                }
+
                 ithread_mutex_unlock(ps_codec->pv_entropy_mutex);
+            }
+
+            if(b_is_entropy_state_invalid)
+            {
+                ps_proc->i4_error_code = IH264_FAIL;
+
+                return IH264_FAIL;
             }
         }
 
@@ -2729,7 +2741,9 @@ WORD32 isvce_process_thread(void *pv_proc)
         if(IH264_SUCCESS != ret)
         {
             if(ps_proc->i4_id)
+            {
                 break;
+            }
             else
             {
                 is_blocking = 1;
@@ -2753,6 +2767,7 @@ WORD32 isvce_process_thread(void *pv_proc)
 
                 if(error_status != IH264_SUCCESS)
                 {
+                    ps_codec->ae_entropy_thread_exit_state[ctxt_sel] = ERRONEOUS_EXIT;
                     ps_proc->i4_error_code = error_status;
                     return ret;
                 }
@@ -2771,6 +2786,7 @@ WORD32 isvce_process_thread(void *pv_proc)
 
                 if(error_status != IH264_SUCCESS)
                 {
+                    ps_codec->ae_entropy_thread_exit_state[ctxt_sel] = ERRONEOUS_EXIT;
                     ps_proc->i4_error_code = error_status;
                     return ret;
                 }
