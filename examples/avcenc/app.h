@@ -17,23 +17,24 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-/*****************************************************************************/
-/*                                                                           */
-/*  File Name         : app.h                                                */
-/*                                                                           */
-/*  Description       : This file contains all the necessary structure and   */
-/*                      enumeration definitions needed for the Application   */
-/*                                                                           */
-/*  List of Functions :                                                      */
-/*                                                                           */
-/*  Issues / Problems : None                                                 */
-/*                                                                           */
-/*  Revision History  :                                                      */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         26 08 2010   Ittiam          Draft                                */
-/*                                                                           */
-/*****************************************************************************/
+
+/**
+*******************************************************************************
+* @file
+*  app.h
+*
+* @brief
+*  This file contains all the necessary structure and enumeration definitions
+*  needed for the Application
+*
+* @author
+*  ittiam
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 
 #ifndef _APP_H_
 #define _APP_H_
@@ -45,6 +46,7 @@
 #else
 #include <sys/time.h>
 #endif
+
 /*****************************************************************************/
 /* Function Macros                                                           */
 /*****************************************************************************/
@@ -56,7 +58,6 @@
 /*****************************************************************************/
 /* Constant Macros                                                           */
 /*****************************************************************************/
-
 #define DEFAULT_NUM_INPUT_BUFS   32
 #define DEFAULT_MAX_INPUT_BUFS   32
 
@@ -66,24 +67,12 @@
 #define DEFAULT_NUM_RECON_BUFS   32
 #define DEFAULT_MAX_RECON_BUFS   DEFAULT_NUM_RECON_BUFS
 
-
-#define LEN_STATUS_BUFFER        (10  * 1024)
-#define MAX_VBV_BUFF_SIZE        (120 * 16384)
-#define MAX_NUM_IO_BUFS           3
-
 #define DEFAULT_MAX_REF_FRM         2
 #define DEFAULT_MAX_REORDER_FRM     0
-#define DEFAULT_QP_MIN              4
-#define DEFAULT_QP_MAX              51
-#define DEFAULT_MAX_BITRATE         240000000
-#define DEFAULT_NUM_BFRAMES         0
 #define DEFAULT_MAX_SRCH_RANGE_X    256
 #define DEFAULT_MAX_SRCH_RANGE_Y    256
-#define DEFAULT_MAX_FRAMERATE       120000
-#define DEFAULT_NUM_CORES           1
-#define DEFAULT_NUM_CORES_PRE_ENC   0
-#define DEFAULT_FPS                 30
-#define DEFAULT_ENC_SPEED           100
+#define DEFAULT_QP_MIN              4
+#define DEFAULT_QP_MAX              49
 
 #define DEFAULT_MEM_REC_CNT         0
 #define DEFAULT_RECON_ENABLE        0
@@ -92,7 +81,9 @@
 #define DEFAULT_NUM_FRMS            0xFFFFFFFF
 #define DEFAULT_INP_COLOR_FMT       IV_YUV_420SP_UV
 #define DEFAULT_RECON_COLOR_FMT     IV_YUV_420P
+#define DEFAULT_NUM_CORES           1
 #define DEFAULT_LOOPBACK            0
+#define DEFAULT_MAX_FRAMERATE       120
 #define DEFAULT_SRC_FRAME_RATE      30
 #define DEFAULT_TGT_FRAME_RATE      30
 #define DEFAULT_MAX_WD              1920
@@ -106,24 +97,25 @@
 #define DEFAULT_ENABLE_FAST_SAD     0
 #define DEFAULT_ENABLE_ALT_REF      0
 #define DEFAULT_RC                  1
+#define DEFAULT_MAX_BITRATE         240000000
 #define DEFAULT_BITRATE             6000000
 #define DEFAULT_I_QP                25
 #define DEFAULT_I_QP_MAX            DEFAULT_QP_MAX
-#define DEFAULT_I_QP_MIN            0
+#define DEFAULT_I_QP_MIN            DEFAULT_QP_MIN
 #define DEFAULT_P_QP                28
 #define DEFAULT_P_QP_MAX            DEFAULT_QP_MAX
-#define DEFAULT_P_QP_MIN            0
+#define DEFAULT_P_QP_MIN            DEFAULT_QP_MIN
 #define DEFAULT_B_QP                28
 #define DEFAULT_B_QP_MAX            DEFAULT_QP_MAX
-#define DEFAULT_B_QP_MIN            0
+#define DEFAULT_B_QP_MIN            DEFAULT_QP_MIN
 #define DEFAULT_AIR                 0
 #define DEFAULT_AIR_REFRESH_PERIOD  30
-#define DEFAULT_SRCH_RNG_X          64
-#define DEFAULT_SRCH_RNG_Y          48
+#define DEFAULT_SRCH_RNG_X          16
+#define DEFAULT_SRCH_RNG_Y          16
 #define DEFAULT_I_INTERVAL          30
-#define DEFAULT_IDR_INTERVAL        1000
+#define DEFAULT_IDR_INTERVAL        1200
 #define DEFAULT_CONSTRAINED_INTRAPRED  0
-#define DEFAULT_B_FRAMES            0
+#define DEFAULT_NUM_BFRAMES         0
 #define DEFAULT_DISABLE_DEBLK_LEVEL 0
 #define DEFAULT_HPEL                1
 #define DEFAULT_QPEL                1
@@ -132,7 +124,17 @@
 #define DEFAULT_SLICE_MODE          0
 #define DEFAULT_SLICE_PARAM         256
 #define DEFAULT_ENTROPY_CODING_MODE 0
-
+#define NUM_SEI_MDCV_PRIMARIES      3
+#define NUM_SEI_CCV_PRIMARIES       3
+#define SII_MAX_SUB_LAYERS 8
+#define SII_SUB_LAYER_IDX 0
+#define SHUTTER_INTERVAL_INFO_PRESENT_FLAG 1
+#define SII_TIME_SCALE 24000000
+#define FIXED_SHUTTER_INTERVAL_WITHIN_CVS_FLAG 0
+#define SII_NUM_UNITS_IN_SHUTTER_INTERVAL 480000
+#define SII_MAX_SUB_LAYERS_MINUS1 (SII_MAX_SUB_LAYERS - 1)
+#define SUB_LAYER_NUM_UNITS_IN_SHUTTER_INTERVAL_HFR 480000
+#define SUB_LAYER_NUM_UNITS_IN_SHUTTER_INTERVAL_SFR 240000
 #define DEFAULT_MAX_DISPLAY_MASTERING_LUMINANCE 50000
 #define DEFAULT_MIN_DISPLAY_MASTERING_LUMINANCE 1
 
@@ -184,6 +186,12 @@
 /*****************************************************************************/
 /*  Structure definitions                                                    */
 /*****************************************************************************/
+
+/**
+**************************************************************************
+* @brief input buffer context
+**************************************************************************
+*/
 typedef struct
 {
     UWORD8 *pu1_buf;
@@ -191,10 +199,15 @@ typedef struct
     UWORD32 u4_timestamp_low;
     UWORD32 u4_timestamp_high;
     UWORD32 u4_is_free;
-    void    *pv_mb_info;
-    void    *pv_pic_info;
-}input_buf_t;
+    void *pv_mb_info;
+    void *pv_pic_info;
+} input_buf_t;
 
+/**
+**************************************************************************
+* @brief output buffer context
+**************************************************************************
+*/
 typedef struct
 {
     UWORD8 *pu1_buf;
@@ -202,8 +215,13 @@ typedef struct
     UWORD32 u4_timestamp_low;
     UWORD32 u4_timestamp_high;
     UWORD32 u4_is_free;
-}output_buf_t;
+} output_buf_t;
 
+/**
+**************************************************************************
+* @brief recon buffer context
+**************************************************************************
+*/
 typedef struct
 {
     UWORD8 *pu1_buf;
@@ -211,8 +229,13 @@ typedef struct
     UWORD32 u4_timestamp_low;
     UWORD32 u4_timestamp_high;
     UWORD32 u4_is_free;
-}recon_buf_t;
+} recon_buf_t;
 
+/**
+**************************************************************************
+* @brief app context
+**************************************************************************
+*/
 typedef struct
 {
     iv_obj_t *ps_enc;
@@ -233,19 +256,19 @@ typedef struct
     IV_ARCH_T e_arch;
     IV_SOC_T e_soc;
 
-    WORD32  header_generated;
+    WORD32 header_generated;
     void *pv_codec_obj;
 
     UWORD32 u4_num_cores;
     UWORD32 u4_pre_enc_me;
     UWORD32 u4_pre_enc_ipe;
+
     CHAR ac_ip_fname[STRLENGTH];
     CHAR ac_op_fname[STRLENGTH];
     CHAR ac_recon_fname[STRLENGTH];
     CHAR ac_chksum_fname[STRLENGTH];
     CHAR ac_mb_info_fname[STRLENGTH];
     CHAR ac_pic_info_fname[STRLENGTH];
-
 
     FILE *fp_ip;
     FILE *fp_op;
@@ -254,8 +277,6 @@ typedef struct
     FILE *fp_psnr_ip;
     FILE *fp_mb_info;
     FILE *fp_pic_info;
-    FILE *fp_dump_op;
-
 
     UWORD32 u4_loopback;
     UWORD32 u4_max_frame_rate;
@@ -266,12 +287,10 @@ typedef struct
     UWORD32 u4_max_level;
 
     UWORD32 u4_strd;
-
     UWORD32 u4_wd;
     UWORD32 u4_ht;
 
     UWORD32 u4_psnr_enable;
-
 
     UWORD32 u4_enc_speed;
     UWORD32 u4_me_speed;
@@ -280,9 +299,9 @@ typedef struct
     UWORD32 u4_rc;
     UWORD32 u4_max_bitrate;
     UWORD32 u4_bitrate;
-    UWORD32 u4_i_qp,u4_i_qp_max,u4_i_qp_min;
-    UWORD32 u4_p_qp,u4_p_qp_max,u4_p_qp_min;
-    UWORD32 u4_b_qp,u4_b_qp_max,u4_b_qp_min;
+    UWORD32 u4_i_qp, u4_i_qp_max, u4_i_qp_min;
+    UWORD32 u4_p_qp, u4_p_qp_max, u4_p_qp_min;
+    UWORD32 u4_b_qp, u4_b_qp_max, u4_b_qp_min;
     UWORD32 u4_air;
     UWORD32 u4_air_refresh_period;
     UWORD32 u4_srch_rng_x;
@@ -290,14 +309,12 @@ typedef struct
     UWORD32 u4_i_interval;
     UWORD32 u4_idr_interval;
     UWORD32 u4_constrained_intra_pred;
-    UWORD32 u4_b_frames;
     UWORD32 u4_num_bframes;
     UWORD32 u4_disable_deblk_level;
     UWORD32 u4_hpel;
     UWORD32 u4_qpel;
     UWORD32 u4_enable_intra_4x4;
     IV_PROFILE_T e_profile;
-
     UWORD32 u4_slice_mode;
     UWORD32 u4_slice_param;
     UWORD32 u4_entropy_coding_mode;
@@ -311,17 +328,17 @@ typedef struct
     output_buf_t as_output_buf[DEFAULT_MAX_OUTPUT_BUFS];
     recon_buf_t as_recon_buf[DEFAULT_MAX_RECON_BUFS];
 
-    DOUBLE  adbl_psnr[3];
+    DOUBLE adbl_psnr[3];
     UWORD32 u4_psnr_cnt;
-    UWORD8  *pu1_psnr_buf;
-    UWORD8  u4_psnr_buf_size;
+    UWORD8 *pu1_psnr_buf;
+    UWORD8 u4_psnr_buf_size;
 
     UWORD32 u4_vbv_buffer_delay;
     UWORD32 u4_vbv_buf_size;
 
-    TIMER   enc_start_time;
-    TIMER   enc_last_time;
-    WORD32  avg_time;
+    TIMER enc_start_time;
+    TIMER enc_last_time;
+    WORD32 avg_time;
 
     UWORD32 u4_sei_mdcv_params_present_flag;
     UWORD32 au4_display_primaries_x[NUM_SEI_MDCV_PRIMARIES];
@@ -369,6 +386,7 @@ typedef struct
 
 } app_ctxt_t;
 
+
 /*****************************************************************************/
 /*  Function Declarations                                                    */
 /*****************************************************************************/
@@ -391,10 +409,17 @@ void free_input(app_ctxt_t *ps_app_ctxt);
 void free_recon(app_ctxt_t *ps_app_ctxt);
 void free_output(app_ctxt_t *ps_app_ctxt);
 
-void init_raw_buf_descr(app_ctxt_t *ps_app_ctxt, iv_raw_buf_t *ps_raw_buf, UWORD8 *pu1_buf, IV_COLOR_FORMAT_T e_color_fmt);
+void init_raw_buf_descr(app_ctxt_t *ps_app_ctxt,
+                        iv_raw_buf_t *ps_raw_buf,
+                        UWORD8 *pu1_buf,
+                        IV_COLOR_FORMAT_T e_color_fmt);
 
 #ifndef MD5_DISABLE
-void calc_md5_cksum(UWORD8 *pu1_inbuf,UWORD32 u4_stride,UWORD32 u4_width,UWORD32 u4_height,UWORD8 *pu1_cksum_p );
+void calc_md5_cksum(UWORD8 *pu1_inbuf,
+                    UWORD32 u4_stride,
+                    UWORD32 u4_width,
+                    UWORD32 u4_height,
+                    UWORD8 *pu1_cksum_p);
 #else
 #define calc_md5_cksum(a, b, c, d, e)
 #endif
