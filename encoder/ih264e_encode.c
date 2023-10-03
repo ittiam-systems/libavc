@@ -527,7 +527,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     }
 
     /* curr pic cnt */
-     ps_codec->i4_pic_cnt += 1;
+    ps_codec->i4_pic_cnt += 1;
 
     i4_rc_pre_enc_skip = 0;
     i4_rc_pre_enc_skip = ih264e_input_queue_update(
