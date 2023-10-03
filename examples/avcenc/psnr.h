@@ -17,24 +17,26 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-/****************************************************************************/
-/*                                                                          */
-/*  File Name         : psnr.h                                              */
-/*                                                                          */
-/*  Description       : Contains functions for psnr computation             */
-/*                                                                          */
-/*  List of Functions :   ih264e_api_function                               */
-/*                        compute_psnr                                      */
-/*                        print_average_psnr                                */
-/*  Issues / Problems :                                                     */
-/*                                                                          */
-/*  Revision History  :                                                     */
-/*                                                                          */
-/*       DD MM YYYY      Author(s)        Changes (Describe the changes)    */
-/*                                                                          */
-/****************************************************************************/
-#ifndef  PSNR_H
-#define  PSNR_H
+
+/**
+*******************************************************************************
+* @file
+*  psnr.h
+*
+* @brief
+*  Contains declarations of functions for psnr computation
+*
+* @author
+*  ittiam
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
+
+#ifndef  _PSNR_H_
+#define  _PSNR_H_
 
 /*****************************************************************************/
 /*  Function Declarations                                                    */
@@ -47,16 +49,6 @@ void compute_psnr(app_ctxt_t *ps_app_ctxt,
 
 void print_average_psnr(app_ctxt_t *ps_app_ctxt);
 
-#if COMPUTE_PSNR
-
-#define GET_AVERAGE_PSNR_Y(print) print_average_psnr(print)
-
-#else  /* COMPUTE_PSNR */
-
-#define GET_AVERAGE_PSNR_Y(print) 0
-
-#endif /* COMPUTE_PSNR */
-
-#endif
+#endif /* _PSNR_H_ */
 
 
