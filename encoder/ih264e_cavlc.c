@@ -425,44 +425,44 @@ static IH264E_ERROR_T ih264e_write_coeff4x4_cavlc(WORD16 *pi2_res_block,
 
             while (1)
             {
-                UWORD32 u4_codesize;
-                UWORD32 u4_codeword;
-                UWORD32 u4_codeval;
+                WORD32 i4_codesize;
+                WORD32 i4_codeword;
+                WORD32 i4_codeval;
 
                 u4_remaining_coeff--;
 
 GATHER_CAVLC_STATS1();
 
                 {
-                    u4_codeval = u4_abs_level << 1;
-                    u4_codeval = u4_codeval - 2 - i4_sign;
+                    i4_codeval = u4_abs_level << 1;
+                    i4_codeval = i4_codeval - 2 - i4_sign;
 
                     if ((!u4_suffix_length) && (u4_escape > 7) && (u4_abs_level < 16))
                     {
-                        u4_codeword = (1 << 4) + (u4_codeval - 14);
-                        u4_codesize = 19;
+                        i4_codeword = (1 << 4) + (i4_codeval - 14);
+                        i4_codesize = 19;
                     }
                     else if (u4_escape > 7)
                     {
-                        u4_codeword = (1 << 12) + (u4_codeval - (15 << u4_suffix_length));
-                        u4_codesize = 28;
+                        i4_codeword = (1 << 12) + (i4_codeval - (15 << u4_suffix_length));
+                        i4_codesize = 28;
                         if (!u4_suffix_length)
                         {
-                            u4_codeword -= 15;
+                            i4_codeword -= 15;
                         }
                     }
                     else
                     {
-                        u4_codeword = (1 << u4_suffix_length) + (u4_codeval & ((1 << u4_suffix_length)-1));
-                        u4_codesize = (u4_codeval >> u4_suffix_length) + 1 + u4_suffix_length;
+                        i4_codeword = (1 << u4_suffix_length) + (i4_codeval & ((1 << u4_suffix_length)-1));
+                        i4_codesize = (i4_codeval >> u4_suffix_length) + 1 + u4_suffix_length;
                     }
                 }
 
                 /*put the level code in bitstream*/
-                DEBUG("\nLEVEL: %d u4_codeword, %d u4_codesize",u4_codeword, u4_codesize);
-                ENTROPY_TRACE("\tcodeword ",u4_codeword);
-                ENTROPY_TRACE("\tcodesize ",u4_codesize);
-                error_status = ih264e_put_bits(ps_bit_stream, u4_codeword, u4_codesize);
+                DEBUG("\nLEVEL: %d i4_codeword, %d i4_codesize",i4_codeword, i4_codesize);
+                ENTROPY_TRACE("\tcodeword ",i4_codeword);
+                ENTROPY_TRACE("\tcodesize ",i4_codesize);
+                error_status = ih264e_put_bits(ps_bit_stream, i4_codeword, i4_codesize);
 
                 if (u4_remaining_coeff == 0) break;
 
