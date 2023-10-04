@@ -83,7 +83,7 @@
 #define DEFAULT_RECON_COLOR_FMT     IV_YUV_420P
 #define DEFAULT_NUM_CORES           1
 #define DEFAULT_LOOPBACK            0
-#define DEFAULT_MAX_FRAMERATE       120
+#define DEFAULT_MAX_FRAMERATE       120000 /* in ticks (1000 ticks = 1s) */
 #define DEFAULT_SRC_FRAME_RATE      30
 #define DEFAULT_TGT_FRAME_RATE      30
 #define DEFAULT_MAX_WD              1920
@@ -110,8 +110,8 @@
 #define DEFAULT_B_QP_MIN            DEFAULT_QP_MIN
 #define DEFAULT_AIR                 0
 #define DEFAULT_AIR_REFRESH_PERIOD  30
-#define DEFAULT_SRCH_RNG_X          16
-#define DEFAULT_SRCH_RNG_Y          16
+#define DEFAULT_SRCH_RNG_X          64
+#define DEFAULT_SRCH_RNG_Y          64
 #define DEFAULT_I_INTERVAL          30
 #define DEFAULT_IDR_INTERVAL        1200
 #define DEFAULT_CONSTRAINED_INTRAPRED  0
