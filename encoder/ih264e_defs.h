@@ -244,14 +244,14 @@
 #define DEFAULT_RECON_ENABLE            0
 #define DEFAULT_QUALITY_METRICS_ENABLE  0
 #define DEFAULT_RC                      IVE_RC_STORAGE
-#define DEFAULT_MAX_FRAMERATE           120000
+#define DEFAULT_MAX_FRAMERATE           120000 /* in ticks (1000 ticks = 1s) */
 #define DEFAULT_MAX_BITRATE             240000000
 #define DEFAULT_MAX_NUM_BFRAMES         0
 #define DEFAULT_MAX_SRCH_RANGE_X        256
 #define DEFAULT_MAX_SRCH_RANGE_Y        256
 #define DEFAULT_SLICE_PARAM             256
-#define DEFAULT_SRC_FRAME_RATE          30000
-#define DEFAULT_TGT_FRAME_RATE          30000
+#define DEFAULT_SRC_FRAME_RATE          30000 /* in ticks (1000 ticks = 1s) */
+#define DEFAULT_TGT_FRAME_RATE          30000 /* in ticks (1000 ticks = 1s) */
 #define DEFAULT_BITRATE                 6000000
 #define DEFAULT_QP_MIN                  10
 #define DEFAULT_QP_MAX                  51
@@ -274,10 +274,9 @@
 #define DEFAULT_MIN_SAD_ENABLE          0
 #define DEFAULT_MIN_SAD_DISABLE         -1
 #define DEFAULT_SRCH_RNG_X              64
-#define DEFAULT_SRCH_RNG_Y              48
+#define DEFAULT_SRCH_RNG_Y              64
 #define DEFAULT_I_INTERVAL              30
-#define DEFAULT_IDR_INTERVAL            1000
-#define DEFAULT_B_FRAMES                0
+#define DEFAULT_IDR_INTERVAL            1200
 #define DEFAULT_DISABLE_DEBLK_LEVEL     0
 #define DEFAULT_PROFILE                 IV_PROFILE_BASE
 #define DEFAULT_MIN_INTRA_FRAME_RATE    1
@@ -285,10 +284,10 @@
 #define DEFAULT_MIN_BUFFER_DELAY        30
 #define DEFAULT_MAX_BUFFER_DELAY        20000
 #define DEFAULT_STRIDE                  0
-#define DEFAULT_ENC_SPEED_PRESET        IVE_USER_DEFINED
 #define DEFAULT_PRE_ENC_ME              0
 #define DEFAULT_PRE_ENC_IPE             0
 #define DEFAULT_ENTROPY_CODING_MODE     0
+#define DEFAULT_CONSTRAINED_INTRAPRED   0
 
 /** Maximum number of entries in input buffer list */
 #define MAX_INP_BUF_LIST_ENTRIES         32
@@ -374,15 +373,15 @@
 /* [0 - 00 - 00110] */
 #define NAL_SEI_FIRST_BYTE 0x06
 
-#define H264_ALLOC_INTER_FRM_INTV        2
-
+/**
+******************************************************************************
+ * @brief h264qp and linear qp map
+******************************************************************************
+*/
 #define H264_MPEG_QP_MAP    255
-
 #define MPEG2_QP_ELEM       (H264_MPEG_QP_MAP + 1)
 #define H264_QP_ELEM        (MAX_H264_QP + 1)
 
-#define H264_INIT_QUANT_I                26
-#define H264_INIT_QUANT_P                34
 
 /*****************************************************************************/
 /* Enums                                                                     */

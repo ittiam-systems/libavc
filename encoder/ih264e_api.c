@@ -2905,9 +2905,9 @@ static WORD32 ih264e_set_default_params(cfg_params_t *ps_cfg)
     ps_cfg->e_cmd = IVE_CMD_CT_NA;
     ps_cfg->i4_wd_mbs = ps_cfg->u4_max_wd >> 4;
     ps_cfg->i4_ht_mbs = ps_cfg->u4_max_ht >> 4;
-    ps_cfg->u4_entropy_coding_mode = CAVLC;
+    ps_cfg->u4_entropy_coding_mode = DEFAULT_ENTROPY_CODING_MODE;
     ps_cfg->u4_weighted_prediction = 0;
-    ps_cfg->u4_constrained_intra_pred = 0;
+    ps_cfg->u4_constrained_intra_pred = DEFAULT_CONSTRAINED_INTRAPRED;
     ps_cfg->u4_pic_info_type = 0;
     ps_cfg->u4_mb_info_type = 0;
     ps_cfg->s_vui.u1_video_signal_type_present_flag = 0;
