@@ -408,8 +408,7 @@ void* ih264_buf_mgr_get_next_free(buf_mgr_t *ps_buf_mgr, WORD32 *pi4_buf_id)
 /**
 *******************************************************************************
 *
-* @brief
-*      Checks the buffer manager for free buffers available.
+* @brief Checks the buffer manager for free buffers available.
 *
 * @par Description:
 *  Checks if there are any free buffers available
@@ -417,22 +416,22 @@ void* ih264_buf_mgr_get_next_free(buf_mgr_t *ps_buf_mgr, WORD32 *pi4_buf_id)
 * @param[in] ps_buf_mgr
 *  Pointer to the buffer manager
 *
-* @returns  Returns 0 if available, -1 otherwise
+* @returns  Returns IH264_SUCCESS if available, IH264_FAIL otherwise
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
 IH264_ERROR_T ih264_buf_mgr_check_free(buf_mgr_t *ps_buf_mgr)
 {
     WORD32 id;
-    IH264_ERROR_T ret = IH264_SUCCESS;
+    IH264_ERROR_T ret = IH264_FAIL;
     IH264_ERROR_T rettmp = IH264_SUCCESS;
-    rettmp = ih264_buf_mgr_lock(ps_buf_mgr);
-    RETURN_IF((rettmp != IH264_SUCCESS), ret);
 
-    ret = IH264_FAIL;
+    rettmp = ih264_buf_mgr_lock(ps_buf_mgr);
+    RETURN_IF((rettmp != IH264_SUCCESS), rettmp);
+
     for(id = 0; id < ps_buf_mgr->i4_active_buf_cnt; id++)
     {
         if((ps_buf_mgr->au4_status[id] == 0) &&
@@ -443,10 +442,9 @@ IH264_ERROR_T ih264_buf_mgr_check_free(buf_mgr_t *ps_buf_mgr)
         }
     }
     rettmp = ih264_buf_mgr_unlock(ps_buf_mgr);
-    RETURN_IF((rettmp != IH264_SUCCESS), ret);
+    RETURN_IF((rettmp != IH264_SUCCESS), rettmp);
 
     return ret;
-
 }
 
 
