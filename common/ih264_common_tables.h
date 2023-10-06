@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
@@ -26,12 +27,10 @@
 *  Common tables
 *
 * @author
-*  Harish
-*
-* @par List of Functions:
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -78,15 +77,6 @@ typedef struct
 /* Extern global declarations                                                */
 /*****************************************************************************/
 
-/**
- ******************************************************************************
- * @brief  while encoding, basing on the input configuration parameters, the
- * the level of the bitstream is computed basing on the table below.
- * input  : table_idx
- * output : level_idc or cpb size
- * @remarks Table A-1 – level table limits
- ******************************************************************************
- */
 extern const level_tables_t gas_ih264_lvl_tbl[16];
 
 extern const WORD32 gai4_ih264_levels[];

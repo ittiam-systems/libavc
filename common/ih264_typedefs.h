@@ -17,19 +17,20 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
 *  ih264_typedefs.h
 *
 * @brief
-*  Type definitions used in the code
+*  Type definitions used in the software
 *
 * @author
-*  Ittiam
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -61,4 +62,4 @@ typedef int64_t    WORD64;
 typedef char            CHAR;
 typedef double          DOUBLE;
 
-#endif /*   _IH264_TYPEDEFS_H_ */
+#endif /* _IH264_TYPEDEFS_H_ */

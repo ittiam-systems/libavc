@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
@@ -26,12 +27,10 @@
 *  Contains common global tables
 *
 * @author
-*  Harish M
-*
-* @par List of Functions:
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -40,27 +39,27 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* User include files */
+/* User Include Files */
 #include "ih264_typedefs.h"
-#include "ih264_defs.h"
 #include "ih264_macros.h"
+#include "ih264_defs.h"
 #include "ih264_structs.h"
 #include "ih264_common_tables.h"
 
 
 /*****************************************************************************/
-/* Extern global definitions                                                 */
+/* Global definitions                                                        */
 /*****************************************************************************/
 
 /**
- ******************************************************************************
- * @brief  while encoding, basing on the input configuration parameters, the
- * the level of the bitstream is computed basing on the table below.
- * input  : table_idx
- * output : level_idc or cpb size
- * @remarks Table A-1 – level table limits
- ******************************************************************************
- */
+******************************************************************************
+* @brief  while encoding, basing on the input configuration parameters, the
+*  the level of the bitstream is computed basing on the table below.
+* input  : table_idx
+* output : level_idc or cpb size
+* @remarks Table A-1 - level table limits
+******************************************************************************
+*/
 const level_tables_t gas_ih264_lvl_tbl[16] =
 {
     { IH264_LEVEL_10,    1485,       99,         297,       64,         175,         64  },
@@ -81,10 +80,7 @@ const level_tables_t gas_ih264_lvl_tbl[16] =
     { IH264_LEVEL_51,    983040,     36864,      138240,    240000,     240000,      512 },
 };
 
-
-/**
- * Array containing supported levels
- */
+/* Array containing supported levels */
 const WORD32 gai4_ih264_levels[] =
 {
     IH264_LEVEL_10,
@@ -104,10 +100,7 @@ const WORD32 gai4_ih264_levels[] =
     IH264_LEVEL_51,
 };
 
-
-/**
- * Array giving size of max luma samples in a picture for a given level
- */
+/* Array giving size of max luma samples in a picture for a given level */
 const WORD32 gai4_ih264_max_luma_pic_size[] =
 {
     /* Level 1 */
@@ -142,9 +135,8 @@ const WORD32 gai4_ih264_max_luma_pic_size[] =
     9437184
 };
 
-
-/** Max width and height allowed for a given level */
-/** This is derived as SQRT(8 * gai4_ih264_max_luma_pic_size[]) */
+/* Max width and height allowed for a given level */
+/* This is derived as SQRT(8 * gai4_ih264_max_luma_pic_size[]) */
 const WORD32 gai4_ih264_max_wd_ht[] =
 {
     /* Level 1 */
@@ -179,8 +171,8 @@ const WORD32 gai4_ih264_max_wd_ht[] =
     8689
 };
 
-/** Min width and height allowed for a given level */
-/** This is derived as gai4_ih264_max_luma_pic_size[]/gai4_ih264_max_wd_ht[] */
+/* Min width and height allowed for a given level */
+/* This is derived as gai4_ih264_max_luma_pic_size[]/gai4_ih264_max_wd_ht[] */
 const WORD32 gai4_ih264_min_wd_ht[] =
 {
     /* Level 1 */
@@ -216,8 +208,7 @@ const WORD32 gai4_ih264_min_wd_ht[] =
 
 };
 
-
-/** Table 7-11 Macroblock types for I slices */
+/* Table 7-11 Macroblock types for I slices */
 intra_mbtype_info_t gas_ih264_i_mbtype_info[] =
 {
     /* For first entry, if transform_size_8x8_flag is 1, mode will be MBPART_I8x8 */
@@ -250,7 +241,7 @@ intra_mbtype_info_t gas_ih264_i_mbtype_info[] =
     {0, MBPART_IPCM,   VERT_I16x16,     0,  0}
 };
 
-/** Table 7-13 Macroblock types for P slices */
+/* Table 7-13 Macroblock types for P slices */
 inter_mbtype_info_t gas_ih264_p_mbtype_info[] =
 {
     {1, MBPART_L0,  MBPART_NA,  16, 16},
@@ -260,7 +251,7 @@ inter_mbtype_info_t gas_ih264_p_mbtype_info[] =
     {4, MBPART_NA,  MBPART_NA,  8,  8},
 };
 
-/** Table 7-14 Macroblock types for B slices */
+/* Table 7-14 Macroblock types for B slices */
 inter_mbtype_info_t gas_ih264_b_mbtype_info[] =
 {
     {0, MBPART_DIRECT,  MBPART_NA,  8,  8,  },
@@ -288,7 +279,7 @@ inter_mbtype_info_t gas_ih264_b_mbtype_info[] =
     {4, MBPART_NA,      MBPART_NA,  8,  8,  },
 };
 
-/** Table 7-17 – Sub-macroblock types in P macroblocks */
+/* Table 7-17 - Sub-macroblock types in P macroblocks */
 submbtype_info_t gas_ih264_p_submbtype_info[] =
 {
    {1, MBPART_L0, 8,  8},
@@ -297,7 +288,7 @@ submbtype_info_t gas_ih264_p_submbtype_info[] =
    {4, MBPART_L0, 4,  4},
 };
 
-/** Table 7-18 – Sub-macroblock types in B macroblocks */
+/* Table 7-18 - Sub-macroblock types in B macroblocks */
 submbtype_info_t gas_ih264_b_submbtype_info[] =
 {
     {4, MBPART_DIRECT,  4,  4},
@@ -315,9 +306,6 @@ submbtype_info_t gas_ih264_b_submbtype_info[] =
     {4, MBPART_BI,      4,  4},
 };
 
-
-
-
 const UWORD8 gau1_ih264_inv_scan_prog4x4[] =
 {
     0,   1,  4,  8,
@@ -334,7 +322,7 @@ const UWORD8 gau1_ih264_inv_scan_int4x4[] =
      3, 7, 11,  15
 };
 
-/** Inverse scan tables for individual 4x4 blocks of 8x8 transform coeffs of CAVLC */
+/* Inverse scan tables for individual 4x4 blocks of 8x8 transform coeffs of CAVLC */
 /* progressive */
 const UWORD8 gau1_ih264_inv_scan_prog8x8_cavlc[64] =
 {
@@ -347,7 +335,6 @@ const UWORD8 gau1_ih264_inv_scan_prog8x8_cavlc[64] =
     16, 10, 25,  5, 33, 34,  6, 28,
     56, 36, 23, 51, 45, 46, 54, 63
 };
-
 /* interlace */
 const UWORD8 gau1_ih264_inv_scan_int8x8_cavlc[64] =
 {
@@ -361,11 +348,8 @@ const UWORD8 gau1_ih264_inv_scan_int8x8_cavlc[64] =
     59, 21, 60, 37, 30, 46, 31, 63
 };
 
-
-
 /*Inverse scan tables for individual 8x8 blocks of 8x8 transform coeffs of CABAC */
 /* progressive */
-
 const UWORD8 gau1_ih264_inv_scan_prog8x8_cabac[64] =
 {
      0,  1,  8, 16,  9, 2,   3, 10,
@@ -377,10 +361,7 @@ const UWORD8 gau1_ih264_inv_scan_prog8x8_cabac[64] =
     58, 59, 52, 45, 38, 31, 39, 46,
     53, 60, 61, 54, 47, 55, 62, 63
 };
-
-
 /* interlace */
-
 const UWORD8 gau1_ih264_inv_scan_int8x8_cabac[64] =
 {
      0,  8, 16,  1,  9, 24, 32, 17,
@@ -392,7 +373,6 @@ const UWORD8 gau1_ih264_inv_scan_int8x8_cabac[64] =
     45, 53, 61, 30,  7, 15, 38, 46,
     54, 62, 23, 31, 39, 47, 55, 63
 };
-
 
 const UWORD8 *const gpau1_ih264_inv_scan8x8[] =
 {
@@ -416,7 +396,6 @@ const UWORD8 gau1_ih264_8x8_subblk_idx[] =
      10,   11,  14, 15
 };
 
-
 /* Table 8-15 Chroma QP offset table */
 const UWORD8 gau1_ih264_chroma_qp[] =
 {
@@ -428,7 +407,6 @@ const UWORD8 gau1_ih264_chroma_qp[] =
      36, 36, 37, 37, 37, 38, 38, 38,
      39, 39, 39, 39
 };
-
 
 /**
 ******************************************************************************
@@ -493,7 +471,7 @@ const UWORD8 gau1_ih264_8x8_ngbr_avbl[16][4] =
     {  0xf, 0xf, 0xf, 0x7 },
 };
 
-/** Table 7-3 Default intra 4x4 scaling list */
+/* Table 7-3 Default intra 4x4 scaling list */
 const UWORD16 gau2_ih264_default_intra4x4_scaling_list[] =
 {
      6, 13, 13, 20,
@@ -502,7 +480,7 @@ const UWORD16 gau2_ih264_default_intra4x4_scaling_list[] =
     32, 37, 37, 42
 };
 
-/** Table 7-3 Default inter 4x4 scaling list */
+/* Table 7-3 Default inter 4x4 scaling list */
 const UWORD16 gau2_ih264_default_inter4x4_scaling_list[] =
 {
     10, 14, 14, 20,
@@ -529,7 +507,7 @@ const UWORD16 gau2_ih264_default_inter4x4_weight_scale[] =
      24, 27, 30, 34
 };
 
-/** Table 7-4 Default intra 8x8 scaling list */
+/* Table 7-4 Default intra 8x8 scaling list */
 const UWORD16 gau2_ih264_default_intra8x8_scaling_list[] =
 {
      6, 10, 10, 13, 11, 13, 16, 16,
@@ -542,7 +520,7 @@ const UWORD16 gau2_ih264_default_intra8x8_scaling_list[] =
     36, 36, 38, 38, 38, 40, 40, 42
 };
 
-/** Table 7-4 Default inter 8x8 scaling list */
+/* Table 7-4 Default inter 8x8 scaling list */
 const UWORD16 gau2_ih264_default_inter8x8_scaling_list[] =
 {
     9,  13, 13, 15, 13, 15, 17, 17,
@@ -602,22 +580,20 @@ const UWORD16 gau2_ih264_flat_8x8_weight_scale[] =
     16, 16, 16, 16, 16, 16, 16, 16
 };
 
-
 /**
- ******************************************************************************
- * @brief  Scale Table for inverse quantizing 4x4 subblock. To inverse quantize
- * a given 4x4 quantized block, the coefficient at index location (i,j) is scaled
- * by one of the constants in this table and right shift the result by abs (4 -
- * floor(qp/6)), here qp is the quantization parameter used to quantize the mb.
- *
- * input   : 16 * qp%6, index location (i,j)
- * output  : scale constant.
- *
- * @remarks 16 constants for each index position of the subblock and 6 for each
- * qp%6 in the range 0-5 inclusive.
- ******************************************************************************
- */
-
+******************************************************************************
+* @brief  Scale Table for inverse quantizing 4x4 subblock. To inverse quantize
+* a given 4x4 quantized block, the coefficient at index location (i,j) is scaled
+* by one of the constants in this table and right shift the result by abs (4 -
+* floor(qp/6)), here qp is the quantization parameter used to quantize the mb.
+*
+* input   : 16 * qp%6, index location (i,j)
+* output  : scale constant.
+*
+* @remarks 16 constants for each index position of the subblock and 6 for each
+* qp%6 in the range 0-5 inclusive.
+******************************************************************************
+*/
 const UWORD16 gau2_ih264_iquant_scale_matrix_4x4[96] =
 {
       10,  13,  10,  13,
@@ -653,19 +629,19 @@ const UWORD16 gau2_ih264_iquant_scale_matrix_4x4[96] =
 };
 
 /**
- ******************************************************************************
- * @brief  Scale Table for inverse quantizing 8x8 subblock. To inverse quantize
- * a given 8x8 quantized block, the coefficient at index location (i,j) is scaled
- * by one of the constants in this table and right shift the result by abs (4 -
- * floor(qp/6)), here qp is the quantization parameter used to quantize the mb.
- *
- * input   : qp%6, index location (i,j)
- * output  : scale constant.
- *
- * @remarks 64 constants for each index position of the subblock and 6 for each
- * qp%6 in the range 0-5 inclusive.
- ******************************************************************************
- */
+******************************************************************************
+* @brief  Scale Table for inverse quantizing 8x8 subblock. To inverse quantize
+* a given 8x8 quantized block, the coefficient at index location (i,j) is scaled
+* by one of the constants in this table and right shift the result by abs (4 -
+* floor(qp/6)), here qp is the quantization parameter used to quantize the mb.
+*
+* input   : qp%6, index location (i,j)
+* output  : scale constant.
+*
+* @remarks 64 constants for each index position of the subblock and 6 for each
+* qp%6 in the range 0-5 inclusive.
+******************************************************************************
+*/
 const UWORD16 gau2_ih264_iquant_scale_matrix_8x8 [384] =
 {
       20,  19,  25,  19,  20,  19,  25,  19,

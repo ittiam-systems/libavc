@@ -17,71 +17,88 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-/*****************************************************************************/
-/*                                                                           */
-/*  File Name         : ih264_weighted_pred.c                                */
-/*                                                                           */
-/*  Description       : Contains function definitions for weighted           */
-/*                      prediction functions                                 */
-/*                                                                           */
-/*  List of Functions : ih264_default_weighted_pred_luma()                   */
-/*                      ih264_default_weighted_pred_chroma()                 */
-/*                      ih264_weighted_pred_luma()                           */
-/*                      ih264_weighted_pred_chroma()                         */
-/*                      ih264_weighted_bipred_luma()                         */
-/*                      ih264_weighted_bipred_chroma()                       */
-/*                                                                           */
-/*  Issues / Problems : None                                                 */
-/*                                                                           */
-/*  Revision History  :                                                      */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes                              */
-/*         07 01 2015   Kaushik         Initial version                      */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+
+/**
+*******************************************************************************
+* @file
+*  ih264_weighted_pred.c
+*
+* @brief
+*  Contains function definitions for weighted prediction functions
+*
+* @author
+*  ittiam
+*
+* @par List of Functions:
+*  - ih264_default_weighted_pred_luma
+*  - ih264_default_weighted_pred_chroma
+*  - ih264_weighted_pred_luma
+*  - ih264_weighted_pred_chroma
+*  - ih264_weighted_bipred_luma
+*  - ih264_weighted_bipred_chroma
+*
+* @remarks
+*
+*******************************************************************************
+*/
+
 /*****************************************************************************/
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* User include files */
+/* User Include Files */
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
-#include "ih264_platform_macros.h"
 #include "ih264_weighted_pred.h"
+#include "ih264_platform_macros.h"
+
 
 /*****************************************************************************/
-/*  Function definitions .                                                   */
+/*  Function definitions                                                     */
 /*****************************************************************************/
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_default_weighted_pred_luma                         */
-/*                                                                           */
-/*  Description   : This function performs the default weighted prediction   */
-/*                  as described in sec 8.4.2.3.1 titled "Default weighted   */
-/*                  sample prediction process" for luma. The function gets   */
-/*                  two ht x wd blocks, calculates their rounded-average and */
-/*                  stores it in the destination block. (ht,wd) can be       */
-/*                  (4,4), (8,4), (4,8), (8,8), (16,8), (8,16) or (16,16).   */
-/*                                                                           */
-/*  Inputs        : puc_src1  - Pointer to source 1                          */
-/*                  puc_src2  - Pointer to source 2                          */
-/*                  puc_dst   - Pointer to destination                       */
-/*                  src_strd1 - stride for source 1                          */
-/*                  src_strd1 - stride for source 2                          */
-/*                  dst_strd  - stride for destination                       */
-/*                  ht        - height of the block                          */
-/*                  wd        - width of the block                           */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes                              */
-/*         07 01 2015   Kaushik         Initial Version                      */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+
+/**
+*******************************************************************************
+*
+* @brief default weighted prediction luma.
+*
+* @par Description
+*  This function performs the default weighted prediction as described in
+*  sec 8.4.2.3.1 titled "Default weighted sample prediction process" for luma.
+*  The function gets two ht x wd blocks, calculates their rounded-average and
+*  stores it in the destination block. (ht,wd) can be (4,4), (8,4), (4,8),
+*  (8,8), (16,8), (8,16) or (16,16)
+*
+* @param[in] pu1_src1
+*  Pointer to source 1
+*
+* @param[in] pu1_src2
+*  Pointer to source 2
+*
+* @param[in] pu1_dst
+*  Pointer to destination
+*
+* @param[in] src_strd1
+*  stride for source 1
+*
+* @param[in] src_strd2
+*  stride for source 2
+*
+* @param[in] dst_strd
+*  stride for destination
+*
+* @param[in] ht
+*  height of the block
+*
+* @param[in] wd
+*  width of the block
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_default_weighted_pred_luma(UWORD8 *pu1_src1,
                                       UWORD8 *pu1_src2,
                                       UWORD8 *pu1_dst,
@@ -108,35 +125,48 @@ void ih264_default_weighted_pred_luma(UWORD8 *pu1_src1,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_default_weighted_pred_chroma                       */
-/*                                                                           */
-/*  Description   : This function performs the default weighted prediction   */
-/*                  as described in sec 8.4.2.3.1 titled "Default weighted   */
-/*                  sample prediction process" for chroma. The function gets */
-/*                  two ht x wd blocks, calculates their rounded-average and */
-/*                  stores it in the destination block. (ht,wd) can be       */
-/*                  (2,2), (4,2) , (2,4), (4,4), (8,4), (4,8) or (8,8).      */
-/*                                                                           */
-/*  Inputs        : puc_src1  - Pointer to source 1                          */
-/*                  puc_src2  - Pointer to source 2                          */
-/*                  puc_dst   - Pointer to destination                       */
-/*                  src_strd1 - stride for source 1                          */
-/*                  src_strd1 - stride for source 2                          */
-/*                  dst_strd  - stride for destination                       */
-/*                  ht        - height of the block                          */
-/*                  wd        - width of the block                           */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes                              */
-/*         07 01 2015   Kaushik         Initial Version                      */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief default weighted prediction chroma.
+*
+* @par Description
+*  This function performs the default weighted prediction as described in
+*  sec 8.4.2.3.1 titled "Default weighted sample prediction process" for chroma.
+*  The function gets two ht x wd blocks, calculates their rounded-average and
+*  stores it in the destination block. (ht,wd) can be (2,2), (4,2), (2,4),
+*  (4,4), (8,4), (4,8) or (8,8).
+*
+* @param[in] pu1_src1
+*  Pointer to source 1
+*
+* @param[in] pu1_src2
+*  Pointer to source 2
+*
+* @param[in] pu1_dst
+*  Pointer to destination
+*
+* @param[in] src_strd1
+*  stride for source 1
+*
+* @param[in] src_strd2
+*  stride for source 2
+*
+* @param[in] dst_strd
+*  stride for destination
+*
+* @param[in] ht
+*  height of the block
+*
+* @param[in] wd
+*  width of the block
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_default_weighted_pred_chroma(UWORD8 *pu1_src1,
                                         UWORD8 *pu1_src2,
                                         UWORD8 *pu1_dst,
@@ -165,37 +195,51 @@ void ih264_default_weighted_pred_chroma(UWORD8 *pu1_src1,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_weighted_pred_luma                                 */
-/*                                                                           */
-/*  Description   : This function performs the weighted prediction as        */
-/*                  described in sec 8.4.2.3.2 titled "Weighted sample       */
-/*                  prediction process" for luma. The function gets one      */
-/*                  ht x wd block, weights it, rounds it off, offsets it,    */
-/*                  saturates it to unsigned 8-bit and stores it in the      */
-/*                  destination block. (ht,wd) can be (4,4), (8,4), (4,8),   */
-/*                  (8,8), (16,8), (8,16) or (16,16).                        */
-/*                                                                           */
-/*  Inputs        : puc_src  - Pointer to source                             */
-/*                  puc_dst  - Pointer to destination                        */
-/*                  src_strd - stride for source                             */
-/*                  dst_strd - stride for destination                        */
-/*                  log_wd   - number of bits to be rounded off              */
-/*                  wt       - weight value                                  */
-/*                  ofst     - offset value                                  */
-/*                  ht       - height of the block                           */
-/*                  wd       - width of the block                            */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes                              */
-/*         07 01 2015   Kaushik         Initial Version                      */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief weighted prediction luma.
+*
+* @par Description
+*  This function performs the weighted prediction as described in
+*  sec 8.4.2.3.2 titled "weighted sample prediction process" for luma.
+*  The function gets one ht x wd block, weights it, rounds it off, offsets it,
+*  saturates it to unsigned 8-bit and stores it in the destination block.
+*  (ht,wd) can be (4,4), (8,4), (4,8), (8,8), (16,8), (8,16) or (16,16)
+*
+* @param[in] pu1_src
+*  Pointer to source
+*
+* @param[in] pu1_dst
+*  Pointer to destination
+*
+* @param[in] src_strd
+*  stride for source
+*
+* @param[in] dst_strd
+*  stride for destination
+*
+* @param[in] log_wd
+*  number of bits to be rounded off
+*
+* @param[in] wt
+*  weight value
+*
+* @param[in] ofst
+*  offset value
+*
+* @param[in] ht
+*  height of the block
+*
+* @param[in] wd
+*  width of the block
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_weighted_pred_luma(UWORD8 *pu1_src,
                               UWORD8 *pu1_dst,
                               WORD32 src_strd,
@@ -239,37 +283,51 @@ void ih264_weighted_pred_luma(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_weighted_pred_chroma                               */
-/*                                                                           */
-/*  Description   : This function performs the weighted prediction as        */
-/*                  described in sec 8.4.2.3.2 titled "Weighted sample       */
-/*                  prediction process" for chroma. The function gets one    */
-/*                  ht x wd block, weights it, rounds it off, offsets it,    */
-/*                  saturates it to unsigned 8-bit and stores it in the      */
-/*                  destination block. (ht,wd) can be (2,2), (4,2), (2,4),   */
-/*                  (4,4), (8,4), (4,8) or (8,8).                            */
-/*                                                                           */
-/*  Inputs        : puc_src  - Pointer to source                             */
-/*                  puc_dst  - Pointer to destination                        */
-/*                  src_strd - stride for source                             */
-/*                  dst_strd - stride for destination                        */
-/*                  log_wd   - number of bits to be rounded off              */
-/*                  wt       - weight values for u and v                     */
-/*                  ofst     - offset values for u and v                     */
-/*                  ht       - height of the block                           */
-/*                  wd       - width of the block                            */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes                              */
-/*         07 01 2015   Kaushik         Initial Version                      */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief weighted prediction chroma.
+*
+* @par Description
+*  This function performs the weighted prediction as described in
+*  sec 8.4.2.3.2 titled "weighted sample prediction process" for chroma.
+*  The function gets one ht x wd block, weights it, rounds it off, offsets it,
+*  saturates it to unsigned 8-bit and stores it in the destination block.
+*  (ht,wd) can be (2,2), (4,2), (2,4), (4,4), (8,4), (4,8) or (8,8).
+*
+* @param[in] pu1_src
+*  Pointer to source
+*
+* @param[in] pu1_dst
+*  Pointer to destination
+*
+* @param[in] src_strd
+*  stride for source
+*
+* @param[in] dst_strd
+*  stride for destination
+*
+* @param[in] log_wd
+*  number of bits to be rounded off
+*
+* @param[in] wt
+*  weight values for u and v
+*
+* @param[in] ofst
+*  offset values for u and v
+*
+* @param[in] ht
+*  height of the block
+*
+* @param[in] wd
+*  width of the block
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_weighted_pred_chroma(UWORD8 *pu1_src,
                                 UWORD8 *pu1_dst,
                                 WORD32 src_strd,
@@ -328,41 +386,64 @@ void ih264_weighted_pred_chroma(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_weighted_bi_pred_luma                              */
-/*                                                                           */
-/*  Description   : This function performs the weighted biprediction as      */
-/*                  described in sec 8.4.2.3.2 titled "Weighted sample       */
-/*                  prediction process" for luma. The function gets two      */
-/*                  ht x wd blocks, weights them, adds them, rounds off the  */
-/*                  sum, offsets it, saturates it to unsigned 8-bit and      */
-/*                  stores it in the destination block. (ht,wd) can be       */
-/*                  (4,4), (8,4), (4,8), (8,8), (16,8), (8,16) or (16,16).   */
-/*                                                                           */
-/*  Inputs        : puc_src1  - Pointer to source 1                          */
-/*                  puc_src2  - Pointer to source 2                          */
-/*                  puc_dst   - Pointer to destination                       */
-/*                  src_strd1 - stride for source 1                          */
-/*                  src_strd2 - stride for source 2                          */
-/*                  dst_strd2 - stride for destination                       */
-/*                  log_wd    - number of bits to be rounded off             */
-/*                  wt1       - weight value for source 1                    */
-/*                  wt2       - weight value for source 2                    */
-/*                  ofst1     - offset value for source 1                    */
-/*                  ofst2     - offset value for source 2                    */
-/*                  ht        - height of the block                          */
-/*                  wd        - width of the block                           */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes                              */
-/*         07 01 2015   Kaushik         Initial Version                      */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief weighted bi-prediction luma.
+*
+* @par Description
+*  This function performs the weighted biprediction as described in
+*  sec 8.4.2.3.2 titled "weighted sample prediction process" for luma.
+*  The function gets two ht x wd blocks, weights them, adds them, rounds off
+*  the sum, offsets it, saturates it to unsigned 8-bit and stores it in the
+*  destination block. (ht,wd) can be (4,4), (8,4), (4,8), (8,8), (16,8), (8,16)
+*   or (16,16)
+*
+* @param[in] pu1_src1
+*  Pointer to source 1
+*
+* @param[in] pu1_src2
+*  Pointer to source 2
+*
+* @param[in] pu1_dst
+*  Pointer to destination
+*
+* @param[in] src_strd1
+*  stride for source 1
+*
+* @param[in] src_strd2
+*  stride for source 2
+*
+* @param[in] dst_strd
+*  stride for destination
+*
+* @param[in] log_wd
+*  number of bits to be rounded off
+*
+* @param[in] wt1
+*  weight value for source 1
+*
+* @param[in] wt2
+*  weight value for source 2
+*
+* @param[in] ofst1
+*  offset value for source 1
+*
+* @param[in] ofst2
+*  offset value for source 2
+*
+* @param[in] ht
+*  height of the block
+*
+* @param[in] wd
+*  width of the block
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_weighted_bi_pred_luma(UWORD8 *pu1_src1,
                                  UWORD8 *pu1_src2,
                                  UWORD8 *pu1_dst,
@@ -404,41 +485,64 @@ void ih264_weighted_bi_pred_luma(UWORD8 *pu1_src1,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_weighted_bi_pred_chroma                            */
-/*                                                                           */
-/*  Description   : This function performs the weighted biprediction as      */
-/*                  described in sec 8.4.2.3.2 titled "Weighted sample       */
-/*                  prediction process" for chroma. The function gets two    */
-/*                  ht x wd blocks, weights them, adds them, rounds off the  */
-/*                  sum, offsets it, saturates it to unsigned 8-bit and      */
-/*                  stores it in the destination block. (ht,wd) can be       */
-/*                  (2,2), (4,2), (2,4), (4,4), (8,4), (4,8) or (8,8).       */
-/*                                                                           */
-/*  Inputs        : puc_src1  - Pointer to source 1                          */
-/*                  puc_src2  - Pointer to source 2                          */
-/*                  puc_dst   - Pointer to destination                       */
-/*                  src_strd1 - stride for source 1                          */
-/*                  src_strd2 - stride for source 2                          */
-/*                  dst_strd2 - stride for destination                       */
-/*                  log_wd    - number of bits to be rounded off             */
-/*                  wt1       - weight values for u and v in source 1        */
-/*                  wt2       - weight values for u and v in source 2        */
-/*                  ofst1     - offset value for u and v in source 1         */
-/*                  ofst2     - offset value for u and v in source 2         */
-/*                  ht        - height of the block                          */
-/*                  wd        - width of the block                           */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes                              */
-/*         07 01 2015   Kaushik         Initial Version                      */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief weighted bi-prediction chroma.
+*
+* @par Description
+*  This function performs the weighted biprediction as described in
+*  sec 8.4.2.3.2 titled "weighted sample prediction process" for chroma.
+*  The function gets two ht x wd blocks, weights them, adds them, rounds off
+*  the sum, offsets it, saturates it to unsigned 8-bit and stores it in the
+*  destination block. (ht,wd) can be (2,2), (4,2), (2,4), (4,4), (8,4), (4,8)
+*  or (8,8)
+*
+* @param[in] pu1_src1
+*  Pointer to source 1
+*
+* @param[in] pu1_src2
+*  Pointer to source 2
+*
+* @param[in] pu1_dst
+*  Pointer to destination
+*
+* @param[in] src_strd1
+*  stride for source 1
+*
+* @param[in] src_strd2
+*  stride for source 2
+*
+* @param[in] dst_strd
+*  stride for destination
+*
+* @param[in] log_wd
+*  number of bits to be rounded off
+*
+* @param[in] wt1
+*  weight value for source 1
+*
+* @param[in] wt2
+*  weight value for source 2
+*
+* @param[in] ofst1
+*  offset value for source 1
+*
+* @param[in] ofst2
+*  offset value for source 2
+*
+* @param[in] ht
+*  height of the block
+*
+* @param[in] wd
+*  width of the block
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_weighted_bi_pred_chroma(UWORD8 *pu1_src1,
                                    UWORD8 *pu1_src2,
                                    UWORD8 *pu1_dst,

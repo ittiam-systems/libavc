@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
@@ -26,12 +27,10 @@
 *  Definitions for codec debugging
 *
 * @author
-*  Ittiam
-*
-* @par List of Functions:
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -40,23 +39,21 @@
 
 #include <assert.h>
 
-#if DEBUG_PRINT
+/*****************************************************************************/
+/* Function Macros                                                           */
+/*****************************************************************************/
 
+#if DEBUG_PRINT
 #define DEBUG(...)                                                          \
 {                                                                           \
     printf("\n[H264 DBG] %s/%d:: ", __FUNCTION__, __LINE__);                \
     printf(__VA_ARGS__);                                                    \
 }
-
 #else
-
 #define DEBUG(...) {}
-
 #endif
 
-
 #define ASSERT(x) assert((x))
-
 
 #endif /* _IH264_DEBUG_H_ */
 

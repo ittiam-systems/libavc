@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
@@ -26,40 +27,49 @@
 *  Contains function definitions for display management
 *
 * @author
-*  Srinivas T
+*  ittiam
 *
 * @par List of Functions:
-*   - ih264_disp_mgr_init()
-*   - ih264_disp_mgr_add()
-*   - ih264_disp_mgr_get()
+*  - ih264_disp_mgr_init
+*  - ih264_disp_mgr_add
+*  - ih264_disp_mgr_get
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
+
+/*****************************************************************************/
+/* File Includes                                                             */
+/*****************************************************************************/
+
+/* System Include Files */
 #include <stdlib.h>
+
+/* User Include Files */
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
 #include "ih264_disp_mgr.h"
 
+/*****************************************************************************/
+/* Function Definitions                                                      */
+/*****************************************************************************/
 
 /**
 *******************************************************************************
 *
-* @brief
-*    Initialization function for display buffer manager
+* @brief Initialization function for display buffer manager
 *
-* @par Description:
-*    Initializes the display buffer management structure
+* @par Description
+*  Initializes the display buffer management structure
 *
 * @param[in] ps_disp_mgr
 *  Pointer to the display buffer management structure
 *
 * @returns none
 *
-* @remarks
-*  None
+* @remarks none
 *
 *******************************************************************************
 */
@@ -76,15 +86,13 @@ void ih264_disp_mgr_init(disp_mgr_t *ps_disp_mgr)
     }
 }
 
-
 /**
 *******************************************************************************
 *
-* @brief
-*     Adds a buffer to the display manager
+* @brief Adds a buffer to the display manager
 *
 * @par Description:
-*      Adds a buffer to the display buffer manager
+*  Adds a buffer to the display buffer manager
 *
 * @param[in] ps_disp_mgr
 *  Pointer to the display buffer management structure
@@ -122,15 +130,14 @@ WORD32 ih264_disp_mgr_add(disp_mgr_t *ps_disp_mgr,
 
     ps_disp_mgr->apv_ptr[buf_id] = pv_ptr;
     ps_disp_mgr->ai4_abs_poc[buf_id] = abs_poc;
+
     return 0;
 }
-
 
 /**
 *******************************************************************************
 *
-* @brief
-*  Gets the next buffer
+* @brief Gets the next buffer
 *
 * @par Description:
 *  Gets the next display buffer
@@ -151,14 +158,9 @@ WORD32 ih264_disp_mgr_add(disp_mgr_t *ps_disp_mgr,
 void* ih264_disp_mgr_get(disp_mgr_t *ps_disp_mgr, WORD32 *pi4_buf_id)
 {
     WORD32 id;
-    void *pv_ret_ptr;
-    WORD32 i4_min_poc;
-    WORD32 min_poc_id;
-
-
-    pv_ret_ptr = NULL;
-    i4_min_poc = 0x7FFFFFFF;
-    min_poc_id = -1;
+    void *pv_ret_ptr = NULL;
+    WORD32 i4_min_poc = 0x7FFFFFFF;
+    WORD32 min_poc_id = -1;
 
     /* Find minimum POC */
     for(id = 0; id < DISP_MGR_MAX_CNT; id++)
@@ -182,5 +184,6 @@ void* ih264_disp_mgr_get(disp_mgr_t *ps_disp_mgr, WORD32 *pi4_buf_id)
     /* Set abs poc to default and apv_ptr to null so that the buffer is not returned again */
     ps_disp_mgr->apv_ptr[min_poc_id] = NULL;
     ps_disp_mgr->ai4_abs_poc[min_poc_id] = DEFAULT_POC;
+
     return pv_ret_ptr;
 }

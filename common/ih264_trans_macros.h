@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
@@ -27,16 +28,16 @@
 *  quantization
 *
 * @author
-*  Ittiam
+*  ittiam
 *
 * @remark
-*  None
+*  none
 *
 *******************************************************************************
 */
 
-#ifndef IH264_TRANS_MACROS_H_
-#define IH264_TRANS_MACROS_H_
+#ifndef _IH264_TRANS_MACROS_H_
+#define _IH264_TRANS_MACROS_H_
 
 /*****************************************************************************/
 /* Function Macros                                                           */
@@ -124,4 +125,4 @@
                 shft+= add_f, \
                 shft = shft>>w)
 
-#endif /* IH264_TRANS_MACROS_H_ */
+#endif /* _IH264_TRANS_MACROS_H_ */

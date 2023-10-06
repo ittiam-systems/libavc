@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
@@ -26,17 +27,16 @@
 *  Definitions used in the codec
 *
 * @author
-*  Ittiam
-*
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
 
-#ifndef IH264_DEFS_H_
-#define IH264_DEFS_H_
+#ifndef _IH264_DEFS_H_
+#define _IH264_DEFS_H_
 
 /*****************************************************************************/
 /* Enums                                                                     */
@@ -456,17 +456,15 @@ typedef enum
     B_BI_4x4,
 }SUBMBTYPE_BSLICE_T;
 
+/*****************************************************************************/
+/* Constant Macros                                                           */
+/*****************************************************************************/
+
 /**
  * DC Mode pattern for 4 4x4 sub blocks in an MB row
  */
 #define DC_I16X16_MB_ROW (DC_I16x16 << 24) | (DC_I16x16 << 16) | \
                          (DC_I16x16 << 8)  | DC_I16x16
-
-
-
-/*****************************************************************************/
-/* Constant Macros                                                           */
-/*****************************************************************************/
 
 /*****************************************************************************/
 /* Reference frame defs                                                      */
@@ -540,7 +538,7 @@ typedef enum
 
 /* Number of max PU in a MB */
 /*****************************************************************************/
-/* Note though for 64 x 64 MB, Max PU in MB is 128, in order to store      */
+/* Note though for 64 x 64 MB, Max PU in MB is 128, in order to store        */
 /*  intra pred info, 256 entries are needed                                  */
 /*****************************************************************************/
 #define MAX_PU_IN_MB       ((MB_SIZE / MIN_PU_SIZE) * \
@@ -792,4 +790,4 @@ typedef enum
 #define SEI_FGC_MAX_NUM_MODEL_VALUES 6
 #define SEI_FGC_MAX_NUM_INTENSITY_INTERVALS 256
 
-#endif /* IH264_DEFS_H_ */
+#endif /* _IH264_DEFS_H_ */

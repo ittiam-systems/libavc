@@ -27,43 +27,16 @@
 *  Declarations of functions used for weighted prediction
 *
 * @author
-*  Ittiam
-*
-* @par List of Functions:
-*  -ih264_default_weighted_pred_luma
-*  -ih264_default_weighted_pred_chroma
-*  -ih264_weighted_pred_luma
-*  -ih264_weighted_pred_chroma
-*  -ih264_weighted_bi_pred_luma
-*  -ih264_weighted_bi_pred_chroma
-*  -ih264_default_weighted_pred_luma_a9q
-*  -ih264_default_weighted_pred_chroma_a9q
-*  -ih264_weighted_pred_luma_a9q
-*  -ih264_weighted_pred_luma_a9q
-*  -ih264_weighted_bi_pred_luma_a9q
-*  -ih264_weighted_bi_pred_chroma_a9q
-*  -ih264_default_weighted_pred_luma_av8
-*  -ih264_default_weighted_pred_chroma_av8
-*  -ih264_weighted_pred_luma_av8
-*  -ih264_weighted_pred_chroma_av8
-*  -ih264_weighted_bi_pred_luma_av8
-*  -ih264_weighted_bi_pred_chroma_av8
-*  -ih264_default_weighted_pred_luma_sse42
-*  -ih264_default_weighted_pred_chroma_sse42
-*  -ih264_weighted_pred_luma_sse42
-*  -ih264_weighted_pred_chroma_sse42
-*  -ih264_weighted_bi_pred_luma_sse42
-*  -ih264_weighted_bi_pred_chroma_sse42
-*
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
 
-#ifndef IH264_WEIGHTED_PRED_H_
-#define IH264_WEIGHTED_PRED_H_
+#ifndef _IH264_WEIGHTED_PRED_H_
+#define _IH264_WEIGHTED_PRED_H_
 
 /*****************************************************************************/
 /* Extern Function Declarations                                              */
@@ -101,64 +74,37 @@ typedef void ih264_weighted_bi_pred_ft(UWORD8 *puc_src1,
                                        WORD32 ht,
                                        WORD32 wd);
 
-/* No NEON Declarations */
-
+/* C Declarations */
 ih264_default_weighted_pred_ft ih264_default_weighted_pred_luma;
-
 ih264_default_weighted_pred_ft ih264_default_weighted_pred_chroma;
-
 ih264_weighted_pred_ft ih264_weighted_pred_luma;
-
 ih264_weighted_pred_ft ih264_weighted_pred_chroma;
-
 ih264_weighted_bi_pred_ft ih264_weighted_bi_pred_luma;
-
 ih264_weighted_bi_pred_ft ih264_weighted_bi_pred_chroma;
 
 /* A9 NEON Declarations */
-
 ih264_default_weighted_pred_ft ih264_default_weighted_pred_luma_a9q;
-
 ih264_default_weighted_pred_ft ih264_default_weighted_pred_chroma_a9q;
-
 ih264_weighted_pred_ft ih264_weighted_pred_luma_a9q;
-
 ih264_weighted_pred_ft ih264_weighted_pred_chroma_a9q;
-
 ih264_weighted_bi_pred_ft ih264_weighted_bi_pred_luma_a9q;
-
 ih264_weighted_bi_pred_ft ih264_weighted_bi_pred_chroma_a9q;
 
-
 /* AV8 NEON Declarations */
-
 ih264_default_weighted_pred_ft ih264_default_weighted_pred_luma_av8;
-
 ih264_default_weighted_pred_ft ih264_default_weighted_pred_chroma_av8;
-
 ih264_weighted_pred_ft ih264_weighted_pred_luma_av8;
-
 ih264_weighted_pred_ft ih264_weighted_pred_chroma_av8;
-
 ih264_weighted_bi_pred_ft ih264_weighted_bi_pred_luma_av8;
-
 ih264_weighted_bi_pred_ft ih264_weighted_bi_pred_chroma_av8;
 
-
 /* SSE42 Intrinsic Declarations */
-
 ih264_default_weighted_pred_ft ih264_default_weighted_pred_luma_sse42;
-
 ih264_default_weighted_pred_ft ih264_default_weighted_pred_chroma_sse42;
-
 ih264_weighted_pred_ft ih264_weighted_pred_luma_sse42;
-
 ih264_weighted_pred_ft ih264_weighted_pred_chroma_sse42;
-
 ih264_weighted_bi_pred_ft ih264_weighted_bi_pred_luma_sse42;
-
 ih264_weighted_bi_pred_ft ih264_weighted_bi_pred_chroma_sse42;
 
-#endif /* IH264_WEIGHTED_PRED_H_ */
+#endif /* _IH264_WEIGHTED_PRED_H_ */
 
-/** Nothing past this point */

@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
@@ -26,55 +27,66 @@
 *  Contains functions for buf queue
 *
 * @author
-*  Harish
+*  ittiam
 *
 * @par List of Functions:
-*  ih264_list_size()
-*  ih264_list_lock()
-*  ih264_list_unlock()
-*  ih264_list_yield()
-*  ih264_list_free()
-*  ih264_list_init()
-*  ih264_list_reset()
-*  ih264_list_deinit()
-*  ih264_list_terminate()
-*  ih264_list_queue()
-*  ih264_list_dequeue()
+*  - ih264_list_size
+*  - ih264_list_lock
+*  - ih264_list_unlock
+*  - ih264_list_yield
+*  - ih264_list_free
+*  - ih264_list_init
+*  - ih264_list_reset
+*  - ih264_list_deinit
+*  - ih264_list_terminate
+*  - ih264_list_queue
+*  - ih264_list_dequeue
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
+
 /*****************************************************************************/
 /* File Includes                                                             */
 /*****************************************************************************/
+
+/* System Include Files */
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
+/* User Include Files */
 #include "ih264_typedefs.h"
 #include "ithread.h"
-#include "ih264_platform_macros.h"
-#include "ih264_macros.h"
 #include "ih264_debug.h"
+#include "ih264_macros.h"
 #include "ih264_error.h"
 #include "ih264_list.h"
+#include "ih264_platform_macros.h"
+
+/*****************************************************************************/
+/* Function Definitions                                                      */
+/*****************************************************************************/
 
 /**
 *******************************************************************************
 *
-* @brief Returns size for buf queue context. Does not include buf queue buffer
-* requirements
+* @brief Returns size for job queue context.
 *
-* @par   Description
-* Returns size for buf queue context. Does not include buf queue buffer
-* requirements. Buffer size required to store the bufs should be allocated in
-* addition to the value returned here.
+* @par Description
+*  Returns size for job queue context.
 *
-* @returns Size of the buf queue context
+* @param[in] num_entries
+*  max number of jobs that can be queued
+*
+* @param[in] entry_size
+*  memory needed for a single job
+*
+* @returns Size of the job queue context
 *
 * @remarks
 *
@@ -84,6 +96,7 @@ WORD32 ih264_list_size(WORD32 num_entries, WORD32 entry_size)
 {
     WORD32 size;
     WORD32 clz;
+
     size = sizeof(list_t);
     size += ithread_get_mutex_lock_size();
 
@@ -91,21 +104,20 @@ WORD32 ih264_list_size(WORD32 num_entries, WORD32 entry_size)
     clz = CLZ(num_entries);
     num_entries = 1 << (32 - clz);
 
-    size  += num_entries * entry_size;
+    size += num_entries * entry_size;
     return size;
 }
 
 /**
 *******************************************************************************
 *
-* @brief
-*   Locks the list context
+* @brief Locks the list context
 *
-* @par   Description
-*   Locks the list context by calling ithread_mutex_lock()
+* @par Description
+*  Locks the list context by calling ithread_mutex_lock()
 *
 * @param[in] ps_list
-*   Job Queue context
+*  Pointer to job queue context
 *
 * @returns IH264_FAIL if mutex lock fails else IH264_SUCCESS
 *
@@ -116,25 +128,23 @@ WORD32 ih264_list_size(WORD32 num_entries, WORD32 entry_size)
 IH264_ERROR_T ih264_list_lock(list_t *ps_list)
 {
     WORD32 retval;
+
     retval = ithread_mutex_lock(ps_list->pv_mutex);
     if(retval)
-    {
         return IH264_FAIL;
-    }
     return IH264_SUCCESS;
 }
 
 /**
 *******************************************************************************
 *
-* @brief
-*   Unlocks the list context
+* @brief Unlocks the list context
 *
-* @par   Description
-*   Unlocks the list context by calling ithread_mutex_unlock()
+* @par Description
+*  Unlocks the list context by calling ithread_mutex_unlock()
 *
 * @param[in] ps_list
-*   Job Queue context
+*  Pointer to job queue context
 *
 * @returns IH264_FAIL if mutex unlock fails else IH264_SUCCESS
 *
@@ -142,33 +152,29 @@ IH264_ERROR_T ih264_list_lock(list_t *ps_list)
 *
 *******************************************************************************
 */
-
 IH264_ERROR_T ih264_list_unlock(list_t *ps_list)
 {
     WORD32 retval;
+
     retval = ithread_mutex_unlock(ps_list->pv_mutex);
     if(retval)
-    {
         return IH264_FAIL;
-    }
     return IH264_SUCCESS;
-
 }
+
 /**
 *******************************************************************************
 *
-* @brief
-*   Yields the thread
+* @brief Yields the thread
 *
-* @par   Description
-*   Unlocks the list context by calling
-* ih264_list_unlock(), ithread_yield() and then ih264_list_lock()
-* list is unlocked before to ensure the list can be accessed by other threads
-* If unlock is not done before calling yield then no other thread can access
-* the list functions and update list.
+* @par Description
+*  Unlocks the list context by calling  ih264_list_unlock(), ithread_yield()
+*  and then ih264_list_lock(). List is unlocked before to ensure its
+*  access by other threads. If unlock is not done before calling yield then
+*  no other thread can access the list functions and update list.
 *
 * @param[in] ps_list
-*   Job Queue context
+*  pointer to Job Queue context
 *
 * @returns IH264_FAIL if mutex lock unlock or yield fails else IH264_SUCCESS
 *
@@ -178,51 +184,47 @@ IH264_ERROR_T ih264_list_unlock(list_t *ps_list)
 */
 IH264_ERROR_T ih264_list_yield(list_t *ps_list)
 {
+    IH264_ERROR_T ret;
 
-    IH264_ERROR_T ret = IH264_SUCCESS;
-
-    IH264_ERROR_T rettmp;
-    rettmp = ih264_list_unlock(ps_list);
-    RETURN_IF((rettmp != IH264_SUCCESS), rettmp);
+    ret = ih264_list_unlock(ps_list);
+    RETURN_IF((ret != IH264_SUCCESS), ret);
 
     ithread_yield();
 
-    if(ps_list->i4_yeild_interval_us > 0)
-        ithread_usleep(ps_list->i4_yeild_interval_us);
+    if(ps_list->i4_yield_interval_us > 0)
+        ithread_usleep(ps_list->i4_yield_interval_us);
 
-    rettmp = ih264_list_lock(ps_list);
-    RETURN_IF((rettmp != IH264_SUCCESS), rettmp);
-    return ret;
+    ret = ih264_list_lock(ps_list);
+    RETURN_IF((ret != IH264_SUCCESS), ret);
+    return IH264_SUCCESS;
 }
-
 
 /**
 *******************************************************************************
 *
-* @brief free the buf queue pointers
+* @brief free the list context
 *
-* @par   Description
-* Frees the list context
+* @par Description
+*  Frees the list context
 *
-* @param[in] pv_buf
-* Memory for buf queue buffer and buf queue context
+* @param[in] ps_list
+*  pointer to Job Queue context
 *
-* @returns Pointer to buf queue context
+* @returns IH264_FAIL if mutex desttroy fails else IH264_SUCCESS
 *
 * @remarks
-* Since it will be called only once by master thread this is not thread safe.
+*  Since it will be called only once by master thread this is not thread safe.
 *
 *******************************************************************************
 */
 IH264_ERROR_T ih264_list_free(list_t *ps_list)
 {
     WORD32 ret;
-    ret = ithread_mutex_destroy(ps_list->pv_mutex);
 
+    ret = ithread_mutex_destroy(ps_list->pv_mutex);
     if(0 == ret)
         return IH264_SUCCESS;
-    else
-        return IH264_FAIL;
+    return IH264_FAIL;
 }
 
 /**
@@ -230,20 +232,29 @@ IH264_ERROR_T ih264_list_free(list_t *ps_list)
 *
 * @brief Initialize the buf queue
 *
-* @par   Description
-* Initializes the list context and sets write and read pointers to start of
-* buf queue buffer
+* @par Description
+*  Initializes the list context and sets write and read pointers to start of
+*  buf queue buffer
 *
 * @param[in] pv_buf
-* Memoy for buf queue buffer and buf queue context
+*  Memory for job queue context
 *
 * @param[in] buf_size
-* Size of the total memory allocated
+*  Size of the total memory allocated
 *
-* @returns Pointer to buf queue context
+* @param[in] num_entries
+*  max number of jobs that can be queued
+*
+* @param[in] entry_size
+*  memory needed for a single job
+*
+* @param[in] yield_interval_us
+*  Thread sleep duration
+*
+* @returns Pointer to job queue context
 *
 * @remarks
-* Since it will be called only once by master thread this is not thread safe.
+*  Since it will be called only once by master thread this is not thread safe.
 *
 *******************************************************************************
 */
@@ -251,14 +262,11 @@ void* ih264_list_init(void *pv_buf,
                       WORD32 buf_size,
                       WORD32 num_entries,
                       WORD32 entry_size,
-                      WORD32 yeild_interval_us)
+                      WORD32 yield_interval_us)
 {
-    list_t *ps_list;
-    UWORD8 *pu1_buf;
+    list_t *ps_list = (list_t *)pv_buf;
+    UWORD8 *pu1_buf = (UWORD8 *)pv_buf;
 
-    pu1_buf = (UWORD8 *)pv_buf;
-
-    ps_list = (list_t *)pu1_buf;
     pu1_buf += sizeof(list_t);
     buf_size -= sizeof(list_t);
 
@@ -284,21 +292,21 @@ void* ih264_list_init(void *pv_buf,
     ps_list->i4_buf_wr_idx = 0;
     ps_list->i4_log2_buf_max_idx = 32 - CLZ(num_entries);
     ps_list->i4_buf_max_idx = num_entries;
-    ps_list->i4_yeild_interval_us = yeild_interval_us;
+    ps_list->i4_yield_interval_us = yield_interval_us;
 
     return ps_list;
 }
+
 /**
 *******************************************************************************
 *
-* @brief
-*   Resets the list context
+* @brief Resets the list context
 *
-* @par   Description
-*   Resets the list context by initializing buf queue context elements
+* @par Description
+*  Resets the list context by initializing buf queue context elements
 *
 * @param[in] ps_list
-*   Job Queue context
+*  Pointer to job queue context
 *
 * @returns IH264_FAIL if lock unlock fails else IH264_SUCCESS
 *
@@ -309,6 +317,7 @@ void* ih264_list_init(void *pv_buf,
 IH264_ERROR_T ih264_list_reset(list_t *ps_list)
 {
     IH264_ERROR_T ret = IH264_SUCCESS;
+
     ret = ih264_list_lock(ps_list);
     RETURN_IF((ret != IH264_SUCCESS), ret);
 
@@ -325,15 +334,14 @@ IH264_ERROR_T ih264_list_reset(list_t *ps_list)
 /**
 *******************************************************************************
 *
-* @brief
-*   Deinitializes the list context
+* @brief De-initializes the list context
 *
-* @par   Description
-*   Deinitializes the list context by calling ih264_list_reset()
-* and then destrying the mutex created
+* @par Description
+*  De-initializes the list context by calling ih264_list_reset() and then
+*  destroying the mutex created
 *
 * @param[in] ps_list
-*   Job Queue context
+*  Pointer to job queue context
 *
 * @returns IH264_FAIL if lock unlock fails else IH264_SUCCESS
 *
@@ -351,25 +359,20 @@ IH264_ERROR_T ih264_list_deinit(list_t *ps_list)
 
     retval = ithread_mutex_destroy(ps_list->pv_mutex);
     if(retval)
-    {
         return IH264_FAIL;
-    }
-
     return IH264_SUCCESS;
 }
-
 
 /**
 *******************************************************************************
 *
-* @brief
-*   Terminates the list
+* @brief Terminates the list
 *
-* @par   Description
-*   Terminates the list by setting a flag in context.
+* @par Description
+*  Terminates the list by setting a flag in context.
 *
 * @param[in] ps_list
-*   Job Queue context
+*  Pointer to job queue context
 *
 * @returns IH264_FAIL if lock unlock fails else IH264_SUCCESS
 *
@@ -377,10 +380,10 @@ IH264_ERROR_T ih264_list_deinit(list_t *ps_list)
 *
 *******************************************************************************
 */
-
 IH264_ERROR_T ih264_list_terminate(list_t *ps_list)
 {
     IH264_ERROR_T ret = IH264_SUCCESS;
+
     ret = ih264_list_lock(ps_list);
     RETURN_IF((ret != IH264_SUCCESS), ret);
 
@@ -391,34 +394,28 @@ IH264_ERROR_T ih264_list_terminate(list_t *ps_list)
     return ret;
 }
 
-
 /**
 *******************************************************************************
 *
-* @brief Adds a buf to the queue
+* @brief Adds a job to the queue
 *
-* @par   Description
-* Adds a buf to the queue and updates wr address to next location.
-* Format/content of the buf structure is abstracted and hence size of the buf
-* buffer is being passed.
+* @par Description
+*  Adds a buffer to the queue and updates write address to next location.
 *
 * @param[in] ps_list
-*   Job Queue context
+*  Pointer to job queue context
 *
 * @param[in] pv_buf
-*   Pointer to the location that contains details of the buf to be added
-*
-* @param[in] buf_size
-*   Size of the buf buffer
+*  Pointer to the location that contains details of the job to be added
 *
 * @param[in] blocking
-*   To signal if the write is blocking or non-blocking.
+*  To signal if the write is blocking or non-blocking.
 *
-* @returns
+* @returns IH264_SUCCESS on success and IH264_FAIL on fail
 *
 * @remarks
-* Job Queue buffer is assumed to be allocated to handle worst case number of bufs
-* Wrap around is not supported
+*  Job Queue buffer is assumed to be allocated to handle worst case number of
+*  buffers. Wrap around is not supported
 *
 *******************************************************************************
 */
@@ -426,18 +423,14 @@ IH264_ERROR_T ih264_list_queue(list_t *ps_list, void *pv_buf, WORD32 blocking)
 {
     IH264_ERROR_T ret = IH264_SUCCESS;
     IH264_ERROR_T rettmp;
-
     WORD32 diff;
     void *pv_buf_wr;
-
     volatile WORD32 *pi4_wr_idx, *pi4_rd_idx;
     WORD32 buf_size = ps_list->i4_entry_size;
 
 
     rettmp = ih264_list_lock(ps_list);
     RETURN_IF((rettmp != IH264_SUCCESS), rettmp);
-
-
 
     while(1)
     {
@@ -470,7 +463,6 @@ IH264_ERROR_T ih264_list_queue(list_t *ps_list, void *pv_buf, WORD32 blocking)
                 break;
             }
         }
-
     }
     ps_list->i4_terminate = 0;
 
@@ -479,35 +471,32 @@ IH264_ERROR_T ih264_list_queue(list_t *ps_list, void *pv_buf, WORD32 blocking)
 
     return ret;
 }
+
 /**
 *******************************************************************************
 *
-* @brief Gets next from the Job queue
+* @brief Gets next job from the job queue
 *
 * @par   Description
-* Gets next buf from the buf queue and updates rd address to next location.
-* Format/content of the buf structure is abstracted and hence size of the buf
-* buffer is being passed. If it is a blocking call and if there is no new buf
-* then this functions unlocks the mutex and calls yield and then locks it back.
-* and continues till a buf is available or terminate is set
+*  Gets next job from the job queue and updates rd address to next location.
+*  If it is a blocking call and if there is no new buf then this functions
+*  unlocks the mutex and calls yield and then locks it back and continues
+*  till a buf is available or terminate is set
 *
 * @param[in] ps_list
-*   Job Queue context
+*  Pointer to Job Queue context
 *
 * @param[out] pv_buf
-*   Pointer to the location that contains details of the buf to be written
-*
-* @param[in] buf_size
-*   Size of the buf buffer
+*  Pointer to the location that contains details of the buf to be written
 *
 * @param[in] blocking
-*   To signal if the read is blocking or non-blocking.
+*  To signal if the read is blocking or non-blocking.
 *
 * @returns
 *
 * @remarks
-* Job Queue buffer is assumed to be allocated to handle worst case number of bufs
-* Wrap around is not supported
+*  Job Queue buffer is assumed to be allocated to handle worst case number of
+*  buffers. Wrap around is not supported
 *
 *******************************************************************************
 */
@@ -517,7 +506,6 @@ IH264_ERROR_T ih264_list_dequeue(list_t *ps_list, void *pv_buf, WORD32 blocking)
     IH264_ERROR_T rettmp;
     WORD32 buf_size = ps_list->i4_entry_size;
     WORD32 diff;
-
     void *pv_buf_rd;
     volatile WORD32 *pi4_wr_idx, *pi4_rd_idx;
 
@@ -532,7 +520,6 @@ IH264_ERROR_T ih264_list_dequeue(list_t *ps_list, void *pv_buf, WORD32 blocking)
         pi4_wr_idx = &ps_list->i4_buf_wr_idx;
         pi4_rd_idx = &ps_list->i4_buf_rd_idx;
         diff = *pi4_wr_idx - *pi4_rd_idx;
-
 
         if(diff > 0)
         {
@@ -563,9 +550,7 @@ IH264_ERROR_T ih264_list_dequeue(list_t *ps_list, void *pv_buf, WORD32 blocking)
                 break;
             }
         }
-
     }
-
 
     rettmp = ih264_list_unlock(ps_list);
     RETURN_IF((rettmp != IH264_SUCCESS), rettmp);

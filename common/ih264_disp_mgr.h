@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
@@ -26,20 +27,26 @@
 *  Function declarations used for display management
 *
 * @author
-*  Srinivas T
-*
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
-#ifndef _DISP_MGR_H_
-#define _DISP_MGR_H_
 
+#ifndef _IH264_DISP_MGR_H_
+#define _IH264_DISP_MGR_H_
+
+/*****************************************************************************/
+/* Constant Macros                                                           */
+/*****************************************************************************/
 #define DISP_MGR_MAX_CNT 64
 #define DEFAULT_POC 0x7FFFFFFF
 
+/*****************************************************************************/
+/* Structure Definitions                                                     */
+/*****************************************************************************/
 typedef struct
 {
     /**
@@ -55,9 +62,12 @@ typedef struct
     /**
      * apv_ptr[DISP_MGR_MAX_CNT]
      */
-    void    *apv_ptr[DISP_MGR_MAX_CNT];
+    void *apv_ptr[DISP_MGR_MAX_CNT];
 }disp_mgr_t;
 
+/*****************************************************************************/
+/* Function Declarations                                                     */
+/*****************************************************************************/
 void ih264_disp_mgr_init(disp_mgr_t *ps_disp_mgr);
 
 WORD32 ih264_disp_mgr_add(disp_mgr_t *ps_disp_mgr,
@@ -67,4 +77,4 @@ WORD32 ih264_disp_mgr_add(disp_mgr_t *ps_disp_mgr,
 
 void* ih264_disp_mgr_get(disp_mgr_t *ps_disp_mgr, WORD32 *pi4_buf_id);
 
-#endif  //_DISP_MGR_H_
+#endif  /* _IH264_DISP_MGR_H_ */

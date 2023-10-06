@@ -17,25 +17,26 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-/**
- *******************************************************************************
- * @file
- *  ih264_deblk_edge_filters.h
- *
- * @brief
- *  This file contains declarations of functions used for deblocking
- *
- * @author
- *  Ittiam
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
 
-#ifndef IH264_DEBLK_H_
-#define IH264_DEBLK_H_
+/**
+*******************************************************************************
+* @file
+*  ih264_deblk_edge_filters.h
+*
+* @brief
+*  This file contains declarations of functions used for deblocking
+*
+* @author
+*  ittiam
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
+
+#ifndef _IH264_DEBLK_EDGE_FILTERS_H_
+#define _IH264_DEBLK_EDGE_FILTERS_H_
 
 /*****************************************************************************/
 /* Extern Function Declarations                                              */
@@ -70,126 +71,92 @@ typedef void ih264_deblk_chroma_edge_bs4_ft(UWORD8 *pu1_src,
                                             WORD32 alpha_cr,
                                             WORD32 beta_cr);
 
-
-
+/* C Declarations */
 ih264_deblk_edge_bs4_ft ih264_deblk_luma_horz_bs4;
 ih264_deblk_edge_bs4_ft ih264_deblk_luma_vert_bs4;
 ih264_deblk_edge_bs4_ft ih264_deblk_luma_vert_bs4_mbaff;
-
-
 ih264_deblk_edge_bs4_ft ih264_deblk_chroma_horz_bs4_bp;
 ih264_deblk_edge_bs4_ft ih264_deblk_chroma_vert_bs4_bp;
 ih264_deblk_edge_bs4_ft ih264_deblk_chroma_vert_bs4_mbaff_bp;
-
-
 ih264_deblk_edge_bslt4_ft ih264_deblk_luma_horz_bslt4;
 ih264_deblk_edge_bslt4_ft ih264_deblk_luma_vert_bslt4;
 ih264_deblk_edge_bslt4_ft ih264_deblk_luma_vert_bslt4_mbaff;
-
-
 ih264_deblk_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_bp;
 ih264_deblk_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_bp;
 ih264_deblk_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_mbaff_bp;
-
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_vert_bs4;
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_horz_bs4;
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_vert_bs4_mbaff;
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_horz_bs4_mbaff;
-
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_mbaff;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_mbaff;
 
-
-/*A9*/
+/* A9 Declarations */
 ih264_deblk_edge_bs4_ft ih264_deblk_luma_horz_bs4_a9;
 ih264_deblk_edge_bs4_ft ih264_deblk_luma_vert_bs4_a9;
 ih264_deblk_edge_bs4_ft ih264_deblk_luma_vert_bs4_mbaff_a9;
-
-
 ih264_deblk_edge_bs4_ft ih264_deblk_chroma_horz_bs4_bp_a9;
 ih264_deblk_edge_bs4_ft ih264_deblk_chroma_vert_bs4_bp_a9;
 ih264_deblk_edge_bs4_ft ih264_deblk_chroma_vert_bs4_mbaff_bp_a9;
-
-
 ih264_deblk_edge_bslt4_ft ih264_deblk_luma_horz_bslt4_a9;
 ih264_deblk_edge_bslt4_ft ih264_deblk_luma_vert_bslt4_a9;
 ih264_deblk_edge_bslt4_ft ih264_deblk_luma_vert_bslt4_mbaff_a9;
-
-
 ih264_deblk_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_bp_a9;
 ih264_deblk_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_bp_a9;
 ih264_deblk_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_mbaff_bp_a9;
-
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_vert_bs4_a9;
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_horz_bs4_a9;
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_vert_bs4_mbaff_a9;
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_horz_bs4_mbaff_a9;
-
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_a9;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_a9;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_mbaff_a9;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_mbaff_a9;
 
-/*AV8*/
+/* AV8 Declarations */
 ih264_deblk_edge_bs4_ft ih264_deblk_luma_horz_bs4_av8;
 ih264_deblk_edge_bs4_ft ih264_deblk_luma_vert_bs4_av8;
 ih264_deblk_edge_bs4_ft ih264_deblk_luma_vert_bs4_mbaff_av8;
-
-
 ih264_deblk_edge_bs4_ft ih264_deblk_chroma_horz_bs4_bp_av8;
 ih264_deblk_edge_bs4_ft ih264_deblk_chroma_vert_bs4_bp_av8;
 ih264_deblk_edge_bs4_ft ih264_deblk_chroma_vert_bs4_mbaff_bp_av8;
-
-
 ih264_deblk_edge_bslt4_ft ih264_deblk_luma_horz_bslt4_av8;
 ih264_deblk_edge_bslt4_ft ih264_deblk_luma_vert_bslt4_av8;
 ih264_deblk_edge_bslt4_ft ih264_deblk_luma_vert_bslt4_mbaff_av8;
-
-
 ih264_deblk_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_bp_av8;
 ih264_deblk_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_bp_av8;
 ih264_deblk_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_mbaff_bp_av8;
-
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_vert_bs4_av8;
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_horz_bs4_av8;
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_vert_bs4_mbaff_av8;
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_horz_bs4_mbaff_av8;
-
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_av8;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_av8;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_mbaff_av8;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_mbaff_av8;
 
-/*SSE3*/
+/* SSSE3 Declarations */
 ih264_deblk_edge_bs4_ft ih264_deblk_luma_horz_bs4_ssse3;
 ih264_deblk_edge_bs4_ft ih264_deblk_luma_vert_bs4_ssse3;
 ih264_deblk_edge_bs4_ft ih264_deblk_luma_vert_bs4_mbaff_ssse3;
-
-
 ih264_deblk_edge_bs4_ft ih264_deblk_chroma_horz_bs4_bp_ssse3;
 ih264_deblk_edge_bs4_ft ih264_deblk_chroma_vert_bs4_bp_ssse3;
 ih264_deblk_edge_bs4_ft ih264_deblk_chroma_vert_bs4_mbaff_bp_ssse3;
-
-
 ih264_deblk_edge_bslt4_ft ih264_deblk_luma_horz_bslt4_ssse3;
 ih264_deblk_edge_bslt4_ft ih264_deblk_luma_vert_bslt4_ssse3;
 ih264_deblk_edge_bslt4_ft ih264_deblk_luma_vert_bslt4_mbaff_ssse3;
-
-
 ih264_deblk_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_bp_ssse3;
 ih264_deblk_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_bp_ssse3;
 ih264_deblk_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_mbaff_bp_ssse3;
-
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_vert_bs4_ssse3;
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_horz_bs4_ssse3;
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_vert_bs4_mbaff_ssse3;
 ih264_deblk_chroma_edge_bs4_ft ih264_deblk_chroma_horz_bs4_mbaff_ssse3;
-
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_ssse3;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_ssse3;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_mbaff_ssse3;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_mbaff_ssse3;
 
-#endif /* IH264_DEBLK_H_ */
+#endif /* _IH264_DEBLK_EDGE_FILTERS_H_ */

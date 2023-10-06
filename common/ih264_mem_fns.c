@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
  *******************************************************************************
  * @file
@@ -26,18 +27,18 @@
  *  Functions used for memory operations
  *
  * @author
- *  Ittiam
+ *  ittiam
  *
  * @par List of Functions:
- *  ih264_memcpy()
- *  ih264_memcpy_mul_8()
- *  ih264_memset()
- *  ih264_memset_mul_8()
- *  ih264_memset_16bit()
- *  ih264_memset_16bit_mul_8()
+ *  ih264_memcpy
+ *  ih264_memcpy_mul_8
+ *  ih264_memset
+ *  ih264_memset_mul_8
+ *  ih264_memset_16bit
+ *  ih264_memset_16bit_mul_8
  *
  * @remarks
- *  None
+ *  none
  *
  ******************************************************************************
  */
@@ -45,118 +46,116 @@
 /*****************************************************************************/
 /* File Includes                                                             */
 /*****************************************************************************/
-/* System include files */
+
+/* System Include Files */
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
-
-/* User include files */
+/* User Include Files */
 #include "ih264_typedefs.h"
+
+#include "ih264_debug.h"
 #include "ih264_mem_fns.h"
 
 /**
- *******************************************************************************
- *
- * @brief
- *   memcpy of a 8,16 or 32 bytes
- *
- * @par Description:
- *   Does memcpy of 8bit data from source to destination for 8,16 or 32 number of bytes
- *
- * @param[in] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[in] num_bytes
- *  number of bytes to copy
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
-
+*******************************************************************************
+*
+* @brief memcpy of a 8,16 or 32 bytes
+*
+* @par Description
+*  Does memcpy of 8bit data from source to destination for 8,16 or 32 number of
+*  bytes
+*
+* @param[in] pu1_dst
+*  pointer to the destination
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[in] num_bytes
+*  number of bytes to copy
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_memcpy(UWORD8 *pu1_dst, UWORD8 *pu1_src, UWORD32 num_bytes)
 {
     memcpy(pu1_dst, pu1_src, num_bytes);
 }
 
-
 void ih264_memcpy_mul_8(UWORD8 *pu1_dst, UWORD8 *pu1_src, UWORD32 num_bytes)
 {
+    ASSERT(num_bytes % 8 == 0);
     memcpy(pu1_dst, pu1_src, num_bytes);
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *   memset of a 8,16 or 32 bytes
- *
- * @par Description:
- *   Does memset of 8bit data for 8,16 or 32 number of bytes
- *
- * @param[in] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] value
- *  UWORD8 value used for memset
- *
- * @param[in] num_bytes
- *  number of bytes to set
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
-
+*******************************************************************************
+*
+* @brief memset of a 8,16 or 32 bytes
+*
+* @par Description
+*  Does memset of 8bit data for 8,16 or 32 number of bytes
+*
+* @param[in] pu1_dst
+*  pointer to the destination
+*
+* @param[in] value
+*  value used for memset
+*
+* @param[in] num_bytes
+*  number of bytes to set
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_memset(UWORD8 *pu1_dst, UWORD8 value, UWORD32 num_bytes)
 {
     memset(pu1_dst, value, num_bytes);
 }
 
-
 void ih264_memset_mul_8(UWORD8 *pu1_dst, UWORD8 value, UWORD32 num_bytes)
 {
+    ASSERT(num_bytes % 8 == 0);
     memset(pu1_dst, value, num_bytes);
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *   memset of 16bit data of a 8,16 or 32 bytes
- *
- * @par Description:
- *   Does memset of 16bit data for 8,16 or 32 number of bytes
- *
- * @param[in] pu2_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] value
- *  UWORD16 value used for memset
- *
- * @param[in] num_words
- *  number of words to set
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
-
+*******************************************************************************
+*
+* @brief memset of 16bit data of a 8,16 or 32 bytes
+*
+* @par Description
+*  Does memset of 16bit data for 8,16 or 32 number of bytes
+*
+* @param[in] pu2_dst
+*  pointer to the destination
+*
+* @param[in] value
+*  value used for memset
+*
+* @param[in] num_words
+*  number of words to set
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_memset_16bit(UWORD16 *pu2_dst, UWORD16 value, UWORD32 num_words)
 {
     UWORD32 i;
+
     for(i = 0; i < num_words; i++)
     {
         *pu2_dst++ = value;
@@ -168,6 +167,8 @@ void ih264_memset_16bit_mul_8(UWORD16 *pu2_dst,
                               UWORD32 num_words)
 {
     UWORD32 i;
+
+    ASSERT(num_words % 8 == 0);
     for(i = 0; i < num_words; i++)
     {
         *pu2_dst++ = value;

@@ -17,48 +17,48 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
- *******************************************************************************
- * @file
- *  ih264_luma_intra_pred_filters.c
- *
- * @brief
- *  Contains function definitions for intra prediction  filters
- *
- * @author
- *  Ittiam
- *
- * @par List of Functions:
- *  - ih264_intra_pred_luma_4x4_mode_vert
- *  - ih264_intra_pred_luma_4x4_mode_horz
- *  - ih264_intra_pred_luma_4x4_mode_dc
- *  - ih264_intra_pred_luma_4x4_mode_diag_dl
- *  - ih264_intra_pred_luma_4x4_mode_diag_dr
- *  - ih264_intra_pred_luma_4x4_mode_vert_r
- *  - ih264_intra_pred_luma_4x4_mode_horz_d
- *  - ih264_intra_pred_luma_4x4_mode_vert_l
- *  - ih264_intra_pred_luma_4x4_mode_horz_u
- *  - ih264_intra_pred_luma_8x8_mode_ref_filtering
- *  - ih264_intra_pred_luma_8x8_mode_vert
- *  - ih264_intra_pred_luma_8x8_mode_horz
- *  - ih264_intra_pred_luma_8x8_mode_dc
- *  - ih264_intra_pred_luma_8x8_mode_diag_dl
- *  - ih264_intra_pred_luma_8x8_mode_diag_dr
- *  - ih264_intra_pred_luma_8x8_mode_vert_r
- *  - ih264_intra_pred_luma_8x8_mode_horz_d
- *  - ih264_intra_pred_luma_8x8_mode_vert_l
- *  - ih264_intra_pred_luma_8x8_mode_horz_u
- *  - ih264_intra_pred_luma_16x16_mode_vert
- *  - ih264_intra_pred_luma_16x16_mode_horz
- *  - ih264_intra_pred_luma_16x16_mode_dc
- *  - ih264_intra_pred_luma_16x16_mode_plane
- *
- *
- * @remarks
- *  None
- *
- ******************************************************************************
- */
+*******************************************************************************
+* @file
+*  ih264_luma_intra_pred_filters.c
+*
+* @brief
+*  Contains function definitions for intra prediction  filters
+*
+* @author
+*  ittiam
+*
+* @par List of Functions:
+*  - ih264_intra_pred_luma_4x4_mode_vert
+*  - ih264_intra_pred_luma_4x4_mode_horz
+*  - ih264_intra_pred_luma_4x4_mode_dc
+*  - ih264_intra_pred_luma_4x4_mode_diag_dl
+*  - ih264_intra_pred_luma_4x4_mode_diag_dr
+*  - ih264_intra_pred_luma_4x4_mode_vert_r
+*  - ih264_intra_pred_luma_4x4_mode_horz_d
+*  - ih264_intra_pred_luma_4x4_mode_vert_l
+*  - ih264_intra_pred_luma_4x4_mode_horz_u
+*  - ih264_intra_pred_luma_8x8_mode_ref_filtering
+*  - ih264_intra_pred_luma_8x8_mode_vert
+*  - ih264_intra_pred_luma_8x8_mode_horz
+*  - ih264_intra_pred_luma_8x8_mode_dc
+*  - ih264_intra_pred_luma_8x8_mode_diag_dl
+*  - ih264_intra_pred_luma_8x8_mode_diag_dr
+*  - ih264_intra_pred_luma_8x8_mode_vert_r
+*  - ih264_intra_pred_luma_8x8_mode_horz_d
+*  - ih264_intra_pred_luma_8x8_mode_vert_l
+*  - ih264_intra_pred_luma_8x8_mode_horz_u
+*  - ih264_intra_pred_luma_16x16_mode_vert
+*  - ih264_intra_pred_luma_16x16_mode_horz
+*  - ih264_intra_pred_luma_16x16_mode_dc
+*  - ih264_intra_pred_luma_16x16_mode_plane
+*
+* @remarks
+*  none
+*
+******************************************************************************
+*/
 
 /*****************************************************************************/
 /* File Includes                                                             */
@@ -69,63 +69,68 @@
 #include <string.h>
 
 /* User include files */
-#include "ih264_defs.h"
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
-#include "ih264_platform_macros.h"
+#include "ih264_defs.h"
 #include "ih264_intra_pred_filters.h"
+#include "ih264_platform_macros.h"
 
-/* Global variables used only in assembly files*/
+/*****************************************************************************/
+/* Global definitions                                                        */
+/*****************************************************************************/
+/* Note: Global variables used only in assembly files */
 const WORD8 ih264_gai1_intrapred_luma_plane_coeffs[] =
-{ 0x01, 0x02, 0x03, 0x04,
-  0x05, 0x06, 0x07, 0x08,
-  0x09, 0x0A, 0x0B, 0x0C,
-  0x0D, 0x0E, 0x0F, 0x10, };
-
-const WORD8  ih264_gai1_intrapred_luma_8x8_horz_u[] =
-{ 0x06,0x15,0x05,0x14,
-  0x04,0x13,0x03,0x12,
-  0x02,0x11,0x01,0x10,
-  0x00,0x1F,0x0F,0x0F
+{
+    0x01, 0x02, 0x03, 0x04,
+    0x05, 0x06, 0x07, 0x08,
+    0x09, 0x0A, 0x0B, 0x0C,
+    0x0D, 0x0E, 0x0F, 0x10,
 };
 
-/*******************    LUMA INTRAPREDICTION    *******************/
+const WORD8  ih264_gai1_intrapred_luma_8x8_horz_u[] =
+{
+   0x06, 0x15, 0x05, 0x14,
+   0x04, 0x13, 0x03, 0x12,
+   0x02, 0x11, 0x01, 0x10,
+   0x00, 0x1F, 0x0F, 0x0F,
+};
 
-/*******************    4x4 Modes    *******************/
+
+/*****************************************************************************/
+/* Function Definitions                                                      */
+/*****************************************************************************/
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_4x4_mode_vert
- *
- * @brief
- *  Perform Intra prediction for  luma_4x4 mode:vertical
- *
- * @par Description:
- * Perform Intra prediction for  luma_4x4 mode:vertical ,described in sec 8.3.1.2.1
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_4x4 mode:vertical
+*
+* @par Description:
+* Perform Intra prediction for luma_4x4 mode:vertical, described in sec 8.3.1.2.1
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_4x4_mode_vert(UWORD8 *pu1_src,
                                          UWORD8 *pu1_dst,
                                          WORD32 src_strd,
@@ -133,10 +138,10 @@ void ih264_intra_pred_luma_4x4_mode_vert(UWORD8 *pu1_src,
                                          WORD32 ngbr_avail)
 {
     UWORD8 *pu1_top = NULL; /* Pointer to start of top predictors */
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src + BLK_SIZE + 1;
-
     memcpy(pu1_dst, pu1_top, 4);
     memcpy(pu1_dst + dst_strd, pu1_top, 4);
     memcpy(pu1_dst + 2 * dst_strd, pu1_top, 4);
@@ -144,38 +149,37 @@ void ih264_intra_pred_luma_4x4_mode_vert(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_4x4_mode_horz
- *
- * @brief
- *  Perform Intra prediction for  luma_4x4 mode:horizontal
- *
- * @par Description:
- *  Perform Intra prediction for  luma_4x4 mode:horizontal ,described in sec 8.3.1.2.2
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_4x4 mode:horizontal
+*
+* @par Description:
+*  Perform Intra prediction for luma_4x4 mode:horizontal, described in
+*  sec 8.3.1.2.2
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_4x4_mode_horz(UWORD8 *pu1_src,
                                          UWORD8 *pu1_dst,
                                          WORD32 src_strd,
@@ -187,7 +191,6 @@ void ih264_intra_pred_luma_4x4_mode_horz(UWORD8 *pu1_src,
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_left = pu1_src + BLK_SIZE - 1;
-
     memset(pu1_dst, *pu1_left, 4);
     memset(pu1_dst + dst_strd, *(pu1_left - 1), 4);
     memset(pu1_dst + 2 * dst_strd, *(pu1_left - 2), 4);
@@ -195,37 +198,36 @@ void ih264_intra_pred_luma_4x4_mode_horz(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_4x4_mode_dc
- *
- * @brief
- *  Perform Intra prediction for  luma_4x4 mode:DC
- *
- * @par Description:
- *  Perform Intra prediction for  luma_4x4 mode:DC ,described in sec 8.3.1.2.3
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- *  availability of neighbouring pixels
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_4x4 mode:DC
+*
+* @par Description:
+*  Perform Intra prediction for luma_4x4 mode:DC, described in sec 8.3.1.2.3
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_4x4_mode_dc(UWORD8 *pu1_src,
                                        UWORD8 *pu1_dst,
                                        WORD32 src_strd,
@@ -237,6 +239,7 @@ void ih264_intra_pred_luma_4x4_mode_dc(UWORD8 *pu1_src,
     UWORD8 *pu1_left = NULL; /* Pointer to start of left predictors */
     UWORD8 *pu1_top = NULL; /* Pointer to start of top predictors */
     WORD32 val = 0;
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     u1_useleft = BOOLEAN(ngbr_avail & LEFT_MB_AVAILABLE_MASK);
@@ -259,7 +262,6 @@ void ih264_intra_pred_luma_4x4_mode_dc(UWORD8 *pu1_src,
     /* Since 2 is added if either left/top pred is there,
      val still being zero implies both preds are not there */
     val = (val) ? (val >> (1 + u1_useleft + u1_usetop)) : 128;
-
     /* 4 bytes are copied from src to dst */
     memset(pu1_dst, val, 4);
     memset(pu1_dst + dst_strd, val, 4);
@@ -268,37 +270,37 @@ void ih264_intra_pred_luma_4x4_mode_dc(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_4x4_mode_diag_dl
- *
- * @brief
- *     Perform Intra prediction for  luma_4x4 mode:Diagonal_Down_Left
- *
- * @par Description:
- *    Perform Intra prediction for  luma_4x4 mode:Diagonal_Down_Left ,described in sec 8.3.1.2.4
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_4x4 mode:Diagonal_Down_Left
+*
+* @par Description:
+*  Perform Intra prediction for luma_4x4 mode:Diagonal_Down_Left, described in
+*  sec 8.3.1.2.4
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_4x4_mode_diag_dl(UWORD8 *pu1_src,
                                             UWORD8 *pu1_dst,
                                             WORD32 src_strd,
@@ -308,6 +310,7 @@ void ih264_intra_pred_luma_4x4_mode_diag_dl(UWORD8 *pu1_src,
     UWORD8 *pu1_top = NULL; /* Pointer to start of top predictors */
     UWORD32 ui4_a, ui4_b, ui4_c, ui4_d, ui4_e, ui4_f, ui4_g, ui4_h;
     UWORD8 predicted_pixels[7];
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src +BLK_SIZE + 1;
@@ -336,37 +339,37 @@ void ih264_intra_pred_luma_4x4_mode_diag_dl(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_4x4_mode_diag_dr
- *
- * @brief
- *     Perform Intra prediction for  luma_4x4 mode:Diagonal_Down_Right
- *
- * @par Description:
- *    Perform Intra prediction for  luma_4x4 mode:Diagonal_Down_Right ,described in sec 8.3.1.2.5
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_4x4 mode:Diagonal_Down_Right
+*
+* @par Description:
+*  Perform Intra prediction for luma_4x4 mode:Diagonal_Down_Right, described in
+*  sec 8.3.1.2.5
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_4x4_mode_diag_dr(UWORD8 *pu1_src,
                                             UWORD8 *pu1_dst,
                                             WORD32 src_strd,
@@ -378,6 +381,7 @@ void ih264_intra_pred_luma_4x4_mode_diag_dr(UWORD8 *pu1_src,
     UWORD8 *pu1_topleft = NULL;/* Pointer to top left predictor */
     UWORD32 ui4_a, ui4_b, ui4_c, ui4_d, ui4_i, ui4_j, ui4_k, ui4_l, ui4_m;
     UWORD8 predicted_pixels[7];
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src + BLK_SIZE + 1;
@@ -409,37 +413,37 @@ void ih264_intra_pred_luma_4x4_mode_diag_dr(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_4x4_mode_vert_r
- *
- * @brief
- *     Perform Intra prediction for  luma_4x4 mode:Vertical_Right
- *
- * @par Description:
- *    Perform Intra prediction for  luma_4x4 mode:Vertical_Right ,described in sec 8.3.1.2.6
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_4x4 mode:Vertical_Right
+*
+* @par Description:
+*  Perform Intra prediction for luma_4x4 mode:Vertical_Right, described in
+*  sec 8.3.1.2.6
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_4x4_mode_vert_r(UWORD8 *pu1_src,
                                            UWORD8 *pu1_dst,
                                            WORD32 src_strd,
@@ -452,6 +456,7 @@ void ih264_intra_pred_luma_4x4_mode_vert_r(UWORD8 *pu1_src,
     UWORD8 *pu1_left = NULL; /* Pointer to start of left predictors */
     UWORD8 *pu1_topleft = NULL;/* Pointer to top left predictor */
     UWORD8 predicted_pixels[10];
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src +BLK_SIZE + 1;
@@ -485,37 +490,37 @@ void ih264_intra_pred_luma_4x4_mode_vert_r(UWORD8 *pu1_src,
 }
 
 /*
- *******************************************************************************
- *
- *ih264_intra_pred_luma_4x4_mode_horz_d
- *
- * @brief
- *     Perform Intra prediction for  luma_4x4 mode:Horizontal_Down
- *
- * @par Description:
- *    Perform Intra prediction for  luma_4x4 mode:Horizontal_Down ,described in sec 8.3.1.2.7
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_4x4 mode:Horizontal_Down
+*
+* @par Description:
+*  Perform Intra prediction for luma_4x4 mode:Horizontal_Down, described in
+*  sec 8.3.1.2.7
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_4x4_mode_horz_d(UWORD8 *pu1_src,
                                            UWORD8 *pu1_dst,
                                            WORD32 src_strd,
@@ -527,6 +532,7 @@ void ih264_intra_pred_luma_4x4_mode_horz_d(UWORD8 *pu1_src,
     UWORD8 *pu1_topleft = NULL;/* Pointer to top left predictor */
     UWORD32 ui4_a, ui4_b, ui4_c, ui4_i, ui4_j, ui4_k, ui4_l, ui4_m;
     UWORD8 predicted_pixels[10];
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src + BLK_SIZE + 1;
@@ -560,37 +566,37 @@ void ih264_intra_pred_luma_4x4_mode_horz_d(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_4x4_mode_vert_l
- *
- * @brief
- *     Perform Intra prediction for  luma_4x4 mode:Vertical_Left
- *
- * @par Description:
- *    Perform Intra prediction for  luma_4x4 mode:Vertical_Left ,described in sec 8.3.1.2.8
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for  luma_4x4 mode:Vertical_Left
+*
+* @par Description:
+*  Perform Intra prediction for  luma_4x4 mode:Vertical_Left, described in
+*  sec 8.3.1.2.8
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_4x4_mode_vert_l(UWORD8 *pu1_src,
                                            UWORD8 *pu1_dst,
                                            WORD32 src_strd,
@@ -600,6 +606,7 @@ void ih264_intra_pred_luma_4x4_mode_vert_l(UWORD8 *pu1_src,
     UWORD8 *pu1_top = NULL; /* Pointer to start of top predictors */
     UWORD32 ui4_a, ui4_b, ui4_c, ui4_d, ui4_e, ui4_f, ui4_g;
     UWORD8 predicted_pixels[10];
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src + BLK_SIZE + 1;
@@ -630,37 +637,37 @@ void ih264_intra_pred_luma_4x4_mode_vert_l(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_4x4_mode_horz_u
- *
- * @brief
- *     Perform Intra prediction for  luma_4x4 mode:Horizontal_Up
- *
- * @par Description:
- *    Perform Intra prediction for  luma_4x4 mode:Horizontal_Up ,described in sec 8.3.1.2.9
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_4x4 mode:Horizontal_Up
+*
+* @par Description:
+*  Perform Intra prediction for luma_4x4 mode:Horizontal_Up, described in
+*  sec 8.3.1.2.9
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_4x4_mode_horz_u(UWORD8 *pu1_src,
                                            UWORD8 *pu1_dst,
                                            WORD32 src_strd,
@@ -670,6 +677,7 @@ void ih264_intra_pred_luma_4x4_mode_horz_u(UWORD8 *pu1_src,
     UWORD8 *pu1_left = NULL; /* Pointer to start of left predictors */
     UWORD32 ui4_i, ui4_j, ui4_k, ui4_l;
     UWORD8 predicted_pixels[10];
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_left = pu1_src + BLK_SIZE - 1;
@@ -696,46 +704,45 @@ void ih264_intra_pred_luma_4x4_mode_horz_u(UWORD8 *pu1_src,
     memcpy(pu1_dst + 3 * dst_strd, predicted_pixels + 6, 4);
 }
 
-/*******************    8x8 Modes    *******************/
-
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_8x8_mode_ref_filtering
- *
- * @brief
- *     Reference sample filtering process for Intra_8x8 sample prediction
- *
- * @par Description:
- *    Perform Reference sample filtering process for Intra_8x8 sample prediction ,described in sec 8.3.2.2.1
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride[Not Used]
- *
- * @param[in] dst_strd
- *  integer destination stride[Not Used]
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Reference sample filtering process for Intra_8x8 sample prediction
+*
+* @par Description:
+*  Perform Reference sample filtering process for Intra_8x8 sample prediction,
+*  described in sec 8.3.2.2.1
+*
+* @param[in] pu1_left
+*  pointer to the left pixel wrt current mb
+*
+* @param[in] pu1_topleft
+*  pointer to the topleft pixel wrt current mb
+*
+* @param[in] pu1_top
+*  pointer to the top pixel wrt current mb
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride[Not Used]
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************/
 void ih264_intra_pred_luma_8x8_mode_ref_filtering(UWORD8 *pu1_left,
                                                   UWORD8 *pu1_topleft,
                                                   UWORD8 *pu1_top,
                                                   UWORD8 *pu1_dst,
-                                                  WORD32 left_strd,
+                                                  WORD32 src_strd,
                                                   WORD32 ngbr_avail)
 {
     WORD32 top_avail, left_avail, top_left_avail, top_right_avail;
@@ -764,7 +771,6 @@ void ih264_intra_pred_luma_8x8_mode_ref_filtering(UWORD8 *pu1_left,
         {
             pu1_dst[8 + 1 + 0] = FILT121((*pu1_topleft), pu1_top[0],
                                          pu1_top[1]);
-
         }
         else
         {
@@ -775,7 +781,6 @@ void ih264_intra_pred_luma_8x8_mode_ref_filtering(UWORD8 *pu1_left,
         {
             pu1_dst[8 + 1 + i] = FILT121(pu1_top[i - 1], pu1_top[i],
                                          pu1_top[i + 1]);
-
         }
         /* First byte of Top Right input is in pu1_dst[8 + 1 + 8]*/
         pu1_dst[8 + 1 + 7] = FILT121(pu1_top[6], pu1_top[7],
@@ -796,7 +801,6 @@ void ih264_intra_pred_luma_8x8_mode_ref_filtering(UWORD8 *pu1_left,
         }
 
         pu1_dst[8 + 1 + 15] = (u4_xm1 + (3 * pu1_dst[8 + 1 + 15]) + 2) >> 2;
-
     }
 
     /* pu1_topleft is overloaded. It is both: */
@@ -824,59 +828,57 @@ void ih264_intra_pred_luma_8x8_mode_ref_filtering(UWORD8 *pu1_left,
         if(0 != pu1_topleft)
         {
             pu1_dst[7] = FILT121((*pu1_topleft), pu1_left[0],
-                                 pu1_left[left_strd]);
+                                 pu1_left[src_strd]);
         }
         else
         {
-            pu1_dst[7] = ((3 * pu1_left[0]) + pu1_left[left_strd] + 2) >> 2;
+            pu1_dst[7] = ((3 * pu1_left[0]) + pu1_left[src_strd] + 2) >> 2;
         }
 
         for(idx = 1; idx <= 6; idx++)
         {
-            pu1_dst[7 - idx] = FILT121(pu1_left[(idx - 1) * left_strd],
-                                       pu1_left[idx * left_strd],
-                                       pu1_left[(idx + 1) * left_strd]);
+            pu1_dst[7 - idx] = FILT121(pu1_left[(idx - 1) * src_strd],
+                                       pu1_left[idx * src_strd],
+                                       pu1_left[(idx + 1) * src_strd]);
 
         }
-        pu1_dst[0] = (pu1_left[6 * left_strd] + 3 * pu1_left[7 * left_strd] + 2)
+        pu1_dst[0] = (pu1_left[6 * src_strd] + 3 * pu1_left[7 * src_strd] + 2)
                         >> 2;
-
     }
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_8x8_mode_vert
- *
- * @brief
- *  Perform Intra prediction for  luma_8x8 mode:vertical
- *
- * @par Description:
- *  Perform Intra prediction for  luma_8x8 mode:vertical ,described in sec 8.3.2.2.2
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_8x8 mode:vertical
+*
+* @par Description:
+*  Perform Intra prediction for luma_8x8 mode:vertical, described in
+*  sec 8.3.2.2.2
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_8x8_mode_vert(UWORD8 *pu1_src,
                                          UWORD8 *pu1_dst,
                                          WORD32 src_strd,
@@ -884,6 +886,7 @@ void ih264_intra_pred_luma_8x8_mode_vert(UWORD8 *pu1_src,
                                          WORD32 ngbr_avail)
 {
     UWORD8 *pu1_top = NULL;
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src + BLK8x8SIZE + 1;
@@ -899,39 +902,37 @@ void ih264_intra_pred_luma_8x8_mode_vert(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_8x8_mode_horz
- *
- * @brief
- *  Perform Intra prediction for  luma_8x8 mode:horizontal
- *
- * @par Description:
- *  Perform Intra prediction for  luma_8x8 mode:horizontal ,described in sec 8.3.2.2.2
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
-
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_8x8 mode:horizontal
+*
+* @par Description:
+*  Perform Intra prediction for luma_8x8 mode:horizontal, described in
+*  sec 8.3.2.2.2
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_8x8_mode_horz(UWORD8 *pu1_src,
                                          UWORD8 *pu1_dst,
                                          WORD32 src_strd,
@@ -939,6 +940,7 @@ void ih264_intra_pred_luma_8x8_mode_horz(UWORD8 *pu1_src,
                                          WORD32 ngbr_avail)
 {
     UWORD8 *pu1_left = pu1_src + BLK8x8SIZE - 1;
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     memset(pu1_dst, *pu1_left, 8);
@@ -952,37 +954,36 @@ void ih264_intra_pred_luma_8x8_mode_horz(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_8x8_mode_dc
- *
- * @brief
- *     Perform Intra prediction for  luma_8x8 mode:DC
- *
- * @par Description:
- *    Perform Intra prediction for  luma_8x8 mode:DC ,described in sec 8.3.2.2.4
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- *  availability of neighbouring pixels
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_8x8 mode:DC
+*
+* @par Description:
+*  Perform Intra prediction for luma_8x8 mode:DC, described in sec 8.3.2.2.4
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_8x8_mode_dc(UWORD8 *pu1_src,
                                        UWORD8 *pu1_dst,
                                        WORD32 src_strd,
@@ -995,8 +996,8 @@ void ih264_intra_pred_luma_8x8_mode_dc(UWORD8 *pu1_src,
     UWORD8 *pu1_top = NULL; /* Pointer to start of top predictors */
     WORD32 row;
     WORD32 val = 0;
-    UNUSED(src_strd);
 
+    UNUSED(src_strd);
     u1_useleft = BOOLEAN(ngbr_avail & LEFT_MB_AVAILABLE_MASK);
     u1_usetop = BOOLEAN(ngbr_avail & TOP_MB_AVAILABLE_MASK);
     pu1_top = pu1_src + BLK8x8SIZE + 1;
@@ -1030,37 +1031,37 @@ void ih264_intra_pred_luma_8x8_mode_dc(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_8x8_mode_diag_dl
- *
- * @brief
- *     Perform Intra prediction for  luma_8x8 mode:Diagonal_Down_Left
- *
- * @par Description:
- *    Perform Intra prediction for  luma_8x8 mode:Diagonal_Down_Left ,described in sec 8.3.2.2.5
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_8x8 mode:Diagonal_Down_Left
+*
+* @par Description:
+*  Perform Intra prediction for luma_8x8 mode:Diagonal_Down_Left, described in
+*  sec 8.3.2.2.5
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_8x8_mode_diag_dl(UWORD8 *pu1_src,
                                             UWORD8 *pu1_dst,
                                             WORD32 src_strd,
@@ -1071,6 +1072,7 @@ void ih264_intra_pred_luma_8x8_mode_diag_dl(UWORD8 *pu1_src,
     UWORD32 ui4_a, ui4_b, ui4_c, ui4_d, ui4_e, ui4_f, ui4_g, ui4_h;
     UWORD32 ui4_i, ui4_j, ui4_k, ui4_l, ui4_m, ui4_n, ui4_o, ui4_p;
     UWORD8 predicted_pixels[15];
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src + BLK8x8SIZE + 1;
@@ -1119,37 +1121,37 @@ void ih264_intra_pred_luma_8x8_mode_diag_dl(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_8x8_mode_diag_dr
- *
- * @brief
- *     Perform Intra prediction for  luma_8x8 mode:Diagonal_Down_Right
- *
- * @par Description:
- *    Perform Intra prediction for  luma_8x8 mode:Diagonal_Down_Right ,described in sec 8.3.2.2.6
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_8x8 mode:Diagonal_Down_Right
+*
+* @par Description:
+*  Perform Intra prediction for luma_8x8 mode:Diagonal_Down_Right, described
+*  in sec 8.3.2.2.6
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_8x8_mode_diag_dr(UWORD8 *pu1_src,
                                             UWORD8 *pu1_dst,
                                             WORD32 src_strd,
@@ -1163,6 +1165,7 @@ void ih264_intra_pred_luma_8x8_mode_diag_dr(UWORD8 *pu1_src,
     UWORD32 ui4_b, ui4_c, ui4_d, ui4_e, ui4_f, ui4_g, ui4_h, ui4_i;
     UWORD32 ui4_j, ui4_k, ui4_l, ui4_m, ui4_n, ui4_o, ui4_p, ui4_q;
     UWORD8 predicted_pixels[15];
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src + BLK8x8SIZE + 1;
@@ -1214,37 +1217,37 @@ void ih264_intra_pred_luma_8x8_mode_diag_dr(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_8x8_mode_vert_r
- *
- * @brief
- *     Perform Intra prediction for  luma_8x8 mode:Vertical_Right
- *
- * @par Description:
- *    Perform Intra prediction for  luma_8x8 mode:Vertical_Right ,described in sec 8.3.2.2.7
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for  luma_8x8 mode:Vertical_Right
+*
+* @par Description:
+*  Perform Intra prediction for  luma_8x8 mode:Vertical_Right, described in
+*  sec 8.3.2.2.7
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_8x8_mode_vert_r(UWORD8 *pu1_src,
                                            UWORD8 *pu1_dst,
                                            WORD32 src_strd,
@@ -1314,42 +1317,40 @@ void ih264_intra_pred_luma_8x8_mode_vert_r(UWORD8 *pu1_src,
     memcpy(pu1_dst + 5 * dst_strd, predicted_pixels + 12, 8);
     memcpy(pu1_dst + 6 * dst_strd, predicted_pixels, 8);
     memcpy(pu1_dst + 7 * dst_strd, predicted_pixels + 11, 8);
-
 }
 
-/*
- *******************************************************************************
- *
- *ih264_intra_pred_luma_8x8_mode_horz_d
- *
- * @brief
- *     Perform Intra prediction for  luma_8x8 mode:Horizontal_Down
- *
- * @par Description:
- *    Perform Intra prediction for  luma_8x8 mode:Horizontal_Down ,described in sec 8.3.2.2.8
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
-
+/**
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_8x8 mode:Horizontal_Down
+*
+* @par Description:
+*  Perform Intra prediction for luma_8x8 mode:Horizontal_Down, described in
+*  sec 8.3.2.2.8
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_8x8_mode_horz_d(UWORD8 *pu1_src,
                                            UWORD8 *pu1_dst,
                                            WORD32 src_strd,
@@ -1363,6 +1364,7 @@ void ih264_intra_pred_luma_8x8_mode_horz_d(UWORD8 *pu1_src,
     UWORD32 ui4_b, ui4_c, ui4_d, ui4_e, ui4_f, ui4_g, ui4_h, ui4_i;
     UWORD32 ui4_j, ui4_k, ui4_l, ui4_m, ui4_n, ui4_o, ui4_p;
     UWORD8 predicted_pixels[22];
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src + BLK8x8SIZE + 1;
@@ -1420,37 +1422,37 @@ void ih264_intra_pred_luma_8x8_mode_horz_d(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_8x8_mode_vert_l
- *
- * @brief
- *     Perform Intra prediction for  luma_8x8 mode:Vertical_Left
- *
- * @par Description:
- *    Perform Intra prediction for  luma_8x8 mode:Vertical_Left ,described in sec 8.3.2.2.9
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_8x8 mode:Vertical_Left
+*
+* @par Description:
+*  Perform Intra prediction for luma_8x8 mode:Vertical_Left, described in
+*  sec 8.3.2.2.9
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 
 void ih264_intra_pred_luma_8x8_mode_vert_l(UWORD8 *pu1_src,
                                            UWORD8 *pu1_dst,
@@ -1462,6 +1464,7 @@ void ih264_intra_pred_luma_8x8_mode_vert_l(UWORD8 *pu1_src,
     UWORD32 ui4_a, ui4_b, ui4_c, ui4_d, ui4_e, ui4_f, ui4_g, ui4_h;
     UWORD32 ui4_i, ui4_j, ui4_k, ui4_l, ui4_m;
     UWORD8 predicted_pixels[22];
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src + BLK8x8SIZE + 1;
@@ -1514,48 +1517,47 @@ void ih264_intra_pred_luma_8x8_mode_vert_l(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_8x8_mode_horz_u
- *
- * @brief
- *     Perform Intra prediction for  luma_8x8 mode:Horizontal_Up
- *
- * @par Description:
- *    Perform Intra prediction for  luma_8x8 mode:Horizontal_Up ,described in sec 8.3.2.2.10
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
-
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_8x8 mode:Horizontal_Up
+*
+* @par Description:
+*  Perform Intra prediction for luma_8x8 mode:Horizontal_Up, described in
+*  sec 8.3.2.2.10
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_8x8_mode_horz_u(UWORD8 *pu1_src,
                                            UWORD8 *pu1_dst,
                                            WORD32 src_strd,
                                            WORD32 dst_strd,
                                            WORD32 ngbr_avail)
-
 {
     UWORD8 *pu1_left = NULL; /* Pointer to start of left predictors */
     UWORD32 ui4_j, ui4_k, ui4_l, ui4_m, ui4_n, ui4_o, ui4_p, ui4_q;
     UWORD8 predicted_pixels[22];
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_left = pu1_src + BLK8x8SIZE - 1;
@@ -1597,42 +1599,38 @@ void ih264_intra_pred_luma_8x8_mode_horz_u(UWORD8 *pu1_src,
     memcpy(pu1_dst + 7 * dst_strd, predicted_pixels + 14, 8);
 }
 
-
-/*******************    16x16 Modes    *******************/
-
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_16x16_mode_vert
- *
- * @brief
- *  Perform Intra prediction for  luma_16x16 mode:Vertical
- *
- * @par Description:
- *  Perform Intra prediction for  luma_16x16 mode:Vertical, described in sec 8.3.3.1
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- *  availability of neighbouring pixels (Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
-
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_16x16 mode:Vertical
+*
+* @par Description:
+*  Perform Intra prediction for luma_16x16 mode:Vertical, described in
+*  sec 8.3.3.1
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_16x16_mode_vert(UWORD8 *pu1_src,
                                            UWORD8 *pu1_dst,
                                            WORD32 src_strd,
@@ -1641,10 +1639,10 @@ void ih264_intra_pred_luma_16x16_mode_vert(UWORD8 *pu1_src,
 {
     UWORD8 *pu1_top = NULL; /* Pointer to start of top predictors */
     WORD32 rows; /* loop variables*/
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src + MB_SIZE + 1;
-
     for(rows = 0; rows < 16; rows += 4, pu1_dst += dst_strd)
     {
         memcpy(pu1_dst, pu1_top, 16);
@@ -1658,38 +1656,37 @@ void ih264_intra_pred_luma_16x16_mode_vert(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_16x16_mode_horz
- *
- * @brief
- *  Perform Intra prediction for  luma_16x16 mode:Horizontal
- *
- * @par Description:
- *  Perform Intra prediction for  luma_16x16 mode:Horizontal, described in sec 8.3.3.2
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
-
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_16x16 mode:Horizontal
+*
+* @par Description:
+*  Perform Intra prediction for luma_16x16 mode:Horizontal, described in
+*  sec 8.3.3.2
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_16x16_mode_horz(UWORD8 *pu1_src,
                                            UWORD8 *pu1_dst,
                                            WORD32 src_strd,
@@ -1698,10 +1695,10 @@ void ih264_intra_pred_luma_16x16_mode_horz(UWORD8 *pu1_src,
 {
     UWORD8 *pu1_left = NULL; /* Pointer to start of top predictors */
     WORD32 rows;
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_left = pu1_src + MB_SIZE - 1;
-
     for(rows = 0; rows < 16; rows += 4, pu1_dst += dst_strd, pu1_left --)
     {
         memset(pu1_dst, *pu1_left, 16); /* copy the left value to the entire row*/
@@ -1718,38 +1715,36 @@ void ih264_intra_pred_luma_16x16_mode_horz(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_16x16_mode_dc
- *
- * @brief
- *  Perform Intra prediction for  luma_16x16 mode:DC
- *
- * @par Description:
- *  Perform Intra prediction for  luma_16x16 mode:DC, described in sec 8.3.3.3
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- ** @param[in] ngbr_avail
- *  availability of neighbouring pixels
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
-
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_16x16 mode:DC
+*
+* @par Description:
+*  Perform Intra prediction for luma_16x16 mode:DC, described in sec 8.3.3.3
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_16x16_mode_dc(UWORD8 *pu1_src,
                                          UWORD8 *pu1_dst,
                                          WORD32 src_strd,
@@ -1762,8 +1757,8 @@ void ih264_intra_pred_luma_16x16_mode_dc(UWORD8 *pu1_src,
     UWORD8 *pu1_top = NULL; /* Pointer to start of top predictors */
     WORD32 rows; /* loop variables*/
     WORD32 val = 0;
-    UNUSED(src_strd);
 
+    UNUSED(src_strd);
     u1_useleft = BOOLEAN(ngbr_avail & LEFT_MB_AVAILABLE_MASK);
     u1_usetop = BOOLEAN(ngbr_avail & TOP_MB_AVAILABLE_MASK);
     pu1_top = pu1_src + MB_SIZE + 1;
@@ -1797,38 +1792,36 @@ void ih264_intra_pred_luma_16x16_mode_dc(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- *ih264_intra_pred_luma_16x16_mode_plane
- *
- * @brief
- *  Perform Intra prediction for  luma_16x16 mode:PLANE
- *
- * @par Description:
- *  Perform Intra prediction for  luma_16x16 mode:PLANE, described in sec 8.3.3.4
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ngbr_avail
- * availability of neighbouring pixels(Not used in this function)
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************/
-
+*******************************************************************************
+*
+* @brief
+*  Perform Intra prediction for luma_16x16 mode:PLANE
+*
+* @par Description:
+*  Perform Intra prediction for luma_16x16 mode:PLANE, described in sec 8.3.3.4
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ngbr_avail
+*  availability of neighbouring pixels
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_intra_pred_luma_16x16_mode_plane(UWORD8 *pu1_src,
                                             UWORD8 *pu1_dst,
                                             WORD32 src_strd,
@@ -1842,6 +1835,7 @@ void ih264_intra_pred_luma_16x16_mode_plane(UWORD8 *pu1_src,
     WORD32 a, b, c, tmp;
     UWORD8 *pu1_tmp1, *pu1_tmp2;
     WORD32 shift;
+
     UNUSED(src_strd);
     UNUSED(ngbr_avail);
     pu1_top = pu1_src + MB_SIZE + 1;

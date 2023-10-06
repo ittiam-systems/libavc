@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
@@ -26,16 +27,10 @@
 *  Contains tables used for deblocking
 *
 * @author
-*  Ittiam
-*
-* @par List of Tables:
-*  - guc_ih264_qp_scale_cr[]
-*  - guc_ih264_alpha_table[]
-*  - guc_ih264_beta_table[]
-*  - guc_ih264_clip_table[][]
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -61,7 +56,7 @@
  * input   : indexA [0-51] & indexB [0-51]
  * output  : alpha & beta
  *
- * @remarks Table 8-16 – in H264 Specification,
+ * @remarks Table 8-16 - in H264 Specification,
  * Derivation of offset dependent threshold variables
  *  alpha and beta from indexA and indexB
  ******************************************************************************
@@ -96,7 +91,7 @@ const UWORD8 gu1_ih264_beta_table[52] =
  * input   : indexA [0-51] and bS [1,3]
  * output  : t'C0
  *
- * @remarks Table 8-17 – in H264 Specification,
+ * @remarks Table 8-17 - in H264 Specification,
  * Value of variable t'C0 as a function of indexA and bS
  ******************************************************************************
  */

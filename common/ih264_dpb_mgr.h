@@ -19,27 +19,27 @@
 */
 
 /**
- *******************************************************************************
- * @file
- *  ih264_dpb_mgr.h
- *
- * @brief
- *  Function declarations used for decoded picture buffer management
- *
- * @author
- *  Srinivas T
- *
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @file
+*  ih264_dpb_mgr.h
+*
+* @brief
+*  Function declarations used for decoded picture buffer management
+*
+* @author
+*  none
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 #ifndef _IH264_DPB_MGR_H_
 #define _IH264_DPB_MGR_H_
 
-/* Temporary definitions. Have to be defined later */
-
+/*****************************************************************************/
+/* Constant Macros                                                           */
+/*****************************************************************************/
 #define MAX_DPB_BUFS                (MAX_DPB_SIZE * 4)
 
 #define MARK_ST_PICNUM_AS_NONREF    1
@@ -47,16 +47,21 @@
 #define MARK_ST_PICNUM_AS_LT_INDEX  3
 #define RESET_REF_PICTURES          5
 
-typedef struct dpb_info_t dpb_info_t;
-
+/*****************************************************************************/
+/* Enums                                                                     */
+/*****************************************************************************/
 enum
 {
     INVALID = -1,
-    UNUSED_FOR_REF = 0  ,
-    LONG_TERM_REF       ,
-    SHORT_TERM_REF      ,
+    UNUSED_FOR_REF = 0,
+    LONG_TERM_REF,
+    SHORT_TERM_REF,
 };
-struct dpb_info_t
+
+/*****************************************************************************/
+/* Structure Definitions                                                     */
+/*****************************************************************************/
+typedef struct dpb_info_t
 {
     /**
      * Pointer to picture buffer structure
@@ -66,9 +71,9 @@ struct dpb_info_t
     /**
      * Link to the DPB buffer with previous link
      */
-    dpb_info_t *ps_prev_dpb;
+    struct dpb_info_t *ps_prev_dpb;
 
-};
+} dpb_info_t;
 
 typedef struct
 {
@@ -114,6 +119,9 @@ typedef struct
 
 } dpb_mgr_t;
 
+/*****************************************************************************/
+/* Function Declarations                                                     */
+/*****************************************************************************/
 void ih264_dpb_mgr_init(dpb_mgr_t *ps_dpb_mgr);
 
 WORD32 ih264_dpb_mgr_insert_ref_frame(dpb_mgr_t *ps_dpb_mgr,

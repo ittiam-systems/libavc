@@ -17,66 +17,34 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-/**
- *******************************************************************************
- * @file
- *  ih264_trans_data.c
- *
- * @brief
- *  Contains definition of global variables for H264 encoder
- *
- * @author
- *  Ittiam
- *
- * @remarks
- *
- *******************************************************************************
- */
 
+/**
+*******************************************************************************
+* @file
+*  ih264_trans_data.c
+*
+* @brief
+*  Contains definition of global variables for H264 encoder
+*
+* @author
+*  ittiam
+*
+* @remarks
+*
+*******************************************************************************
+*/
+
+/*****************************************************************************/
+/* File Includes                                                             */
+/*****************************************************************************/
+
+/* User Include Files */
 #include "ih264_typedefs.h"
 #include "ih264_trans_data.h"
 
 /*****************************************************************************/
-/* Extern global definitions                                                 */
+/* Global definitions                                                        */
 /*****************************************************************************/
-
-/*
- * Since we don't have a division operation in neon
- * we will multiply by LCM of 16,6,10 and scale accordingly
- * so care that to get the actual transform you need to divide by LCM
- * LCM = 240
- */
-
-const UWORD16 g_scal_coff_h264_4x4[16] ={
-        15,40,40,40,
-        40,24,40,24,
-        15,40,40,15,
-        40,24,40,24};
-
-
-
-const UWORD16 g_scal_coff_h264_8x8[16]=
-        {
-                16,  15,   20,   15,
-                15,  14,   19,   14,
-                20,  19,   25,   19,
-                15,  14,   19,   14
-        };
-/*
- * The scaling is by an 8x8 matrix, but due its 4x4 symmetry we can use
- * a 4x4 matrix for scaling
- * now since divide is to be avoided, we will compute 1/ values and scale it up
- * to preserve information since our data is max 10 bit +1 sign bit we can shift a maximum of 21 bits up
- * hence multiply the matrix as such
-{16.000   15.059   20.227   15.059
-15.059   14.173   19.051   14.173
-20.227   19.051   25.600   19.051
-15.059   14.173   19.051   14.173};
-{512,   544,    405,    544,
-544,    578,    430,    578,
-405,    430,    320,    430,
-544,    578,    430,    578};*/
-
 
 /**
  ******************************************************************************
@@ -123,7 +91,6 @@ const UWORD16 gu2_quant_scale_matrix_4x4[96] =
       4559,   2893,   4559,   2893,
       7282,   4559,   7282,   4559,
       4559,   2893,   4559,   2893,
-
 };
 
 /**
@@ -148,19 +115,18 @@ const UWORD16 gu2_quant_scale_matrix_4x4[96] =
       174762,    349525,    699050,   1398101,
       2796202,
  }
- *
  * round factor constructed by setting a = 0.49
- *{
-         16056,     32112,     64225,
-         128450,    256901,    513802,
-         1027604,   2055208,   4110417,
- };
-
-  * round factor constructed by setting a = 0.5
+ {
+      16056,     32112,     64225,
+      128450,    256901,    513802,
+      1027604,   2055208,   4110417,
+ }
+ * round factor constructed by setting a = 0.5
+ {
       16384,     32768,     65536,
       131072,    262144,    524288,
-     1048576,   2097152,   4194304,
-
+      1048576,   2097152,   4194304,
+ }
  ******************************************************************************
  */
 const UWORD32 gu4_forward_quant_round_factor_4x4[9] =
@@ -169,8 +135,6 @@ const UWORD32 gu4_forward_quant_round_factor_4x4[9] =
         174762,    349525,    699050,   1398101,
         2796202,
 };
-
-
 
 /**
  ******************************************************************************
@@ -286,17 +250,13 @@ const UWORD16 gu2_quant_scale_matrix_8x8 [384] =
        6830,   6428,   8640,   6428,   6830,   6428,   8640,   6428,
        9118,   8640,  11570,   8640,   9118,   8640,  11570,   8640,
        6830,   6428,   8640,   6428,   6830,   6428,   8640,   6428,
-
 };
-
 
 /**
  ******************************************************************************
  * @brief  Specification of QPc as a function of qPi
- *
  * input   : qp luma
  * output  : qp chroma.
- *
  * @remarks Refer Table 8-15 of h264 specification.
  ******************************************************************************
  */

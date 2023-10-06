@@ -17,90 +17,90 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-/**************************************************************************** */
-/*                                                                            */
-/*  File Name         : ih264_deblk_edge_filters.c                            */
-/*                                                                            */
-/*  Description       : Contains function definitions for deblocking          */
-/*                                                                            */
-/*  List of Functions : ih264_deblk_luma_vert_bs4()                           */
-/*                      ih264_deblk_luma_horz_bs4()                           */
-/*                      ih264_deblk_luma_vert_bslt4()                         */
-/*                      ih264_deblk_luma_horz_bslt4()                         */
-/*                      ih264_deblk_luma_vert_bs4_mbaff()                     */
-/*                      ih264_deblk_luma_vert_bslt4_mbaff()                   */
-/*                      ih264_deblk_chroma_vert_bs4_bp()                      */
-/*                      ih264_deblk_chroma_horz_bs4_bp()                      */
-/*                      ih264_deblk_chroma_vert_bslt4_bp()                    */
-/*                      ih264_deblk_chroma_horz_bslt4_bp()                    */
-/*                      ih264_deblk_chroma_vert_bs4_mbaff_bp()                */
-/*                      ih264_deblk_chroma_vert_bslt4_mbaff_bp()              */
-/*                      ih264_deblk_chroma_vert_bs4()                         */
-/*                      ih264_deblk_chroma_horz_bs4()                         */
-/*                      ih264_deblk_chroma_vert_bslt4()                       */
-/*                      ih264_deblk_chroma_horz_bslt4()                       */
-/*                      ih264_deblk_chroma_vert_bs4_mbaff()                   */
-/*                      ih264_deblk_chroma_vert_bslt4_mbaff()                 */
-/*                                                                            */
-/*  Issues / Problems : None                                                  */
-/*                                                                            */
-/*  Revision History  :                                                       */
-/*                                                                            */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)   */
-/*         28 11 2013   Ittiam          Draft                                 */
-/*         29 12 2014   Kaushik         Added double-call vertical            */
-/*                      Senthoor        deblocking and high profile           */
-/*                                      deblocking functions                  */
-/*                                                                            */
-/******************************************************************************/
+
+/**
+*******************************************************************************
+* @file
+*  ih264_deblk_edge_filters.c
+*
+* @brief
+*  Contains function definitions for deblocking
+*
+* @author
+*  ittiam
+*
+* @par List of Functions:
+*  - ih264_deblk_luma_vert_bs4
+*  - ih264_deblk_luma_horz_bs4
+*  - ih264_deblk_chroma_vert_bs4_bp
+*  - ih264_deblk_chroma_horz_bs4_bp
+*  - ih264_deblk_luma_vert_bslt4
+*  - ih264_deblk_chroma_vert_bslt4_bp
+*  - ih264_deblk_luma_horz_bslt4
+*  - ih264_deblk_luma_horz_bslt4
+*  - ih264_deblk_luma_vert_bs4_mbaff
+*  - ih264_deblk_chroma_vert_bs4_mbaff_bp
+*  - ih264_deblk_luma_vert_bslt4_mbaff
+*  - ih264_deblk_chroma_vert_bslt4_mbaff_bp
+*  - ih264_deblk_chroma_vert_bs4
+*  - ih264_deblk_chroma_horz_bs4
+*  - ih264_deblk_chroma_vert_bslt4
+*  - ih264_deblk_chroma_horz_bslt4
+*  - ih264_deblk_chroma_vert_bs4_mbaff
+*  - ih264_deblk_chroma_vert_bslt4_mbaff
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 
 /*****************************************************************************/
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stdio.h>
 
-/* User include files */
+/* User Include Files */
 #include "ih264_typedefs.h"
-#include "ih264_platform_macros.h"
-#include "ih264_deblk_edge_filters.h"
 #include "ih264_macros.h"
+#include "ih264_deblk_edge_filters.h"
+#include "ih264_platform_macros.h"
+
 
 /*****************************************************************************/
 /* Function Definitions                                                      */
 /*****************************************************************************/
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_luma_vert_bs4()                              */
-/*                                                                           */
-/*  Description   : This function performs filtering of a luma block         */
-/*                  vertical edge when the boundary strength is set to 4.    */
-/*                                                                           */
-/*  Inputs        : pu1_src    - pointer to the src sample q0                */
-/*                  src_strd   - source stride                               */
-/*                  alpha      - alpha value for the boundary                */
-/*                  beta       - beta value for the boundary                 */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : This operation is described in Sec. 8.7.2.4 under the    */
-/*                  title "Filtering process for edges for bS equal to 4" in */
-/*                  ITU T Rec H.264.                                         */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         28 11 2013   Ittiam          Draft                                */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief luma vertical edge deblock @ bs4
+*
+* @par Description
+*  This function performs filtering of a luma block vertical edge when the
+*  boundary strength is set to 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha
+*  alpha value for the boundary
+*
+* @param[in] beta
+*  beta value for the boundary
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.4 under the title
+*  "Filtering process for edges for bS equal to 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_luma_vert_bs4(UWORD8 *pu1_src,
                                WORD32 src_strd,
                                WORD32 alpha,
@@ -191,36 +191,34 @@ void ih264_deblk_luma_vert_bs4(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_luma_horz_bs4()                              */
-/*                                                                           */
-/*  Description   : This function performs filtering of a luma block         */
-/*                  horizontal edge when the boundary strength is set to 4.  */
-/*                                                                           */
-/*  Inputs        : pu1_src    - pointer to the src sample q0                */
-/*                  src_strd   - source stride                               */
-/*                  alpha      - alpha value for the boundary                */
-/*                  beta       - beta value for the boundary                 */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : This operation is described in Sec. 8.7.2.4 under the    */
-/*                  title "Filtering process for edges for bS equal to 4" in */
-/*                  ITU T Rec H.264.                                         */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         28 11 2013   Ittiam          Draft                                */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief luma horizontal edge deblock @ bs4
+*
+* @par Description
+*  This function performs filtering of a luma block horizontal edge when the
+*  boundary strength is set to 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha
+*  alpha value for the boundary
+*
+* @param[in] beta
+*  beta value for the boundary
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.4 under the title
+*  "Filtering process for edges for bS equal to 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_luma_horz_bs4(UWORD8 *pu1_src,
                                WORD32 src_strd,
                                WORD32 alpha,
@@ -314,36 +312,34 @@ void ih264_deblk_luma_horz_bs4(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_chroma_vert_bs4_bp()                         */
-/*                                                                           */
-/*  Description   : This function performs filtering of a chroma block       */
-/*                  vertical edge when the boundary strength is set to 4.    */
-/*                                                                           */
-/*  Inputs        : pu1_src    - pointer to the src sample q0 of U           */
-/*                  src_strd   - source stride                               */
-/*                  alpha      - alpha value for the boundary                */
-/*                  beta       - beta value for the boundary                 */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : This operation is described in Sec. 8.7.2.4 under the    */
-/*                  title "Filtering process for edges for bS equal to 4" in */
-/*                  ITU T Rec H.264.                                         */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         28 11 2013   Ittiam          Draft                                */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief chroma vertical edge deblock @ bs4
+*
+* @par Description
+*  This function performs filtering of a chroma block vertical edge when the
+*  boundary strength is set to 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0 of U
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha
+*  alpha value for the boundary
+*
+* @param[in] beta
+*  beta value for the boundary
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.4 under the title
+*  "Filtering process for edges for bS equal to 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_chroma_vert_bs4_bp(UWORD8 *pu1_src,
                                     WORD32 src_strd,
                                     WORD32 alpha,
@@ -404,36 +400,34 @@ void ih264_deblk_chroma_vert_bs4_bp(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_chroma_horz_bs4_bp()                         */
-/*                                                                           */
-/*  Description   : This function performs filtering of a chroma block       */
-/*                  horizontal edge when the boundary strength is set to 4.  */
-/*                                                                           */
-/*  Inputs        : pu1_src    - pointer to the src sample q0 of U           */
-/*                  src_strd   - source stride                               */
-/*                  alpha      - alpha value for the boundary                */
-/*                  beta       - beta value for the boundary                 */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : This operation is described in Sec. 8.7.2.4 under the    */
-/*                  title "Filtering process for edges for bS equal to 4" in */
-/*                  ITU T Rec H.264.                                         */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         28 11 2013   Ittiam          Draft                                */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief chroma horizontal edge deblock @ bs4
+*
+* @par Description
+*  This function performs filtering of a chroma block horizontal edge when the
+*  boundary strength is set to 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0 of U
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha
+*  alpha value for the boundary
+*
+* @param[in] beta
+*  beta value for the boundary
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.4 under the title
+*  "Filtering process for edges for bS equal to 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_chroma_horz_bs4_bp(UWORD8 *pu1_src,
                                     WORD32 src_strd,
                                     WORD32 alpha,
@@ -501,38 +495,40 @@ void ih264_deblk_chroma_horz_bs4_bp(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_luma_vert_bslt4()                            */
-/*                                                                           */
-/*  Description   : This function performs filtering of a luma block         */
-/*                  vertical edge when the boundary strength is less than 4. */
-/*                                                                           */
-/*  Inputs        : pu1_src       - pointer to the src sample q0             */
-/*                  src_strd      - source stride                            */
-/*                  alpha         - alpha value for the boundary             */
-/*                  beta          - beta value for the boundary              */
-/*                  u4_bs         - packed Boundary strength array           */
-/*                  pu1_cliptab   - tc0_table                                */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : This operation is described in Sec. 8.7.2.3 under the    */
-/*                  title "Filtering process for edges for bS less than 4"   */
-/*                  in ITU T Rec H.264.                                      */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         28 11 2013   Ittiam          Draft                                */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief luma vertical edge deblock @ bs < 4
+*
+* @par Description
+*  This function performs filtering of a luma block vertical edge when the
+*  boundary strength is less than 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha
+*  alpha value for the boundary
+*
+* @param[in] beta
+*  beta value for the boundary
+*
+* @param[in] u4_bs
+*  packed Boundary strength array
+*
+* @param[in] pu1_cliptab
+*  tc0_table
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.3 under the title
+*  "Filtering process for edges for bS less than 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_luma_vert_bslt4(UWORD8 *pu1_src,
                                  WORD32 src_strd,
                                  WORD32 alpha,
@@ -617,38 +613,40 @@ void ih264_deblk_luma_vert_bslt4(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_chroma_vert_bslt4_bp()                       */
-/*                                                                           */
-/*  Description   : This function performs filtering of a chroma block       */
-/*                  vertical edge when the boundary strength is less than 4. */
-/*                                                                           */
-/*  Inputs        : pu1_src       - pointer to the src sample q0 of U        */
-/*                  src_strd      - source stride                            */
-/*                  alpha         - alpha value for the boundary             */
-/*                  beta          - beta value for the boundary              */
-/*                  u4_bs         - packed Boundary strength array           */
-/*                  pu1_cliptab   - tc0_table                                */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : This operation is described in Sec. 8.7.2.3 under the    */
-/*                  title "Filtering process for edges for bS less than 4"   */
-/*                  in ITU T Rec H.264.                                      */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         28 11 2013   Ittiam          Draft                                */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief chroma vertical edge deblock @ bs < 4
+*
+* @par Description
+*  This function performs filtering of a chroma block vertical edge when the
+*  boundary strength is less than 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0 of U
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha
+*  alpha value for the boundary
+*
+* @param[in] beta
+*  beta value for the boundary
+*
+* @param[in] u4_bs
+*  packed Boundary strength array
+*
+* @param[in] pu1_cliptab
+*  tc0_table
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.3 under the title
+*  "Filtering process for edges for bS less than 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_chroma_vert_bslt4_bp(UWORD8 *pu1_src,
                                       WORD32 src_strd,
                                       WORD32 alpha,
@@ -731,38 +729,40 @@ void ih264_deblk_chroma_vert_bslt4_bp(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_luma_horz_bslt4()                            */
-/*                                                                           */
-/*  Description   : This function performs filtering of a luma block         */
-/*                  horizontal edge when boundary strength is less than 4.   */
-/*                                                                           */
-/*  Inputs        : pu1_src       - pointer to the src sample q0             */
-/*                  src_strd      - source stride                            */
-/*                  alpha         - alpha value for the boundary             */
-/*                  beta          - beta value for the boundary              */
-/*                  u4_bs         - packed Boundary strength array           */
-/*                  pu1_cliptab   - tc0_table                                */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : This operation is described in Sec. 8.7.2.3 under the    */
-/*                  title "Filtering process for edges for bS less than 4"   */
-/*                  in ITU T Rec H.264.                                      */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         28 11 2013   Ittiam          Draft                                */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief luma horizontal edge deblock @ bs < 4
+*
+* @par Description
+*  This function performs filtering of a luma block horizontal edge when the
+*  boundary strength is less than 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha
+*  alpha value for the boundary
+*
+* @param[in] beta
+*  beta value for the boundary
+*
+* @param[in] u4_bs
+*  packed Boundary strength array
+*
+* @param[in] pu1_cliptab
+*  tc0_table
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.3 under the title
+*  "Filtering process for edges for bS less than 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_luma_horz_bslt4(UWORD8 *pu1_src,
                                  WORD32 src_strd,
                                  WORD32 alpha,
@@ -850,38 +850,40 @@ void ih264_deblk_luma_horz_bslt4(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_chroma_horz_bslt4_bp()                       */
-/*                                                                           */
-/*  Description   : This function performs filtering of a chroma block       */
-/*                  horizontal edge when boundary strength is less than 4.   */
-/*                                                                           */
-/*  Inputs        : pu1_src       - pointer to the src sample q0 of U        */
-/*                  src_strd      - source stride                            */
-/*                  alpha         - alpha value for the boundary             */
-/*                  beta          - beta value for the boundary              */
-/*                  u4_bs         - packed Boundary strength array           */
-/*                  pu1_cliptab   - tc0_table                                */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : This operation is described in Sec. 8.7.2.3 under the    */
-/*                  title "Filtering process for edges for bS less than 4"   */
-/*                  in ITU T Rec H.264.                                      */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         28 11 2013   Ittiam          Draft                                */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief chroma horizontal edge deblock @ bs < 4
+*
+* @par Description
+*  This function performs filtering of a chroma block horizontal edge when the
+*  boundary strength is less than 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0 of U
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha
+*  alpha value for the boundary
+*
+* @param[in] beta
+*  beta value for the boundary
+*
+* @param[in] u4_bs
+*  packed Boundary strength array
+*
+* @param[in] pu1_cliptab
+*  tc0_table
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.3 under the title
+*  "Filtering process for edges for bS less than 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_chroma_horz_bslt4_bp(UWORD8 *pu1_src,
                                       WORD32 src_strd,
                                       WORD32 alpha,
@@ -975,37 +977,34 @@ void ih264_deblk_chroma_horz_bslt4_bp(UWORD8 *pu1_src,
 /* Function Definitions for vertical edge deblocking for double-call         */
 /*****************************************************************************/
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_luma_vert_bs4_mbaff()                        */
-/*                                                                           */
-/*  Description   : This function performs filtering of a luma block         */
-/*                  vertical edge when boundary strength is set to 4.        */
-/*                                                                           */
-/*  Inputs        : pu1_src       - pointer to the src sample q0             */
-/*                  src_strd      - source stride                            */
-/*                  alpha         - alpha value for the boundary             */
-/*                  beta          - beta value for the boundary              */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : When the function is called twice, this operation is as  */
-/*                  described in Sec. 8.7.2.3 under the title "Filtering     */
-/*                  process for edges for bS equal to 4" in ITU T Rec H.264. */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         29 12 2014   Kaushik         Draft                                */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief luma vertical edge deblock @ bs4
+*
+* @par Description
+*  This function performs filtering of a luma block vertical edge when the
+*  boundary strength is set to 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha
+*  alpha value for the boundary
+*
+* @param[in] beta
+*  beta value for the boundary
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.4 under the title
+*  "Filtering process for edges for bS equal to 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_luma_vert_bs4_mbaff(UWORD8 *pu1_src,
                                      WORD32 src_strd,
                                      WORD32 alpha,
@@ -1096,37 +1095,34 @@ void ih264_deblk_luma_vert_bs4_mbaff(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_chroma_vert_bs4_mbaff_bp()                   */
-/*                                                                           */
-/*  Description   : This function performs filtering of a chroma block       */
-/*                  vertical edge when boundary strength is set to 4.        */
-/*                                                                           */
-/*  Inputs        : pu1_src       - pointer to the src sample q0 of U        */
-/*                  src_strd      - source stride                            */
-/*                  alpha         - alpha value for the boundary             */
-/*                  beta          - beta value for the boundary              */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : When the function is called twice, this operation is as  */
-/*                  described in Sec. 8.7.2.3 under the title "Filtering     */
-/*                  process for edges for bS equal to 4" in ITU T Rec H.264. */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         29 12 2014   Kaushik         Draft                                */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief chroma vertical edge deblock @ bs4
+*
+* @par Description
+*  This function performs filtering of a chroma block vertical edge when the
+*  boundary strength is set to 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0 of U
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha
+*  alpha value for the boundary
+*
+* @param[in] beta
+*  beta value for the boundary
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.4 under the title
+*  "Filtering process for edges for bS equal to 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_chroma_vert_bs4_mbaff_bp(UWORD8 *pu1_src,
                                           WORD32 src_strd,
                                           WORD32 alpha,
@@ -1183,39 +1179,40 @@ void ih264_deblk_chroma_vert_bs4_mbaff_bp(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_luma_vert_bslt4_mbaff()                      */
-/*                                                                           */
-/*  Description   : This function performs filtering of a luma block         */
-/*                  vertical edge when boundary strength is less than 4.     */
-/*                                                                           */
-/*  Inputs        : pu1_src       - pointer to the src sample q0             */
-/*                  src_strd      - source stride                            */
-/*                  alpha         - alpha value for the boundary             */
-/*                  beta          - beta value for the boundary              */
-/*                  u4_bs         - packed Boundary strength array           */
-/*                  pu1_cliptab   - tc0_table                                */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : When the function is called twice, this operation is as  */
-/*                  described in Sec. 8.7.2.3 under the title "Filtering     */
-/*                  process for edges for bS less than 4" in ITU T Rec H.264.*/
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         29 12 2014   Kaushik         Draft                                */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief luma vertical edge deblock @ bs < 4
+*
+* @par Description
+*  This function performs filtering of a luma block vertical edge when the
+*  boundary strength is less than 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha
+*  alpha value for the boundary
+*
+* @param[in] beta
+*  beta value for the boundary
+*
+* @param[in] u4_bs
+*  packed Boundary strength array
+*
+* @param[in] pu1_cliptab
+*  tc0_table
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.3 under the title
+*  "Filtering process for edges for bS less than 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_luma_vert_bslt4_mbaff(UWORD8 *pu1_src,
                                        WORD32 src_strd,
                                        WORD32 alpha,
@@ -1299,39 +1296,40 @@ void ih264_deblk_luma_vert_bslt4_mbaff(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_chroma_vert_bslt4_mbaff_bp()                 */
-/*                                                                           */
-/*  Description   : This function performs filtering of a chroma block       */
-/*                  vertical edge when boundary strength is less than 4.     */
-/*                                                                           */
-/*  Inputs        : pu1_src       - pointer to the src sample q0 of U        */
-/*                  src_strd      - source stride                            */
-/*                  alpha         - alpha value for the boundary             */
-/*                  beta          - beta value for the boundary              */
-/*                  u4_bs         - packed Boundary strength array           */
-/*                  pu1_cliptab   - tc0_table                                */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : When the function is called twice, this operation is as  */
-/*                  described in Sec. 8.7.2.3 under the title "Filtering     */
-/*                  process for edges for bS less than 4" in ITU T Rec H.264.*/
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         29 12 2014   Kaushik         Draft                                */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief chroma vertical edge deblock @ bs < 4
+*
+* @par Description
+*  This function performs filtering of a chroma block vertical edge when the
+*  boundary strength is less than 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0 of U
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha
+*  alpha value for the boundary
+*
+* @param[in] beta
+*  beta value for the boundary
+*
+* @param[in] u4_bs
+*  packed Boundary strength array
+*
+* @param[in] pu1_cliptab
+*  tc0_table
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.3 under the title
+*  "Filtering process for edges for bS less than 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_chroma_vert_bslt4_mbaff_bp(UWORD8 *pu1_src,
                                             WORD32 src_strd,
                                             WORD32 alpha,
@@ -1415,41 +1413,40 @@ void ih264_deblk_chroma_vert_bslt4_mbaff_bp(UWORD8 *pu1_src,
 /* Function Definitions for chroma deblocking in high profile                */
 /*****************************************************************************/
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_chroma_vert_bs4()                            */
-/*                                                                           */
-/*  Description   : This function performs filtering of a chroma block       */
-/*                  vertical edge when the boundary strength is set to 4 in  */
-/*                  high profile.                                            */
-/*                                                                           */
-/*  Inputs        : pu1_src    - pointer to the src sample q0 of U           */
-/*                  src_strd   - source stride                               */
-/*                  alpha_cb   - alpha value for the boundary in U           */
-/*                  beta_cb    - beta value for the boundary in U            */
-/*                  alpha_cr   - alpha value for the boundary in V           */
-/*                  beta_cr    - beta value for the boundary in V            */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : This operation is described in Sec. 8.7.2.4 under the    */
-/*                  title "Filtering process for edges for bS equal to 4" in */
-/*                  ITU T Rec H.264 with alpha and beta values different in  */
-/*                  U and V.                                                 */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         29 12 2014   Kaushik         Draft                                */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief chroma vertical edge deblock @ bs4
+*
+* @par Description
+*  This function performs filtering of a chroma block vertical edge when the
+*  boundary strength is set to 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0 of U
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha_cb
+*  alpha value for the boundary of U
+*
+* @param[in] beta_cb
+*  beta value for the boundary of U
+*
+* @param[in] alpha_cr
+*  alpha value for the boundary of V
+*
+* @param[in] beta_cr
+*  beta value for the boundary of V
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.4 under the title
+*  "Filtering process for edges for bS equal to 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_chroma_vert_bs4(UWORD8 *pu1_src,
                                  WORD32 src_strd,
                                  WORD32 alpha_cb,
@@ -1512,41 +1509,40 @@ void ih264_deblk_chroma_vert_bs4(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_chroma_horz_bs4()                            */
-/*                                                                           */
-/*  Description   : This function performs filtering of a chroma block       */
-/*                  horizontal edge when the boundary strength is set to 4   */
-/*                  in high profile.                                         */
-/*                                                                           */
-/*  Inputs        : pu1_src    - pointer to the src sample q0 of U           */
-/*                  src_strd   - source stride                               */
-/*                  alpha_cb   - alpha value for the boundary in U           */
-/*                  beta_cb    - beta value for the boundary in U            */
-/*                  alpha_cr   - alpha value for the boundary in V           */
-/*                  beta_cr    - beta value for the boundary in V            */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : This operation is described in Sec. 8.7.2.4 under the    */
-/*                  title "Filtering process for edges for bS equal to 4" in */
-/*                  ITU T Rec H.264 with alpha and beta values different in  */
-/*                  U and V.                                                 */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         29 12 2014   Kaushik         Draft                                */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief chroma horizontal edge deblock @ bs4
+*
+* @par Description
+*  This function performs filtering of a chroma block horizontal edge when the
+*  boundary strength is set to 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0 of U
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha_cb
+*  alpha value for the boundary of U
+*
+* @param[in] beta_cb
+*  beta value for the boundary of U
+*
+* @param[in] alpha_cr
+*  alpha value for the boundary of V
+*
+* @param[in] beta_cr
+*  beta value for the boundary of V
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.4 under the title
+*  "Filtering process for edges for bS equal to 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_chroma_horz_bs4(UWORD8 *pu1_src,
                                  WORD32 src_strd,
                                  WORD32 alpha_cb,
@@ -1614,44 +1610,49 @@ void ih264_deblk_chroma_horz_bs4(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_chroma_vert_bslt4()                          */
-/*                                                                           */
-/*  Description   : This function performs filtering of a chroma block       */
-/*                  vertical edge when the boundary strength is less than 4  */
-/*                  in high profile.                                         */
-/*                                                                           */
-/*  Inputs        : pu1_src          - pointer to the src sample q0 of U     */
-/*                  src_strd         - source stride                         */
-/*                  alpha_cb         - alpha value for the boundary in U     */
-/*                  beta_cb          - beta value for the boundary in U      */
-/*                  alpha_cr         - alpha value for the boundary in V     */
-/*                  beta_cr          - beta value for the boundary in V      */
-/*                  u4_bs            - packed Boundary strength array        */
-/*                  pu1_cliptab_cb   - tc0_table for U                       */
-/*                  pu1_cliptab_cr   - tc0_table for V                       */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : This operation is described in Sec. 8.7.2.3 under the    */
-/*                  title "Filtering process for edges for bS less than 4"   */
-/*                  in ITU T Rec H.264 with alpha and beta values different  */
-/*                  in U and V.                                              */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         29 12 2014   Kaushik         Draft                                */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief chroma vertical edge deblock @ bs < 4
+*
+* @par Description
+*  This function performs filtering of a chroma block vertical edge when the
+*  boundary strength is less than 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0 of U
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha_cb
+*  alpha value for the boundary of U
+*
+* @param[in] beta_cb
+*  beta value for the boundary of U
+*
+* @param[in] alpha_cr
+*  alpha value for the boundary of V
+*
+* @param[in] beta_cr
+*  beta value for the boundary of V
+*
+* @param[in] u4_bs
+*  packed Boundary strength array
+*
+* @param[in] pu1_cliptab_cb
+*  tc0_table of U
+*
+* @param[in] pu1_cliptab_cr
+*  tc0_table of V
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.3 under the title
+*  "Filtering process for edges for bS less than 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_chroma_vert_bslt4(UWORD8 *pu1_src,
                                    WORD32 src_strd,
                                    WORD32 alpha_cb,
@@ -1737,44 +1738,49 @@ void ih264_deblk_chroma_vert_bslt4(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_chroma_horz_bslt4()                          */
-/*                                                                           */
-/*  Description   : This function performs filtering of a chroma block       */
-/*                  horizontal edge when the boundary strength is less than  */
-/*                  4 in high profile.                                       */
-/*                                                                           */
-/*  Inputs        : pu1_src          - pointer to the src sample q0 of U     */
-/*                  src_strd         - source stride                         */
-/*                  alpha_cb         - alpha value for the boundary in U     */
-/*                  beta_cb          - beta value for the boundary in U      */
-/*                  alpha_cr         - alpha value for the boundary in V     */
-/*                  beta_cr          - beta value for the boundary in V      */
-/*                  u4_bs            - packed Boundary strength array        */
-/*                  pu1_cliptab_cb   - tc0_table for U                       */
-/*                  pu1_cliptab_cr   - tc0_table for V                       */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : This operation is described in Sec. 8.7.2.3 under the    */
-/*                  title "Filtering process for edges for bS less than 4"   */
-/*                  in ITU T Rec H.264 with alpha and beta values different  */
-/*                  in U and V.                                              */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         29 12 2014   Kaushik         Draft                                */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief chroma horizontal edge deblock @ bs < 4
+*
+* @par Description
+*  This function performs filtering of a chroma block horizontal edge when the
+*  boundary strength is less than 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0 of U
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha_cb
+*  alpha value for the boundary of U
+*
+* @param[in] beta_cb
+*  beta value for the boundary of U
+*
+* @param[in] alpha_cr
+*  alpha value for the boundary of V
+*
+* @param[in] beta_cr
+*  beta value for the boundary of V
+*
+* @param[in] u4_bs
+*  packed Boundary strength array
+*
+* @param[in] pu1_cliptab_cb
+*  tc0_table of U
+*
+* @param[in] pu1_cliptab_cr
+*  tc0_table of V
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.3 under the title
+*  "Filtering process for edges for bS less than 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_chroma_horz_bslt4(UWORD8 *pu1_src,
                                    WORD32 src_strd,
                                    WORD32 alpha_cb,
@@ -1869,44 +1875,40 @@ void ih264_deblk_chroma_horz_bslt4(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_chroma_vert_bs4_mbaff()                      */
-/*                                                                           */
-/*  Description   : This function performs filtering of a chroma block       */
-/*                  vertical edge when boundary strength is set to 4 in high */
-/*                  profile.                                                 */
-/*                                                                           */
-/*  Inputs        : pu1_src          - pointer to the src sample q0 of U     */
-/*                  src_strd         - source stride                         */
-/*                  alpha_cb         - alpha value for the boundary in U     */
-/*                  beta_cb          - beta value for the boundary in U      */
-/*                  alpha_cr         - alpha value for the boundary in V     */
-/*                  beta_cr          - beta value for the boundary in V      */
-/*                  u4_bs            - packed Boundary strength array        */
-/*                  pu1_cliptab_cb   - tc0_table for U                       */
-/*                  pu1_cliptab_cr   - tc0_table for V                       */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : When the function is called twice, this operation is as  */
-/*                  described in Sec. 8.7.2.4 under the title "Filtering     */
-/*                  process for edges for bS equal to 4" in ITU T Rec H.264  */
-/*                  with alpha and beta values different in U and V.         */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         29 12 2014   Kaushik         Draft                                */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief chroma vertical edge deblock @ bs4
+*
+* @par Description
+*  This function performs filtering of a chroma block vertical edge when the
+*  boundary strength is set to 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0 of U
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha_cb
+*  alpha value for the boundary of U
+*
+* @param[in] beta_cb
+*  beta value for the boundary of U
+*
+* @param[in] alpha_cr
+*  alpha value for the boundary of V
+*
+* @param[in] beta_cr
+*  beta value for the boundary of V
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.4 under the title
+*  "Filtering process for edges for bS equal to 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_chroma_vert_bs4_mbaff(UWORD8 *pu1_src,
                                        WORD32 src_strd,
                                        WORD32 alpha_cb,
@@ -1965,44 +1967,49 @@ void ih264_deblk_chroma_vert_bs4_mbaff(UWORD8 *pu1_src,
     }
 }
 
-/*****************************************************************************/
-/*                                                                           */
-/*  Function Name : ih264_deblk_chroma_vert_bslt4_mbaff()                    */
-/*                                                                           */
-/*  Description   : This function performs filtering of a chroma block       */
-/*                  vertical edge when boundary strength is less than 4 in   */
-/*                  high profile.                                            */
-/*                                                                           */
-/*  Inputs        : pu1_src          - pointer to the src sample q0 of U     */
-/*                  src_strd         - source stride                         */
-/*                  alpha_cb         - alpha value for the boundary in U     */
-/*                  beta_cb          - beta value for the boundary in U      */
-/*                  alpha_cr         - alpha value for the boundary in V     */
-/*                  beta_cr          - beta value for the boundary in V      */
-/*                  u4_bs            - packed Boundary strength array        */
-/*                  pu1_cliptab_cb   - tc0_table for U                       */
-/*                  pu1_cliptab_cr   - tc0_table for V                       */
-/*                                                                           */
-/*  Globals       : None                                                     */
-/*                                                                           */
-/*  Processing    : When the function is called twice, this operation is as  */
-/*                  described in Sec. 8.7.2.4 under the title "Filtering     */
-/*                  process for edges for bS less than 4" in ITU T Rec H.264 */
-/*                  with alpha and beta values different in U and V.         */
-/*                                                                           */
-/*  Outputs       : None                                                     */
-/*                                                                           */
-/*  Returns       : None                                                     */
-/*                                                                           */
-/*  Issues        : None                                                     */
-/*                                                                           */
-/*  Revision History:                                                        */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
-/*         29 12 2014   Kaushik         Draft                                */
-/*                      Senthoor                                             */
-/*                                                                           */
-/*****************************************************************************/
+/**
+*******************************************************************************
+*
+* @brief chroma vertical edge deblock @ bs < 4
+*
+* @par Description
+*  This function performs filtering of a chroma block vertical edge when the
+*  boundary strength is less than 4
+*
+* @param[in] pu1_src
+*  pointer to the src sample q0 of U
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] alpha_cb
+*  alpha value for the boundary of U
+*
+* @param[in] beta_cb
+*  beta value for the boundary of U
+*
+* @param[in] alpha_cr
+*  alpha value for the boundary of V
+*
+* @param[in] beta_cr
+*  beta value for the boundary of V
+*
+* @param[in] u4_bs
+*  packed Boundary strength array
+*
+* @param[in] pu1_cliptab_cb
+*  tc0_table of U
+*
+* @param[in] pu1_cliptab_cr
+*  tc0_table of V
+*
+* @returns none
+*
+* @remarks This operation is described in Sec. 8.7.2.3 under the title
+*  "Filtering process for edges for bS less than 4" in ITU T Rec H.264
+*
+******************************************************************************
+*/
 void ih264_deblk_chroma_vert_bslt4_mbaff(UWORD8 *pu1_src,
                                          WORD32 src_strd,
                                          WORD32 alpha_cb,

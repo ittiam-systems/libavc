@@ -20,22 +20,23 @@
 
 /**
 ******************************************************************************
-* @file ih264_cabac_tables.h
+* @file
+*  ih264_cabac_tables.h
 *
 * @brief
 *  This file contains enumerations, macros and extern declarations of H264
 *  cabac tables
 *
 * @author
-*  Ittiam
+*  ittiam
 *
 * @remarks
 *  none
 ******************************************************************************
 */
 
-#ifndef IH264_CABAC_TABLES_H_
-#define IH264_CABAC_TABLES_H_
+#ifndef _IH264_CABAC_TABLES_H_
+#define _IH264_CABAC_TABLES_H_
 
 /*****************************************************************************/
 /* Constant Macros                                                           */
@@ -86,8 +87,7 @@
 
 /**
 ******************************************************************************
- *  @enum  ctxBlockCat
-
+*  @enum  ctxBlockCat
 ******************************************************************************
 */
 typedef enum
@@ -104,8 +104,7 @@ typedef enum
 
 /**
 ******************************************************************************
- *  @enum ctxIdxOffset
-
+*  @enum ctxIdxOffset
 ******************************************************************************
 */
 typedef enum
@@ -151,10 +150,10 @@ typedef enum
 
 } cabac_table_num_t;
 
+
 /**
 ******************************************************************************
- *  @enum  ctxIdxOffset
-
+*  @enum  ctxIdxOffset
 ******************************************************************************
 */
 typedef enum
@@ -174,22 +173,10 @@ typedef enum
 } cabac_blk_cat_offset_t;
 
 
-
-
 /*****************************************************************************/
-/* Extern global declarations                                                */
+/* Global declarations                                                       */
 /*****************************************************************************/
-
-
-/* CABAC Table declaration*/
 extern const UWORD32 gau4_ih264_cabac_table[128][4];
-
-
-/*****************************************************************************/
-/* Cabac tables for context initialization depending upon type of Slice,     */
-/* cabac init Idc value and Qp.                                              */
-/*****************************************************************************/
 extern const UWORD8 gau1_ih264_cabac_ctxt_init_table[NUM_CAB_INIT_IDC_PLUS_ONE][QP_RANGE][NUM_CABAC_CTXTS];
 
-
-#endif /* IH264_CABAC_TABLES_H_ */
+#endif /* _IH264_CABAC_TABLES_H_ */
