@@ -17,92 +17,101 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
- *******************************************************************************
- * @file
- *  ih264_iquant_itrans_recon.c
- *
- * @brief
- *  Contains definition of functions for h264 inverse quantization inverse transformation and recon
- *
- * @author
- *  Ittiam
- *
- *  @par List of Functions:
- *  - ih264_iquant_itrans_recon_4x4()
- *  - ih264_iquant_itrans_recon_8x8()
- *  - ih264_iquant_itrans_recon_4x4_dc()
- *  - ih264_iquant_itrans_recon_8x8_dc()
- *  - ih264_iquant_itrans_recon_chroma_4x4()
- *  -ih264_iquant_itrans_recon_chroma_4x4_dc()
- *
- * @remarks
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @file
+*  ih264_iquant_itrans_recon.c
+*
+* @brief
+*  Contains definition of functions for h264 inverse quantization,
+*  inverse transformation and recon
+*
+* @author
+*  ittiam
+*
+* @par List of Functions:
+*  - ih264_iquant_itrans_recon_4x4
+*  - ih264_iquant_itrans_recon_8x8
+*  - ih264_iquant_itrans_recon_4x4_dc
+*  - ih264_iquant_itrans_recon_8x8_dc
+*  - ih264_iquant_itrans_recon_chroma_4x4
+*  - ih264_iquant_itrans_recon_chroma_4x4_dc
+*
+* @remarks
+*
+*******************************************************************************
+*/
 
 /*****************************************************************************/
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* User include files */
+/* User Include Files */
 #include "ih264_typedefs.h"
 #include "ih264_defs.h"
-#include "ih264_trans_macros.h"
 #include "ih264_macros.h"
-#include "ih264_platform_macros.h"
-#include "ih264_trans_data.h"
 #include "ih264_size_defs.h"
+#include "ih264_trans_macros.h"
+#include "ih264_trans_data.h"
 #include "ih264_structs.h"
 #include "ih264_trans_quant_itrans_iquant.h"
+#include "ih264_platform_macros.h"
 
-/*
- ********************************************************************************
- *
- * @brief This function reconstructs a 4x4 sub block from quantized resiude and
- * prediction buffer
- *
- * @par Description:
- *  The quantized residue is first inverse quantized, then inverse transformed.
- *  This inverse transformed content is added to the prediction buffer to recon-
- *  struct the end output
- *
- * @param[in] pi2_src
- *  quantized 4x4 block
- *
- * @param[in] pu1_pred
- *  prediction 4x4 block
- *
- * @param[out] pu1_out
- *  reconstructed 4x4 block
- *
- * @param[in] src_strd
- *  quantization buffer stride
- *
- * @param[in] pred_strd,
- *  Prediction buffer stride
- *
- * @param[in] out_strd
- *  recon buffer Stride
- *
- * @param[in] pu2_scaling_list
- *  pointer to scaling list
- *
- * @param[in] pu2_norm_adjust
- *  pointer to inverse scale matrix
- *
- * @param[in] u4_qp_div_6
- *  Floor (qp/6)
- *
- * @param[in] pi4_tmp
- * temporary buffer of size 1*16
- *
- * @returns none
- *
- * @remarks none
- *
- *******************************************************************************
- */
+/*****************************************************************************/
+/*  Function definitions                                                     */
+/*****************************************************************************/
+
+/**
+********************************************************************************
+*
+* @brief This function reconstructs a 4x4 sub block from quantized residue and
+*  prediction buffer
+*
+* @par Description:
+*  The quantized residue is first inverse quantized, then inverse transformed.
+*  This inverse transformed content is added to the prediction buffer to recon-
+*  struct the end output
+*
+* @param[in] pi2_src
+*  quantized 4x4 block
+*
+* @param[in] pu1_pred
+*  prediction 4x4 block
+*
+* @param[out] pu1_out
+*  reconstructed 4x4 block
+*
+* @param[in] pred_strd
+*  Prediction buffer stride
+*
+* @param[in] out_strd
+*  recon buffer Stride
+*
+* @param[in] pu2_iscal_mat
+*  pointer to inverse scaling matrix
+*
+* @param[in] pu2_weigh_mat
+*  pointer to weight matrix
+*
+* @param[in] u4_qp_div_6
+*  Floor (qp/6)
+*
+* @param[in] pi2_tmp
+*  temporary buffer of size 1*16
+*
+* @param[in] iq_start_idx
+*  Differentiates b/w intra or inter
+*
+* @param[in] pi2_dc_ld_addr
+*  Address to load DC value of the 4x4 blk
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_iquant_itrans_recon_4x4(WORD16 *pi2_src,
                                    UWORD8 *pu1_pred,
                                    UWORD8 *pu1_out,
@@ -113,8 +122,7 @@ void ih264_iquant_itrans_recon_4x4(WORD16 *pi2_src,
                                    UWORD32 u4_qp_div_6,
                                    WORD16 *pi2_tmp,
                                    WORD32 iq_start_idx,
-                                   WORD16 *pi2_dc_ld_addr
-)
+                                   WORD16 *pi2_dc_ld_addr)
 {
     WORD16 *pi2_src_ptr = pi2_src;
     WORD16 *pi2_tmp_ptr = pi2_tmp;
@@ -126,29 +134,28 @@ void ih264_iquant_itrans_recon_4x4(WORD16 *pi2_src,
     WORD16 rnd_fact = (u4_qp_div_6 < 4) ? 1 << (3 - u4_qp_div_6) : 0;
 
     /* inverse quant */
-    /*horizontal inverse transform */
+    /* horizontal inverse transform */
     for(i = 0; i < SUB_BLK_WIDTH_4x4; i++)
     {
         q0 = pi2_src_ptr[0];
-        INV_QUANT(q0, pu2_iscal_mat[0], pu2_weigh_mat[0], u4_qp_div_6, rnd_fact,
-                  4);
+        INV_QUANT(q0, pu2_iscal_mat[0], pu2_weigh_mat[0], u4_qp_div_6, rnd_fact, 4);
+        /* Restoring dc value for intra case */
         if (i==0 && iq_start_idx == 1)
-            q0 = pi2_dc_ld_addr[0];     // Restoring dc value for intra case
+        {
+            q0 = pi2_dc_ld_addr[0];
+        }
 
         q2 = pi2_src_ptr[2];
-        INV_QUANT(q2, pu2_iscal_mat[2], pu2_weigh_mat[2], u4_qp_div_6, rnd_fact,
-                  4);
+        INV_QUANT(q2, pu2_iscal_mat[2], pu2_weigh_mat[2], u4_qp_div_6, rnd_fact, 4);
 
         x0 = q0 + q2;
         x1 = q0 - q2;
 
         q1 = pi2_src_ptr[1];
-        INV_QUANT(q1, pu2_iscal_mat[1], pu2_weigh_mat[1], u4_qp_div_6, rnd_fact,
-                  4);
+        INV_QUANT(q1, pu2_iscal_mat[1], pu2_weigh_mat[1], u4_qp_div_6, rnd_fact, 4);
 
         q3 = pi2_src_ptr[3];
-        INV_QUANT(q3, pu2_iscal_mat[3], pu2_weigh_mat[3], u4_qp_div_6, rnd_fact,
-                  4);
+        INV_QUANT(q3, pu2_iscal_mat[3], pu2_weigh_mat[3], u4_qp_div_6, rnd_fact, 4);
 
         x2 = (q1 >> 1) - q3;
         x3 = q1 + (q3 >> 1);
@@ -207,9 +214,58 @@ void ih264_iquant_itrans_recon_4x4(WORD16 *pi2_src,
         pu1_out_ptr++;
         pu1_pred++;
     }
-
 }
 
+/**
+********************************************************************************
+*
+* @brief This function reconstructs a 4x4 sub block from quantized residue and
+*  prediction buffer, if only dc value is present for residue
+*
+* @par Description:
+*  The quantized residue is first inverse quantized, then inverse transformed.
+*  This inverse transformed content is added to the prediction buffer to recon-
+*  struct the end output
+*
+* @param[in] pi2_src
+*  quantized 4x4 block
+*
+* @param[in] pu1_pred
+*  prediction 4x4 block
+*
+* @param[out] pu1_out
+*  reconstructed 4x4 block
+*
+* @param[in] pred_strd
+*  Prediction buffer stride
+*
+* @param[in] out_strd
+*  recon buffer Stride
+*
+* @param[in] pu2_iscal_mat
+*  pointer to inverse scaling matrix
+*
+* @param[in] pu2_weigh_mat
+*  pointer to weight matrix
+*
+* @param[in] u4_qp_div_6
+*  Floor (qp/6)
+*
+* @param[in] pi2_tmp
+*  temporary buffer of size 1*16
+*
+* @param[in] iq_start_idx
+*  Differentiates b/w intra or inter
+*
+* @param[in] pi2_dc_ld_addr
+*  Address to load DC value of the 4x4 blk
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_iquant_itrans_recon_4x4_dc(WORD16 *pi2_src,
                                       UWORD8 *pu1_pred,
                                       UWORD8 *pu1_out,
@@ -227,16 +283,16 @@ void ih264_iquant_itrans_recon_4x4_dc(WORD16 *pi2_src,
     WORD32 q0;
     WORD16 x, i_macro, i;
     WORD16 rnd_fact = (u4_qp_div_6 < 4) ? 1 << (3 - u4_qp_div_6) : 0;
-    UNUSED(pi2_tmp);
 
-    if (iq_start_idx == 0)
+    UNUSED(pi2_tmp);
+    if(iq_start_idx == 0)
     {
-      q0 = pi2_src[0];
-      INV_QUANT(q0, pu2_iscal_mat[0], pu2_weigh_mat[0], u4_qp_div_6, rnd_fact, 4);
+        q0 = pi2_src[0];
+        INV_QUANT(q0, pu2_iscal_mat[0], pu2_weigh_mat[0], u4_qp_div_6, rnd_fact, 4);
     }
     else
     {
-      q0 = pi2_dc_ld_addr[0];    // Restoring dc value for intra case3
+        q0 = pi2_dc_ld_addr[0]; // Restoring dc value for intra case3
     }
     i_macro = ((q0 + 32) >> 6);
     for(i = 0; i < SUB_BLK_WIDTH_4x4; i++)
@@ -245,7 +301,6 @@ void ih264_iquant_itrans_recon_4x4_dc(WORD16 *pi2_src,
         pu1_out = pu1_out_ptr;
 
         /* inverse prediction */
-
         x = i_macro + *pu1_pred_ptr;
         *pu1_out = CLIP_U8(x);
         pu1_pred_ptr += pred_strd;
@@ -270,56 +325,56 @@ void ih264_iquant_itrans_recon_4x4_dc(WORD16 *pi2_src,
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  This function performs inverse quant and Inverse transform type Ci4 for 8x8 block
- *
- * @par Description:
- *  Performs inverse transform Ci8 and adds the residue to get the
- *  reconstructed block
- *
- * @param[in] pi2_src
- *  Input 8x8coefficients
- *
- * @param[in] pu1_pred
- *  Prediction 8x8 block
- *
- * @param[out] pu1_recon
- *  Output 8x8 block
- *
- * @param[in] q_div
- *  QP/6
- *
- * @param[in] q_rem
- *  QP%6
- *
- * @param[in] q_lev
- *  Quantizer level
- *
- * @param[in] src_strd
- *  Input stride
- *
- * @param[in] pred_strd,
- *  Prediction stride
- *
- * @param[in] out_strd
- *  Output Stride
- *
- * @param[in] pi4_tmp
- *  temporary buffer of size 1*16 we dont need a bigger blcok since we reuse
- *  the tmp for each block
- *
- * @param[in] pu4_iquant_mat
- *  Pointer to the inverse quantization matrix
- *
- * @returns  Void
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+********************************************************************************
+*
+* @brief This function reconstructs a 8x8 sub block from quantized residue and
+*  prediction buffer
+*
+* @par Description:
+*  The quantized residue is first inverse quantized, then inverse transformed.
+*  This inverse transformed content is added to the prediction buffer to recon-
+*  struct the end output
+*
+* @param[in] pi2_src
+*  quantized 4x4 block
+*
+* @param[in] pu1_pred
+*  prediction 4x4 block
+*
+* @param[out] pu1_out
+*  reconstructed 4x4 block
+*
+* @param[in] pred_strd
+*  Prediction buffer stride
+*
+* @param[in] out_strd
+*  recon buffer Stride
+*
+* @param[in] pu2_iscal_mat
+*  pointer to inverse scaling matrix
+*
+* @param[in] pu2_weigh_mat
+*  pointer to weight matrix
+*
+* @param[in] u4_qp_div_6
+*  Floor (qp/6)
+*
+* @param[in] pi2_tmp
+*  temporary buffer of size 1*16. we dont need a bigger block since we reuse
+*  the tmp for each block
+*
+* @param[in] iq_start_idx
+*  UNUSED
+*
+* @param[in] pi2_dc_ld_addr
+*  UNUSED
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_iquant_itrans_recon_8x8(WORD16 *pi2_src,
                                    UWORD8 *pu1_pred,
                                    UWORD8 *pu1_out,
@@ -330,8 +385,7 @@ void ih264_iquant_itrans_recon_8x8(WORD16 *pi2_src,
                                    UWORD32 qp_div,
                                    WORD16 *pi2_tmp,
                                    WORD32 iq_start_idx,
-                                   WORD16 *pi2_dc_ld_addr
-)
+                                   WORD16 *pi2_dc_ld_addr)
 {
     WORD32 i;
     WORD16 *pi2_tmp_ptr = pi2_tmp;
@@ -342,6 +396,7 @@ void ih264_iquant_itrans_recon_8x8(WORD16 *pi2_src,
     WORD16 i_macro;
     WORD32 q;
     WORD32 rnd_fact = (qp_div < 6) ? (1 << (5 - qp_div)) : 0;
+
     UNUSED(iq_start_idx);
     UNUSED(pi2_dc_ld_addr);
     /*************************************************************/
@@ -432,13 +487,13 @@ void ih264_iquant_itrans_recon_8x8(WORD16 *pi2_src,
         //pi2_src_ptr += SUB_BLK_WIDTH_8x8;
         pi2_tmp_ptr += SUB_BLK_WIDTH_8x8;
     }
+
     /*--------------------------------------------------------------------*/
     /* IDCT [ Vertical transformation] and Xij = (xij + 32)>>6            */
     /*                                                                    */
     /* Add the prediction and store it back to reconstructed frame buffer */
     /* [Prediction buffer itself in this case]                            */
     /*--------------------------------------------------------------------*/
-
     pi2_tmp_ptr = pi2_tmp;
     for(i = 0; i < SUB_BLK_WIDTH_8x8; i++)
     {
@@ -548,6 +603,57 @@ void ih264_iquant_itrans_recon_8x8(WORD16 *pi2_src,
     }
 }
 
+/**
+********************************************************************************
+*
+* @brief This function reconstructs a 8x8 sub block from quantized residue and
+*  prediction buffer, if only dc value is present
+*
+* @par Description:
+*  The quantized residue is first inverse quantized, then inverse transformed.
+*  This inverse transformed content is added to the prediction buffer to recon-
+*  struct the end output
+*
+* @param[in] pi2_src
+*  quantized 4x4 block
+*
+* @param[in] pu1_pred
+*  prediction 4x4 block
+*
+* @param[out] pu1_out
+*  reconstructed 4x4 block
+*
+* @param[in] pred_strd
+*  Prediction buffer stride
+*
+* @param[in] out_strd
+*  recon buffer Stride
+*
+* @param[in] pu2_iscal_mat
+*  pointer to inverse scaling matrix
+*
+* @param[in] pu2_weigh_mat
+*  pointer to weight matrix
+*
+* @param[in] u4_qp_div_6
+*  Floor (qp/6)
+*
+* @param[in] pi2_tmp
+*  temporary buffer of size 1*16. we dont need a bigger block since we reuse
+*  the tmp for each block
+*
+* @param[in] iq_start_idx
+*  UNUSED
+*
+* @param[in] pi2_dc_ld_addr
+*  UNUSED
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_iquant_itrans_recon_8x8_dc(WORD16 *pi2_src,
                                       UWORD8 *pu1_pred,
                                       UWORD8 *pu1_out,
@@ -565,6 +671,7 @@ void ih264_iquant_itrans_recon_8x8_dc(WORD16 *pi2_src,
     WORD16 x, i, i_macro;
     WORD32 q;
     WORD32 rnd_fact = (qp_div < 6) ? (1 << (5 - qp_div)) : 0;
+
     UNUSED(pi2_tmp);
     UNUSED(iq_start_idx);
     UNUSED(pi2_dc_ld_addr);
@@ -634,53 +741,53 @@ void ih264_iquant_itrans_recon_8x8_dc(WORD16 *pi2_src,
     }
 }
 
-/*
- ********************************************************************************
- *
- * @brief This function reconstructs a 4x4 sub block from quantized resiude and
- * prediction buffer
- *
- * @par Description:
- *  The quantized residue is first inverse quantized, then inverse transformed.
- *  This inverse transformed content is added to the prediction buffer to recon-
- *  struct the end output
- *
- * @param[in] pi2_src
- *  quantized 4x4 block
- *
- * @param[in] pu1_pred
- *  prediction 4x4 block
- *
- * @param[out] pu1_out
- *  reconstructed 4x4 block
- *
- * @param[in] src_strd
- *  quantization buffer stride
- *
- * @param[in] pred_strd,
- *  Prediction buffer stride
- *
- * @param[in] out_strd
- *  recon buffer Stride
- *
- * @param[in] pu2_scaling_list
- *  pointer to scaling list
- *
- * @param[in] pu2_norm_adjust
- *  pointer to inverse scale matrix
- *
- * @param[in] u4_qp_div_6
- *  Floor (qp/6)
- *
- * @param[in] pi4_tmp
- * temporary buffer of size 1*16
- *
- * @returns none
- *
- * @remarks none
- *
- *******************************************************************************
- */
+/**
+********************************************************************************
+*
+* @brief This function reconstructs a 4x4 sub block from quantized residue and
+*  prediction buffer
+*
+* @par Description:
+*  The quantized residue is first inverse quantized, then inverse transformed.
+*  This inverse transformed content is added to the prediction buffer to recon-
+*  struct the end output
+*
+* @param[in] pi2_src
+*  quantized 4x4 block
+*
+* @param[in] pu1_pred
+*  prediction 4x4 block
+*
+* @param[out] pu1_out
+*  reconstructed 4x4 block
+*
+* @param[in] pred_strd
+*  Prediction buffer stride
+*
+* @param[in] out_strd
+*  recon buffer Stride
+*
+* @param[in] pu2_iscal_mat
+*  pointer to inverse scaling matrix
+*
+* @param[in] pu2_weigh_mat
+*  pointer to weight matrix
+*
+* @param[in] u4_qp_div_6
+*  Floor (qp/6)
+*
+* @param[in] pi2_tmp
+*  temporary buffer of size 1*16
+*
+* @param[in] pi2_dc_src
+*  Address to load DC value of the 4x4 blk
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_iquant_itrans_recon_chroma_4x4(WORD16 *pi2_src,
                                           UWORD8 *pu1_pred,
                                           UWORD8 *pu1_out,
@@ -702,46 +809,43 @@ void ih264_iquant_itrans_recon_chroma_4x4(WORD16 *pi2_src,
     WORD16 rnd_fact = (u4_qp_div_6 < 4) ? 1 << (3 - u4_qp_div_6) : 0;
 
     /* inverse quant */
-    /*horizontal inverse transform */
+    /* horizontal inverse transform */
     for(i = 0; i < SUB_BLK_WIDTH_4x4; i++)
     {
-      if(i==0)
-      {
-        q0 = pi2_dc_src[0];
-      }
-      else
-      {
-        q0 = pi2_src_ptr[0];
-        INV_QUANT(q0, pu2_iscal_mat[0], pu2_weigh_mat[0], u4_qp_div_6, rnd_fact, 4);
-      }
+        if(i == 0)
+        {
+            q0 = pi2_dc_src[0];
+        }
+        else
+        {
+            q0 = pi2_src_ptr[0];
+            INV_QUANT(q0, pu2_iscal_mat[0], pu2_weigh_mat[0], u4_qp_div_6, rnd_fact, 4);
+        }
 
-      q2 = pi2_src_ptr[2];
-      INV_QUANT(q2, pu2_iscal_mat[2], pu2_weigh_mat[2], u4_qp_div_6, rnd_fact,
-                4);
+        q2 = pi2_src_ptr[2];
+        INV_QUANT(q2, pu2_iscal_mat[2], pu2_weigh_mat[2], u4_qp_div_6, rnd_fact, 4);
 
-      x0 = q0 + q2;
-      x1 = q0 - q2;
+        x0 = q0 + q2;
+        x1 = q0 - q2;
 
-      q1 = pi2_src_ptr[1];
-      INV_QUANT(q1, pu2_iscal_mat[1], pu2_weigh_mat[1], u4_qp_div_6, rnd_fact,
-                4);
+        q1 = pi2_src_ptr[1];
+        INV_QUANT(q1, pu2_iscal_mat[1], pu2_weigh_mat[1], u4_qp_div_6, rnd_fact, 4);
 
-      q3 = pi2_src_ptr[3];
-      INV_QUANT(q3, pu2_iscal_mat[3], pu2_weigh_mat[3], u4_qp_div_6, rnd_fact,
-                4);
+        q3 = pi2_src_ptr[3];
+        INV_QUANT(q3, pu2_iscal_mat[3], pu2_weigh_mat[3], u4_qp_div_6, rnd_fact, 4);
 
-      x2 = (q1 >> 1) - q3;
-      x3 = q1 + (q3 >> 1);
+        x2 = (q1 >> 1) - q3;
+        x3 = q1 + (q3 >> 1);
 
-      pi2_tmp_ptr[0] = x0 + x3;
-      pi2_tmp_ptr[1] = x1 + x2;
-      pi2_tmp_ptr[2] = x1 - x2;
-      pi2_tmp_ptr[3] = x0 - x3;
+        pi2_tmp_ptr[0] = x0 + x3;
+        pi2_tmp_ptr[1] = x1 + x2;
+        pi2_tmp_ptr[2] = x1 - x2;
+        pi2_tmp_ptr[3] = x0 - x3;
 
-      pi2_src_ptr += SUB_BLK_WIDTH_4x4;
-      pi2_tmp_ptr += SUB_BLK_WIDTH_4x4;
-      pu2_iscal_mat += SUB_BLK_WIDTH_4x4;
-      pu2_weigh_mat += SUB_BLK_WIDTH_4x4;
+        pi2_src_ptr += SUB_BLK_WIDTH_4x4;
+        pi2_tmp_ptr += SUB_BLK_WIDTH_4x4;
+        pu2_iscal_mat += SUB_BLK_WIDTH_4x4;
+        pu2_weigh_mat += SUB_BLK_WIDTH_4x4;
     }
 
     /* vertical inverse transform */
@@ -754,7 +858,7 @@ void ih264_iquant_itrans_recon_chroma_4x4(WORD16 *pi2_src,
         x0 = (pi2_tmp_ptr[0] + pi2_tmp_ptr[8]);
         x1 = (pi2_tmp_ptr[0] - pi2_tmp_ptr[8]);
         x2 = (pi2_tmp_ptr[4] >> 1) - pi2_tmp_ptr[12];
-        x3 =  pi2_tmp_ptr[4] + (pi2_tmp_ptr[12] >> 1);
+        x3 = pi2_tmp_ptr[4] + (pi2_tmp_ptr[12] >> 1);
 
         /* inverse prediction */
         i_macro = x0 + x3;
@@ -784,41 +888,55 @@ void ih264_iquant_itrans_recon_chroma_4x4(WORD16 *pi2_src,
         *pu1_out = CLIP_U8(i_macro);
 
         pi2_tmp_ptr++;
-        pu1_out_ptr+= 2;    //Interleaved store for output
-        pu1_pred+= 2;       //Interleaved load for pred buffer
+        pu1_out_ptr += 2; // Interleaved store for output
+        pu1_pred += 2; // Interleaved load for pred buffer
     }
 }
 
-/*
- ********************************************************************************
- *
- * @brief This function reconstructs a 4x4 sub block from quantized resiude and
- * prediction buffer if only dc value is present for residue
- *
- * @par Description:
- *  The quantized residue is first inverse quantized,
- *  This inverse quantized content is added to the prediction buffer to recon-
- *  struct the end output
- *
- * @param[in] pi2_src
- *  quantized dc coefficient
- *
- * @param[in] pu1_pred
- *  prediction 4x4 block in interleaved format
- *
- * @param[in] pred_strd,
- *  Prediction buffer stride in interleaved format
- *
- * @param[in] out_strd
- *  recon buffer Stride
- *
- * @returns none
- *
- * @remarks none
- *
- *******************************************************************************
- */
-
+/**
+********************************************************************************
+*
+* @brief This function reconstructs a 4x4 sub block from quantized residue and
+*  prediction buffer if only dc value is present for residue
+*
+* @par Description:
+*  The quantized residue is first inverse quantized,
+*  This inverse quantized content is added to the prediction buffer to recon-
+*  struct the end output
+*
+* @param[in] pi2_src
+*  quantized dc coefficient
+*
+* @param[in] pu1_pred
+*  prediction 4x4 block in interleaved format
+*
+* @param[in] pred_strd,
+*  Prediction buffer stride in interleaved format
+*
+* @param[in] out_strd
+*  recon buffer Stride
+*
+* @param[in] pu2_iscal_mat
+*  pointer to inverse scaling matrix
+*
+* @param[in] pu2_weigh_mat
+*  pointer to weight matrix
+*
+* @param[in] u4_qp_div_6
+*  Floor (qp/6)
+*
+* @param[in] pi2_tmp
+*  temporary buffer of size 1*16
+*
+* @param[in] pi2_dc_src
+*  Address to load DC value of the 4x4 blk
+*
+* @returns none
+*
+* @remarks none
+*
+*******************************************************************************
+*/
 void ih264_iquant_itrans_recon_chroma_4x4_dc(WORD16 *pi2_src,
                                              UWORD8 *pu1_pred,
                                              UWORD8 *pu1_out,
@@ -834,6 +952,7 @@ void ih264_iquant_itrans_recon_chroma_4x4_dc(WORD16 *pi2_src,
     UWORD8 *pu1_out_ptr = pu1_out;
     WORD32 q0;
     WORD16 x, i_macro, i;
+
     UNUSED(pi2_src);
     UNUSED(pu2_iscal_mat);
     UNUSED(pu2_weigh_mat);

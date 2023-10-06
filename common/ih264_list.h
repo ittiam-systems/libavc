@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
@@ -26,12 +27,10 @@
 *  Contains functions for buf queue
 *
 * @author
-*  Harish
-*
-* @par List of Functions:
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -39,6 +38,9 @@
 #ifndef _IH264_LIST_H_
 #define _IH264_LIST_H_
 
+/*****************************************************************************/
+/* Structure Definitions                                                     */
+/*****************************************************************************/
 typedef struct
 {
     /** Pointer to buffer base which contains the bufs */
@@ -73,21 +75,29 @@ typedef struct
      * For eg: For picture level queues this can be a large value like 100us
      * but for jobq this will be zero.
      */
-    WORD32 i4_yeild_interval_us;
+    WORD32 i4_yield_interval_us;
 
 }list_t;
 
+/*****************************************************************************/
+/* Function Declarations                                                     */
+/*****************************************************************************/
 WORD32 ih264_list_size(WORD32 num_entries, WORD32 entry_size);
-void* ih264_list_init(void *pv_buf,
-                      WORD32 buf_size,
-                      WORD32 num_entries,
-                      WORD32 entry_size,
-                      WORD32 yeild_interval_us);
-IH264_ERROR_T ih264_list_free(list_t *ps_list);
-IH264_ERROR_T ih264_list_reset(list_t *ps_list);
-IH264_ERROR_T ih264_list_deinit(list_t *ps_list);
-IH264_ERROR_T ih264_list_terminate(list_t *ps_list);
-IH264_ERROR_T ih264_list_queue(list_t *ps_list, void *pv_buf, WORD32 blocking);
-IH264_ERROR_T ih264_list_dequeue(list_t *ps_list, void *pv_buf, WORD32 blocking);
 
-#endif /* _IH264_PROCESS_SLICE_H_ */
+void* ih264_list_init(void *pv_buf, WORD32 buf_size, WORD32 num_entries,
+                      WORD32 entry_size, WORD32 yeild_interval_us);
+
+IH264_ERROR_T ih264_list_free(list_t *ps_list);
+
+IH264_ERROR_T ih264_list_reset(list_t *ps_list);
+
+IH264_ERROR_T ih264_list_deinit(list_t *ps_list);
+
+IH264_ERROR_T ih264_list_terminate(list_t *ps_list);
+
+IH264_ERROR_T ih264_list_queue(list_t *ps_list, void *pv_buf, WORD32 blocking);
+
+IH264_ERROR_T ih264_list_dequeue(list_t *ps_list, void *pv_buf,
+                                 WORD32 blocking);
+
+#endif /* _IH264_LIST_H_ */

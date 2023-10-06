@@ -17,56 +17,56 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-/**
- *******************************************************************************
- * @file
- *  ih264_trans_quant.h
- *
- * @brief
- *  Contains declarations for forward and inverse transform paths for H264
- *
- * @author
- *  Ittiam
- *
- * @remarks
- *
- *******************************************************************************
- */
 
-#ifndef IH264_TRANS_QUANT_H_
-#define IH264_TRANS_QUANT_H_
+/**
+*******************************************************************************
+* @file
+*  ih264_trans_quant_itrans_iquant.h
+*
+* @brief
+*  Contains declarations for forward and inverse transform / quant functions
+*  for H264
+*
+* @author
+*  ittiam
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
+
+#ifndef _IH264_TRANS_QUANT_ITRANS_IQUANT_H_
+#define _IH264_TRANS_QUANT_ITRANS_IQUANT_H_
 
 /*****************************************************************************/
 /* Extern Function Declarations                                              */
 /*****************************************************************************/
 
-
 typedef void ih264_resi_trans_dctrans_quant_ft(UWORD8*pu1_src,
-                                       UWORD8 *pu1_pred,
-                                       WORD16 *pi2_out,
-                                       WORD32 src_strd,
-                                       WORD32 pred_strd,
-                                       WORD32 dst_strd,
-                                       const UWORD16 *pu2_scale_mat,
-                                       const UWORD16 *pu2_thresh_mat,
-                                       UWORD32 u4_qbit,
-                                       UWORD32 u4_round_fact,
-                                       UWORD8 *pu1_nnz);
+                                               UWORD8 *pu1_pred,
+                                               WORD16 *pi2_out,
+                                               WORD32 src_strd,
+                                               WORD32 pred_strd,
+                                               WORD32 dst_strd,
+                                               const UWORD16 *pu2_scale_mat,
+                                               const UWORD16 *pu2_thresh_mat,
+                                               UWORD32 u4_qbit,
+                                               UWORD32 u4_round_fact,
+                                               UWORD8 *pu1_nnz);
 
 typedef void ih264_idctrans_iquant_itrans_recon_ft(WORD16 *pi2_src,
-                                          UWORD8 *pu1_pred,
-                                          UWORD8 *pu1_out,
-                                          WORD32 src_strd,
-                                          WORD32 pred_strd,
-                                          WORD32 out_strd,
-                                          const UWORD16 *pu2_iscale_mat,
-                                          const UWORD16 *pu2_weigh_mat,
-                                          UWORD32 qp_div,
-                                          UWORD32 pi4_cntrl,
-                                          WORD32 *pi4_tmp);
+                                                   UWORD8 *pu1_pred,
+                                                   UWORD8 *pu1_out,
+                                                   WORD32 src_strd,
+                                                   WORD32 pred_strd,
+                                                   WORD32 out_strd,
+                                                   const UWORD16 *pu2_iscale_mat,
+                                                   const UWORD16 *pu2_weigh_mat,
+                                                   UWORD32 qp_div,
+                                                   UWORD32 pi4_cntrl,
+                                                   WORD32 *pi4_tmp);
 
-
-/*Function prototype declarations*/
 typedef void ih264_resi_trans_quant_ft(UWORD8*pu1_src,
                                        UWORD8 *pu1_pred,
                                        WORD16 *pi2_out,
@@ -166,6 +166,7 @@ typedef void ih264_hadamard_quant_ft(WORD16 *pi2_src, WORD16 *pi2_dst,
                                     const UWORD16 *pu2_threshold_matrix, UWORD32 u4_qbits,
                                     UWORD32 u4_round_factor,UWORD8  *pu1_nnz);
 
+/* C Declarations */
 ih264_resi_trans_quant_ft ih264_resi_trans_quant_4x4;
 ih264_resi_trans_quant_ft ih264_resi_trans_quant_chroma_4x4;
 ih264_resi_trans_quant_ft ih264_resi_trans_quant_8x8;
@@ -180,7 +181,7 @@ ih264_ihadamard_scaling_ft ih264_ihadamard_scaling_2x2_uv;
 ih264_hadamard_quant_ft ih264_hadamard_quant_4x4;
 ih264_hadamard_quant_ft ih264_hadamard_quant_2x2_uv;
 
-/*A9 Declarations*/
+/* A9 Declarations */
 ih264_resi_trans_quant_ft ih264_resi_trans_quant_4x4_a9;
 ih264_resi_trans_quant_ft ih264_resi_trans_quant_chroma_4x4_a9;
 ih264_iquant_itrans_recon_ft ih264_iquant_itrans_recon_4x4_a9;
@@ -198,7 +199,7 @@ ih264_ihadamard_scaling_ft ih264_ihadamard_scaling_2x2_uv_a9;
 ih264_hadamard_quant_ft ih264_hadamard_quant_4x4_a9;
 ih264_hadamard_quant_ft ih264_hadamard_quant_2x2_uv_a9;
 
-/*Av8 Declarations*/
+/* AV8 Declarations */
 ih264_resi_trans_quant_ft ih264_resi_trans_quant_4x4_av8;
 ih264_resi_trans_quant_ft ih264_resi_trans_quant_chroma_4x4_av8;
 ih264_iquant_itrans_recon_ft ih264_iquant_itrans_recon_4x4_av8;
@@ -212,7 +213,7 @@ ih264_ihadamard_scaling_ft ih264_ihadamard_scaling_2x2_uv_av8;
 ih264_hadamard_quant_ft ih264_hadamard_quant_4x4_av8;
 ih264_hadamard_quant_ft ih264_hadamard_quant_2x2_uv_av8;
 
-/*SSSE3 Declarations*/
+/* SSSE3 Declarations */
 ih264_iquant_itrans_recon_ft ih264_iquant_itrans_recon_4x4_ssse3;
 ih264_iquant_itrans_recon_ft ih264_iquant_itrans_recon_8x8_ssse3;
 ih264_iquant_itrans_recon_ft ih264_iquant_itrans_recon_4x4_dc_ssse3;
@@ -220,7 +221,8 @@ ih264_iquant_itrans_recon_ft ih264_iquant_itrans_recon_8x8_dc_ssse3;
 ih264_iquant_itrans_recon_chroma_ft ih264_iquant_itrans_recon_chroma_4x4_dc_ssse3;
 ih264_ihadamard_scaling_ft ih264_ihadamard_scaling_4x4_ssse3;
 ih264_ihadamard_scaling_ft ih264_ihadamard_scaling_2x2_uv_ssse3;
-/*SSSE42 Declarations*/
+
+/* SSSE42 Declarations */
 ih264_resi_trans_quant_ft ih264_resi_trans_quant_4x4_sse42;
 ih264_resi_trans_quant_ft ih264_resi_trans_quant_chroma_4x4_sse42;
 ih264_iquant_itrans_recon_ft ih264_iquant_itrans_recon_4x4_sse42;
@@ -229,4 +231,4 @@ ih264_ihadamard_scaling_ft ih264_ihadamard_scaling_4x4_sse42;
 ih264_hadamard_quant_ft ih264_hadamard_quant_4x4_sse42;
 ih264_hadamard_quant_ft ih264_hadamard_quant_2x2_uv_sse42;
 
-#endif /* IH264_TRANS_QUANT_H_ */
+#endif /* _IH264_TRANS_QUANT_ITRANS_IQUANT_H_ */

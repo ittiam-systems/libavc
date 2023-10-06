@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
 *******************************************************************************
 * @file
@@ -26,74 +27,37 @@
 *  Function declarations used for memory functions
 *
 * @author
-*  Ittiam
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
+
 #ifndef _IH264_MEM_FNS_H_
 #define _IH264_MEM_FNS_H_
 
-typedef void ih264_memcpy_ft(UWORD8 *pu1_dst, UWORD8 *pu1_src, UWORD32 num_bytes);
+/*****************************************************************************/
+/* Extern Function Declarations                                              */
+/*****************************************************************************/
+typedef void ih264_memcpy_ft(UWORD8 *pu1_dst, UWORD8 *pu1_src,
+                             UWORD32 num_bytes);
 
-typedef void ih264_memcpy_mul_8_ft(UWORD8 *pu1_dst, UWORD8 *pu1_src, UWORD32 num_bytes);
-/**
- *******************************************************************************
- *
- * @brief
- *   memset of a 8,16 or 32 bytes
- *
- * @par Description:
- *   Does memset of 8bit data for 8,16 or 32 number of bytes
- *
- * @param[in] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] value
- *  UWORD8 value used for memset
- *
- * @param[in] num_bytes
- *  number of bytes to set
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
-typedef void ih264_memset_ft(UWORD8 *pu1_dst, UWORD8 value, UWORD32 num_bytes);
+typedef void ih264_memcpy_mul_8_ft(UWORD8 *pu1_dst, UWORD8 *pu1_src,
+                                   UWORD32 num_bytes);
 
-typedef void ih264_memset_mul_8_ft(UWORD8 *pu1_dst, UWORD8 value, UWORD32 num_bytes);
+typedef void ih264_memset_ft(UWORD8 *pu1_dst, UWORD8 value,
+                             UWORD32 num_bytes);
 
-/**
- *******************************************************************************
- *
- * @brief
- *   memset of 16bit data of a 8,16 or 32 bytes
- *
- * @par Description:
- *   Does memset of 16bit data for 8,16 or 32 number of bytes
- *
- * @param[in] pu2_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] value
- *  UWORD16 value used for memset
- *
- * @param[in] num_words
- *  number of words to set
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
-typedef void ih264_memset_16bit_ft(UWORD16 *pu2_dst, UWORD16 value, UWORD32 num_words);
+typedef void ih264_memset_mul_8_ft(UWORD8 *pu1_dst, UWORD8 value,
+                                   UWORD32 num_bytes);
 
-typedef void ih264_memset_16bit_mul_8_ft(UWORD16 *pu2_dst, UWORD16 value, UWORD32 num_words);
+typedef void ih264_memset_16bit_ft(UWORD16 *pu2_dst, UWORD16 value,
+                                   UWORD32 num_words);
+
+typedef void ih264_memset_16bit_mul_8_ft(UWORD16 *pu2_dst, UWORD16 value,
+                                         UWORD32 num_words);
 
 /* C function declarations */
 ih264_memcpy_ft ih264_memcpy;
@@ -119,8 +83,9 @@ ih264_memset_mul_8_ft ih264_memset_mul_8_av8;
 ih264_memset_16bit_ft ih264_memset_16bit_av8;
 ih264_memset_16bit_mul_8_ft ih264_memset_16bit_mul_8_av8;
 
-
+/*SSSE3 Declarations*/
 ih264_memcpy_mul_8_ft ih264_memcpy_mul_8_ssse3;
 ih264_memset_mul_8_ft ih264_memset_mul_8_ssse3;
 ih264_memset_16bit_mul_8_ft ih264_memset_16bit_mul_8_ssse3;
-#endif  //_MEM_FNS_H_
+
+#endif  /* _IH264_MEM_FNS_H_ */

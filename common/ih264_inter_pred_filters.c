@@ -17,36 +17,37 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
 /**
- *******************************************************************************
- * @file
- *  ih264_inter_pred_filters.c
- *
- * @brief
- *  Contains function definitions for inter prediction interpolation filters
- *
- * @author
- *  Ittiam
- *
- * @par List of Functions:
- *  - ih264_inter_pred_luma_copy
- *  - ih264_interleave_copy
- *  - ih264_inter_pred_luma_horz
- *  - ih264_inter_pred_luma_vert
- *  - ih264_inter_pred_luma_horz_hpel_vert_hpel
- *  - ih264_inter_pred_luma_horz_qpel
- *  - ih264_inter_pred_luma_vert_qpel
- *  - ih264_inter_pred_luma_horz_qpel_vert_qpel
- *  - ih264_inter_pred_luma_horz_hpel_vert_qpel
- *  - ih264_inter_pred_luma_horz_qpel_vert_hpel
- *  - ih264_inter_pred_luma_bilinear
- *  - ih264_inter_pred_chroma
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @file
+*  ih264_inter_pred_filters.c
+*
+* @brief
+*  Contains function definitions for inter prediction interpolation filters
+*
+* @author
+*  ittiam
+*
+* @par List of Functions:
+*  - ih264_inter_pred_luma_copy
+*  - ih264_interleave_copy
+*  - ih264_inter_pred_luma_horz
+*  - ih264_inter_pred_luma_vert
+*  - ih264_inter_pred_luma_horz_hpel_vert_hpel
+*  - ih264_inter_pred_luma_horz_qpel
+*  - ih264_inter_pred_luma_vert_qpel
+*  - ih264_inter_pred_luma_horz_qpel_vert_qpel
+*  - ih264_inter_pred_luma_horz_hpel_vert_qpel
+*  - ih264_inter_pred_luma_horz_qpel_vert_hpel
+*  - ih264_inter_pred_luma_bilinear
+*  - ih264_inter_pred_chroma
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 
 /*****************************************************************************/
 /* File Includes                                                             */
@@ -55,68 +56,79 @@
 /* User include files */
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
-#include "ih264_platform_macros.h"
 #include "ih264_inter_pred_filters.h"
+#include "ih264_platform_macros.h"
 
 
 /*****************************************************************************/
 /* Constant Data variables                                                   */
 /*****************************************************************************/
-
-/* coefficients for 6 tap filtering*/
-const WORD32 ih264_g_six_tap[3] ={1,-5,20};
+/**
+ ******************************************************************************
+ * @brief coefficients for 6 tap filtering
+ ******************************************************************************
+ */
+const WORD32 ih264_g_six_tap[3] =
+{
+    1, -5, 20
+};
 
 
 /*****************************************************************************/
 /*  Function definitions .                                                   */
 /*****************************************************************************/
-/**
- *******************************************************************************
- *
- * @brief
- * Interprediction luma function for copy
- *
- * @par Description:
- *    Copies the array of width 'wd' and height 'ht' from the  location pointed
- *    by 'src' to the location pointed by 'dst'
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- *
- * @param[in] ht
- *  integer height of the array
- *
- * @param[in] wd
- *  integer width of the array
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
 
+/**
+*******************************************************************************
+*
+* @brief function for luma copy
+*
+* @par Description:
+*  Copies the array of width 'wd' and height 'ht' from the location pointed
+*  by 'src' to the location pointed by 'dst'
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ht
+*  height of the array
+*
+* @param[in] wd
+*  width of the array
+*
+* @param[in] pu1_tmp
+*  temporary buffer
+*
+* @param[in] dydx
+*  x and y reference offset for qpel calculations
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_inter_pred_luma_copy(UWORD8 *pu1_src,
                                 UWORD8 *pu1_dst,
                                 WORD32 src_strd,
                                 WORD32 dst_strd,
                                 WORD32 ht,
                                 WORD32 wd,
-                                UWORD8* pu1_tmp,
+                                UWORD8 *pu1_tmp,
                                 WORD32 dydx)
 {
     WORD32 row, col;
+
     UNUSED(pu1_tmp);
     UNUSED(dydx);
     for(row = 0; row < ht; row++)
@@ -132,41 +144,40 @@ void ih264_inter_pred_luma_copy(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- * Fucntion for copying to an interleaved destination
- *
- * @par Description:
- *    Copies the array of width 'wd' and height 'ht' from the  location pointed
- *    by 'src' to the location pointed by 'dst'
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ht
- *  integer height of the array
- *
- * @param[in] wd
- *  integer width of the array
- *
- * @returns
- *
- * @remarks
- *  The alternate elements of src will be copied to alternate locations in dsr
- *  Other locations are not touched
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief interleaved copy
+*
+* @par Description:
+*  Copies the array of width 'wd' and height 'ht' from the location pointed
+*  by 'src' to the location pointed by 'dst'
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ht
+*  height of the array
+*
+* @param[in] wd
+*  width of the array
+*
+* @returns
+*
+* @remarks
+*  The alternate elements of src will be copied to alternate locations in dsr
+*  Other locations are not touched
+*
+*******************************************************************************
+*/
 void ih264_interleave_copy(UWORD8 *pu1_src,
                            UWORD8 *pu1_dst,
                            WORD32 src_strd,
@@ -175,150 +186,151 @@ void ih264_interleave_copy(UWORD8 *pu1_src,
                            WORD32 wd)
 {
     WORD32 row, col;
-    wd *= 2;
 
+    wd *= 2;
     for(row = 0; row < ht; row++)
     {
-        for(col = 0; col < wd; col+=2)
+        for(col = 0; col < wd; col += 2)
         {
             pu1_dst[col] = pu1_src[col];
         }
-
         pu1_src += src_strd;
         pu1_dst += dst_strd;
     }
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *     Interprediction luma filter for horizontal input
- *
- * @par Description:
- *    Applies a 6 tap horizontal filter .The output is  clipped to 8 bits
- *    sec 8.4.2.2.1 titled "Luma sample interpolation process"
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ht
- *  integer height of the array
- *
- * @param[in] wd
- *  integer width of the array
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Luma hpel Horizontal Interprediction
+*
+* @par Description:
+*  Applies a 6 tap horizontal filter. The output is clipped to 8 bits.
+*  Refer sec 8.4.2.2.1 titled "Luma sample interpolation process"
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ht
+*  height of the array
+*
+* @param[in] wd
+*  width of the array
+*
+* @param[in] pu1_tmp
+*  temporary buffer
+*
+* @param[in] dydx
+*  x and y reference offset for qpel calculations
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_inter_pred_luma_horz(UWORD8 *pu1_src,
                                 UWORD8 *pu1_dst,
                                 WORD32 src_strd,
                                 WORD32 dst_strd,
                                 WORD32 ht,
                                 WORD32 wd,
-                                UWORD8* pu1_tmp,
+                                UWORD8 *pu1_tmp,
                                 WORD32 dydx)
 {
     WORD32 row, col;
     WORD16 i2_tmp;
+
     UNUSED(pu1_tmp);
     UNUSED(dydx);
-
     for(row = 0; row < ht; row++)
     {
         for(col = 0; col < wd; col++)
         {
-            i2_tmp = 0;/*ih264_g_six_tap[] is the array containing the filter coeffs*/
-            i2_tmp = ih264_g_six_tap[0] *
-                            (pu1_src[col - 2] + pu1_src[col + 3])
-                     + ih264_g_six_tap[1] *
-                            (pu1_src[col - 1] + pu1_src[col + 2])
-                     + ih264_g_six_tap[2] *
-                            (pu1_src[col] + pu1_src[col + 1]);
+            i2_tmp = ih264_g_six_tap[0] * (pu1_src[col - 2] + pu1_src[col + 3])
+                     + ih264_g_six_tap[1] * (pu1_src[col - 1] + pu1_src[col + 2])
+                     + ih264_g_six_tap[2] * (pu1_src[col] + pu1_src[col + 1]);
             i2_tmp = (i2_tmp + 16) >> 5;
             pu1_dst[col] = CLIP_U8(i2_tmp);
         }
-
         pu1_src += src_strd;
         pu1_dst += dst_strd;
     }
-
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *    Interprediction luma filter for vertical input
- *
- * @par Description:
- *   Applies a 6 tap vertical filter.The output is  clipped to 8 bits
- *    sec 8.4.2.2.1 titled "Luma sample interpolation process"
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] ht
- *  integer height of the array
- *
- * @param[in] wd
- *  integer width of the array
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Luma hpel Vertical Interprediction
+*
+* @par Description:
+*  Applies a 6 tap vertical filter.The output is clipped to 8 bits
+*  Refer sec 8.4.2.2.1 titled "Luma sample interpolation process"
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ht
+*  height of the array
+*
+* @param[in] wd
+*  width of the array
+*
+* @param[in] pu1_tmp
+*  temporary buffer
+*
+* @param[in] dydx
+*  x and y reference offset for qpel calculations
+*
+* @returns
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 void ih264_inter_pred_luma_vert(UWORD8 *pu1_src,
                                 UWORD8 *pu1_dst,
                                 WORD32 src_strd,
                                 WORD32 dst_strd,
                                 WORD32 ht,
                                 WORD32 wd,
-                                UWORD8* pu1_tmp,
+                                UWORD8 *pu1_tmp,
                                 WORD32 dydx)
 {
     WORD32 row, col;
     WORD16 i2_tmp;
+
     UNUSED(pu1_tmp);
     UNUSED(dydx);
-
     for(row = 0; row < ht; row++)
     {
         for(col = 0; col < wd; col++)
         {
-            i2_tmp = 0; /*ih264_g_six_tap[] is the array containing the filter coeffs*/
-            i2_tmp = ih264_g_six_tap[0] *
-                            (pu1_src[col - 2 * src_strd] + pu1_src[col + 3 * src_strd])
-                     + ih264_g_six_tap[1] *
-                            (pu1_src[col - 1 * src_strd] + pu1_src[col + 2 * src_strd])
-                     + ih264_g_six_tap[2] *
-                            (pu1_src[col] + pu1_src[col + 1 * src_strd]);
+            i2_tmp = ih264_g_six_tap[0] * (pu1_src[col - 2 * src_strd] + pu1_src[col + 3 * src_strd])
+                     + ih264_g_six_tap[1] * (pu1_src[col - 1 * src_strd] + pu1_src[col + 2 * src_strd])
+                     + ih264_g_six_tap[2] * (pu1_src[col] + pu1_src[col + 1 * src_strd]);
             i2_tmp = (i2_tmp + 16) >> 5;
             pu1_dst[col] = CLIP_U8(i2_tmp);
         }
@@ -327,70 +339,82 @@ void ih264_inter_pred_luma_vert(UWORD8 *pu1_src,
     }
 }
 
-/*!
- **************************************************************************
- * \if Function name : ih264_inter_pred_luma_horz_hpel_vert_hpel \endif
- *
- * \brief
- *    This function implements a two stage cascaded six tap filter. It
- *    applies the six tap filter in the horizontal direction on the
- *    predictor values, followed by applying the same filter in the
- *    vertical direction on the output of the first stage. The six tap
- *    filtering operation is described in sec 8.4.2.2.1 titled "Luma sample
- *    interpolation process"
- *
- * \param pu1_src: Pointer to the buffer containing the predictor values.
- *     pu1_src could point to the frame buffer or the predictor buffer.
- * \param pu1_dst: Pointer to the destination buffer where the output of
- *     the six tap filter is stored.
- * \param ht: Height of the rectangular pixel grid to be interpolated
- * \param wd: Width of the rectangular pixel grid to be interpolated
- * \param src_strd: Width of the buffer pointed to by pu1_src.
- * \param dst_strd: Width of the destination buffer
- * \param pu1_tmp: temporary buffer.
- * \param dydx: x and y reference offset for qpel calculations: UNUSED in this function.
- *
- * \return
- *    None.
- *
- * \note
- *    This function takes the 8 bit predictor values, applies the six tap
- *    filter in the horizontal direction and outputs the result clipped to
- *    8 bit precision. The input is stored in the buffer pointed to by
- *    pu1_src while the output is stored in the buffer pointed by pu1_dst.
- *    Both pu1_src and pu1_dst could point to the same buffer i.e. the
- *    six tap filter could be done in place.
- *
- **************************************************************************
- */
+/**
+*******************************************************************************
+*
+* @brief
+*  Luma Horizontal hpel & Vertical hpel Interprediction
+*
+* @par Description:
+*  This function implements a two stage cascaded six tap filter. It
+*  applies the six tap filter in the horizontal direction on the
+*  predictor values, followed by applying the same filter in the
+*  vertical direction on the output of the first stage. The six tap
+*  filtering operation is described in sec 8.4.2.2.1 titled "Luma sample
+*  interpolation process"
+*
+* @param[in] pu1_src
+*  pointer to the source
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ht
+*  height of the array
+*
+* @param[in] wd
+*  width of the array
+*
+* @param[in] pu1_tmp
+*  temporary buffer
+*
+* @param[in] dydx
+*  x and y reference offset for qpel calculations
+*
+* @returns
+*
+* @remarks
+*  This function takes the 8 bit predictor values, applies the six tap
+*  filter in the horizontal direction and outputs the result clipped to
+*  8 bit precision. The input is stored in the buffer pointed to by
+*  pu1_src while the output is stored in the buffer pointed by pu1_dst.
+*  Both pu1_src and pu1_dst could point to the same buffer i.e. the
+*  six tap filter could be done in place.
+*
+*******************************************************************************
+*/
 void ih264_inter_pred_luma_horz_hpel_vert_hpel(UWORD8 *pu1_src,
                                                UWORD8 *pu1_dst,
                                                WORD32 src_strd,
                                                WORD32 dst_strd,
                                                WORD32 ht,
                                                WORD32 wd,
-                                               UWORD8* pu1_tmp,
+                                               UWORD8 *pu1_tmp,
                                                WORD32 dydx)
 {
     WORD32 row, col;
     WORD32 tmp;
-    WORD16* pi2_pred1_temp;
-    WORD16* pi2_pred1;
+    WORD16 *pi2_pred1_temp;
+    WORD16 *pi2_pred1;
+
     UNUSED(dydx);
     pi2_pred1_temp = (WORD16*)pu1_tmp;
     pi2_pred1_temp += 2;
     pi2_pred1 = pi2_pred1_temp;
+
     for(row = 0; row < ht; row++)
     {
         for(col = -2; col < wd + 3; col++)
         {
-            tmp = 0;/*ih264_g_six_tap[] is the array containing the filter coeffs*/
-            tmp = ih264_g_six_tap[0] *
-                            (pu1_src[col - 2 * src_strd] + pu1_src[col + 3 * src_strd])
-                  + ih264_g_six_tap[1] *
-                            (pu1_src[col - 1 * src_strd] + pu1_src[col + 2 * src_strd])
-                  + ih264_g_six_tap[2] *
-                            (pu1_src[col] + pu1_src[col + 1 * src_strd]);
+            tmp = ih264_g_six_tap[0] * (pu1_src[col - 2 * src_strd] + pu1_src[col + 3 * src_strd])
+                  + ih264_g_six_tap[1] * (pu1_src[col - 1 * src_strd] + pu1_src[col + 2 * src_strd])
+                  + ih264_g_six_tap[2] * (pu1_src[col] + pu1_src[col + 1 * src_strd]);
             pi2_pred1_temp[col] = tmp;
         }
         pu1_src += src_strd;
@@ -401,11 +425,8 @@ void ih264_inter_pred_luma_horz_hpel_vert_hpel(UWORD8 *pu1_src,
     {
         for(col = 0; col < wd; col++)
         {
-            tmp = 0;/*ih264_g_six_tap[] is the array containing the filter coeffs*/
-            tmp = ih264_g_six_tap[0] *
-                            (pi2_pred1[col - 2] + pi2_pred1[col + 3])
-                  + ih264_g_six_tap[1] *
-                            (pi2_pred1[col - 1] + pi2_pred1[col + 2])
+            tmp = ih264_g_six_tap[0] * (pi2_pred1[col - 2] + pi2_pred1[col + 3])
+                  + ih264_g_six_tap[1] * (pi2_pred1[col - 1] + pi2_pred1[col + 2])
                   + ih264_g_six_tap[2] * (pi2_pred1[col] + pi2_pred1[col + 1]);
             tmp = (tmp + 512) >> 10;
             pu1_dst[col] = CLIP_U8(tmp);
@@ -415,39 +436,55 @@ void ih264_inter_pred_luma_horz_hpel_vert_hpel(UWORD8 *pu1_src,
     }
 }
 
-/*!
- **************************************************************************
- * \if Function name : ih264_inter_pred_luma_horz_qpel \endif
- *
- * \brief
- *    This routine applies the six tap filter to the predictors in the
- *    horizontal direction. The six tap filtering operation is described in
- *    sec 8.4.2.2.1 titled "Luma sample interpolation process"
- *
- * \param pu1_src: Pointer to the buffer containing the predictor values.
- *     pu1_src could point to the frame buffer or the predictor buffer.
- * \param pu1_dst: Pointer to the destination buffer where the output of
- *     the six tap filter is stored.
- * \param ht: Height of the rectangular pixel grid to be interpolated
- * \param wd: Width of the rectangular pixel grid to be interpolated
- * \param src_strd: Width of the buffer pointed to by pu1_src.
- * \param dst_strd: Width of the destination buffer
- * \param pu1_tmp: temporary buffer: UNUSED in this function
- * \param dydx: x and y reference offset for qpel calculations.
- *
- * \return
- *    None.
- *
- * \note
- *    This function takes the 8 bit predictor values, applies the six tap
- *    filter in the horizontal direction and outputs the result clipped to
- *    8 bit precision. The input is stored in the buffer pointed to by
- *    pu1_src while the output is stored in the buffer pointed by pu1_dst.
- *    Both pu1_src and pu1_dst could point to the same buffer i.e. the
- *    six tap filter could be done in place.
- *
- **************************************************************************
- */
+/**
+*******************************************************************************
+*
+* @brief
+*  Luma Horizontal qpel Interprediction
+*
+* @par Description:
+*  This routine applies the six tap filter to the predictors in the
+*  horizontal direction and interpolates them to obtain pixels at quarter
+*  horizontal positions (1/4, 0) and (3/4, 0). The six tap filtering operation
+*  is described in sec 8.4.2.2.1 titled "Luma sample interpolation process"
+*
+* @param[in] pu1_src
+*  Pointer to the buffer containing the predictor values.
+*
+* @param[out] pu1_dst
+*  Pointer to the destination buffer where the output of the six tap filter is
+*  stored
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ht
+*  Height of the rectangular pixel grid to be interpolated
+*
+* @param[in] wd
+*  Width of the rectangular pixel grid to be interpolated
+*
+* @param[in] pu1_tmp
+*  temporary buffer. UNUSED in this function
+*
+* @param[in] dydx
+*  x and y reference offset for qpel calculations
+*
+* @returns
+*
+* @remarks
+*  This function takes the 8 bit predictor values, applies the six tap
+*  filter in the horizontal direction and outputs the result clipped to
+*  8 bit precision. The input is stored in the buffer pointed to by
+*  pu1_src while the output is stored in the buffer pointed by pu1_dst.
+*  Both pu1_src and pu1_dst could point to the same buffer i.e. the
+*  six tap filter could be done in place.
+*
+*******************************************************************************
+*/
 void ih264_inter_pred_luma_horz_qpel(UWORD8 *pu1_src,
                                      UWORD8 *pu1_dst,
                                      WORD32 src_strd,
@@ -487,43 +524,55 @@ void ih264_inter_pred_luma_horz_qpel(UWORD8 *pu1_src,
     }
 }
 
-/*!
- **************************************************************************
- * \if Function name : ih264_inter_pred_luma_vert_qpel \endif
- *
- * \brief
- *    This routine applies the six tap filter to the predictors in the
- *    vertical direction and interpolates them to obtain pixels at quarter vertical
- *    positions (0, 1/4) and (0, 3/4). The six tap filtering operation is
- *    described in sec 8.4.2.2.1 titled "Luma sample interpolation process"
- *
- * \param pu1_src: Pointer to the buffer containing the predictor values.
- *     pu1_src could point to the frame buffer or the predictor buffer.
- * \param pu1_dst: Pointer to the destination buffer where the output of
- *     the six tap filter is stored.
- * \param ht: Height of the rectangular pixel grid to be interpolated
- * \param wd: Width of the rectangular pixel grid to be interpolated
- * \param src_strd: Width of the buffer pointed to by puc_pred.
- * \param dst_strd: Width of the destination buffer
- * \param pu1_tmp: temporary buffer: UNUSED in this function
- * \param dydx: x and y reference offset for qpel calculations.
- *
- * \return
- *    void
- *
- * \note
- *    This function takes the 8 bit predictor values, applies the six tap
- *    filter in the vertical direction and outputs the result clipped to
- *    8 bit precision. The input is stored in the buffer pointed to by
- *    puc_pred while the output is stored in the buffer pointed by puc_dest.
- *    Both puc_pred and puc_dest could point to the same buffer i.e. the
- *    six tap filter could be done in place.
- *
- * \para <title>
- *    <paragraph>
- *  ...
- **************************************************************************
- */
+/**
+*******************************************************************************
+*
+* @brief
+*  Luma vertical qpel Interprediction
+*
+* @par Description:
+*  This routine applies the six tap filter to the predictors in the
+*  vertical direction and interpolates them to obtain pixels at quarter
+*  vertical positions (0, 1/4) and (0, 3/4). The six tap filtering operation
+*  is described in sec 8.4.2.2.1 titled "Luma sample interpolation process"
+*
+* @param[in] pu1_src
+*  Pointer to the buffer containing the predictor values.
+*
+* @param[out] pu1_dst
+*  Pointer to the destination buffer where the output of the six tap filter is
+*  stored
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ht
+*  Height of the rectangular pixel grid to be interpolated
+*
+* @param[in] wd
+*  Width of the rectangular pixel grid to be interpolated
+*
+* @param[in] pu1_tmp
+*  temporary buffer. UNUSED in this function
+*
+* @param[in] dydx
+*  x and y reference offset for qpel calculations
+*
+* @returns
+*
+* @remarks
+*  This function takes the 8 bit predictor values, applies the six tap
+*  filter in the horizontal direction and outputs the result clipped to
+*  8 bit precision. The input is stored in the buffer pointed to by
+*  pu1_src while the output is stored in the buffer pointed by pu1_dst.
+*  Both pu1_src and pu1_dst could point to the same buffer i.e. the
+*  six tap filter could be done in place.
+*
+*******************************************************************************
+*/
 void ih264_inter_pred_luma_vert_qpel(UWORD8 *pu1_src,
                                      UWORD8 *pu1_dst,
                                      WORD32 src_strd,
@@ -570,43 +619,55 @@ void ih264_inter_pred_luma_vert_qpel(UWORD8 *pu1_src,
     }
 }
 
-/*!
- **************************************************************************
- * \if Function name : ih264_inter_pred_luma_horz_qpel_vert_qpel \endif
- *
- * \brief
- *    This routine applies the six tap filter to the predictors in the
- *    vertical and horizontal direction and averages them to get pixels at locations
- *    (1/4,1/4), (1/4, 3/4), (3/4, 1/4) & (3/4, 3/4). The six tap filtering operation
- *    is described in sec 8.4.2.2.1 titled "Luma sample interpolation process"
- *
- * \param pu1_src: Pointer to the buffer containing the predictor values.
- *     pu1_src could point to the frame buffer or the predictor buffer.
- * \param pu1_dst: Pointer to the destination buffer where the output of
- *     the six tap filter is stored.
- * \param wd: Width of the rectangular pixel grid to be interpolated
- * \param ht: Height of the rectangular pixel grid to be interpolated
- * \param src_strd: Width of the buffer pointed to by puc_pred.
- * \param dst_strd: Width of the destination buffer
- * \param pu1_tmp: temporary buffer, UNUSED in this function
- * \param dydx: x and y reference offset for qpel calculations.
- *
- * \return
- *    void
- *
- * \note
- *    This function takes the 8 bit predictor values, applies the six tap
- *    filter in the vertical direction and outputs the result clipped to
- *    8 bit precision. The input is stored in the buffer pointed to by
- *    puc_pred while the output is stored in the buffer pointed by puc_dest.
- *    Both puc_pred and puc_dest could point to the same buffer i.e. the
- *    six tap filter could be done in place.
- *
- * \para <title>
- *    <paragraph>
- *  ...
- **************************************************************************
- */
+/**
+*******************************************************************************
+*
+* @brief
+*  Luma Horizontal qpel and vertical qpel Interprediction
+*
+* @par Description:
+*  This routine applies the six tap filter to the predictors in the
+*  vertical and horizontal direction averages them to get pixels at locations
+*  (1/4, 1/4), (1/4, 3/4), (3/4, 1/4) & (3/4, 3/4). The six tap filtering operation
+*  is described in sec 8.4.2.2.1 titled "Luma sample interpolation process"
+*
+* @param[in] pu1_src
+*  Pointer to the buffer containing the predictor values.
+*
+* @param[out] pu1_dst
+*  Pointer to the destination buffer where the output of the six tap filter is
+*  stored
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ht
+*  Height of the rectangular pixel grid to be interpolated
+*
+* @param[in] wd
+*  Width of the rectangular pixel grid to be interpolated
+*
+* @param[in] pu1_tmp
+*  temporary buffer. UNUSED in this function
+*
+* @param[in] dydx
+*  x and y reference offset for qpel calculations
+*
+* @returns
+*
+* @remarks
+*  This function takes the 8 bit predictor values, applies the six tap
+*  filter in the horizontal direction and outputs the result clipped to
+*  8 bit precision. The input is stored in the buffer pointed to by
+*  pu1_src while the output is stored in the buffer pointed by pu1_dst.
+*  Both pu1_src and pu1_dst could point to the same buffer i.e. the
+*  six tap filter could be done in place.
+*
+*******************************************************************************
+*/
 void ih264_inter_pred_luma_horz_qpel_vert_qpel(UWORD8 *pu1_src,
                                                UWORD8 *pu1_dst,
                                                WORD32 src_strd,
@@ -670,44 +731,56 @@ void ih264_inter_pred_luma_horz_qpel_vert_qpel(UWORD8 *pu1_src,
     }
 }
 
-/*!
- **************************************************************************
- * \if Function name : ih264_inter_pred_luma_horz_qpel_vert_hpel \endif
- *
- * \brief
- *    This routine applies the six tap filter to the predictors in the vertical
- *    and horizontal direction to obtain the pixel at (1/2,1/2). It then interpolates
- *    pixel at (0,1/2) and (1/2,1/2) to obtain pixel at (1/4,1/2). Similarly for (3/4,1/2).
- *    The six tap filtering operation is described in sec 8.4.2.2.1 titled
- *    "Luma sample interpolation process"
- *
- * \param pu1_src: Pointer to the buffer containing the predictor values.
- *     pu1_src could point to the frame buffer or the predictor buffer.
- * \param pu1_dst: Pointer to the destination buffer where the output of
- *     the six tap filter followed by interpolation is stored.
- * \param wd: Width of the rectangular pixel grid to be interpolated
- * \param ht: Height of the rectangular pixel grid to be interpolated
- * \param src_strd: Width of the buffer pointed to by puc_pred.
- * \param dst_strd: Width of the destination buffer
- * \param pu1_tmp: buffer to store temporary output after 1st 6-tap filter.
- * \param dydx: x and y reference offset for qpel calculations.
- *
- * \return
- *    void
- *
- * \note
- *    This function takes the 8 bit predictor values, applies the six tap
- *    filter in the vertical direction and outputs the result clipped to
- *    8 bit precision. The input is stored in the buffer pointed to by
- *    puc_pred while the output is stored in the buffer pointed by puc_dest.
- *    Both puc_pred and puc_dest could point to the same buffer i.e. the
- *    six tap filter could be done in place.
- *
- * \para <title>
- *    <paragraph>
- *  ...
- **************************************************************************
- */
+/**
+*******************************************************************************
+*
+* @brief
+*  Luma Horizontal qpel and vertical hpel Interprediction
+*
+* @par Description:
+*  This routine applies the six tap filter to the predictors in the vertical
+*  and horizontal direction to obtain the pixel at (1/2,1/2). It then interpolates
+*  pixel at (0, 1/2) and (1/2, 1/2) to obtain pixel at (1/4, 1/2). Similarly for
+*  (3/4,1/2). The six tap filtering operation is described in sec 8.4.2.2.1
+*  titled "Luma sample interpolation process"
+*
+* @param[in] pu1_src
+*  Pointer to the buffer containing the predictor values.
+*
+* @param[out] pu1_dst
+*  Pointer to the destination buffer where the output of the six tap filter is
+*  stored
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ht
+*  Height of the rectangular pixel grid to be interpolated
+*
+* @param[in] wd
+*  Width of the rectangular pixel grid to be interpolated
+*
+* @param[in] pu1_tmp
+*  temporary buffer. UNUSED in this function
+*
+* @param[in] dydx
+*  x and y reference offset for qpel calculations
+*
+* @returns
+*
+* @remarks
+*  This function takes the 8 bit predictor values, applies the six tap
+*  filter in the horizontal direction and outputs the result clipped to
+*  8 bit precision. The input is stored in the buffer pointed to by
+*  pu1_src while the output is stored in the buffer pointed by pu1_dst.
+*  Both pu1_src and pu1_dst could point to the same buffer i.e. the
+*  six tap filter could be done in place.
+*
+*******************************************************************************
+*/
 void ih264_inter_pred_luma_horz_qpel_vert_hpel(UWORD8 *pu1_src,
                                                UWORD8 *pu1_dst,
                                                WORD32 src_strd,
@@ -823,6 +896,56 @@ void ih264_inter_pred_luma_horz_qpel_vert_hpel(UWORD8 *pu1_src,
  *  ...
  **************************************************************************
  */
+/**
+*******************************************************************************
+*
+* @brief
+*  Luma Horizontal hpel and vertical qpel Interprediction
+*
+* @par Description:
+*  This routine applies the six tap filter to the predictors in the vertical
+*  and horizontal direction to obtain the pixel at (1/2,1/2). It then interpolates
+*  pixel at (1/2, 0) and (1/2, 1/2) to obtain pixel at (1/2, 1/4). Similarly for
+*  (1/2, 3/4). The six tap filtering operation is described in sec 8.4.2.2.1
+*  titled "Luma sample interpolation process"
+*
+* @param[in] pu1_src
+*  Pointer to the buffer containing the predictor values.
+*
+* @param[out] pu1_dst
+*  Pointer to the destination buffer where the output of the six tap filter is
+*  stored
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] ht
+*  Height of the rectangular pixel grid to be interpolated
+*
+* @param[in] wd
+*  Width of the rectangular pixel grid to be interpolated
+*
+* @param[in] pu1_tmp
+*  temporary buffer. UNUSED in this function
+*
+* @param[in] dydx
+*  x and y reference offset for qpel calculations
+*
+* @returns
+*
+* @remarks
+*  This function takes the 8 bit predictor values, applies the six tap
+*  filter in the horizontal direction and outputs the result clipped to
+*  8 bit precision. The input is stored in the buffer pointed to by
+*  pu1_src while the output is stored in the buffer pointed by pu1_dst.
+*  Both pu1_src and pu1_dst could point to the same buffer i.e. the
+*  six tap filter could be done in place.
+*
+*******************************************************************************
+*/
 void ih264_inter_pred_luma_horz_hpel_vert_qpel(UWORD8 *pu1_src,
                                                UWORD8 *pu1_dst,
                                                WORD32 src_strd,
@@ -898,52 +1021,49 @@ void ih264_inter_pred_luma_horz_hpel_vert_qpel(UWORD8 *pu1_src,
 }
 
 /**
- *******************************************************************************
- *  function:ih264_inter_pred_luma_bilinear
- *
- * @brief
- *    This routine applies the bilinear filter to the predictors .
- *    The  filtering operation is described in
- *    sec 8.4.2.2.1 titled "Luma sample interpolation process"
- *
- * @par Description:
-\note
- *     This function is called to obtain pixels lying at the following
- *    locations (1/4,1), (3/4,1),(1,1/4), (1,3/4) ,(1/4,1/2), (3/4,1/2),(1/2,1/4), (1/2,3/4),(3/4,1/4),(1/4,3/4),(3/4,3/4)&& (1/4,1/4) .
- *    The function averages the two adjacent values from the two input arrays in horizontal direction.
- *
- *
- * @param[in] pu1_src1:
- *  UWORD8 Pointer to the buffer containing the first input array.
- *
- * @param[in] pu1_src2:
- *  UWORD8 Pointer to the buffer containing the second input array.
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination where the output of bilinear filter is stored.
- *
- * @param[in] src_strd1
- *  Stride of the first input buffer
- *
- * @param[in] src_strd2
- *  Stride of the second input buffer
- *
- * @param[in] dst_strd
- *  integer destination stride of pu1_dst
- *
- * @param[in] ht
- *  integer height of the array
- *
- * @param[in] wd
- *  integer width of the array
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief This routine applies the bilinear filter to the predictors.
+*
+* @par Description This routine applies the bilinear filter to the predictors.
+*  The  filtering operation is described in sec 8.4.2.2.1 titled
+*  "Luma sample interpolation process". This function is called to obtain
+*  pixels lying at the following locations (1/4,1), (3/4,1),(1,1/4), (1,3/4),
+*  (1/4,1/2), (3/4,1/2), (1/2,1/4), (1/2,3/4), (3/4,1/4), (1/4,3/4), (3/4,3/4)
+*  and (1/4,1/4). The function averages the two adjacent values from the two
+*  input arrays in horizontal direction.
+*
+* @param[in] pu1_src1:
+*  Pointer to the buffer containing the first input array.
+*
+* @param[in] pu1_src2:
+*  Pointer to the buffer containing the second input array.
+*
+* @param[out] pu1_dst
+*  pointer to the destination where the output of bilinear filter is stored.
+*
+* @param[in] src_strd1
+*  Stride of the first input buffer
+*
+* @param[in] src_strd2
+*  Stride of the second input buffer
+*
+* @param[in] dst_strd
+*  destination stride of pu1_dst
+*
+* @param[in] ht
+*  height of the array
+*
+* @param[in] wd
+*  width of the array
+*
+* @returns
+*
+* @remarks
+*  None
+*
+*******************************************************************************
+*/
 void ih264_inter_pred_luma_bilinear(UWORD8 *pu1_src1,
                                     UWORD8 *pu1_src2,
                                     UWORD8 *pu1_dst,
@@ -968,50 +1088,48 @@ void ih264_inter_pred_luma_bilinear(UWORD8 *pu1_src1,
         pu1_src2 += src_strd2;
         pu1_dst += dst_strd;
     }
-
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *    Interprediction chroma filter
- *
- * @par Description:
- *   Applies filtering to chroma samples as mentioned in
- *    sec 8.4.2.2.2 titled "chroma sample interpolation process"
- *
- * @param[in] pu1_src
- *  UWORD8 pointer to the source containing alternate U and V samples
- *
- * @param[out] pu1_dst
- *  UWORD8 pointer to the destination
- *
- * @param[in] src_strd
- *  integer source stride
- *
- * @param[in] dst_strd
- *  integer destination stride
- *
- * @param[in] u1_dx
- *  dx value where the sample is to be produced(refer sec 8.4.2.2.2 )
- *
- * @param[in] u1_dy
- *  dy value where the sample is to be produced(refer sec 8.4.2.2.2 )
- *
- * @param[in] ht
- *  integer height of the array
- *
- * @param[in] wd
- *  integer width of the array
- *
- * @returns
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief Interprediction chroma filter
+*
+* @par Description:
+*  Applies filtering to chroma samples as mentioned in sec 8.4.2.2.2 titled
+*  "chroma sample interpolation process"
+*
+* @param[in] pu1_src
+*  pointer to the source containing alternate U and V samples
+*
+* @param[out] pu1_dst
+*  pointer to the destination
+*
+* @param[in] src_strd
+*  source stride
+*
+* @param[in] dst_strd
+*  destination stride
+*
+* @param[in] dx
+*  dx value where the sample is to be produced (refer sec 8.4.2.2.2 )
+*
+* @param[in] dy
+*  dy value where the sample is to be produced (refer sec 8.4.2.2.2 )
+*
+* @param[in] ht
+*  integer height of the array
+*
+* @param[in] wd
+*  integer width of the array
+*
+* @returns
+*
+* @remarks
+*  None
+*
+*******************************************************************************
+*/
 void ih264_inter_pred_chroma(UWORD8 *pu1_src,
                              UWORD8 *pu1_dst,
                              WORD32 src_strd,

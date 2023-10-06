@@ -18,7 +18,6 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 
-
 /**
 ******************************************************************************
 * @file
@@ -29,23 +28,7 @@
 *  zeros and runs before zeros
 *
 * @author
-*   Ittiam
-*
-* @par List of Tables
-*   - gu1_code_coeff_token_table
-*   - gu1_size_coeff_token_table
-*   - gu1_code_coeff_token_table_chroma
-*   - gu1_size_coeff_token_table_chroma
-*   - gu1_threshold_vlc_level
-*   - gu1_size_zero_table
-*   - gu1_code_zero_table
-*   - gu1_size_zero_table_chroma
-*   - gu1_code_zero_table_chroma
-*   - gu1_index_zero_table
-*   - gu1_size_run_table
-*   - gu1_code_run_table
-*   - gu4_codeword_level_tables
-*   - gu1_codesize_level_tables
+*  ittiam
 *
 * @remarks
 *  none
@@ -72,7 +55,7 @@
  * chroma format idc != 0
  * input  : cbp, intra - 0/inter - 1
  * output : codenum
- * @remarks Table 9-4 – Assignment of codeNum to values of coded_block_pattern
+ * @remarks Table 9-4 - Assignment of codeNum to values of coded_block_pattern
  * for macroblock prediction modes in H264 spec
  ******************************************************************************
  */
@@ -269,6 +252,7 @@ const UWORD8 gu1_code_run_table[42] =
       3,  0,  1,  3,  2,  5,  4,
       7,  6,  5,  4,  3,  2,  1,  1,  1,  1,  1,  1,  1,  1,  1,
 };
+
 /**
  ******************************************************************************
  * @brief  index to access zero table (look up)

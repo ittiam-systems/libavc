@@ -24,16 +24,17 @@
 *  ih264_padding.h
 *
 * @brief
-*  Declarations for padding functions
+*  Declarations of padding functions
 *
 * @author
-*  Ittiam
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
+
 #ifndef _IH264_PADDING_H_
 #define _IH264_PADDING_H_
 
@@ -65,10 +66,10 @@ ih264_pad ih264_pad_left_chroma_av8;
 ih264_pad ih264_pad_right_luma_av8;
 ih264_pad ih264_pad_right_chroma_av8;
 
-
+/* SSSE3 Declarations */
 ih264_pad ih264_pad_left_luma_ssse3;
 ih264_pad ih264_pad_left_chroma_ssse3;
 ih264_pad ih264_pad_right_luma_ssse3;
 ih264_pad ih264_pad_right_chroma_ssse3;
 
-#endif /*_IH264_PADDING_H_*/
+#endif /* _IH264_PADDING_H_ */

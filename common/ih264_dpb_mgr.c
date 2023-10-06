@@ -17,89 +17,97 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-/**
- *******************************************************************************
- * @file
- *  ih264_dpb_mgr.c
- *
- * @brief
- *  Function definitions used for decoded picture buffer management
- *
- * @author
- *  Srinivas T
- *
- * @par List of Functions:
- *   - ih264_dpb_mgr_init()
- *   - ih264_dpb_mgr_sort_short_term_fields_by_frame_num()
- *   - ih264_dpb_mgr_sort_short_term_fields_by_poc_l0()
- *   - ih264_dpb_mgr_sort_short_term_fields_by_poc_l1()
- *   - ih264_dpb_mgr_sort_long_term_fields_by_frame_idx()
- *   - ih264_dpb_mgr_alternate_ref_fields()
- *   - ih264_dpb_mgr_insert_ref_field()
- *   - ih264_dpb_mgr_insert_ref_frame()
- *   - ih264_dpb_mgr_count_ref_frames()
- *   - ih264_dpb_mgr_delete_ref_frame()
- *   - ih264_dpb_mgr_delete_long_ref_fields_max_frame_idx()
- *   - ih264_dpb_mgr_delete_short_ref_frame()
- *   - ih264_dpb_mgr_delete_all_ref_frames()
- *   - ih264_dpb_mgr_reset()
- *   - ih264_dpb_mgr_release_pics()
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
 
+/**
+*******************************************************************************
+* @file
+*  ih264_dpb_mgr.c
+*
+* @brief
+*  Function definitions used for decoded picture buffer management
+*
+* @author
+*  ittiam
+*
+* @par List of Functions:
+*  - ih264_dpb_mgr_init
+*  - ih264_dpb_mgr_sort_short_term_fields_by_frame_num
+*  - ih264_dpb_mgr_sort_short_term_fields_by_poc_l0
+*  - ih264_dpb_mgr_sort_short_term_fields_by_poc_l1
+*  - ih264_dpb_mgr_sort_long_term_fields_by_frame_idx
+*  - ih264_dpb_mgr_alternate_ref_fields
+*  - ih264_dpb_mgr_insert_ref_field
+*  - ih264_dpb_mgr_insert_ref_frame
+*  - ih264_dpb_mgr_count_ref_frames
+*  - ih264_dpb_mgr_delete_ref_frame
+*  - ih264_dpb_mgr_delete_long_ref_fields_max_frame_idx
+*  - ih264_dpb_mgr_delete_short_ref_frame
+*  - ih264_dpb_mgr_delete_all_ref_frames
+*  - ih264_dpb_mgr_reset
+*  - ih264_dpb_mgr_release_pics
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
+
+/*****************************************************************************/
+/* File Includes                                                             */
+/*****************************************************************************/
+
+/* System Include Files */
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
+/* User Include Files */
 #include "ih264_typedefs.h"
-#include "ih264_defs.h"
+#include "ih264_debug.h"
 #include "ih264_macros.h"
 #include "ih264_error.h"
+#include "ih264_defs.h"
 #include "ih264_structs.h"
 #include "ih264_buf_mgr.h"
 #include "ih264_dpb_mgr.h"
-#include "ih264_debug.h"
+
+
+/*****************************************************************************/
+/* Function Definitions                                                      */
+/*****************************************************************************/
 
 /**
- *******************************************************************************
- *
- * @brief
- *  DPB manager initializer
- *
- * @par Description:
- *  Initialises the DPB manager structure
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
-
+*******************************************************************************
+*
+* @brief DPB manager initializer
+*
+* @par Description Initialises the DPB manager structure
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 void ih264_dpb_mgr_init(dpb_mgr_t *ps_dpb_mgr)
 {
     UWORD32 i;
     dpb_info_t *ps_dpb_info = ps_dpb_mgr->as_dpb_info;
+
     for(i = 0; i < MAX_DPB_BUFS; i++)
     {
         ps_dpb_info[i].ps_prev_dpb = NULL;
         ps_dpb_info[i].ps_pic_buf = NULL;
-        ps_dpb_mgr->as_top_field_pics[i].i4_used_as_ref    = INVALID;
+        ps_dpb_mgr->as_top_field_pics[i].i4_used_as_ref = INVALID;
         ps_dpb_mgr->as_bottom_field_pics[i].i4_used_as_ref = INVALID;
-        ps_dpb_mgr->as_top_field_pics[i].i1_field_type     = INVALID;
-        ps_dpb_mgr->as_bottom_field_pics[i].i1_field_type  = INVALID;
-        ps_dpb_mgr->as_top_field_pics[i].i4_long_term_frame_idx    = -1;
+        ps_dpb_mgr->as_top_field_pics[i].i1_field_type = INVALID;
+        ps_dpb_mgr->as_bottom_field_pics[i].i1_field_type = INVALID;
+        ps_dpb_mgr->as_top_field_pics[i].i4_long_term_frame_idx = -1;
         ps_dpb_mgr->as_bottom_field_pics[i].i4_long_term_frame_idx = -1;
     }
-
     ps_dpb_mgr->u1_num_short_term_ref_bufs = 0;
     ps_dpb_mgr->u1_num_long_term_ref_bufs = 0;
     ps_dpb_mgr->ps_dpb_short_term_head = NULL;
@@ -107,34 +115,34 @@ void ih264_dpb_mgr_init(dpb_mgr_t *ps_dpb_mgr)
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  Function to sort sort term pics by frame_num.
- *
- * @par Description:
- *  Sorts short term fields by frame_num. For 2 fields having same frame_num,
- *  orders them based on requested first field type.
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @param[in] curr_frame_num
- *  frame_num of the current pic
- *
- * @param[in] first_field_type
- *  For complementary fields, required first field
- *
- * @param[in] max_frame_num
- *  Maximum frame_num allowed
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Function to sort short term pics by frame_num.
+*
+* @par Description:
+*  Sorts short term fields by frame_num. For 2 fields having same frame_num,
+*  orders them based on requested first field type.
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @param[in] curr_frame_num
+*  frame_num of the current pic
+*
+* @param[in] first_field_type
+*  For complementary fields, required first field
+*
+* @param[in] max_frame_num
+*  Maximum frame_num allowed
+*
+* @returns
+*
+* @remarks
+*
+*
+*******************************************************************************
+*/
 WORD32 ih264_dpb_mgr_sort_short_term_fields_by_frame_num(dpb_mgr_t *ps_dpb_mgr,
                                                          WORD32 curr_frame_num,
                                                          WORD32 first_field_type,
@@ -195,35 +203,33 @@ WORD32 ih264_dpb_mgr_sort_short_term_fields_by_frame_num(dpb_mgr_t *ps_dpb_mgr,
         ps_dpb_node2 = ps_dpb_node2->ps_prev_dpb;
     }
     return 0;
-
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  Function to sort sort term pics by poc for list 0.
- *
- * @par Description:
- *  Orders all the pocs less than current poc in the descending order.
- *  Then orders all the pocs greater than current poc in the ascending order.
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @param[in] curr_poc
- *  Poc of the current pic
- *
- * @param[in] first_field_type
- *  For complementary fields, required first field
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Function to sort sort term pics by poc for list 0.
+*
+* @par Description:
+*  Orders all the pocs less than current poc in the descending order.
+*  Then orders all the pocs greater than current poc in the ascending order.
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @param[in] curr_poc
+*  Poc of the current pic
+*
+* @param[in] first_field_type
+*  For complementary fields, required first field
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 WORD32 ih264_dpb_mgr_sort_short_term_fields_by_poc_l0(dpb_mgr_t *ps_dpb_mgr,
                                                       WORD32 curr_poc,
                                                       WORD32 first_field_type)
@@ -284,35 +290,34 @@ WORD32 ih264_dpb_mgr_sort_short_term_fields_by_poc_l0(dpb_mgr_t *ps_dpb_mgr,
         ps_dpb_node2 = ps_dpb_node2->ps_prev_dpb;
     }
     return 0;
-
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  Function to sort sort term pics by poc for list 1.
- *
- * @par Description:
- *  Orders all the pocs greater than current poc in the ascending order.
- *  Then rrders all the pocs less than current poc in the descending order.
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @param[in] curr_poc
- *  Poc of the current pic
- *
- * @param[in] first_field_type
- *  For complementary fields, required first field
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Function to sort sort term pics by poc for list 1.
+*
+* @par Description:
+*  Orders all the pocs greater than current poc in the ascending order.
+*  Then rrders all the pocs less than current poc in the descending order.
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @param[in] curr_poc
+*  Poc of the current pic
+*
+* @param[in] first_field_type
+*  For complementary fields, required first field
+*
+* @returns
+*
+* @remarks
+*
+*
+*******************************************************************************
+*/
 WORD32 ih264_dpb_mgr_sort_short_term_fields_by_poc_l1(dpb_mgr_t *ps_dpb_mgr,
                                                       WORD32 curr_poc,
                                                       WORD32 first_field_type)
@@ -374,29 +379,29 @@ WORD32 ih264_dpb_mgr_sort_short_term_fields_by_poc_l1(dpb_mgr_t *ps_dpb_mgr,
     }
     return 0;
 }
+
 /**
- *******************************************************************************
- *
- * @brief
- *  Function to sort long term pics by long term frame idx.
- *
- * @par Description:
- *  Sorts long term fields by long term frame idx. For 2 fields
- *  having same frame_num, orders them based on requested first field type.
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @param[in] first_field_type
- *  For complementary fields, required first field
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Function to sort long term pics by long term frame idx.
+*
+* @par Description:
+*  Sorts long term fields by long term frame idx. For 2 fields
+*  having same frame_num, orders them based on requested first field type.
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @param[in] first_field_type
+*  For complementary fields, required first field
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 WORD32 ih264_dpb_mgr_sort_long_term_fields_by_frame_idx(dpb_mgr_t *ps_dpb_mgr,
                                                         WORD32 first_field_type)
 {
@@ -454,31 +459,30 @@ WORD32 ih264_dpb_mgr_sort_long_term_fields_by_frame_idx(dpb_mgr_t *ps_dpb_mgr,
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  Function to alternate fields.
- *
- * @par Description:
- *  In the ordered list of fields, alternate fields starting with
- *  first_field_type
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @param[in] reference_type
- *  This is used to select between short-term and long-term linked list.
- *
- * @param[in] first_field_type
- *  For complementary fields, required first field
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Function to alternate fields.
+*
+* @par Description:
+*  In the ordered list of fields, alternate fields starting with
+*  first_field_type
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @param[in] reference_type
+*  This is used to select between short-term and long-term linked list.
+*
+* @param[in] first_field_type
+*  For complementary fields, required first field
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 WORD32 ih264_dpb_mgr_alternate_ref_fields(dpb_mgr_t *ps_dpb_mgr,
                                           WORD32 reference_type,
                                           WORD32 first_field_type)
@@ -549,40 +553,39 @@ WORD32 ih264_dpb_mgr_alternate_ref_fields(dpb_mgr_t *ps_dpb_mgr,
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  Add a ref field to short-term or long-term linked list.
- *
- * @par Description:
- *  This function adds a ref field to either short-term or long-term linked
- *  list. It picks up memory for the link from the array of dpb_info in
- *  dpb_mgr. The field is added to the beginning of the linked list and the
- *  head is set the the field.
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @param[in] ps_pic_buf
- *  Pic buf structure for the field being added.
- *
- * @param[in] reference_type
- *  This is used to select between short-term and long-term linked list.
- *
- * @param[in] frame_num
- *  frame_num for the field.
- *
- * @param[in] long_term_frame_idx
- *  If the ref being added is long-term, long_term_frame_idx of the field.
- *  Otherwise invalid.
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Add a ref field to short-term or long-term linked list.
+*
+* @par Description:
+*  This function adds a ref field to either short-term or long-term linked
+*  list. It picks up memory for the link from the array of dpb_info in
+*  dpb_mgr. The field is added to the beginning of the linked list and the
+*  head is set the the field.
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @param[in] ps_pic_buf
+*  Pic buf structure for the field being added.
+*
+* @param[in] reference_type
+*  This is used to select between short-term and long-term linked list.
+*
+* @param[in] frame_num
+*  frame_num for the field.
+*
+* @param[in] long_term_frame_idx
+*  If the ref being added is long-term, long_term_frame_idx of the field.
+*  Otherwise invalid.
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 WORD32 ih264_dpb_mgr_insert_ref_field(dpb_mgr_t *ps_dpb_mgr,
                                     pic_buf_t *ps_pic_buf,
                                     WORD32 reference_type,
@@ -653,38 +656,37 @@ WORD32 ih264_dpb_mgr_insert_ref_field(dpb_mgr_t *ps_dpb_mgr,
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  Add a ref frame to short-term or long-term linked list.
- *
- * @par Description:
- *  This function adds a ref frame to either short-term or long-term linked
- *  list. Internally it calls add ref field twice to add top and bottom field.
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @param[in] ps_pic_buf
- *  Pic buf structure for the field being added.
- *
- * @param[in] reference_type
- *  This is used to select between short-term and long-term linked list.
- *
- * @param[in] frame_num
- *  frame_num for the field.
- *
- * @param[in] long_term_frame_idx
- *  If the ref being added is long-term, long_term_frame_idx of the field.
- *  Otherwise invalid.
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Add a ref frame to short-term or long-term linked list.
+*
+* @par Description:
+*  This function adds a ref frame to either short-term or long-term linked
+*  list. Internally it calls add ref field twice to add top and bottom field.
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @param[in] ps_pic_buf
+*  Pic buf structure for the field being added.
+*
+* @param[in] reference_type
+*  This is used to select between short-term and long-term linked list.
+*
+* @param[in] frame_num
+*  frame_num for the field.
+*
+* @param[in] long_term_frame_idx
+*  If the ref being added is long-term, long_term_frame_idx of the field.
+*  Otherwise invalid.
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 WORD32 ih264_dpb_mgr_insert_ref_frame(dpb_mgr_t *ps_dpb_mgr,
                                       pic_buf_t *ps_pic_buf,
                                       WORD32 reference_type,
@@ -728,31 +730,30 @@ WORD32 ih264_dpb_mgr_insert_ref_frame(dpb_mgr_t *ps_dpb_mgr,
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  Returns the number of ref frames in both the linked list.
- *
- * @par Description:
- *  Returns the count of number of frames, number of complementary field pairs
- *  and number of unpaired fields.
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @param[in] curr_frame_num
- *  frame_num for the field.
- *
- * @param[in] max_frame_num
- *  Maximum frame_num allowed
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Returns the number of ref frames in both the linked list.
+*
+* @par Description:
+*  Returns the count of number of frames, number of complementary field pairs
+*  and number of unpaired fields.
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @param[in] curr_frame_num
+*  frame_num for the field.
+*
+* @param[in] max_frame_num
+*  Maximum frame_num allowed
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 WORD32 ih264_dpb_mgr_count_ref_frames(dpb_mgr_t *ps_dpb_mgr,
                                       WORD32 curr_frame_num,
                                       WORD32 max_frame_num)
@@ -823,29 +824,28 @@ WORD32 ih264_dpb_mgr_count_ref_frames(dpb_mgr_t *ps_dpb_mgr,
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  Deletes the ref frame at the end of the linked list.
- *
- * @par Description:
- *  Deletes the ref frame at the end of the linked list. For unpaired fields,
- *  it deletes just the last node. For frame or complementary field pair, it
- *  deletes the last two nodes.
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @param[in] reference_type
- *  This is used to select between short-term and long-term linked list.
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Deletes the ref frame at the end of the linked list.
+*
+* @par Description:
+*  Deletes the ref frame at the end of the linked list. For unpaired fields,
+*  it deletes just the last node. For frame or complementary field pair, it
+*  deletes the last two nodes.
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @param[in] reference_type
+*  This is used to select between short-term and long-term linked list.
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 WORD32 ih264_dpb_mgr_delete_ref_frame(dpb_mgr_t *ps_dpb_mgr,
                                       WORD32 reference_type)
 {
@@ -856,8 +856,6 @@ WORD32 ih264_dpb_mgr_delete_ref_frame(dpb_mgr_t *ps_dpb_mgr,
     /*
      * Assumption: The nodes sorted for frame num.
      */
-
-
     /* Select bw short-term and long-term list. */
     ps_dpb_node1 = (reference_type == SHORT_TERM_REF)
                     ?ps_dpb_mgr->ps_dpb_short_term_head
@@ -957,33 +955,34 @@ WORD32 ih264_dpb_mgr_delete_ref_frame(dpb_mgr_t *ps_dpb_mgr,
 
     return 0;
 }
+
 /**
- *******************************************************************************
- *
- * @brief
- *  Delete long-term ref fields above max frame idx.
- *
- * @par Description:
- *  Deletes all the long-term ref fields having idx greater than max_frame_idx
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @param[in] max_frame_idx
- *  Max long-term frame idx allowed.
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Delete long-term ref fields above max frame idx.
+*
+* @par Description:
+*  Deletes all the long-term ref fields having idx greater than max_frame_idx
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @param[in] max_frame_idx
+*  Max long-term frame idx allowed.
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 WORD32 ih264_dpb_mgr_delete_long_ref_fields_max_frame_idx(dpb_mgr_t *ps_dpb_mgr,
                                                           WORD32 max_frame_idx)
 {
     dpb_info_t *ps_dpb_node1;
     dpb_info_t *ps_dpb_node2;
+
     /*
      * Loop until there is node which isn't to be deleted is encountered.
      */
@@ -1023,37 +1022,37 @@ WORD32 ih264_dpb_mgr_delete_long_ref_fields_max_frame_idx(dpb_mgr_t *ps_dpb_mgr,
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  Deletes the short-term with least frame_num
- *
- * @par Description:
- *  Deletes the short-term with least frame_num. It sorts the function the
- *  short-term linked list by frame-num and the function that deletes the last
- *  frame in the linked list.
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @param[in] curr_frame_num
- *  frame_num of the current pic
- *
- * @param[in] max_frame_num
- *  Maximum frame_num allowed
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Deletes the short-term with least frame_num
+*
+* @par Description:
+*  Deletes the short-term with least frame_num. It sorts the function the
+*  short-term linked list by frame-num and the function that deletes the last
+*  frame in the linked list.
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @param[in] curr_frame_num
+*  frame_num of the current pic
+*
+* @param[in] max_frame_num
+*  Maximum frame_num allowed
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 WORD32 ih264_dpb_mgr_delete_short_ref_frame(dpb_mgr_t *ps_dpb_mgr,
                                             WORD32 curr_frame_num,
                                             WORD32 max_frame_num)
 {
     WORD32 ret;
+
     /* Sort the short-term list by frame_num */
     ret = ih264_dpb_mgr_sort_short_term_fields_by_frame_num(ps_dpb_mgr,
                                                           curr_frame_num,
@@ -1070,26 +1069,26 @@ WORD32 ih264_dpb_mgr_delete_short_ref_frame(dpb_mgr_t *ps_dpb_mgr,
 
     return ret;
 }
+
 /**
- *******************************************************************************
- *
- * @brief
- *  Deletes all the ref frames.
- *
- * @par Description:
- *  Deletes all of the ref frames/fields in the short-term and long-term linked
- *  list.
- *
- * @param[in] ps_dpb_mgr
- *  Pointer to the DPB manager structure
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
+*******************************************************************************
+*
+* @brief
+*  Deletes all the ref frames.
+*
+* @par Description:
+*  Deletes all of the ref frames/fields in the short-term and long-term linked
+*  list.
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 WORD32 ih264_dpb_mgr_delete_all_ref_frames(dpb_mgr_t *ps_dpb_mgr)
 {
     /* Loop over short-term linked list. */
@@ -1106,23 +1105,41 @@ WORD32 ih264_dpb_mgr_delete_all_ref_frames(dpb_mgr_t *ps_dpb_mgr)
     return 0;
 }
 
-
+/**
+*******************************************************************************
+*
+* @brief
+*  deletes all pictures from DPB and reset dpb
+*
+* @par Description:
+*  deletes all pictures from DPB and reset dpb
+*
+* @param[in] ps_dpb_mgr
+*  Pointer to the DPB manager structure
+*
+* @param[in] ps_buf_mgr
+*  Pointer to buffer manager structure
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 void ih264_dpb_mgr_reset(dpb_mgr_t *ps_dpb_mgr, buf_mgr_t *ps_buf_mgr)
 {
     WORD32 i;
     dpb_info_t *ps_dpb_info;
+
     ASSERT(0);
-
-
     ps_dpb_info = ps_dpb_mgr->as_dpb_info;
-
     for(i = 0; i < MAX_DPB_BUFS; i++)
     {
         if(ps_dpb_info[i].ps_pic_buf->i4_used_as_ref)
         {
             ps_dpb_info[i].ps_pic_buf->i4_used_as_ref = UNUSED_FOR_REF;
             ps_dpb_info[i].ps_prev_dpb = NULL;
-            //Release physical buffer
+            // Release physical buffer
             ih264_buf_mgr_release(ps_buf_mgr, ps_dpb_info[i].ps_pic_buf->i4_buf_id,
                                   BUF_MGR_REF);
 
@@ -1133,38 +1150,35 @@ void ih264_dpb_mgr_reset(dpb_mgr_t *ps_dpb_mgr, buf_mgr_t *ps_buf_mgr)
     ps_dpb_mgr->u1_num_long_term_ref_bufs  = 0;
     ps_dpb_mgr->ps_dpb_short_term_head = NULL;
     ps_dpb_mgr->ps_dpb_long_term_head  = NULL;
-
 }
 
 /**
- *******************************************************************************
- *
- * @brief
- *  deletes all pictures from DPB
- *
- * @par Description:
- *  Deletes all pictures present in the DPB manager
- *
- * @param[in] ps_buf_mgr
- *  Pointer to buffer manager structure
- *
- * @param[in] u1_disp_bufs
- *  Number of buffers to be deleted
- *
- * @returns
- *
- * @remarks
- *
- *
- *******************************************************************************
- */
-
+*******************************************************************************
+*
+* @brief
+*  deletes all pictures from DPB
+*
+* @par Description:
+*  Deletes all pictures present in the DPB manager
+*
+* @param[in] ps_buf_mgr
+*  Pointer to buffer manager structure
+*
+* @param[in] u1_disp_bufs
+*  Number of buffers to be deleted
+*
+* @returns
+*
+* @remarks
+*
+*******************************************************************************
+*/
 void ih264_dpb_mgr_release_pics(buf_mgr_t *ps_buf_mgr, UWORD8 u1_disp_bufs)
 {
     WORD8 i;
     UWORD32 buf_status;
-    ASSERT(0);
 
+    ASSERT(0);
     for(i = 0; i < u1_disp_bufs; i++)
     {
         buf_status = ih264_buf_mgr_get_status(ps_buf_mgr, i);

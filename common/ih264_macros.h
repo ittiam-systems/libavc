@@ -18,7 +18,8 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 
-/*********************************************************************************
+/**
+**********************************************************************************
 * @file
 *  ih264_macros.h
 *
@@ -26,13 +27,14 @@
 *  Macro definitions used in the codec
 *
 * @author
-*  Ittiam
+*  ittiam
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
+
 #ifndef _IH264_MACROS_H_
 #define _IH264_MACROS_H_
 
@@ -105,6 +107,7 @@
 #define GET_BIT(x, pos) ((x) >> (pos)) & 0x1
 
 #define INSERT_BIT(x, pos, bit) { RESET_BIT(x, pos); (x) = (x) | (bit << pos); }
-#endif /*_IH264_MACROS_H_*/
+
+#endif /*_IH264_MACROS_H_ */
 
 

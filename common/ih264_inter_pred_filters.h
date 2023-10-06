@@ -19,76 +19,24 @@
 */
 
 /**
- *******************************************************************************
- * @file
- *  ih264_inter_pred_filters.h
- *
- * @brief
- *  Declarations of functions used for inter prediction
- *
- * @author
- *  Ittiam
- *
- * @par List of Functions:
- *  -ih264_inter_pred_luma_copy
- *  -ih264_interleave_copy
- *  -ih264_inter_pred_luma_horz
- *  -ih264_inter_pred_luma_vert
- *  -ih264_inter_pred_luma_horz_hpel_vert_hpel
- *  -ih264_inter_pred_luma_vert_qpel
- *  -ih264_inter_pred_luma_horz_qpel
- *  -ih264_inter_pred_luma_horz_qpel_vert_qpel
- *  -ih264_inter_pred_luma_horz_qpel_vert_hpel
- *  -ih264_inter_pred_luma_horz_hpel_vert_qpel
- *  -ih264_inter_pred_luma_bilinear
- *  -ih264_inter_pred_chroma
- *  -ih264_inter_pred_luma_copy_a9q
- *  -ih264_interleave_copy_a9
- *  -ih264_inter_pred_luma_horz_a9q
- *  -ih264_inter_pred_luma_vert_a9q
- *  -ih264_inter_pred_luma_bilinear_a9q
- *  -ih264_inter_pred_luma_horz_hpel_vert_hpel_a9q
- *  -ih264_inter_pred_luma_horz_qpel_a9q
- *  -ih264_inter_pred_luma_vert_qpel_a9q
- *  -ih264_inter_pred_luma_horz_qpel_vert_qpel_a9q
- *  -ih264_inter_pred_luma_horz_qpel_vert_hpel_a9q
- *  -ih264_inter_pred_luma_horz_hpel_vert_qpel_a9q
- *  -ih264_inter_pred_chroma_a9q
- *  -ih264_inter_pred_luma_copy_av8
- *  -ih264_interleave_copy_av8
- *  -ih264_inter_pred_luma_horz_av8
- *  -ih264_inter_pred_luma_vert_av8
-  *  -ih264_inter_pred_luma_bilinear_av8
- *  -ih264_inter_pred_luma_horz_hpel_vert_hpel_av8
- *  -ih264_inter_pred_luma_horz_qpel_av8
- *  -ih264_inter_pred_luma_vert_qpel_av8
- *  -ih264_inter_pred_luma_horz_qpel_vert_qpel_av8
- *  -ih264_inter_pred_luma_horz_qpel_vert_hpel_av8
- *  -ih264_inter_pred_luma_horz_hpel_vert_qpel_av8
- *  -ih264_inter_pred_chroma_av8
- *  -ih264_inter_pred_chroma_dx_zero_av8
- *  -ih264_inter_pred_chroma_dy_zero_av8
- *  -ih264_inter_pred_luma_copy_ssse3
- *  -ih264_inter_pred_luma_copy_ssse3
- *  -ih264_inter_pred_luma_horz_ssse3
- *  -ih264_inter_pred_luma_vert_ssse3
- *  -ih264_inter_pred_luma_bilinear_ssse3
- *  -ih264_inter_pred_luma_horz_hpel_vert_hpel_ssse3
- *  -ih264_inter_pred_luma_horz_qpel_ssse3
- *  -ih264_inter_pred_luma_vert_qpel_ssse3
- *  -ih264_inter_pred_luma_horz_qpel_vert_qpel_ssse3
- *  -ih264_inter_pred_luma_horz_qpel_vert_hpel_ssse3
- *  -ih264_inter_pred_luma_horz_hpel_vert_qpel_ssse3
- *  -ih264_inter_pred_chroma_ssse3
- *
- * @remarks
- *  None
- *
- *******************************************************************************
- */
+*******************************************************************************
+* @file
+*  ih264_inter_pred_filters.h
+*
+* @brief
+*  Declarations of functions used for inter prediction
+*
+* @author
+*  ittiam
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 
-#ifndef _IH264_INTER_PRED_H_
-#define _IH264_INTER_PRED_H_
+#ifndef _IH264_INTER_PRED_FILTERS_H_
+#define _IH264_INTER_PRED_FILTERS_H_
 
 /*****************************************************************************/
 /* Constant Data variables                                                   */
@@ -134,108 +82,60 @@ typedef void ih264_inter_pred_chroma_ft(UWORD8 *pu1_src,
                                         WORD32 ht,
                                         WORD32 wd);
 
-/* No NEON Declarations */
-
+/* C Declarations */
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_copy;
-
 ih264_interleave_copy_ft ih264_interleave_copy;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_vert;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_hpel_vert_hpel;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_vert_qpel;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_vert_qpel;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_vert_hpel;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_hpel_vert_qpel;
-
 ih264_inter_pred_luma_bilinear_ft ih264_inter_pred_luma_bilinear;
-
 ih264_inter_pred_chroma_ft ih264_inter_pred_chroma;
 
 /* A9 NEON Declarations */
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_copy_a9q;
-
 ih264_interleave_copy_ft ih264_interleave_copy_a9;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_a9q;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_vert_a9q;
-
 ih264_inter_pred_luma_bilinear_ft ih264_inter_pred_luma_bilinear_a9q;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_hpel_vert_hpel_a9q;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_a9q;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_vert_qpel_a9q;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_vert_qpel_a9q;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_vert_hpel_a9q;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_hpel_vert_qpel_a9q;
-
 ih264_inter_pred_chroma_ft ih264_inter_pred_chroma_a9q;
 
 /* AV8 NEON Declarations */
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_copy_av8;
-
 ih264_interleave_copy_ft ih264_interleave_copy_av8;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_av8;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_vert_av8;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_hpel_vert_hpel_av8;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_av8;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_vert_qpel_av8;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_vert_qpel_av8;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_vert_hpel_av8;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_hpel_vert_qpel_av8;
-
 ih264_inter_pred_chroma_ft ih264_inter_pred_chroma_av8;
-
 ih264_inter_pred_chroma_ft ih264_inter_pred_chroma_dx_zero_av8;
-
 ih264_inter_pred_chroma_ft ih264_inter_pred_chroma_dy_zero_av8;
-
 
 /* SSSE3 Intrinsic Declarations */
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_copy_ssse3;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_ssse3;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_vert_ssse3;
-
 ih264_inter_pred_luma_bilinear_ft ih264_inter_pred_luma_bilinear_ssse3;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_hpel_vert_hpel_ssse3;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_ssse3;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_vert_qpel_ssse3;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_vert_qpel_ssse3;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_vert_hpel_ssse3;
-
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_hpel_vert_qpel_ssse3;
-
 ih264_inter_pred_chroma_ft ih264_inter_pred_chroma_ssse3;
 
-#endif
-
-/** Nothing past this point */
+#endif /* _IH264_INTER_PRED_FILTERS_H_ */

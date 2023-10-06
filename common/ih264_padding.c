@@ -27,18 +27,18 @@
 *  Contains function definitions for Padding
 *
 * @author
-*  Ittiam
+*  ittiam
 *
 * @par List of Functions:
-*   - ih264_pad_top()
-*   - ih264_pad_bottom()
-*   - ih264_pad_left_luma()
-*   - ih264_pad_left_chroma()
-*   - ih264_pad_right_luma()
-*   - ih264_pad_right_chroma()
+*  - ih264_pad_top
+*  - ih264_pad_bottom
+*  - ih264_pad_left_luma
+*  - ih264_pad_left_chroma
+*  - ih264_pad_right_luma
+*  - ih264_pad_right_chroma
 *
 * @remarks
-*  None
+*  none
 *
 *******************************************************************************
 */
@@ -47,11 +47,11 @@
 /* File Includes                                                             */
 /*****************************************************************************/
 
-/* System include files */
+/* System Include Files */
 #include <stddef.h>
 #include <string.h>
 
-/* User include files */
+/* User Include Files */
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
 #include "ih264_padding.h"
@@ -70,16 +70,16 @@
 *  The top row of a 2d array is replicated for pad_size times at the top
 *
 * @param[in] pu1_src
-*  UWORD8 pointer to the source
+*  pointer to the source
 *
 * @param[in] src_strd
-*  integer source stride
+*  source stride
 *
 * @param[in] wd
-*  integer width of the array
+*  width of the array
 *
 * @param[in] pad_size
-*  integer -padding size of the array
+*  padding size of the array
 *
 * @returns none
 *
@@ -100,8 +100,6 @@ void ih264_pad_top(UWORD8 *pu1_src,
     }
 }
 
-
-
 /**
 *******************************************************************************
 *
@@ -111,16 +109,16 @@ void ih264_pad_top(UWORD8 *pu1_src,
 *  The bottom row of a 2d array is replicated for pad_size times at the bottom
 *
 * @param[in] pu1_src
-*  UWORD8 pointer to the source
+*  pointer to the source
 *
 * @param[in] src_strd
-*  integer source stride
+*  source stride
 *
 * @param[in] wd
-*  integer width of the array
+*  width of the array
 *
 * @param[in] pad_size
-*  integer -padding size of the array
+*  padding size of the array
 *
 * @returns none
 *
@@ -147,26 +145,26 @@ void ih264_pad_bottom(UWORD8 *pu1_src,
 * @brief pad (luma block) at the left of a 2d array
 *
 * @par Description:
-*   The left column of a 2d array is replicated for pad_size times to the left
+*  The left column of a 2d array is replicated for pad_size times to the left
 *
 * @param[in] pu1_src
-*  UWORD8 pointer to the source
+*  pointer to the source
 *
 * @param[in] src_strd
-*  integer source stride
+*  source stride
 *
 * @param[in] ht
-*  integer height of the array
+*  height of the array
 *
 * @param[in] pad_size
-*  integer -padding size of the array
+*  padding size of the array
 *
 * @returns none
 *
 * @remarks none
 *
 *******************************************************************************
- */
+*/
 void ih264_pad_left_luma(UWORD8 *pu1_src,
                          WORD32 src_strd,
                          WORD32 ht,
@@ -176,9 +174,7 @@ void ih264_pad_left_luma(UWORD8 *pu1_src,
 
     for(row = 0; row < ht; row++)
     {
-
         memset(pu1_src - pad_size, *pu1_src, pad_size);
-
         pu1_src += src_strd;
     }
 }
@@ -189,19 +185,19 @@ void ih264_pad_left_luma(UWORD8 *pu1_src,
 * @brief pad (chroma block) at the left of a 2d array
 *
 * @par Description:
-*   The left column of a 2d array is replicated for pad_size times to the left
+*  The left column of a 2d array is replicated for pad_size times to the left
 *
 * @param[in] pu1_src
-*  UWORD8 pointer to the source
+*  pointer to the source
 *
 * @param[in] src_strd
-*  integer source stride
+*  source stride
 *
 * @param[in] ht
-*  integer height of the array
+*  height of the array
 *
 * @param[in] pad_size
-*  integer -padding size of the array
+*  padding size of the array
 *
 * @returns none
 *
@@ -214,11 +210,8 @@ void ih264_pad_left_chroma(UWORD8 *pu1_src,
                            WORD32 ht,
                            WORD32 pad_size)
 {
-    /* temp var */
     WORD32 row, col;
     UWORD16 u2_uv_val;
-
-    /* pointer to src */
     UWORD16 *pu2_src = (UWORD16 *)pu1_src;
 
     src_strd >>= 1;
@@ -227,12 +220,10 @@ void ih264_pad_left_chroma(UWORD8 *pu1_src,
     for(row = 0; row < ht; row++)
     {
         u2_uv_val = pu2_src[0];
-
-        for (col = -pad_size; col < 0; col++)
+        for(col = -pad_size; col < 0; col++)
         {
             pu2_src[col] = u2_uv_val;
         }
-
         pu2_src += src_strd;
     }
 }
@@ -246,16 +237,16 @@ void ih264_pad_left_chroma(UWORD8 *pu1_src,
 *  The right column of a 2d array is replicated for pad_size times at the right
 *
 * @param[in] pu1_src
-*  UWORD8 pointer to the source
+*  pointer to the source
 *
 * @param[in] src_strd
-*  integer source stride
+*  source stride
 *
 * @param[in] ht
-*  integer height of the array
+*  height of the array
 *
 * @param[in] pad_size
-*  integer -padding size of the array
+*  padding size of the array
 *
 * @returns none
 *
@@ -273,7 +264,6 @@ void ih264_pad_right_luma(UWORD8 *pu1_src,
     for(row = 0; row < ht; row++)
     {
         memset(pu1_src, *(pu1_src -1), pad_size);
-
         pu1_src += src_strd;
     }
 }
@@ -287,16 +277,16 @@ void ih264_pad_right_luma(UWORD8 *pu1_src,
 *  The right column of a 2d array is replicated for pad_size times at the right
 *
 * @param[in] pu1_src
-*  UWORD8 pointer to the source
+*  pointer to the source
 *
 * @param[in] src_strd
-*  integer source stride
+*  source stride
 *
 * @param[in] ht
-*  integer height of the array
+*  height of the array
 *
 * @param[in] pad_size
-*  integer -padding size of the array
+*  padding size of the array
 *
 * @returns none
 *
@@ -319,12 +309,10 @@ void ih264_pad_right_chroma(UWORD8 *pu1_src,
     for(row = 0; row < ht; row++)
     {
         u2_uv_val = pu2_src[-1];
-
-        for (col = 0; col < pad_size; col++)
+        for(col = 0; col < pad_size; col++)
         {
             pu2_src[col] = u2_uv_val;
         }
-
         pu2_src += src_strd;
     }
 }

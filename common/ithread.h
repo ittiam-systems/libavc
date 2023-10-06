@@ -17,52 +17,39 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-/*****************************************************************************/
-/*                                                                           */
-/*  File Name         : ithread.h                                            */
-/*                                                                           */
-/*  Description       : This file contains all the necessary structure and   */
-/*                      enumeration definitions needed for the Application   */
-/*                      Program Interface(API) of the                        */
-/*                      Thread Abstraction Layer                             */
-/*                                                                           */
-/*  List of Functions :     ithread_get_handle_size                          */
-/*                          ithread_get_mutex_lock_size                      */
-/*                          ithread_create                                   */
-/*                          ithread_join                                     */
-/*                          ithread_get_mutex_struct_size                    */
-/*                          ithread_mutex_init                               */
-/*                          ithread_mutex_destroy                            */
-/*                          ithread_mutex_lock                               */
-/*                          ithread_mutex_unlock                             */
-/*                          ithread_yield                                    */
-/*                          ithread_sleep                                    */
-/*                          ithread_msleep                                   */
-/*                          ithread_usleep                                   */
-/*                          ithread_get_sem_struct_size                      */
-/*                          ithread_sem_init                                 */
-/*                          ithread_sem_post                                 */
-/*                          ithread_sem_wait                                 */
-/*                          ithread_sem_destroy                              */
-/*                          ithread_set_affinity                             */
-/*                                                                           */
-/*  Issues / Problems : None                                                 */
-/*                                                                           */
-/*  Revision History  :                                                      */
-/*                                                                           */
-/*         DD MM YYYY   Author(s)       Changes                              */
-/*         06 09 2012   Harish          Initial Version                      */
-/*                                                                           */
-/*****************************************************************************/
+
+/**
+*******************************************************************************
+* @file
+*  ithread.h
+*
+* @brief
+*  Wrapper functions for thread operations. Library uses these functions during
+*  multi-thread execution. These calls can be mapped to POSIX, win threads, ...
+*  basing on platform
+*
+* @author
+*  ittiam
+*
+* @remarks
+*  none
+*
+*******************************************************************************
+*/
 
 #ifndef _ITHREAD_H_
 #define _ITHREAD_H_
 
+/*****************************************************************************/
+/* Function Declarations                                                     */
+/*****************************************************************************/
 UWORD32 ithread_get_handle_size(void);
 
 UWORD32 ithread_get_mutex_lock_size(void);
 
 WORD32  ithread_create(void *thread_handle, void *attribute, void *strt, void *argument);
+
+void    ithread_exit(void *val_ptr);
 
 WORD32  ithread_join(void *thread_id, void ** val_ptr);
 
