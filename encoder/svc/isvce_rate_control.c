@@ -159,11 +159,9 @@ void isvce_rc_init(void *pv_rc_api, void *pv_frame_time, void *pv_time_stamp, vo
                    UWORD8 *pu1_init_qp, WORD32 i4_max_inter_frm_int, UWORD8 *pu1_min_max_qp,
                    UWORD8 u1_profile_level)
 {
-    //    UWORD8  u1_is_mb_level_rc_on = 0;
     UWORD32 au4_peak_bit_rate[2] = {0, 0};
     UWORD32 u4_min_bit_rate = 0;
     WORD32 i4_is_gop_closed = 1;
-    //    WORD32  i4_use_est_intra_sad = 1;
     UWORD32 u4_src_ticks = 0;
     UWORD32 u4_tgt_ticks = 0;
     UWORD8 u1_level_idx = ih264e_get_lvl_idx(u1_profile_level);

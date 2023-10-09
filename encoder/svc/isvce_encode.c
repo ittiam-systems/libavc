@@ -243,14 +243,17 @@ WORD32 isvce_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     /* initialize codec ctxt with default params for the first encode api call */
     if(ps_codec->i4_encode_api_call_cnt == 0)
     {
-        isvce_codec_init(ps_codec);
+        error_status = isvce_codec_init(ps_codec);
+
+        SET_ERROR_ON_RETURN(error_status, IVE_FATALERROR,
+                            ps_video_encode_op->s_ive_op.u4_error_code, IV_FAIL);
     }
 
     error_status =
         isvce_svc_frame_params_validate(ps_codec->s_rate_control.apps_rate_control_api,
                                         ps_codec->s_cfg.s_svc_params.u1_num_spatial_layers);
-    SET_ERROR_ON_RETURN(error_status, IVE_UNSUPPORTEDPARAM,
-                        ps_video_encode_op->s_ive_op.u4_error_code, IV_FAIL);
+    SET_ERROR_ON_RETURN(error_status, IVE_FATALERROR, ps_video_encode_op->s_ive_op.u4_error_code,
+                        IV_FAIL);
 
     /* parse configuration params */
     for(i = 0; i < MAX_ACTIVE_CONFIG_PARAMS; i++)
