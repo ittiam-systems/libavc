@@ -180,6 +180,8 @@ extern WORD32 isvce_svc_au_props_validate(svc_inp_params_t *ps_svc_inp_params, U
 
 extern WORD32 isvce_svc_inp_params_validate(isvce_init_ip_t *ps_ip, isvce_cfg_params_t *ps_cfg);
 
+extern WORD32 isvce_svc_rc_params_validate(isvce_cfg_params_t *ps_cfg);
+
 extern WORD32 isvce_svc_frame_params_validate(
     rate_control_api_t *aps_rate_control_api[MAX_NUM_SPATIAL_LAYERS], UWORD8 u1_num_spatial_layers);
 
