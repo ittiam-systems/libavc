@@ -76,6 +76,13 @@ void isvc_copy_2d_ssse3(UWORD8 *pu1_dst, WORD32 i4_dst_stride, UWORD8 *pu1_src,
     /* all 128 bit registers are named with a suffix mxnb, where m is the */
     /* number of n bits packed in the register                            */
 
+    if(((i4_blk_wd % 4) != 0) || ((i4_blk_ht % 4) != 0))
+    {
+        isvc_copy_2d(pu1_dst, i4_dst_stride, pu1_src, i4_src_stride, i4_blk_wd, i4_blk_ht);
+
+        return;
+    }
+
     if(0 == (i4_blk_wd & 31)) /* wd multiple of 32 case */
     {
         __m128i src0_16x8b, src1_16x8b, src2_16x8b, src3_16x8b;
