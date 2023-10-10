@@ -434,13 +434,6 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle, void *pv_api_ip,
                 return (IV_FAIL);
             }
 
-            if(ps_ip->s_ive_ip.e_inp_color_fmt != IV_YUV_420P)
-            {
-                ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
-                ps_op->s_ive_op.u4_error_code |= IH264E_INPUT_CHROMA_FORMAT_NOT_SUPPORTED;
-                return (IV_FAIL);
-            }
-
             if(ps_ip->s_ive_ip.e_recon_color_fmt != IV_YUV_420P)
             {
                 ps_op->s_ive_op.u4_error_code |= 1 << IVE_UNSUPPORTEDPARAM;
