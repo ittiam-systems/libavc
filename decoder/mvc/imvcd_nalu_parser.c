@@ -217,13 +217,16 @@ static WORD32 imvcd_parse_subset_sps(mvc_dec_ctxt_t *ps_mvcd_ctxt, dec_bit_strea
 
     if(ps_subset_sps->s_sps_data.u1_pic_order_cnt_type == 0)
     {
-        ps_subset_sps->s_sps_data.u1_log2_max_pic_order_cnt_lsb_minus =
-            4 + ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+        UWORD32 u1_log2_max_pic_order_cnt_lsb_minus4 =
+            ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
 
-        if(ps_subset_sps->s_sps_data.u1_log2_max_pic_order_cnt_lsb_minus > MAX_BITS_IN_POC_LSB)
+        if(u1_log2_max_pic_order_cnt_lsb_minus4 > (MAX_BITS_IN_POC_LSB - 4))
         {
             return ERROR_INV_SPS_PPS_T;
         }
+
+        ps_subset_sps->s_sps_data.u1_log2_max_pic_order_cnt_lsb_minus =
+            4 + u1_log2_max_pic_order_cnt_lsb_minus4;
 
         ps_subset_sps->s_sps_data.i4_max_pic_order_cntLsb =
             (1 << ps_subset_sps->s_sps_data.u1_log2_max_pic_order_cnt_lsb_minus);
