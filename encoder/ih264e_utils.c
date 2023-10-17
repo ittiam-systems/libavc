@@ -1270,6 +1270,136 @@ void ih264e_speed_preset_side_effects(codec_t *ps_codec)
     }
 }
 
+static void ih264e_apply_config_params(codec_t *ps_codec,
+                                       UWORD32 u4_timestamp_low,
+                                       UWORD32 u4_timestamp_high)
+{
+    WORD32 i;
+    for (i = 0; i < MAX_ACTIVE_CONFIG_PARAMS; i++)
+    {
+        cfg_params_t *inp_cfg = &ps_codec->as_cfg[i];
+        if (1 == inp_cfg->u4_is_valid)
+        {
+            if ( ((inp_cfg->u4_timestamp_high == u4_timestamp_high) &&
+                  (inp_cfg->u4_timestamp_low == u4_timestamp_low)) ||
+                  ((WORD32)inp_cfg->u4_timestamp_high == -1) ||
+                  ((WORD32)inp_cfg->u4_timestamp_low == -1) )
+            {
+                switch (inp_cfg->e_cmd)
+                {
+                case IVE_CMD_CTL_SET_DIMENSIONS:
+                    ps_codec->s_cfg.u4_wd = ALIGN16(inp_cfg->u4_wd);
+                    ps_codec->s_cfg.u4_ht = ALIGN16(inp_cfg->u4_ht);
+                    ps_codec->s_cfg.u4_disp_wd = inp_cfg->u4_disp_wd;
+                    ps_codec->s_cfg.u4_disp_ht = inp_cfg->u4_disp_ht;
+                    ps_codec->s_cfg.i4_wd_mbs = ps_codec->s_cfg.u4_wd >> 4;
+                    ps_codec->s_cfg.i4_ht_mbs = ps_codec->s_cfg.u4_ht >> 4;
+                    ps_codec->i4_rec_strd = ALIGN16(inp_cfg->u4_wd) + PAD_WD;
+                    break;
+                case IVE_CMD_CTL_SET_FRAMERATE:
+                    ps_codec->s_cfg.u4_src_frame_rate = inp_cfg->u4_src_frame_rate * 1000;
+                    ps_codec->s_cfg.u4_tgt_frame_rate = inp_cfg->u4_tgt_frame_rate * 1000;
+                    break;
+                case IVE_CMD_CTL_SET_BITRATE:
+                    ps_codec->s_cfg.u4_target_bitrate = inp_cfg->u4_target_bitrate;
+                    break;
+                case IVE_CMD_CTL_SET_ME_PARAMS:
+                    ps_codec->s_cfg.u4_me_speed_preset = inp_cfg->u4_me_speed_preset;
+                    ps_codec->s_cfg.u4_enable_hpel = inp_cfg->u4_enable_hpel;
+                    ps_codec->s_cfg.u4_enable_qpel = inp_cfg->u4_enable_qpel;
+                    ps_codec->s_cfg.u4_enable_fast_sad = inp_cfg->u4_enable_fast_sad;
+                    ps_codec->s_cfg.u4_enable_alt_ref = inp_cfg->u4_enable_alt_ref;
+                    ps_codec->s_cfg.u4_srch_rng_x = inp_cfg->u4_srch_rng_x;
+                    ps_codec->s_cfg.u4_srch_rng_y = inp_cfg->u4_srch_rng_y;
+                    break;
+                case IVE_CMD_CTL_SET_IPE_PARAMS:
+                    ps_codec->s_cfg.u4_enable_intra_4x4 = inp_cfg->u4_enable_intra_4x4;
+                    ps_codec->s_cfg.u4_enc_speed_preset = inp_cfg->u4_enc_speed_preset;
+                    ps_codec->s_cfg.u4_constrained_intra_pred = inp_cfg->u4_constrained_intra_pred;
+                    break;
+                case IVE_CMD_CTL_SET_GOP_PARAMS:
+                    ps_codec->s_cfg.u4_i_frm_interval = inp_cfg->u4_i_frm_interval;
+                    ps_codec->s_cfg.u4_idr_frm_interval = inp_cfg->u4_idr_frm_interval;
+                    break;
+                case IVE_CMD_CTL_SET_DEBLOCK_PARAMS:
+                    ps_codec->s_cfg.u4_disable_deblock_level = inp_cfg->u4_disable_deblock_level;
+                    break;
+                case IVE_CMD_CTL_SET_QP:
+                    ps_codec->s_cfg.u4_i_qp_max = inp_cfg->u4_i_qp_max;
+                    ps_codec->s_cfg.u4_i_qp_min = inp_cfg->u4_i_qp_min;
+                    ps_codec->s_cfg.u4_i_qp = inp_cfg->u4_i_qp;
+                    ps_codec->s_cfg.u4_p_qp_max = inp_cfg->u4_p_qp_max;
+                    ps_codec->s_cfg.u4_p_qp_min = inp_cfg->u4_p_qp_min;
+                    ps_codec->s_cfg.u4_p_qp = inp_cfg->u4_p_qp;
+                    ps_codec->s_cfg.u4_b_qp_max = inp_cfg->u4_b_qp_max;
+                    ps_codec->s_cfg.u4_b_qp_min = inp_cfg->u4_b_qp_min;
+                    ps_codec->s_cfg.u4_b_qp = inp_cfg->u4_b_qp;
+                    break;
+                case IVE_CMD_CTL_SET_ENC_MODE:
+                    ps_codec->s_cfg.e_enc_mode = inp_cfg->e_enc_mode;
+                    if (ps_codec->s_cfg.e_enc_mode == IVE_ENC_MODE_HEADER)
+                    {
+                        ps_codec->i4_header_mode = 1;
+                        ps_codec->s_cfg.e_enc_mode = IVE_ENC_MODE_PICTURE;
+                    }
+                    else
+                    {
+                        ps_codec->i4_header_mode = 0;
+                    }
+                    break;
+                case IVE_CMD_CTL_SET_VBV_PARAMS:
+                    ps_codec->s_cfg.u4_vbv_buf_size = inp_cfg->u4_vbv_buf_size;
+                    ps_codec->s_cfg.u4_vbv_buffer_delay = inp_cfg->u4_vbv_buffer_delay;
+                    break;
+                case IVE_CMD_CTL_SET_AIR_PARAMS:
+                    ps_codec->s_cfg.e_air_mode = inp_cfg->e_air_mode;
+                    ps_codec->s_cfg.u4_air_refresh_period = inp_cfg->u4_air_refresh_period;
+                    break;
+                case IVE_CMD_CTL_SET_PROFILE_PARAMS:
+                    ps_codec->s_cfg.e_profile = inp_cfg->e_profile;
+                    ps_codec->s_cfg.u4_entropy_coding_mode = inp_cfg->u4_entropy_coding_mode;
+                    break;
+                case IVE_CMD_CTL_SET_NUM_CORES:
+                    ps_codec->s_cfg.u4_num_cores = inp_cfg->u4_num_cores;
+                    break;
+                case IVE_CMD_CTL_SET_VUI_PARAMS:
+                    ps_codec->s_cfg.s_vui = inp_cfg->s_vui;
+                    break;
+                case IVE_CMD_CTL_SET_SEI_MDCV_PARAMS:
+                    ps_codec->s_cfg.s_sei.u1_sei_mdcv_params_present_flag =
+                            inp_cfg->s_sei.u1_sei_mdcv_params_present_flag;
+                    ps_codec->s_cfg.s_sei.s_sei_mdcv_params =
+                            inp_cfg->s_sei.s_sei_mdcv_params;
+                    break;
+                case IVE_CMD_CTL_SET_SEI_CLL_PARAMS:
+                    ps_codec->s_cfg.s_sei.u1_sei_cll_params_present_flag =
+                            inp_cfg->s_sei.u1_sei_cll_params_present_flag;
+                    ps_codec->s_cfg.s_sei.s_sei_cll_params = inp_cfg->s_sei.s_sei_cll_params;
+                    break;
+                case IVE_CMD_CTL_SET_SEI_AVE_PARAMS:
+                    ps_codec->s_cfg.s_sei.u1_sei_ave_params_present_flag =
+                            inp_cfg->s_sei.u1_sei_ave_params_present_flag;
+                    ps_codec->s_cfg.s_sei.s_sei_ave_params = inp_cfg->s_sei.s_sei_ave_params;
+                    break;
+                case IVE_CMD_CTL_SET_SEI_CCV_PARAMS:
+                    ps_codec->s_cfg.s_sei.u1_sei_ccv_params_present_flag =
+                            inp_cfg->s_sei.u1_sei_ccv_params_present_flag;
+                    ps_codec->s_cfg.s_sei.s_sei_ccv_params = inp_cfg->s_sei.s_sei_ccv_params;
+                    break;
+                case IVE_CMD_CTL_SET_SEI_SII_PARAMS:
+                    ps_codec->s_cfg.s_sei.u1_sei_sii_params_present_flag =
+                            inp_cfg->s_sei.u1_sei_sii_params_present_flag;
+                    ps_codec->s_cfg.s_sei.s_sei_sii_params = inp_cfg->s_sei.s_sei_sii_params;
+                    break;
+                default:
+                    break;
+                }
+                inp_cfg->u4_is_valid = 0;
+            }
+        }
+    }
+}
+
 /**
 *******************************************************************************
 *
@@ -1292,11 +1422,12 @@ void ih264e_speed_preset_side_effects(codec_t *ps_codec)
 *
 *******************************************************************************
 */
-IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec)
+IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec,
+                                 UWORD32 u4_timestamp_low,
+                                 UWORD32 u4_timestamp_high)
 {
-    /********************************************************************
-     *                     INITIALIZE CODEC CONTEXT                     *
-     ********************************************************************/
+    ih264e_apply_config_params(ps_codec, u4_timestamp_low, u4_timestamp_high);
+
     /* encoder presets */
     if (ps_codec->s_cfg.u4_enc_speed_preset != IVE_CONFIG)
     {

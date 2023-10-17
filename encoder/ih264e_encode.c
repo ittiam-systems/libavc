@@ -289,7 +289,11 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     /* initialize codec ctxt with default params for the first encode api call */
     if (ps_codec->i4_encode_api_call_cnt == 0)
     {
-        ih264e_codec_init(ps_codec);
+        error_status = ih264e_codec_init(
+                        ps_codec, ps_video_encode_ip->s_ive_ip.u4_timestamp_low,
+                        ps_video_encode_ip->s_ive_ip.u4_timestamp_high);
+        SET_ERROR_ON_RETURN(
+                    error_status, IVE_FATALERROR, ps_video_encode_op->s_ive_op.u4_error_code, IV_FAIL);
     }
 
     /* parse configuration params */
@@ -306,9 +310,9 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
             {
                 error_status = ih264e_codec_update_config(ps_codec, ps_cfg);
                 SET_ERROR_ON_RETURN(error_status,
-                                    IVE_FATALERROR,
-                                    ps_video_encode_op->s_ive_op.u4_error_code,
-                                    IV_FAIL);
+                                    ((error_status == IH264E_UNSUPPORTED_DYNAMIC_CONFIG_REQUEST) ?
+                                                    IVE_UNSUPPORTEDPARAM : IVE_FATALERROR),
+                                    ps_video_encode_op->s_ive_op.u4_error_code, IV_FAIL);
 
                 ps_cfg->u4_is_valid = 0;
             }

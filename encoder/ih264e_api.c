@@ -2401,131 +2401,16 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
 IH264E_ERROR_T ih264e_codec_update_config(codec_t *ps_codec,
                                           cfg_params_t *ps_cfg)
 {
-    /* config params */
-    cfg_params_t *ps_curr_cfg = &ps_codec->s_cfg;
-
-    /* error status */
-    IH264E_ERROR_T err = IH264E_SUCCESS;
-
-    /* temp var */
-    UWORD32 u4_init_rc = 0;
-
-    /***********************/
-    /* UPDATE CODEC CONFIG */
-    /***********************/
-    if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_DIMENSIONS)
+    if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_BITRATE)
     {
-        UWORD32 wd_aln = ALIGN16(ps_cfg->u4_wd);
-        UWORD32 ht_aln = ALIGN16(ps_cfg->u4_ht);
-
-        if (ps_curr_cfg->u4_wd != wd_aln || ps_curr_cfg->u4_ht != ht_aln
-                        || ps_curr_cfg->u4_disp_wd != ps_cfg->u4_disp_wd
-                        || ps_curr_cfg->u4_disp_ht != ps_cfg->u4_disp_ht)
+        if (ps_codec->s_cfg.u4_target_bitrate != ps_cfg->u4_target_bitrate)
         {
-            ps_curr_cfg->u4_wd = wd_aln;
-            ps_curr_cfg->u4_ht = ht_aln;
-
-            ps_curr_cfg->u4_disp_wd = ps_cfg->u4_disp_wd;
-            ps_curr_cfg->u4_disp_ht = ps_cfg->u4_disp_ht;
-
-            ps_curr_cfg->i4_wd_mbs = ps_curr_cfg->u4_wd >> 4;
-            ps_curr_cfg->i4_ht_mbs = ps_curr_cfg->u4_ht >> 4;
-
-            ps_codec->i4_rec_strd = ALIGN16(ps_cfg->u4_wd) + PAD_WD;
-
-            /* If number of MBs in a frame changes the air map also changes.
-             * Hence recompute air map also reset air pic cnt */
-            if (ps_codec->s_cfg.e_air_mode != IVE_AIR_MODE_NONE)
-            {
-                /* re-init the air map */
-                ih264e_init_air_map(ps_codec);
-
-                /* reset air counter */
-                ps_codec->i4_air_pic_cnt = -1;
-            }
-
-            /* initialize mv bank buffer manager */
-            err = ih264e_mv_buf_mgr_add_bufs(ps_codec);
-            if (err != IH264E_SUCCESS)
-                return err;
-
-            /* initialize ref bank buffer manager */
-            err = ih264e_pic_buf_mgr_add_bufs(ps_codec);
-            if (err != IH264E_SUCCESS)
-                return err;
-
-            /* since dimension changed, start new sequence by forcing IDR */
-            ps_codec->force_curr_frame_type = IV_IDR_FRAME;
-
-            /* in case dimension changes, we need to reinitialize RC as the
-             * old model shall not fit further */
-            u4_init_rc = 1;
-
-            /* when the dimension changes, the header needs to be regenerated */
-            ps_codec->i4_gen_header = 1;
-        }
-    }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_FRAMERATE)
-    {
-        /* temp var */
-        UWORD32 u4_src_ticks, u4_tgt_ticks;
-
-        u4_src_ticks = ih264e_frame_time_get_src_ticks(
-                        ps_codec->s_rate_control.pps_frame_time);
-
-        u4_tgt_ticks = ih264e_frame_time_get_tgt_ticks(
-                        ps_codec->s_rate_control.pps_frame_time);
-
-        /* Change frame rate */
-        if (ps_codec->s_cfg.u4_src_frame_rate
-                        != ps_cfg->u4_src_frame_rate * 1000)
-        {
-            ps_codec->s_cfg.u4_src_frame_rate = ps_cfg->u4_src_frame_rate
-                            * 1000;
-
-            ih264e_frame_time_update_src_frame_rate(
-                            ps_codec->s_rate_control.pps_frame_time,
-                            ps_codec->s_cfg.u4_src_frame_rate);
-
-            ih264_time_stamp_update_frame_rate(
-                            ps_codec->s_rate_control.pps_time_stamp,
-                            ps_codec->s_cfg.u4_src_frame_rate);
-
-            irc_change_frame_rate(ps_codec->s_rate_control.pps_rate_control_api,
-                                  ps_codec->s_cfg.u4_src_frame_rate,
-                                  u4_src_ticks, u4_tgt_ticks);
-        }
-
-        if (ps_codec->s_cfg.u4_tgt_frame_rate
-                        != ps_cfg->u4_tgt_frame_rate * 1000)
-        {
-            ps_codec->s_cfg.u4_tgt_frame_rate = ps_cfg->u4_tgt_frame_rate
-                            * 1000;
-
-            ih264e_frame_time_update_tgt_frame_rate(
-                            ps_codec->s_rate_control.pps_frame_time,
-                            ps_codec->s_cfg.u4_tgt_frame_rate);
-
-            irc_change_frame_rate(ps_codec->s_rate_control.pps_rate_control_api,
-                                  ps_codec->s_cfg.u4_src_frame_rate,
-                                  u4_src_ticks, u4_tgt_ticks);
-
-            irc_change_frm_rate_for_bit_alloc(
-                            ps_codec->s_rate_control.pps_rate_control_api,
-                            ps_codec->s_cfg.u4_tgt_frame_rate);
-        }
-
-    }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_BITRATE)
-    {
-        if (ps_curr_cfg->u4_target_bitrate != ps_cfg->u4_target_bitrate)
-        {
-            if (IVE_RC_NONE != ps_curr_cfg->e_rc_mode)
+            if (IVE_RC_NONE != ps_codec->s_cfg.e_rc_mode)
                 irc_change_avg_bit_rate(
                                 ps_codec->s_rate_control.pps_rate_control_api,
                                 ps_cfg->u4_target_bitrate);
 
-            ps_curr_cfg->u4_target_bitrate = ps_cfg->u4_target_bitrate;
+            ps_codec->s_cfg.u4_target_bitrate = ps_cfg->u4_target_bitrate;
         }
     }
     else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_FRAMETYPE)
@@ -2545,115 +2430,6 @@ IH264E_ERROR_T ih264e_codec_update_config(codec_t *ps_codec,
                 break;
         }
     }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_ME_PARAMS)
-    {
-        if (ps_curr_cfg->u4_enc_speed_preset == IVE_CONFIG)
-        {
-            ps_codec->s_cfg.u4_enable_hpel = ps_cfg->u4_enable_hpel;
-            ps_codec->s_cfg.u4_enable_fast_sad = ps_cfg->u4_enable_fast_sad;
-            ps_codec->s_cfg.u4_me_speed_preset = ps_cfg->u4_me_speed_preset;
-            ps_codec->s_cfg.u4_enable_qpel = ps_cfg->u4_enable_qpel;
-        }
-        else if (ps_curr_cfg->u4_enc_speed_preset == IVE_FASTEST)
-        {
-            ps_codec->s_cfg.u4_enable_fast_sad = ps_cfg->u4_enable_fast_sad;
-        }
-        ps_codec->s_cfg.u4_srch_rng_x = ps_cfg->u4_srch_rng_x;
-        ps_codec->s_cfg.u4_srch_rng_y = ps_cfg->u4_srch_rng_y;
-
-        if (ps_codec->s_cfg.u4_enable_alt_ref != ps_cfg->u4_enable_alt_ref)
-        {
-            ps_codec->s_cfg.u4_enable_alt_ref = ps_cfg->u4_enable_alt_ref;
-            ps_codec->u4_is_curr_frm_ref = 1;
-        }
-    }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_IPE_PARAMS)
-    {
-        ps_curr_cfg->u4_enc_speed_preset = ps_cfg->u4_enc_speed_preset;
-
-        ps_curr_cfg->u4_constrained_intra_pred = ps_cfg->u4_constrained_intra_pred;
-
-        if (ps_curr_cfg->u4_enc_speed_preset != IVE_CONFIG)
-        {
-            ih264e_speed_preset_side_effects(ps_codec);
-        }
-        else
-        {
-            ps_curr_cfg->u4_enable_intra_4x4 = ps_cfg->u4_enable_intra_4x4;
-        }
-    }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_GOP_PARAMS)
-    {
-        if (ps_curr_cfg->u4_i_frm_interval != ps_cfg->u4_i_frm_interval)
-        {
-            ps_curr_cfg->u4_i_frm_interval = ps_cfg->u4_i_frm_interval;
-
-            /* reset air counter */
-            ps_codec->i4_air_pic_cnt = -1;
-
-            /* re-init air map */
-            ih264e_init_air_map(ps_codec);
-
-            /* Effect intra frame interval change */
-            irc_change_intra_frm_int_call(
-                            ps_codec->s_rate_control.pps_rate_control_api,
-                            ps_curr_cfg->u4_i_frm_interval);
-        }
-
-        ps_curr_cfg->u4_idr_frm_interval = ps_cfg->u4_idr_frm_interval;
-
-    }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_DEBLOCK_PARAMS)
-    {
-        if (ps_curr_cfg->u4_enc_speed_preset == IVE_CONFIG)
-        {
-            ps_curr_cfg->u4_disable_deblock_level =
-                            ps_cfg->u4_disable_deblock_level;
-        }
-    }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_QP)
-    {
-        UWORD8 au1_init_qp[MAX_PIC_TYPE];
-        UWORD8 au1_min_max_qp[2 * MAX_PIC_TYPE];
-
-        ps_codec->s_cfg.u4_i_qp_max = ps_cfg->u4_i_qp_max;
-        ps_codec->s_cfg.u4_i_qp_min = ps_cfg->u4_i_qp_min;
-        ps_codec->s_cfg.u4_i_qp = ps_cfg->u4_i_qp;
-
-        ps_codec->s_cfg.u4_p_qp_max = ps_cfg->u4_p_qp_max;
-        ps_codec->s_cfg.u4_p_qp_min = ps_cfg->u4_p_qp_min;
-        ps_codec->s_cfg.u4_p_qp = ps_cfg->u4_p_qp;
-
-        ps_codec->s_cfg.u4_b_qp_max = ps_cfg->u4_b_qp_max;
-        ps_codec->s_cfg.u4_b_qp_min = ps_cfg->u4_b_qp_min;
-        ps_codec->s_cfg.u4_b_qp = ps_cfg->u4_b_qp;
-
-        /* update rc lib with modified qp */
-        au1_init_qp[0] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_i_qp];
-        au1_init_qp[1] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_p_qp];
-        au1_init_qp[2] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_b_qp];
-
-        irc_change_init_qp(ps_codec->s_rate_control.pps_rate_control_api,
-                           au1_init_qp);
-
-        au1_min_max_qp[2 * I_PIC] =
-                        gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_i_qp_min];
-        au1_min_max_qp[2 * I_PIC + 1] =
-                        gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_i_qp_max];
-
-        au1_min_max_qp[2 * P_PIC] =
-                        gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_p_qp_min];
-        au1_min_max_qp[2 * P_PIC + 1] =
-                        gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_p_qp_max];
-
-        au1_min_max_qp[2 * B_PIC] =
-                        gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_b_qp_min];
-        au1_min_max_qp[2 * B_PIC + 1] =
-                        gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_b_qp_max];
-
-        irc_change_min_max_qp(ps_codec->s_rate_control.pps_rate_control_api,
-                              au1_min_max_qp);
-    }
     else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_ENC_MODE)
     {
         ps_codec->s_cfg.e_enc_mode = ps_cfg->e_enc_mode;
@@ -2668,150 +2444,16 @@ IH264E_ERROR_T ih264e_codec_update_config(codec_t *ps_codec,
             ps_codec->i4_header_mode = 0;
         }
     }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_VBV_PARAMS
-                    && IVE_RC_NONE != ps_codec->s_cfg.e_rc_mode)
+    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_DIMENSIONS)
     {
-        ps_codec->s_cfg.u4_vbv_buf_size = ps_cfg->u4_vbv_buf_size;
-        ps_codec->s_cfg.u4_vbv_buffer_delay = ps_cfg->u4_vbv_buffer_delay;
-
-        // irc_change_buffer_delay(ps_codec->s_rate_control.pps_rate_control_api, ps_codec->s_cfg.u4_vbv_buffer_delay);
-
-        // TODO: remove this when the support for changing buffer dynamically
-        // is yet to be added.
-        u4_init_rc = 1;
+        return IH264E_FATAL_DYNAMIC_CONFIG_REQUEST;
     }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_AIR_PARAMS)
+    else
     {
-        if (ps_curr_cfg->e_air_mode != ps_cfg->e_air_mode
-                        || ps_curr_cfg->u4_air_refresh_period
-                                        != ps_cfg->u4_air_refresh_period)
-        {
-            ps_curr_cfg->e_air_mode = ps_cfg->e_air_mode;
-            ps_curr_cfg->u4_air_refresh_period = ps_cfg->u4_air_refresh_period;
-
-            ih264e_init_air_map(ps_codec);
-
-            /* reset air counter */
-            ps_codec->i4_air_pic_cnt = -1;
-        }
-    }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_PROFILE_PARAMS)
-    {
-        ps_codec->s_cfg.e_profile = ps_cfg->e_profile;
-        ps_codec->s_cfg.u4_entropy_coding_mode = ps_cfg->u4_entropy_coding_mode;
-    }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_NUM_CORES)
-    {
-        ps_codec->s_cfg.u4_num_cores = ps_cfg->u4_num_cores;
-    }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_VUI_PARAMS)
-    {
-        ps_codec->s_cfg.s_vui = ps_cfg->s_vui;
+        return IH264E_UNSUPPORTED_DYNAMIC_CONFIG_REQUEST;
     }
 
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_SEI_MDCV_PARAMS)
-    {
-        ps_codec->s_cfg.s_sei.u1_sei_mdcv_params_present_flag =
-                                                ps_cfg->s_sei.u1_sei_mdcv_params_present_flag;
-        ps_codec->s_cfg.s_sei.s_sei_mdcv_params = ps_cfg->s_sei.s_sei_mdcv_params;
-    }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_SEI_CLL_PARAMS)
-    {
-        ps_codec->s_cfg.s_sei.u1_sei_cll_params_present_flag =
-                                                ps_cfg->s_sei.u1_sei_cll_params_present_flag;
-        ps_codec->s_cfg.s_sei.s_sei_cll_params = ps_cfg->s_sei.s_sei_cll_params;
-    }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_SEI_AVE_PARAMS)
-    {
-        ps_codec->s_cfg.s_sei.u1_sei_ave_params_present_flag =
-                                                ps_cfg->s_sei.u1_sei_ave_params_present_flag;
-        ps_codec->s_cfg.s_sei.s_sei_ave_params = ps_cfg->s_sei.s_sei_ave_params;
-    }
-    else if (ps_cfg->e_cmd == IVE_CMD_CTL_SET_SEI_CCV_PARAMS)
-    {
-        ps_codec->s_cfg.s_sei.u1_sei_ccv_params_present_flag =
-                                                ps_cfg->s_sei.u1_sei_ccv_params_present_flag;
-        ps_codec->s_cfg.s_sei.s_sei_ccv_params = ps_cfg->s_sei.s_sei_ccv_params;
-    }
-    else if(ps_cfg->e_cmd == IVE_CMD_CTL_SET_SEI_SII_PARAMS)
-    {
-        ps_codec->s_cfg.s_sei.u1_sei_sii_params_present_flag =
-            ps_cfg->s_sei.u1_sei_sii_params_present_flag;
-        ps_codec->s_cfg.s_sei.s_sei_sii_params = ps_cfg->s_sei.s_sei_sii_params;
-    }
-
-    /* reset RC model */
-    if (u4_init_rc)
-    {
-        /* init qp */
-        UWORD8 au1_init_qp[MAX_PIC_TYPE];
-
-        /* min max qp */
-        UWORD8 au1_min_max_qp[2 * MAX_PIC_TYPE];
-
-        /* init i,p,b qp */
-        au1_init_qp[0] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_i_qp];
-        au1_init_qp[1] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_p_qp];
-        au1_init_qp[2] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_b_qp];
-
-        /* init min max qp */
-        au1_min_max_qp[2 * I_PIC] =
-                        gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_i_qp_min];
-        au1_min_max_qp[2 * I_PIC + 1] =
-                        gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_i_qp_max];
-
-        au1_min_max_qp[2 * P_PIC] =
-                        gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_p_qp_min];
-        au1_min_max_qp[2 * P_PIC + 1] =
-                        gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_p_qp_max];
-
-        au1_min_max_qp[2 * B_PIC] =
-                        gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_b_qp_min];
-        au1_min_max_qp[2 * B_PIC + 1] =
-                        gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.u4_b_qp_max];
-
-        /* get rc mode */
-        switch (ps_codec->s_cfg.e_rc_mode)
-        {
-            case IVE_RC_STORAGE:
-                ps_codec->s_rate_control.e_rc_type = VBR_STORAGE;
-                break;
-
-            case IVE_RC_CBR_NON_LOW_DELAY:
-                ps_codec->s_rate_control.e_rc_type = CBR_NLDRC;
-                break;
-
-            case IVE_RC_CBR_LOW_DELAY:
-                ps_codec->s_rate_control.e_rc_type = CBR_LDRC;
-                break;
-
-            case IVE_RC_NONE:
-                ps_codec->s_rate_control.e_rc_type = CONST_QP;
-                break;
-
-            default:
-                break;
-        }
-
-        /* init rate control */
-        ih264e_rc_init(ps_codec->s_rate_control.pps_rate_control_api,
-                       ps_codec->s_rate_control.pps_frame_time,
-                       ps_codec->s_rate_control.pps_time_stamp,
-                       ps_codec->s_rate_control.pps_pd_frm_rate,
-                       ps_codec->s_cfg.u4_max_framerate,
-                       ps_codec->s_cfg.u4_src_frame_rate,
-                       ps_codec->s_cfg.u4_tgt_frame_rate,
-                       ps_codec->s_rate_control.e_rc_type,
-                       ps_codec->s_cfg.u4_target_bitrate,
-                       ps_codec->s_cfg.u4_max_bitrate,
-                       ps_codec->s_cfg.u4_vbv_buffer_delay,
-                       ps_codec->s_cfg.u4_i_frm_interval,
-                       ps_codec->s_cfg.u4_num_bframes + 1, au1_init_qp,
-                       ps_codec->s_cfg.u4_num_bframes + 2, au1_min_max_qp,
-                       ps_codec->s_cfg.u4_max_level);
-    }
-
-    return err;
+    return IH264E_SUCCESS;
 }
 
 /**
@@ -2973,7 +2615,7 @@ static WORD32 ih264e_init(codec_t *ps_codec)
     ps_codec->i4_frame_num = 0;
 
     /* set the current frame type to I frame, since we are going to start  encoding*/
-    ps_codec->force_curr_frame_type = IV_NA_FRAME;
+    ps_codec->force_curr_frame_type = IV_IDR_FRAME;
 
     /* idr_pic_id */
     ps_codec->i4_idr_pic_id = -1;

@@ -69,7 +69,9 @@ IH264E_ERROR_T ih264e_init_air_map(codec_t *ps_codec);
 
 void ih264e_speed_preset_side_effects(codec_t *ps_codec);
 
-IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec);
+IH264E_ERROR_T ih264e_codec_init(codec_t *ps_codec,
+                                 UWORD32 u4_timestamp_low,
+                                 UWORD32 u4_timestamp_high);
 
 IH264E_ERROR_T ih264e_pic_init(codec_t *ps_codec, inp_buf_t *ps_inp_buf);
 

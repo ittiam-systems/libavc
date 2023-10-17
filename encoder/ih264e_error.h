@@ -255,6 +255,12 @@ typedef enum
     /**Invalid shutter interval info sei params. Does not match H264 sii spec requirements*/
     IH264E_SEI_SII_FAILED_TO_MATCH_SPEC_COND = IH264E_CODEC_ERROR_START + 0x38,
 
+    /** unsupported config update, recoverable error */
+    IH264E_UNSUPPORTED_DYNAMIC_CONFIG_REQUEST                       = IH264E_CODEC_ERROR_START + 0x39,
+
+    /** unsupported config update, fatal error */
+    IH264E_FATAL_DYNAMIC_CONFIG_REQUEST                             = IH264E_CODEC_ERROR_START + 0x3A,
+
     /**max failure error code to ensure enum is 32 bits wide */
     IH264E_FAIL                                                     = -1,
 
