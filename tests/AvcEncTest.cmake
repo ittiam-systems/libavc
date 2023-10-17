@@ -16,6 +16,9 @@ list(
 libavc_add_executable(AvcEncTest libavcenc
     SOURCES ${AVCENCTEST_SRCS}
     INCLUDES "${AVC_ROOT}/third_party/googletest/googletest/include")
+
 target_link_libraries(AvcEncTest
     ${AVC_ROOT}/third_party/build/googletest/src/googletest-build/lib/libgtest.a
     ${AVC_ROOT}/third_party/build/googletest/src/googletest-build/lib/libgtest_main.a)
+
+add_dependencies(AvcEncTest googletest)
