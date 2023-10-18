@@ -172,14 +172,11 @@ static void check_update_rbip(rem_bit_in_prd_t *ps_rbip,
 
 static void irc_ba_update_rbip(rem_bit_in_prd_t *ps_rbip,
                                pic_handling_handle ps_pic_handling,
-                               WORD32 i4_num_of_bits)
+                               number_t vq_num_bits)
 {
-    number_t vq_num_bits;
-
     check_update_rbip(ps_rbip, ps_pic_handling);
 
     /* rem_bits_in_period += num_of_bits */
-    SET_VAR_Q(vq_num_bits, i4_num_of_bits, 0);
     add32_var_q(vq_num_bits, ps_rbip->vq_rem_bits_in_period,
                 &ps_rbip->vq_rem_bits_in_period);
 }
@@ -359,7 +356,7 @@ WORD32 irc_ba_get_cur_frm_est_texture_bits(bit_allocation_t *ps_bit_allocation,
     number_t vq_max_consumable_bits;
     number_t vq_rem_frms_in_period[MAX_PIC_TYPE], vq_est_texture_bits_for_frm;
     number_t vq_prev_hdr_bits[MAX_PIC_TYPE];
-
+    number_t vq_num_bits;
     WORD32 complexity_est = 0;
 
     /* Get the rem_frms_in_gop & the frms_in_gop from the pic_type state struct */
@@ -376,7 +373,8 @@ WORD32 irc_ba_get_cur_frm_est_texture_bits(bit_allocation_t *ps_bit_allocation,
 
     /* Remove the header bits from the remaining bits to find how many bits you
      can transfer.*/
-    irc_ba_update_rbip(&ps_bit_allocation->s_rbip, ps_pic_handling, 0);
+    SET_VAR_Q(vq_num_bits, 0, 0);
+    irc_ba_update_rbip(&ps_bit_allocation->s_rbip, ps_pic_handling, vq_num_bits);
     for(i = 0; i < MAX_PIC_TYPE; i++)
     {
         SET_VAR_Q(vq_rem_frms_in_period[i], i4_rem_frms_in_period[i], 0);
@@ -559,7 +557,11 @@ WORD32 irc_ba_get_rem_bits_in_period(bit_allocation_t *ps_bit_allocation,
                                      pic_handling_handle ps_pic_handling)
 {
     WORD32 i4_rem_bits_in_gop = 0;
-    irc_ba_update_rbip(&ps_bit_allocation->s_rbip, ps_pic_handling, 0);
+
+    number_t vq_num_bits;
+    SET_VAR_Q(vq_num_bits, 0, 0);
+
+    irc_ba_update_rbip(&ps_bit_allocation->s_rbip, ps_pic_handling, vq_num_bits);
     number_t_to_word32(ps_bit_allocation->s_rbip.vq_rem_bits_in_period,
                        &i4_rem_bits_in_gop);
     return (i4_rem_bits_in_gop);
@@ -581,8 +583,10 @@ void irc_ba_update_cur_frm_consumed_bits(bit_allocation_t *ps_bit_allocation,
     WORD32 i4_error_bits = irc_get_error_bits(ps_bit_allocation->ps_error_bits);
 
     /* Update the remaining bits in period */
-    irc_ba_update_rbip(&ps_bit_allocation->s_rbip, ps_pic_handling,
-                       (-i4_total_frame_bits + i4_error_bits));
+    number_t vq_num_bits;
+    SET_VAR_Q(vq_num_bits, (-i4_total_frame_bits + i4_error_bits), 0);
+
+    irc_ba_update_rbip(&ps_bit_allocation->s_rbip, ps_pic_handling, vq_num_bits);
 
     /*
      * Update the header bits so that it can be used as an estimate to the next
@@ -619,8 +623,15 @@ void irc_ba_update_cur_frm_consumed_bits(bit_allocation_t *ps_bit_allocation,
 
     if(i4_last_frm_in_gop)
     {
-        WORD32 i4_num_bits_in_a_gop = get_number_of_frms_in_a_gop(
-                        ps_pic_handling) * ps_bit_allocation->i4_bits_per_frm;
+        WORD32 i4_tot_frms_in_gop = get_number_of_frms_in_a_gop(
+                ps_pic_handling);
+        number_t vq_total_frms_in_gop, vq_bits_per_frm, vq_num_bits_in_gop;
+
+        SET_VAR_Q(vq_total_frms_in_gop, i4_tot_frms_in_gop, 0);
+        SET_VAR_Q(vq_bits_per_frm, ps_bit_allocation->i4_bits_per_frm, 0);
+
+        mult32_var_q(vq_bits_per_frm, vq_total_frms_in_gop,
+                     &vq_num_bits_in_gop);
         /*
          * If the number of gops in period has been increased due to scene
          * change, slowly bring in down across the gops
@@ -638,7 +649,7 @@ void irc_ba_update_cur_frm_consumed_bits(bit_allocation_t *ps_bit_allocation,
          * the next period else increase it
          */
         irc_ba_update_rbip(&ps_bit_allocation->s_rbip, ps_pic_handling,
-                           i4_num_bits_in_a_gop);
+                           vq_num_bits_in_gop);
     }
     /* Update the lower modules */
     irc_update_error_bits(ps_bit_allocation->ps_error_bits);
@@ -722,10 +733,16 @@ void irc_ba_change_rem_bits_in_prd_at_force_I_frame(bit_allocation_t *ps_bit_all
                                                     pic_handling_handle ps_pic_handling)
 {
     WORD32 i4_frms_in_period;
+    number_t vq_frms_in_period, vq_bits_per_frm, vq_num_bits_in_period;
+
     i4_frms_in_period = irc_pic_type_get_frms_in_gop_force_I_frm(
                     ps_pic_handling);
-    irc_ba_update_rbip(&ps_bit_allocation->s_rbip, ps_pic_handling,
-                       ps_bit_allocation->i4_bits_per_frm * i4_frms_in_period);
+    SET_VAR_Q(vq_frms_in_period, i4_frms_in_period, 0);
+    SET_VAR_Q(vq_bits_per_frm, ps_bit_allocation->i4_bits_per_frm, 0);
+
+    mult32_var_q(vq_bits_per_frm, vq_frms_in_period, &vq_num_bits_in_period);
+
+    irc_ba_update_rbip(&ps_bit_allocation->s_rbip, ps_pic_handling, vq_num_bits_in_period);
 }
 
 void irc_ba_check_and_update_bit_allocation(bit_allocation_t *ps_bit_allocation,
