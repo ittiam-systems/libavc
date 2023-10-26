@@ -182,8 +182,8 @@ extern WORD32 isvce_svc_inp_params_validate(isvce_init_ip_t *ps_ip, isvce_cfg_pa
 
 extern WORD32 isvce_svc_rc_params_validate(isvce_cfg_params_t *ps_cfg);
 
-extern WORD32 isvce_svc_frame_params_validate(
-    rate_control_api_t *aps_rate_control_api[MAX_NUM_SPATIAL_LAYERS], UWORD8 u1_num_spatial_layers);
+extern WORD32 isvce_svc_frame_params_validate(isvce_codec_t *ps_codec,
+                                              isvce_video_encode_ip_t *ps_video_encode_ip);
 
 extern WORD32 isvce_get_total_svc_au_buf_size(svc_inp_params_t *ps_svc_inp_params,
                                               WORD32 i4_pic_size, WORD32 i4_level,

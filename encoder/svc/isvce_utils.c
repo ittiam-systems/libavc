@@ -558,16 +558,48 @@ WORD32 isvce_svc_rc_params_validate(isvce_cfg_params_t *ps_cfg)
 *
 *******************************************************************************
 */
-WORD32 isvce_svc_frame_params_validate(
-    rate_control_api_t *aps_rate_control_api[MAX_NUM_SPATIAL_LAYERS], UWORD8 u1_num_spatial_layers)
+WORD32 isvce_svc_frame_params_validate(isvce_codec_t *ps_codec,
+                                       isvce_video_encode_ip_t *ps_video_encode_ip)
 {
+    rate_control_api_t **pps_rate_control_api = ps_codec->s_rate_control.apps_rate_control_api;
+
+    UWORD8 u1_num_spatial_layers = ps_codec->s_cfg.s_svc_params.u1_num_spatial_layers;
+    bool b_set_dim_encountered = false;
+
     WORD32 i;
+
+    /* 'ISVCE_CMD_CTL_SET_DIMENSIONS' is expected to occur before 'ISVCE_CMD_CTL_SET_FRAMERATE' */
+    /* This is necesssary since 'isvce_rc_init' initialises the frame_time_t struct used */
+    /* by 'ih264e_frame_time_update_src_frame_rate' */
+    for(i = 0; i < MAX_ACTIVE_CONFIG_PARAMS; i++)
+    {
+        isvce_cfg_params_t *ps_cfg = &ps_codec->as_cfg[i];
+
+        if(ps_cfg->u4_is_valid)
+        {
+            if(((ps_cfg->u4_timestamp_high == ps_video_encode_ip->s_ive_ip.u4_timestamp_high) &&
+                (ps_cfg->u4_timestamp_low == ps_video_encode_ip->s_ive_ip.u4_timestamp_low)) ||
+               ((WORD32) ps_cfg->u4_timestamp_high == -1) ||
+               ((WORD32) ps_cfg->u4_timestamp_low == -1))
+            {
+                if(!b_set_dim_encountered && (ISVCE_CMD_CTL_SET_FRAMERATE == ps_cfg->e_cmd))
+                {
+                    return IH264E_INIT_NOT_DONE;
+                }
+
+                if(ISVCE_CMD_CTL_SET_DIMENSIONS == ps_cfg->e_cmd)
+                {
+                    b_set_dim_encountered = true;
+                }
+            }
+        }
+    }
 
     /* RC requires total bits in a second to fit int32_t */
     for(i = 0; i < u1_num_spatial_layers; i++)
     {
-        if((((UWORD64) irc_get_bits_per_frame(aps_rate_control_api[i])) *
-            irc_get_intra_frame_interval(aps_rate_control_api[i])) > ((UWORD64) INT32_MAX))
+        if((((UWORD64) irc_get_bits_per_frame(pps_rate_control_api[i])) *
+            irc_get_intra_frame_interval(pps_rate_control_api[i])) > ((UWORD64) INT32_MAX))
         {
             return IH264E_BITRATE_NOT_SUPPORTED;
         }
@@ -4122,6 +4154,13 @@ IH264E_ERROR_T isvce_codec_update_config(isvce_codec_t *ps_codec, isvce_cfg_para
     /* reset RC model */
     if(u4_init_rc)
     {
+        err = isvce_svc_rc_params_validate(&ps_codec->s_cfg);
+
+        if(IH264E_SUCCESS != err)
+        {
+            return err;
+        }
+
         for(i = 0; i < ps_cfg->s_svc_params.u1_num_spatial_layers; i++)
         {
             /* init qp */
