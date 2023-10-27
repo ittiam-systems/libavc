@@ -204,7 +204,7 @@ void isvce_ilp_mv_ctxt_init(isvce_codec_t *ps_codec, iv_mem_rec_t *ps_mem_rec)
 
     if(u1_num_spatial_layers > 1)
     {
-        ilp_mv_layer_state_t *ps_layer_states;
+        ilp_mv_layer_state_t *ps_layer_states = NULL;
         ilp_mv_mb_state_t *aps_luma_mb_states[MAX_NUM_SPATIAL_LAYERS];
 
         DOUBLE d_spatial_res_ratio = ps_codec->s_cfg.s_svc_params.d_spatial_res_ratio;

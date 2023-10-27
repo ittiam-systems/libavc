@@ -111,39 +111,6 @@
 /**
 ******************************************************************************
 *
-* @brief This function puts the current thread to sleep for a duration
-*  of sleep_us
-*
-* @par Description
-*  ithread_yield() method causes the calling thread to yield execution to
-*another thread that is ready to run on the current processor. The operating
-*system selects the thread to yield to. ithread_usleep blocks the current thread
-*for the specified number of milliseconds. In other words, yield just says, end
-*my timeslice prematurely, look around for other threads to run. If there is
-*nothing better than me, continue. Sleep says I don't want to run for x
-*  milliseconds. Even if no other thread wants to run, don't make me run.
-*
-* @param[in] sleep_us
-*  thread sleep duration
-*
-* @returns error_status
-*
-******************************************************************************
-*/
-IH264E_ERROR_T isvce_wait_for_thread(UWORD32 sleep_us)
-{
-    /* yield thread */
-    ithread_yield();
-
-    /* put thread to sleep */
-    ithread_sleep(sleep_us);
-
-    return IH264E_SUCCESS;
-}
-
-/**
-******************************************************************************
-*
 * @brief
 *  Encodes in synchronous api mode
 *
