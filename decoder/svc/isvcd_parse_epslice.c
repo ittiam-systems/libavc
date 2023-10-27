@@ -3188,6 +3188,8 @@ WORD32 isvcd_parse_interlayer_resamp_func_init(svc_dec_lyr_struct_t *ps_svc_lyr_
     dec_struct_t *ps_dec = &ps_svc_lyr_dec->s_dec;
     dec_slice_params_t *ps_slice = ps_dec->ps_cur_slice;
     WORD32 ret = OK;
+    if(ps_svc_lyr_dec->u1_res_init_done == 1)
+        return ret;
 
     if(TARGET_LAYER != ps_svc_lyr_dec->u1_layer_identifier)
     {
@@ -3209,6 +3211,8 @@ WORD32 isvcd_parse_interlayer_resamp_func_init(svc_dec_lyr_struct_t *ps_svc_lyr_
         if(ret != OK) return NOT_OK;
         ret = isvcd_residual_samp_res_init(ps_svc_lyr_dec);
         if(ret != OK) return NOT_OK;
+
+        ps_svc_lyr_dec->u1_res_init_done = 1;
     }
 
     return ret;
