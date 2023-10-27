@@ -3342,9 +3342,13 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
     WORD32 max_wd_luma, max_ht_luma;
     WORD32 max_mb_rows, max_mb_cols, max_mb_cnt;
 
-    /* temp var */
     WORD32 i, j;
     WORD32 status = IV_SUCCESS;
+
+    if(MAX_CTXT_SETS != 1)
+    {
+        return IV_FAIL;
+    }
 
     /* mem records */
     ps_mem_rec_base = ps_ip->s_ive_ip.ps_mem_rec;
@@ -3493,117 +3497,59 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
     ps_mem_rec = &ps_mem_rec_base[ISVCE_MEM_REC_ENTROPY];
     {
         /* temp var */
-        WORD32 size = 0, offset;
+        WORD32 size = 0;
 
         for(i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if(i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
-            {
-                /* base ptr */
-                UWORD8 *pu1_buf = ps_mem_rec->pv_base;
+            /* base ptr */
+            UWORD8 *pu1_buf = ps_mem_rec->pv_base;
 
-                /* reset size */
-                size = 0;
+            /* reset size */
+            size = 0;
 
-                /* skip mb run */
-                ps_codec->as_process[i].s_entropy.pi4_mb_skip_run = (WORD32 *) (pu1_buf + size);
-                size += sizeof(WORD32);
-                size = ALIGN8(size);
+            /* skip mb run */
+            ps_codec->as_process[i].s_entropy.pi4_mb_skip_run = (WORD32 *) (pu1_buf + size);
+            size += sizeof(WORD32);
+            size = ALIGN8(size);
 
-                /* entropy map */
-                ps_codec->as_process[i].s_entropy.pu1_entropy_map =
-                    (UWORD8 *) (pu1_buf + size + max_mb_cols);
-                /* size in bytes to store entropy status of an entire frame */
-                size += (max_mb_cols * max_mb_rows);
-                /* add an additional 1 row of bytes to evade the special case of row 0
-                 */
-                size += max_mb_cols;
-                size = ALIGN128(size);
+            /* entropy map */
+            ps_codec->as_process[i].s_entropy.pu1_entropy_map =
+                (UWORD8 *) (pu1_buf + size + max_mb_cols);
+            /* size in bytes to store entropy status of an entire frame */
+            size += (max_mb_cols * max_mb_rows);
+            /* add an additional 1 row of bytes to evade the special case of row 0
+             */
+            size += max_mb_cols;
+            size = ALIGN128(size);
 
-                /* bit stream ptr */
-                ps_codec->as_process[i].s_entropy.ps_bitstrm = (bitstrm_t *) (pu1_buf + size);
-                size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm[0]);
-                size = ALIGN128(size);
+            /* bit stream ptr */
+            ps_codec->as_process[i].s_entropy.ps_bitstrm = (bitstrm_t *) (pu1_buf + size);
+            size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm[0]);
+            size = ALIGN128(size);
 
 #if ENABLE_RE_ENC_AS_SKIP
-                ps_codec->as_process[i].s_entropy.ps_bitstrm_after_slice_hdr =
-                    (bitstrm_t *) (pu1_buf + size);
-                size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm_after_slice_hdr[0]);
-                size = ALIGN128(size);
+            ps_codec->as_process[i].s_entropy.ps_bitstrm_after_slice_hdr =
+                (bitstrm_t *) (pu1_buf + size);
+            size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm_after_slice_hdr[0]);
+            size = ALIGN128(size);
 #endif
 
-                /* nnz luma */
-                ps_codec->as_process[i].s_entropy.pu1_top_nnz_luma = (UWORD8(*)[4])(pu1_buf + size);
-                size += (max_mb_cols * 4 * sizeof(UWORD8));
-                size = ALIGN128(size);
+            /* nnz luma */
+            ps_codec->as_process[i].s_entropy.pu1_top_nnz_luma = (UWORD8(*)[4])(pu1_buf + size);
+            size += (max_mb_cols * 4 * sizeof(UWORD8));
+            size = ALIGN128(size);
 
-                /* nnz chroma */
-                ps_codec->as_process[i].s_entropy.pu1_top_nnz_cbcr = (UWORD8(*)[4])(pu1_buf + size);
-                size += (max_mb_cols * 4 * sizeof(UWORD8));
-                size = ALIGN128(size);
+            /* nnz chroma */
+            ps_codec->as_process[i].s_entropy.pu1_top_nnz_cbcr = (UWORD8(*)[4])(pu1_buf + size);
+            size += (max_mb_cols * 4 * sizeof(UWORD8));
+            size = ALIGN128(size);
 
-                /* ps_mb_qp_ctxt */
-                ps_codec->as_process[i].s_entropy.ps_mb_qp_ctxt = (mb_qp_ctxt_t *) (pu1_buf + size);
-                size += ALIGN128(sizeof(ps_codec->as_process[i].s_entropy.ps_mb_qp_ctxt[0]));
+            /* ps_mb_qp_ctxt */
+            ps_codec->as_process[i].s_entropy.ps_mb_qp_ctxt = (mb_qp_ctxt_t *) (pu1_buf + size);
+            size += ALIGN128(sizeof(ps_codec->as_process[i].s_entropy.ps_mb_qp_ctxt[0]));
 
-                offset = size;
-
-                /* cabac Context */
-                ps_codec->as_process[i].s_entropy.ps_cabac = ps_cabac;
-            }
-            else
-            {
-                /* base ptr */
-                UWORD8 *pu1_buf = ps_mem_rec->pv_base;
-
-                /* reset size */
-                size = offset;
-
-                /* skip mb run */
-                ps_codec->as_process[i].s_entropy.pi4_mb_skip_run = (WORD32 *) (pu1_buf + size);
-                size += sizeof(WORD32);
-                size = ALIGN8(size);
-
-                /* entropy map */
-                ps_codec->as_process[i].s_entropy.pu1_entropy_map =
-                    (UWORD8 *) (pu1_buf + size + max_mb_cols);
-                /* size in bytes to store entropy status of an entire frame */
-                size += (max_mb_cols * max_mb_rows);
-                /* add an additional 1 row of bytes to evade the special case of row 0
-                 */
-                size += max_mb_cols;
-                size = ALIGN128(size);
-
-                /* bit stream ptr */
-                ps_codec->as_process[i].s_entropy.ps_bitstrm = (bitstrm_t *) (pu1_buf + size);
-                size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm[0]);
-                size = ALIGN128(size);
-
-#if ENABLE_RE_ENC_AS_SKIP
-                ps_codec->as_process[i].s_entropy.ps_bitstrm_after_slice_hdr =
-                    (bitstrm_t *) (pu1_buf + size);
-                size += sizeof(ps_codec->as_process[i].s_entropy.ps_bitstrm_after_slice_hdr[0]);
-                size = ALIGN128(size);
-#endif
-
-                /* nnz luma */
-                ps_codec->as_process[i].s_entropy.pu1_top_nnz_luma =
-                    (UWORD8(*)[4])(UWORD8(*)[4])(pu1_buf + size);
-                size += (max_mb_cols * 4 * sizeof(UWORD8));
-                size = ALIGN128(size);
-
-                /* nnz chroma */
-                ps_codec->as_process[i].s_entropy.pu1_top_nnz_cbcr = (UWORD8(*)[4])(pu1_buf + size);
-                size += (max_mb_cols * 4 * sizeof(UWORD8));
-                size = ALIGN128(size);
-
-                /* ps_mb_qp_ctxt */
-                ps_codec->as_process[i].s_entropy.ps_mb_qp_ctxt = (mb_qp_ctxt_t *) (pu1_buf + size);
-                size = ALIGN128(sizeof(ps_codec->as_process[i].s_entropy.ps_mb_qp_ctxt[0]));
-
-                /* cabac Context */
-                ps_codec->as_process[i].s_entropy.ps_cabac = ps_cabac;
-            }
+            /* cabac Context */
+            ps_codec->as_process[i].s_entropy.ps_cabac = ps_cabac;
         }
         ps_codec->as_process[0].s_entropy.ps_cabac->ps_mb_map_ctxt_inc_base = ps_mb_map_ctxt_inc;
     }
@@ -3631,16 +3577,8 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
 
         for(i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if(i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
-            {
-                ps_codec->as_process[i].pv_pic_mb_coeff_data = pu1_buf;
-                ps_codec->as_process[i].s_entropy.pv_pic_mb_coeff_data = pu1_buf;
-            }
-            else
-            {
-                ps_codec->as_process[i].pv_pic_mb_coeff_data = pu1_buf + size;
-                ps_codec->as_process[i].s_entropy.pv_pic_mb_coeff_data = pu1_buf + size;
-            }
+            ps_codec->as_process[i].pv_pic_mb_coeff_data = pu1_buf;
+            ps_codec->as_process[i].s_entropy.pv_pic_mb_coeff_data = pu1_buf;
         }
     }
 
@@ -3667,16 +3605,8 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
 
         for(i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if(i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
-            {
-                ps_codec->as_process[i].pv_pic_mb_header_data = pu1_buf;
-                ps_codec->as_process[i].s_entropy.pv_pic_mb_header_data = pu1_buf;
-            }
-            else
-            {
-                ps_codec->as_process[i].pv_pic_mb_header_data = pu1_buf + size;
-                ps_codec->as_process[i].s_entropy.pv_pic_mb_header_data = pu1_buf + size;
-            }
+            ps_codec->as_process[i].pv_pic_mb_header_data = pu1_buf;
+            ps_codec->as_process[i].s_entropy.pv_pic_mb_header_data = pu1_buf;
         }
     }
 
@@ -3729,17 +3659,7 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
 
         for(i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if(i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
-            {
-                ps_codec->as_process[i].ps_svc_nalu_ext_base = ps_mem_rec->pv_base;
-            }
-            else
-            {
-                WORD32 size = SVC_MAX_SLICE_HDR_CNT * sizeof(slice_header_t);
-                void *pv_buf = (UWORD8 *) ps_mem_rec->pv_base + size;
-
-                ps_codec->as_process[i].ps_svc_nalu_ext_base = pv_buf;
-            }
+            ps_codec->as_process[i].ps_svc_nalu_ext_base = ps_mem_rec->pv_base;
         }
     }
 
@@ -3757,18 +3677,7 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
 
         for(i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if(i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
-            {
-                ps_codec->as_process[i].ps_slice_hdr_base = ps_mem_rec->pv_base;
-            }
-            else
-            {
-                /* temp var */
-                WORD32 size = SVC_MAX_SLICE_HDR_CNT * sizeof(slice_header_t);
-                void *pv_buf = (UWORD8 *) ps_mem_rec->pv_base + size;
-
-                ps_codec->as_process[i].ps_slice_hdr_base = pv_buf;
-            }
+            ps_codec->as_process[i].ps_slice_hdr_base = ps_mem_rec->pv_base;
         }
     }
 
@@ -3789,14 +3698,7 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
 
         for(i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if(i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
-            {
-                ps_codec->as_process[i].pu1_is_intra_coded = pu1_buf;
-            }
-            else
-            {
-                ps_codec->as_process[i].pu1_is_intra_coded = pu1_buf + max_mb_cnt;
-            }
+            ps_codec->as_process[i].pu1_is_intra_coded = pu1_buf;
         }
 
         ps_codec->pu2_intr_rfrsh_map = (UWORD16 *) (pu1_buf + max_mb_cnt * MAX_CTXT_SETS);
@@ -3805,22 +3707,14 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
     ps_mem_rec = &ps_mem_rec_base[ISVCE_MEM_REC_SLICE_MAP];
     {
         /* pointer to storage space */
-        UWORD8 *pu1_buf_ping, *pu1_buf_pong;
+        UWORD8 *pu1_buf_ping;
 
         /* init pointer */
         pu1_buf_ping = ps_mem_rec->pv_base;
-        pu1_buf_pong = pu1_buf_ping + ALIGN64(max_mb_cnt);
 
         for(i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if(i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
-            {
-                ps_codec->as_process[i].pu1_slice_idx = pu1_buf_ping;
-            }
-            else
-            {
-                ps_codec->as_process[i].pu1_slice_idx = pu1_buf_pong;
-            }
+            ps_codec->as_process[i].pu1_slice_idx = pu1_buf_ping;
         }
     }
 
@@ -3862,25 +3756,9 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
         /* pointer to storage space */
         UWORD8 *pu1_buf = ps_mem_rec->pv_base;
 
-        /* total size of the mem record */
-        WORD32 total_size = 0;
-
-        /* size in bytes to mb core coding status of an entire frame */
-        total_size = max_mb_cnt;
-
-        /* add an additional 1 row of bytes to evade the special case of row 0 */
-        total_size += max_mb_cols;
-
         for(i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if(i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
-            {
-                ps_codec->as_process[i].pu1_proc_map = pu1_buf + max_mb_cols;
-            }
-            else
-            {
-                ps_codec->as_process[i].pu1_proc_map = pu1_buf + total_size + max_mb_cols;
-            }
+            ps_codec->as_process[i].pu1_proc_map = pu1_buf + max_mb_cols;
         }
     }
 
@@ -3903,14 +3781,7 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
 
         for(i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if(i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
-            {
-                ps_codec->as_process[i].pu1_deblk_map = pu1_buf + max_mb_cols;
-            }
-            else
-            {
-                ps_codec->as_process[i].pu1_deblk_map = pu1_buf + total_size + max_mb_cols;
-            }
+            ps_codec->as_process[i].pu1_deblk_map = pu1_buf + max_mb_cols;
         }
     }
 
@@ -3919,25 +3790,9 @@ static WORD32 isvce_init_mem_rec(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *
         /* pointer to storage space */
         UWORD8 *pu1_buf = (UWORD8 *) ps_mem_rec->pv_base;
 
-        /* total size of the mem record */
-        WORD32 total_size = 0;
-
-        /* size in bytes to mb core coding status of an entire frame */
-        total_size = max_mb_cnt;
-
-        /* add an additional 1 row of bytes to evade the special case of row 0 */
-        total_size += max_mb_cols;
-
         for(i = 0; i < MAX_PROCESS_CTXT; i++)
         {
-            if(i < MAX_PROCESS_CTXT / MAX_CTXT_SETS)
-            {
-                ps_codec->as_process[i].pu1_me_map = pu1_buf + max_mb_cols;
-            }
-            else
-            {
-                ps_codec->as_process[i].pu1_me_map = pu1_buf + total_size + max_mb_cols;
-            }
+            ps_codec->as_process[i].pu1_me_map = pu1_buf + max_mb_cols;
         }
     }
 

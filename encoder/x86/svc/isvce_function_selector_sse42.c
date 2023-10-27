@@ -128,20 +128,13 @@ void isvce_init_function_ptr_sse42(isvce_codec_t *ps_codec)
         isvc_iquant_itrans_recon_res_chroma_4x4_sse42;
     ps_enc_loop_fxns->apf_iquant_itrans_recon_chroma_4x4[1] =
         isvc_iquant_itrans_recon_res_chroma_4x4_with_res_acc_sse42;
-    ps_enc_loop_fxns->apf_iquant_itrans_recon_chroma_4x4[2] =
-        isvc_iquant_itrans_recon_chroma_4x4_sse42;
 
-    ps_enc_loop_fxns->apf_iquant_itrans_recon_4x4_dc[0] = isvc_iquant_itrans_recon_res_dc_4x4_sse42;
-    ps_enc_loop_fxns->apf_iquant_itrans_recon_4x4_dc[1] =
-        isvc_iquant_itrans_recon_res_dc_with_res_acc_4x4_sse42;
     ps_enc_loop_fxns->apf_iquant_itrans_recon_4x4_dc[2] = isvc_iquant_itrans_recon_dc_4x4_sse42;
 
     ps_enc_loop_fxns->apf_iquant_itrans_recon_chroma_4x4_dc[0] =
         isvc_iquant_itrans_recon_res_chroma_4x4_dc_sse42;
     ps_enc_loop_fxns->apf_iquant_itrans_recon_chroma_4x4_dc[1] =
         isvc_iquant_itrans_recon_res_chroma_4x4_dc_with_res_acc_sse42;
-    ps_enc_loop_fxns->apf_iquant_itrans_recon_chroma_4x4_dc[2] =
-        isvc_iquant_itrans_recon_chroma_4x4_dc_sse42;
 
     ps_enc_loop_fxns->pf_ihadamard_scaling_4x4 = ih264_ihadamard_scaling_4x4_sse42;
 

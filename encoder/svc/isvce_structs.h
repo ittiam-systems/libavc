@@ -1958,10 +1958,6 @@ typedef struct inter_pred_fxns_t
 
 typedef struct mem_fxns_t
 {
-    FT_MEMCPY *pf_mem_cpy;
-
-    FT_MEMSET *pf_mem_set;
-
     FT_MEMCPY *pf_mem_cpy_mul8;
 
     FT_MEMSET *pf_mem_set_mul8;
@@ -1969,10 +1965,6 @@ typedef struct mem_fxns_t
     FT_COPY_2D *pf_copy_2d;
 
     FT_MEMSET_2D *pf_memset_2d;
-
-    FT_16BIT_INTERLEAVED_COPY *pf_16bit_interleaved_copy;
-
-    FT_16BIT_INTERLEAVED_MEMSET *pf_16bit_interleaved_memset;
 
     FT_NONZERO_CHECKER *pf_nonzero_checker;
 

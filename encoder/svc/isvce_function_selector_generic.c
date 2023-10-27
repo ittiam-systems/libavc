@@ -265,14 +265,10 @@ void isvce_init_function_ptr_generic(isvce_codec_t *ps_codec)
     ps_codec->pf_compute_sad_16x8 = ime_compute_sad_16x8;
 
     /* memory handling operations */
-    ps_mem_fxns->pf_mem_cpy = ih264_memcpy;
     ps_mem_fxns->pf_mem_cpy_mul8 = ih264_memcpy_mul_8;
-    ps_mem_fxns->pf_mem_set = ih264_memset;
     ps_mem_fxns->pf_mem_set_mul8 = ih264_memset_mul_8;
     ps_mem_fxns->pf_copy_2d = isvc_copy_2d;
     ps_mem_fxns->pf_memset_2d = isvc_memset_2d;
-    ps_mem_fxns->pf_16bit_interleaved_copy = isvc_16bit_interleaved_copy;
-    ps_mem_fxns->pf_16bit_interleaved_memset = isvc_16bit_interleaved_memset;
     ps_mem_fxns->pf_nonzero_checker = isvc_is_nonzero_blk;
 
     /* sad me level functions */

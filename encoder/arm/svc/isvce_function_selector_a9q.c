@@ -161,35 +161,23 @@ void isvce_init_function_ptr_neon_a9q(isvce_codec_t *ps_codec)
         isvc_resi_trans_quant_chroma_4x4_with_residual_sub_neon;
 
     /* Init inverse transform fn ptr */
-    ps_enc_loop_fxns->apf_iquant_itrans_recon_8x8[0] = isvc_iquant_itrans_recon_8x8;
-    ps_enc_loop_fxns->apf_iquant_itrans_recon_8x8[1] = isvc_iquant_itrans_recon_8x8;
-    ps_enc_loop_fxns->apf_iquant_itrans_recon_8x8[2] = isvc_iquant_itrans_recon_8x8;
-
     ps_enc_loop_fxns->apf_iquant_itrans_recon_4x4[0] =
         isvc_iquant_itrans_recon_4x4_with_res_output_neon;
     ps_enc_loop_fxns->apf_iquant_itrans_recon_4x4[1] =
         isvc_iquant_itrans_recon_4x4_with_res_accumulate_neon;
     ps_enc_loop_fxns->apf_iquant_itrans_recon_4x4[2] = isvc_iquant_itrans_recon_4x4_neon;
 
-    ps_enc_loop_fxns->apf_iquant_itrans_recon_4x4_dc[0] =
-        isvc_iquant_itrans_recon_4x4_dc_with_res_output_neon;
-    ps_enc_loop_fxns->apf_iquant_itrans_recon_4x4_dc[1] =
-        isvc_iquant_itrans_recon_4x4_dc_with_res_accumulate_neon;
     ps_enc_loop_fxns->apf_iquant_itrans_recon_4x4_dc[2] = isvc_iquant_itrans_recon_4x4_dc_neon;
 
     ps_enc_loop_fxns->apf_iquant_itrans_recon_chroma_4x4[0] =
         isvc_iquant_itrans_recon_chroma_4x4_with_res_output_neon;
     ps_enc_loop_fxns->apf_iquant_itrans_recon_chroma_4x4[1] =
         isvc_iquant_itrans_recon_chroma_4x4_with_res_accumulate_neon;
-    ps_enc_loop_fxns->apf_iquant_itrans_recon_chroma_4x4[2] =
-        isvc_iquant_itrans_recon_chroma_4x4_neon;
 
     ps_enc_loop_fxns->apf_iquant_itrans_recon_chroma_4x4_dc[0] =
         isvc_iquant_itrans_recon_chroma_4x4_dc_with_res_output_neon;
     ps_enc_loop_fxns->apf_iquant_itrans_recon_chroma_4x4_dc[1] =
         isvc_iquant_itrans_recon_chroma_4x4_dc_with_res_accumulate_neon;
-    ps_enc_loop_fxns->apf_iquant_itrans_recon_chroma_4x4_dc[2] =
-        isvc_iquant_itrans_recon_chroma_4x4_dc_neon;
 
     ps_enc_loop_fxns->pf_ihadamard_scaling_4x4 = ih264_ihadamard_scaling_4x4_a9;
     ps_enc_loop_fxns->pf_ihadamard_scaling_2x2_uv = ih264_ihadamard_scaling_2x2_uv_a9;
@@ -243,9 +231,7 @@ void isvce_init_function_ptr_neon_a9q(isvce_codec_t *ps_codec)
     ps_codec->pf_compute_sad_16x8 = ime_compute_sad_16x8_a9q;
 
     /* memor handling operations */
-    ps_mem_fxns->pf_mem_cpy = ih264_memcpy_a9q;
     ps_mem_fxns->pf_mem_cpy_mul8 = ih264_memcpy_mul_8_a9q;
-    ps_mem_fxns->pf_mem_set = ih264_memset_a9q;
     ps_mem_fxns->pf_mem_set_mul8 = ih264_memset_mul_8_a9q;
 
     /* sad me level functions */
