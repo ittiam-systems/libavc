@@ -622,6 +622,7 @@ WORD32 isvcd_mv_pred_ref_tfr_nby2_ebmb(dec_struct_t *ps_dec, UWORD8 u1_mb_idx, U
             }
         }
     }
+
     return OK;
 }
 
