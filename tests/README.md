@@ -35,7 +35,7 @@ Optionally, enable sanitizers by passing -DSANITIZE
  $ make
 ```
 
-The media files for the tests are present [at](https://storage.googleapis.com/android_media/external/libavc/tests/AvcTestRes-1.0.zip).
+The media files for the tests are present [at](https://dl.google.com/android-unittest/media/external/libavc/tests/AvcTestRes-1.0.zip).
 Download and extract these the current folder.
 
 usage: AvcEncTest -P \<path_to_the local folder\>
@@ -61,7 +61,7 @@ To test 32-bit binary push binaries from nativetest.
 adb push ${OUT}/data/nativetest/AvcEncTest/AvcEncTest /data/local/tmp/
 ```
 
-The resource file for the tests is taken from [here](https://storage.googleapis.com/android_media/external/libavc/tests/AvcTestRes-1.0.zip)
+The resource file for the tests is taken from [here](https://dl.google.com/android-unittest/media/external/libavc/tests/AvcTestRes-1.0.zip)
 
 Download, unzip and push these files into device for testing.
 
