@@ -1599,9 +1599,10 @@ WORD32 ih264d_decode_gaps_in_frame_num(dec_struct_t *ps_dec,
         if(ps_dec->u2_prev_ref_frame_num == u2_frame_num)
             return 0;
     }
+    ps_pic_params = ps_dec->ps_cur_pps;
 
     u4_next_frm_num = ps_dec->u2_prev_ref_frame_num + 1;
-    u4_max_frm_num = ps_dec->ps_cur_sps->u2_u4_max_pic_num_minus1 + 1;
+    u4_max_frm_num = ps_pic_params->ps_sps->u2_u4_max_pic_num_minus1 + 1;
 
     // check
     if(u4_next_frm_num >= u4_max_frm_num)
@@ -1630,7 +1631,6 @@ WORD32 ih264d_decode_gaps_in_frame_num(dec_struct_t *ps_dec,
     s_tmp_poc.i4_delta_pic_order_cnt[1] = 0;
 
     ps_cur_slice = ps_dec->ps_cur_slice;
-    ps_pic_params = ps_dec->ps_cur_pps;
 
     i4_frame_gaps = 0;
     ps_dpb_mgr = ps_dec->ps_dpb_mgr;
