@@ -391,3 +391,17 @@ void imvcd_bitsteam_buf_free(dec_struct_t *ps_view_ctxt)
 {
     PS_DEC_ALIGNED_FREE(ps_view_ctxt, ps_view_ctxt->pu1_bits_buf_dynamic);
 }
+
+IV_API_CALL_STATUS_T imvcd_bitstream_buf_realloc(dec_struct_t *ps_view_ctxt, UWORD32 u4_size)
+{
+    imvcd_bitsteam_buf_free(ps_view_ctxt);
+
+    ps_view_ctxt->pu1_bits_buf_dynamic =
+        ps_view_ctxt->pf_aligned_alloc(ps_view_ctxt->pv_mem_ctxt, 128, u4_size);
+    RETURN_IF((NULL == ps_view_ctxt->pu1_bits_buf_dynamic), IV_FAIL);
+
+    memset(ps_view_ctxt->pu1_bits_buf_dynamic, 0, u4_size);
+    ps_view_ctxt->u4_dynamic_bits_buf_size = u4_size;
+
+    return IV_SUCCESS;
+}
