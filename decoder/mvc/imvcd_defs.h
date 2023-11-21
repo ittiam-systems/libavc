@@ -34,14 +34,6 @@
    is still greater than any possible value of u1_pic_buf_id */
 #define IVP_PIC_BUF_ID UINT8_MAX
 
-/* In FGC SEI
-   - Worst-case bits for all elements before 'num_intensity_intervals_minus1' = 47
-   - Worst-case bits for all elements before 'film_grain_characteristics_repetition_period', not
-     including elements from previous line = 3 * (8 + 3 + 256 * (8 + 8 + 8 * 16)) = 110625
-   - Worst-case bits for 'film_grain_characteristics_repetition_period' = 30
-   Total of (47 + 110625 + 30) = 110702 byte */
-#define MAX_FGC_SEI_SIZE 110702
-
-#define MIN_BITSTREAMS_BUF_SIZE (MAX_FGC_SEI_SIZE + 256000)
+#define MIN_BITSTREAMS_BUF_SIZE 256000
 
 #endif
