@@ -53,6 +53,9 @@ extern IV_API_CALL_STATUS_T imvcd_bitstream_buf_alloc(dec_struct_t *ps_view_ctxt
 
 extern void imvcd_bitsteam_buf_free(dec_struct_t *ps_view_ctxt);
 
+extern IV_API_CALL_STATUS_T imvcd_bitstream_buf_realloc(dec_struct_t *ps_view_ctxt,
+                                                        UWORD32 u4_size);
+
 extern void imvcd_convert_to_app_disp_buf(mvc_dec_ctxt_t *ps_mvcd_ctxt,
                                           iv_yuv_buf_t *ps_view_disp_bufs);
 #endif

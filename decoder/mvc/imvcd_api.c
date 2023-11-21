@@ -731,17 +731,25 @@ static IV_API_CALL_STATUS_T imvcd_view_decode(iv_obj_t *ps_dec_hdl, imvcd_video_
             return IV_FAIL;
         }
 
-        /* Ignore bytes beyond the allocated size of intermediate buffer */
-        /* Since 8 bytes are read ahead, ensure 8 bytes are free at the
-        end of the buffer, which will be memset to 0 after emulation prevention */
-        i4_nalu_length = MIN((UWORD32) i4_nalu_length, u4_bitstream_buf_size - 8);
-
         if(i4_nalu_length)
         {
+            UWORD32 u4_nalu_buf_size = ((UWORD32) i4_nalu_length) + 8;
+
+            if(u4_nalu_buf_size > u4_bitstream_buf_size)
+            {
+                if(IV_SUCCESS != imvcd_bitstream_buf_realloc(ps_view_ctxt, u4_nalu_buf_size))
+                {
+                    return IV_FAIL;
+                }
+
+                pu1_bitstream_buf = ps_view_ctxt->pu1_bits_buf_dynamic;
+                u4_bitstream_buf_size = ps_view_ctxt->u4_dynamic_bits_buf_size;
+            }
+
             memcpy(pu1_bitstream_buf, pu1_input_buffer + u4_length_of_start_code, i4_nalu_length);
 
             /* Decoder may read extra 8 bytes near end of the frame */
-            if(((UWORD32) (i4_nalu_length + 8)) < u4_bitstream_buf_size)
+            if(u4_nalu_buf_size < u4_bitstream_buf_size)
             {
                 memset(pu1_bitstream_buf + i4_nalu_length, 0, 8 * sizeof(pu1_bitstream_buf[0]));
             }
