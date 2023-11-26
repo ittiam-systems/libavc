@@ -158,46 +158,11 @@ WORD32 isvcd_interlyr_motion_mode_pred(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
         /* get the current layer ctxt */
         ps_lyr_mem = &ps_ctxt->as_res_lyr_mem[ps_ctxt->i4_res_id];
 
-        /* In case of error mb_mode is set to skip */
-        if(ps_svc_lyr_dec->u1_res_init_done == 0)
-        {
-            mv_pred_t *ps_motion_pred;
-            ps_motion_pred = ps_ctxt->ps_motion_pred_struct;
-            ps_motion_pred = ps_ctxt->ps_motion_pred_struct;
-            memset(ps_motion_pred, 0, sizeof(mv_pred_t));
+        ps_ctxt->i4_listx = i4_listx;
 
-            i4_mb_mode = -1;
-            ps_cur_mb_info->u1_mb_type = MB_SKIP;
-            ps_mb_part_info->u1_num_part = 1;
-
-            ps_cur_mb_info->u1_mb_mc_mode = PRED_16x16;
-            ps_mb_part_info->u1_col_info[0] = (PRED_16x16 << 6);
-            ps_mb_part_info->i1_ref_idx[0][0] = 0;
-
-            ps_svc_cur_mb_info->u1_residual_prediction_flag = 0;
-            ps_svc_cur_mb_info->au1_motion_pred_flag[0] = 0;
-            ps_svc_cur_mb_info->au1_motion_pred_flag[1] = 0;
-            ps_svc_cur_mb_info->u1_base_mode_flag = 0;
-
-            ps_part->u1_partwidth = 4;  // interms of 4x4
-            ps_part->u1_partheight = 4;
-            ps_part->u1_pred_mode = PRED_L0;
-            ps_part->u1_is_direct = 0;
-            ps_part->u1_sub_mb_num = 0;
-
-            if(2 == i4_listx)
-            {
-                ps_mb_part_info->i1_ref_idx[1][0] = -1;
-            }
-        }
-        else
-        {
-            ps_ctxt->i4_listx = i4_listx;
-
-            i4_mb_mode =
-                ps_lyr_mem->pf_inter_lyr_pred(ps_svc_lyr_dec->pv_mode_mv_sample_ctxt, ps_cur_mb_info,
+        i4_mb_mode =
+            ps_lyr_mem->pf_inter_lyr_pred(ps_svc_lyr_dec->pv_mode_mv_sample_ctxt, ps_cur_mb_info,
                                           ps_svc_cur_mb_info, ps_dec, ps_mb_part_info, ps_part);
-        }
     }
     return i4_mb_mode;
 }
@@ -520,7 +485,6 @@ WORD32 isvcd_mv_pred_ref_tfr_nby2_epmb(dec_struct_t *ps_dec, UWORD8 u1_mb_idx, U
             }
         }
     }
-
     return OK;
 }
 /*!
