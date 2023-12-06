@@ -158,6 +158,7 @@ WORD32 isvcd_interlyr_motion_mode_pred(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
         /* get the current layer ctxt */
         ps_lyr_mem = &ps_ctxt->as_res_lyr_mem[ps_ctxt->i4_res_id];
 
+#if 0
         /* In case of error mb_mode is set to skip */
         if(ps_svc_lyr_dec->u1_res_init_done == 0)
         {
@@ -191,6 +192,7 @@ WORD32 isvcd_interlyr_motion_mode_pred(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
             }
         }
         else
+#endif
         {
             ps_ctxt->i4_listx = i4_listx;
 
