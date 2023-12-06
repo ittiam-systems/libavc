@@ -5184,6 +5184,7 @@ WORD32 isvcd_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                 ps_svcd_ctxt->u1_cur_layer_id = u1_res_id;
                 ps_svc_lyr_dec = ps_svcd_ctxt->ps_svc_dec_lyr + u1_res_id;
                 ps_svc_lyr_dec->u1_res_init_done = 0;
+                ps_svc_lyr_dec->u1_first_mb_addr_check = 1;
                 ps_dec = &ps_svc_lyr_dec->s_dec;
 
                 ps_dec->i4_decode_header = ps_dec_zero_lyr->i4_decode_header;
@@ -5320,7 +5321,7 @@ WORD32 isvcd_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                     ps_dec = &ps_svc_lyr_dec->s_dec;
 
                     if((0 == ps_svcd_ctxt->u4_num_sps_ctr) || (0 == ps_svcd_ctxt->u4_num_pps_ctr) ||
-                       (NULL == ps_dec->ps_cur_pps))
+                       (NULL == ps_dec->ps_cur_pps) || (ps_svc_lyr_dec->u1_res_init_done == 0))
                     {
                         ps_svcd_ctxt->u1_exit_till_next_IDR = 1;
                         ps_dec_op->u4_error_code = ERROR_UNKNOWN_NAL;

@@ -661,6 +661,7 @@ typedef struct _SvcDecLyrStruct
     UWORD32 u4_pps_id_for_layer;
     UWORD8 u1_error_in_cur_frame;
     UWORD8 u1_res_init_done;
+    UWORD8 u1_first_mb_addr_check;
 } svc_dec_lyr_struct_t;
 
 typedef struct

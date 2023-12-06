@@ -703,6 +703,18 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
         return ERROR_CORRUPTED_SLICE;
     }
 
+    if(ps_svc_lyr_dec->u1_first_mb_addr_check == 1)
+    {
+        if(u2_first_mb_in_slice != 0)
+        {
+            return ERROR_CORRUPTED_SLICE;
+        }
+        else
+        {
+            ps_svc_lyr_dec->u1_first_mb_addr_check = 0;
+        }
+    }
+
     COPYTHECONTEXT("Slice Header SVC ext: first_mb_in_slice", u2_first_mb_in_slice);
 
     u4_temp = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
@@ -1924,6 +1936,18 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
        (ps_dec->u4_first_slice_in_pic == 0))
     {
         return ERROR_CORRUPTED_SLICE;
+    }
+
+    if(ps_svc_lyr_dec->u1_first_mb_addr_check == 1)
+    {
+        if(u2_first_mb_in_slice != 0)
+        {
+            return ERROR_CORRUPTED_SLICE;
+        }
+        else
+        {
+            ps_svc_lyr_dec->u1_first_mb_addr_check = 0;
+        }
     }
 
     COPYTHECONTEXT("SH: first_mb_in_slice", u2_first_mb_in_slice);
