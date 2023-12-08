@@ -1791,12 +1791,6 @@ WORD32 isvcd_parse_ebslice(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD16 u2_firs
         return ERROR_INV_SLICE_HDR_T;
     }
 
-    ret = isvcd_parse_interlayer_resamp_func_init(ps_svc_lyr_dec, u2_first_mb_in_slice);
-    if(ret != OK)
-    {
-        return ERROR_CORRUPTED_SLICE;
-    }
-
     ps_dec->u1_slice_header_done = 2;
     if(!ps_svc_slice_params->u1_slice_skip_flag)
     {
@@ -2131,11 +2125,6 @@ WORD32 isvcd_parse_bslice(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD16 u2_first
         ps_slice->i1_slice_beta_offset = 0;
     }
 
-    ret = isvcd_parse_interlayer_resamp_func_init(ps_svc_lyr_dec, u2_first_mb_in_slice);
-    if(ret != OK)
-    {
-        return ERROR_CORRUPTED_SLICE;
-    }
     ps_dec->u1_slice_header_done = 2;
 
     if(ps_pps->u1_entropy_coding_mode)

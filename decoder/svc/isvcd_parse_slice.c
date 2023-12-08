@@ -703,15 +703,11 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
         return ERROR_CORRUPTED_SLICE;
     }
 
-    if(ps_svc_lyr_dec->u1_first_mb_addr_check == 1)
+    if(ps_dec->u4_first_slice_in_pic == 1)
     {
         if(u2_first_mb_in_slice != 0)
         {
             return ERROR_CORRUPTED_SLICE;
-        }
-        else
-        {
-            ps_svc_lyr_dec->u1_first_mb_addr_check = 0;
         }
     }
 
@@ -1214,8 +1210,13 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
             else
                 ps_dec->u4_output_present = 1;
         }
+        ret = isvcd_parse_interlayer_resamp_func_init(ps_svc_lyr_dec, u2_first_mb_in_slice);
+        if(ret != OK)
+        {
+            return ERROR_CORRUPTED_SLICE;
+        }
         if((ps_dec->u1_separate_parse == 1) &&
-           (ps_svc_lyr_dec->u1_layer_identifier == TARGET_LAYER))
+           (ps_svc_lyr_dec->u1_layer_identifier == TARGET_LAYER) && (ps_svc_lyr_dec->u1_res_init_done == 1))
         {
             if(ps_dec->u4_dec_thread_created == 0)
             {
@@ -1938,15 +1939,11 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
         return ERROR_CORRUPTED_SLICE;
     }
 
-    if(ps_svc_lyr_dec->u1_first_mb_addr_check == 1)
+    if(ps_dec->u4_first_slice_in_pic == 1)
     {
         if(u2_first_mb_in_slice != 0)
         {
             return ERROR_CORRUPTED_SLICE;
-        }
-        else
-        {
-            ps_svc_lyr_dec->u1_first_mb_addr_check = 0;
         }
     }
 
@@ -2445,7 +2442,12 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
             else
                 ps_dec->u4_output_present = 1;
         }
-        if(ps_dec->u1_separate_parse == 1)
+        ret = isvcd_parse_interlayer_resamp_func_init(ps_svc_lyr_dec, u2_first_mb_in_slice);
+        if(ret != OK)
+        {
+            return ERROR_CORRUPTED_SLICE;
+        }
+        if((ps_dec->u1_separate_parse == 1) && (ps_svc_lyr_dec->u1_res_init_done == 1))
         {
             if(ps_dec->u4_dec_thread_created == 0)
             {
