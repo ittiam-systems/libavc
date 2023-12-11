@@ -1700,6 +1700,11 @@ WORD32 isvcd_parse_slice_header(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
         ps_svc_slice_params->u1_constrained_intra_resampling_flag = ih264d_get_bit_h264(ps_bitstrm);
         COPYTHECONTEXT("Slice Header SVC ext: u1_constrained_intra_resampling_flag",
                        ps_svc_slice_params->u1_constrained_intra_resampling_flag);
+
+        ps_svc_lyr_dec->s_res_prms.i1_constrained_intra_rsmpl_flag =
+            ps_svc_lyr_dec->s_svc_slice_params.u1_constrained_intra_resampling_flag;
+        isvcd_intra_resamp_res_init_update_flags(ps_svc_lyr_dec);
+
         if(2 == ps_sps_svc_ext->u1_extended_spatial_scalability_idc)
         {
             /* ChromaArrayType = i4_chroma_format_idc  if  separate_colour_plane_flag
