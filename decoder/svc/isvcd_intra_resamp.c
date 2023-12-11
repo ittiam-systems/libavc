@@ -4959,6 +4959,45 @@ void isvcd_crop_wnd_flag_res_int(void *pv_svc_dec)
 /*         26 08 2021   vijayakumar          creation                        */
 /*                                                                           */
 /*****************************************************************************/
+void isvcd_intra_resamp_res_init_update_flags(void *pv_svc_dec)
+{
+    intra_sampling_ctxt_t *ps_ctxt;
+    intra_samp_lyr_ctxt *ps_lyr_ctxt;
+    svc_dec_lyr_struct_t *ps_svc_lyr_dec = (svc_dec_lyr_struct_t *) pv_svc_dec;
+
+    ps_ctxt = (intra_sampling_ctxt_t *) ps_svc_lyr_dec->pv_intra_sample_ctxt;;
+    /* get the current layer ctxt */
+    ps_lyr_ctxt = &ps_ctxt->as_res_lyrs[ps_svc_lyr_dec->u1_layer_id - 1];
+
+    ps_lyr_ctxt->i1_constrained_intra_rsmpl_flag =
+        ps_svc_lyr_dec->s_svc_slice_params.u1_constrained_intra_resampling_flag;
+}
+
+/*****************************************************************************/
+/*                                                                           */
+/*  Function Name : isvcd_intra_resamp_res_init                                 */
+/*                                                                           */
+/*  Description   : this function calculates the scale factors and initialise*/
+/*                  the context structure                                    */
+/*                                                                           */
+/*  Inputs        : pv_intra_samp_ctxt: handle to private structure          */
+/*                  ps_curr_lyr_res_prms: pointer to current resolution      */
+/*                                               params                      */
+/*                  ps_ref_lyr_res_prms : pointer to ref resolution params   */
+/*  Globals       : none                                                     */
+/*  Processing    : it stores the layer dimensions                           */
+/*                                                                           */
+/*  Outputs       : none                                                     */
+/*  Returns       : none                                                     */
+/*                                                                           */
+/*  Issues        : none                                                     */
+/*                                                                           */
+/*  Revision History:                                                        */
+/*                                                                           */
+/*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
+/*         26 08 2021   vijayakumar          creation                        */
+/*                                                                           */
+/*****************************************************************************/
 WORD32 isvcd_intra_resamp_res_init(void *pv_svc_dec)
 {
     intra_sampling_ctxt_t *ps_ctxt;

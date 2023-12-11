@@ -628,4 +628,6 @@ void isvcd_crop_wnd_flag_res_int(void *ps_svc_dec);
 
 WORD32 isvcd_intra_resamp_res_init(void *ps_svc_dec);
 
+void isvcd_intra_resamp_res_init_update_flags(void *ps_svc_dec);
+
 #endif /* _ISVCD_INTRA_RESAMPLE_H_ */
