@@ -2619,7 +2619,7 @@ WORD32 isvcd_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv_
         ps_svc_lyr_dec->u1_dyadic_flag = 1;
         ps_svc_lyr_dec->u1_restricted_res_change_flag = 1;
         ps_svc_lyr_dec->u1_base_res_flag = 1;
-        ps_svc_lyr_dec->u1_ref_layer_id = 0;
+        ps_svc_lyr_dec->u1_ref_layer_id = u1_layer_id - 1;
         ps_svc_lyr_dec->ps_dec_svc_ref_layer =
             &ps_svcd_ctxt->ps_svc_dec_lyr[ps_svc_lyr_dec->u1_ref_layer_id];
         ps_svc_lyr_dec->u4_pps_id_for_layer = UINT32_MAX;
