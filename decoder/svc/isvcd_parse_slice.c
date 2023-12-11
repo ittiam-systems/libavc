@@ -1648,11 +1648,14 @@ WORD32 isvcd_parse_slice_header(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
         {
             return ERROR_INV_SLICE_HDR_T;
         }
+        /* Reference layer id update is taken care during resolution init */
+        /*
         ps_svc_lyr_dec->u1_ref_layer_id = ps_svc_slice_params->u4_ref_layer_dq_id >> 4;
         if(ps_svc_lyr_dec->u1_ref_layer_id >= ps_svc_lyr_dec->u1_layer_id)
         {
             return ERROR_INV_SLICE_HDR_T;
         }
+        */
         ps_svc_lyr_dec->ps_dec_svc_ref_layer =
             &ps_svcd_ctxt->ps_svc_dec_lyr[ps_svc_lyr_dec->u1_ref_layer_id];
 
