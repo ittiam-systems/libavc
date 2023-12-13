@@ -528,7 +528,7 @@ WORD32 isvce_svc_inp_params_validate(isvce_init_ip_t *ps_ip, isvce_cfg_params_t 
 *
 *******************************************************************************
 */
-WORD32 isvce_svc_rc_params_validate(isvce_cfg_params_t *ps_cfg)
+static WORD32 isvce_svc_rc_params_validate(isvce_cfg_params_t *ps_cfg)
 {
     WORD32 i;
 
@@ -3449,6 +3449,82 @@ void isvce_derive_nghbr_avbl_of_mbs(isvce_process_ctxt_t *ps_proc)
     }
 }
 
+static IH264E_ERROR_T isvce_rc_init_wrapper(isvce_codec_t *ps_codec)
+{
+    WORD32 i;
+
+    isvce_cfg_params_t *ps_cfg = &ps_codec->s_cfg;
+
+    IH264E_ERROR_T err = isvce_svc_rc_params_validate(ps_cfg);
+
+    if(IH264E_SUCCESS != err)
+    {
+        return err;
+    }
+
+    for(i = 0; i < ps_cfg->s_svc_params.u1_num_spatial_layers; i++)
+    {
+        UWORD8 au1_init_qp[MAX_PIC_TYPE];
+        UWORD8 au1_min_max_qp[2 * MAX_PIC_TYPE];
+
+        au1_init_qp[0] = gau1_h264_to_mpeg2_qmap[ps_cfg->au4_i_qp[i]];
+        au1_init_qp[1] = gau1_h264_to_mpeg2_qmap[ps_cfg->au4_p_qp[i]];
+        au1_init_qp[2] = gau1_h264_to_mpeg2_qmap[ps_cfg->au4_b_qp[i]];
+
+        au1_min_max_qp[2 * I_PIC] = gau1_h264_to_mpeg2_qmap[ps_cfg->au4_i_qp_min[i]];
+        au1_min_max_qp[2 * I_PIC + 1] = gau1_h264_to_mpeg2_qmap[ps_cfg->au4_i_qp_max[i]];
+
+        au1_min_max_qp[2 * P_PIC] = gau1_h264_to_mpeg2_qmap[ps_cfg->au4_p_qp_min[i]];
+        au1_min_max_qp[2 * P_PIC + 1] = gau1_h264_to_mpeg2_qmap[ps_cfg->au4_p_qp_max[i]];
+
+        au1_min_max_qp[2 * B_PIC] = gau1_h264_to_mpeg2_qmap[ps_cfg->au4_b_qp_min[i]];
+        au1_min_max_qp[2 * B_PIC + 1] = gau1_h264_to_mpeg2_qmap[ps_cfg->au4_b_qp_max[i]];
+
+        switch(ps_cfg->e_rc_mode)
+        {
+            case IVE_RC_STORAGE:
+            {
+                ps_codec->s_rate_control.e_rc_type = VBR_STORAGE;
+                break;
+            }
+            case IVE_RC_CBR_NON_LOW_DELAY:
+            {
+                ps_codec->s_rate_control.e_rc_type = CBR_NLDRC;
+                break;
+            }
+            case IVE_RC_CBR_LOW_DELAY:
+            {
+                ps_codec->s_rate_control.e_rc_type = CBR_LDRC;
+                break;
+            }
+            case IVE_RC_NONE:
+            {
+                ps_codec->s_rate_control.e_rc_type = CONST_QP;
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
+
+        for(i = 0; i < MAX_NUM_SPATIAL_LAYERS; i++)
+        {
+            isvce_rc_init(ps_codec->s_rate_control.apps_rate_control_api[i],
+                          ps_codec->s_rate_control.pps_frame_time,
+                          ps_codec->s_rate_control.pps_time_stamp,
+                          ps_codec->s_rate_control.pps_pd_frm_rate, ps_cfg->u4_max_framerate,
+                          ps_cfg->u4_src_frame_rate, ps_cfg->u4_tgt_frame_rate,
+                          ps_codec->s_rate_control.e_rc_type, ps_cfg->au4_target_bitrate[i],
+                          ps_cfg->au4_max_bitrate[i], ps_cfg->au4_vbv_buffer_delay[i],
+                          ps_cfg->u4_i_frm_interval, ps_cfg->u4_num_bframes + 1, au1_init_qp,
+                          ps_cfg->u4_num_bframes + 2, au1_min_max_qp, ps_cfg->u4_max_level);
+        }
+    }
+
+    return IH264E_SUCCESS;
+}
+
 /**
 *******************************************************************************
 *
@@ -3576,87 +3652,11 @@ IH264E_ERROR_T isvce_codec_init(isvce_codec_t *ps_codec)
     }
 
     {
-        WORD32 i4_err_code = isvce_svc_rc_params_validate(&ps_codec->s_cfg);
+        WORD32 i4_err_code = isvce_rc_init_wrapper(ps_codec);
 
         if(IH264E_SUCCESS != i4_err_code)
         {
             return i4_err_code;
-        }
-    }
-
-    /****************************************************/
-    /*           INITIALIZE RATE CONTROL                */
-    /****************************************************/
-    {
-        for(i = 0; i < MAX_NUM_SPATIAL_LAYERS; i++)
-        {
-            UWORD8 au1_init_qp[MAX_PIC_TYPE];
-            UWORD8 au1_min_max_qp[2 * MAX_PIC_TYPE];
-            UWORD8 au1_min_max_avc_qp[2 * MAX_PIC_TYPE];
-
-            /* update rc lib with modified qp */
-            au1_init_qp[0] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_i_qp[i]];
-            au1_init_qp[1] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_p_qp[i]];
-            au1_init_qp[2] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_b_qp[i]];
-
-            au1_min_max_qp[2 * I_PIC] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_i_qp_min[i]];
-            au1_min_max_qp[2 * I_PIC + 1] =
-                gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_i_qp_max[i]];
-
-            au1_min_max_qp[2 * P_PIC] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_p_qp_min[i]];
-            au1_min_max_qp[2 * P_PIC + 1] =
-                gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_p_qp_max[i]];
-
-            au1_min_max_qp[2 * B_PIC] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_b_qp_min[i]];
-            au1_min_max_qp[2 * B_PIC + 1] =
-                gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_b_qp_max[i]];
-
-            /* get rc mode */
-            switch(ps_codec->s_cfg.e_rc_mode)
-            {
-                case IVE_RC_STORAGE:
-                    ps_codec->s_rate_control.e_rc_type = VBR_STORAGE;
-                    break;
-                case IVE_RC_CBR_NON_LOW_DELAY:
-                    ps_codec->s_rate_control.e_rc_type = CBR_NLDRC;
-                    break;
-                case IVE_RC_CBR_LOW_DELAY:
-                    ps_codec->s_rate_control.e_rc_type = CBR_LDRC;
-                    break;
-                case IVE_RC_NONE:
-                    ps_codec->s_rate_control.e_rc_type = CONST_QP;
-                    break;
-                default:
-                    break;
-            }
-
-            ps_codec->u1_enable_init_qp = DEFAULT_INIT_QP;
-
-            /* init rate control */
-            isvce_rc_init(
-                ps_codec->s_rate_control.apps_rate_control_api[i],
-                ps_codec->s_rate_control.pps_frame_time, ps_codec->s_rate_control.pps_time_stamp,
-                ps_codec->s_rate_control.pps_pd_frm_rate, ps_codec->s_cfg.u4_max_framerate,
-                ps_codec->s_cfg.u4_src_frame_rate, ps_codec->s_cfg.u4_tgt_frame_rate,
-                ps_codec->s_rate_control.e_rc_type, ps_codec->s_cfg.au4_target_bitrate[i],
-                ps_codec->s_cfg.au4_max_bitrate[i], ps_codec->s_cfg.au4_vbv_buffer_delay[i],
-                ps_codec->s_cfg.u4_i_frm_interval, ps_codec->s_cfg.u4_num_bframes + 1, au1_init_qp,
-                ps_codec->s_cfg.u4_num_bframes + 2, au1_min_max_qp,
-                MAX(ps_codec->s_cfg.u4_max_level,
-                    (UWORD32) ih264e_get_min_level(ps_codec->s_cfg.u4_max_wd,
-                                                   ps_codec->s_cfg.u4_max_ht)));
-
-            au1_min_max_avc_qp[2 * I_PIC] = ps_codec->s_cfg.au4_i_qp_min[i];
-            au1_min_max_avc_qp[2 * I_PIC + 1] = ps_codec->s_cfg.au4_i_qp_max[i];
-
-            au1_min_max_avc_qp[2 * P_PIC] = ps_codec->s_cfg.au4_p_qp_min[i];
-            au1_min_max_avc_qp[2 * P_PIC + 1] = ps_codec->s_cfg.au4_p_qp_max[i];
-
-            au1_min_max_avc_qp[2 * B_PIC] = ps_codec->s_cfg.au4_b_qp_min[i];
-            au1_min_max_avc_qp[2 * B_PIC + 1] = ps_codec->s_cfg.au4_b_qp_max[i];
-
-            irc_change_qp_constraints(ps_codec->s_rate_control.apps_rate_control_api[i],
-                                      au1_min_max_qp, au1_min_max_avc_qp);
         }
     }
 
@@ -3774,7 +3774,6 @@ IH264E_ERROR_T isvce_codec_update_config(isvce_codec_t *ps_codec, isvce_cfg_para
     }
     else if(ps_cfg->e_cmd == ISVCE_CMD_CTL_SET_FRAMERATE)
     {
-        /* temp var */
         UWORD32 u4_src_ticks, u4_tgt_ticks;
 
         u4_src_ticks = ih264e_frame_time_get_src_ticks(ps_codec->s_rate_control.pps_frame_time);
@@ -4122,71 +4121,7 @@ IH264E_ERROR_T isvce_codec_update_config(isvce_codec_t *ps_codec, isvce_cfg_para
     /* reset RC model */
     if(u4_init_rc)
     {
-        for(i = 0; i < ps_cfg->s_svc_params.u1_num_spatial_layers; i++)
-        {
-            /* init qp */
-            UWORD8 au1_init_qp[MAX_PIC_TYPE];
-
-            /* min max qp */
-            UWORD8 au1_min_max_qp[2 * MAX_PIC_TYPE];
-
-            /* init i,p,b qp */
-            au1_init_qp[0] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_i_qp[i]];
-            au1_init_qp[1] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_p_qp[i]];
-            au1_init_qp[2] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_b_qp[i]];
-
-            /* init min max qp */
-            au1_min_max_qp[2 * I_PIC] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_i_qp_min[i]];
-            au1_min_max_qp[2 * I_PIC + 1] =
-                gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_i_qp_max[i]];
-
-            au1_min_max_qp[2 * P_PIC] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_p_qp_min[i]];
-            au1_min_max_qp[2 * P_PIC + 1] =
-                gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_p_qp_max[i]];
-
-            au1_min_max_qp[2 * B_PIC] = gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_b_qp_min[i]];
-            au1_min_max_qp[2 * B_PIC + 1] =
-                gau1_h264_to_mpeg2_qmap[ps_codec->s_cfg.au4_b_qp_max[i]];
-
-            /* get rc mode */
-            switch(ps_codec->s_cfg.e_rc_mode)
-            {
-                case IVE_RC_STORAGE:
-                    ps_codec->s_rate_control.e_rc_type = VBR_STORAGE;
-                    break;
-
-                case IVE_RC_CBR_NON_LOW_DELAY:
-                    ps_codec->s_rate_control.e_rc_type = CBR_NLDRC;
-                    break;
-
-                case IVE_RC_CBR_LOW_DELAY:
-                    ps_codec->s_rate_control.e_rc_type = CBR_LDRC;
-                    break;
-
-                case IVE_RC_NONE:
-                    ps_codec->s_rate_control.e_rc_type = CONST_QP;
-                    break;
-
-                default:
-                    break;
-            }
-
-            /* init rate control */
-            for(i = 0; i < MAX_NUM_SPATIAL_LAYERS; i++)
-            {
-                isvce_rc_init(
-                    ps_codec->s_rate_control.apps_rate_control_api[i],
-                    ps_codec->s_rate_control.pps_frame_time,
-                    ps_codec->s_rate_control.pps_time_stamp,
-                    ps_codec->s_rate_control.pps_pd_frm_rate, ps_codec->s_cfg.u4_max_framerate,
-                    ps_codec->s_cfg.u4_src_frame_rate, ps_codec->s_cfg.u4_tgt_frame_rate,
-                    ps_codec->s_rate_control.e_rc_type, ps_codec->s_cfg.au4_target_bitrate[i],
-                    ps_codec->s_cfg.au4_max_bitrate[i], ps_codec->s_cfg.au4_vbv_buffer_delay[i],
-                    ps_codec->s_cfg.u4_i_frm_interval, ps_codec->s_cfg.u4_num_bframes + 1,
-                    au1_init_qp, ps_codec->s_cfg.u4_num_bframes + 2, au1_min_max_qp,
-                    ps_codec->s_cfg.u4_max_level);
-            }
-        }
+        err = isvce_rc_init_wrapper(ps_codec);
     }
 
     return err;
