@@ -815,7 +815,6 @@ static IV_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle,
 
         case IVE_CMD_VIDEO_ENCODE:
         {
-            codec_t *ps_codec = (codec_t *) (ps_handle->pv_codec_handle);
             ih264e_video_encode_ip_t *ps_ip = pv_api_ip;
             ih264e_video_encode_op_t *ps_op = pv_api_op;
 

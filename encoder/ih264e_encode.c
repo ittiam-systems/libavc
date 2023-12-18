@@ -528,7 +528,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
     {
         if (IV_SUCCESS != api_check_input_dimensions(ps_codec, pv_api_ip, pv_api_op))
         {
-            error_status = IVE_ERR_OP_ENCODE_API_STRUCT_SIZE_INCORRECT;
+            error_status = IH264E_FAIL;
             SET_ERROR_ON_RETURN(error_status,
                                 IVE_FATALERROR,
                                 ps_video_encode_op->s_ive_op.u4_error_code,
