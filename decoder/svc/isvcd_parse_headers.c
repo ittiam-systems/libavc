@@ -193,14 +193,6 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
     ps_seq = ps_dec->pv_scratch_sps_pps;
     memset(ps_seq, 0, sizeof(dec_seq_params_t));
 
-    if(ps_dec->i4_header_decoded & 1)
-    {
-        if(NULL != ps_dec->ps_cur_sps)
-            *ps_seq = *ps_dec->ps_cur_sps;
-        else
-            return ERROR_INV_SPS_PPS_T;
-    }
-
     ps_seq->u1_profile_idc = u1_profile_idc;
     ps_seq->u1_level_idc = u1_level_idc;
     ps_seq->u1_seq_parameter_set_id = u1_seq_parameter_set_id;
@@ -414,6 +406,15 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
 
     u2_pic_wd = (u4_pic_width_in_mbs << 4);
     u2_pic_ht = (u4_pic_height_in_map_units << 4);
+    if(ps_svc_lyr_dec->pic_width < u2_pic_wd)
+    {
+        ps_svc_lyr_dec->pic_width = u2_pic_wd;
+    }
+    if(ps_svc_lyr_dec->pic_height < u2_pic_ht)
+    {
+        ps_svc_lyr_dec->pic_height = u2_pic_ht;
+    }
+
     /*--------------------------------------------------------------------*/
     /* Get the value of MaxMbAddress and Number of bits needed for it     */
     /*--------------------------------------------------------------------*/
@@ -850,35 +851,6 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
     ps_subset_seq->u2_crop_offset_y = u2_crop_offset_y;
     ps_subset_seq->u2_crop_offset_uv = u2_crop_offset_uv;
 
-    if(((ps_dec->u2_pic_wd * ps_dec->u2_pic_ht) <
-        (ps_subset_seq->u2_pic_wd * ps_subset_seq->u2_pic_ht)) ||
-       (ps_dec->i4_reorder_depth < ps_subset_seq->i4_reorder_depth))
-    {
-        ps_dec->i4_reorder_depth = ps_subset_seq->i4_reorder_depth;
-
-        ps_dec->u2_disp_height = ps_subset_seq->u2_disp_height;
-        ps_dec->u2_disp_width = ps_subset_seq->u2_disp_width;
-
-        ps_dec->u2_pic_wd = ps_subset_seq->u2_pic_wd;
-        ps_dec->u2_pic_ht = ps_subset_seq->u2_pic_ht;
-        ps_dec->u4_total_mbs = ps_seq->u2_total_num_of_mbs << (1 - ps_seq->u1_frame_mbs_only_flag);
-
-        /* Determining the Width and Height of Frame from that of Picture */
-        ps_dec->u2_frm_wd_y = ps_subset_seq->u2_frm_wd_y;
-        ps_dec->u2_frm_ht_y = ps_subset_seq->u2_frm_ht_y;
-        ps_dec->u2_frm_wd_uv = ps_subset_seq->u2_frm_wd_uv;
-        ps_dec->u2_frm_ht_uv = ps_subset_seq->u2_frm_ht_uv;
-
-        ps_dec->s_pad_mgr.u1_pad_len_y_v = ps_subset_seq->u1_pad_len_y_v;
-        ps_dec->s_pad_mgr.u1_pad_len_cr_v = ps_subset_seq->u1_pad_len_cr_v;
-
-        ps_dec->u2_frm_wd_in_mbs = ps_seq->u2_frm_wd_in_mbs;
-        ps_dec->u2_frm_ht_in_mbs = ps_seq->u2_frm_ht_in_mbs;
-
-        ps_dec->u2_crop_offset_y = ps_subset_seq->u2_crop_offset_y;
-        ps_dec->u2_crop_offset_uv = ps_subset_seq->u2_crop_offset_uv;
-    }
-
     ps_seq->u1_is_valid = TRUE;
     ps_dec->ps_sps[u1_seq_parameter_set_id] = *ps_seq;
     if(NULL != ps_svc_lyr_dec->ps_subset_sps[u1_seq_parameter_set_id].s_sps_svc_ext.ps_svc_vui_ext)
@@ -887,7 +859,6 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
             ps_svc_lyr_dec->ps_subset_sps[u1_seq_parameter_set_id].s_sps_svc_ext.ps_svc_vui_ext;
     }
     ps_svc_lyr_dec->ps_subset_sps[u1_seq_parameter_set_id] = *ps_subset_seq;
-    ps_dec->ps_cur_sps = &ps_dec->ps_sps[u1_seq_parameter_set_id];
     ps_svc_lyr_dec->ps_cur_subset_sps = &ps_svc_lyr_dec->ps_subset_sps[u1_seq_parameter_set_id];
 
     return OK;
@@ -1186,14 +1157,6 @@ WORD32 isvcd_parse_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stream_t *p
     ps_seq = ps_dec->pv_scratch_sps_pps;
     memset(ps_seq, 0, sizeof(dec_seq_params_t));
 
-    if(ps_dec->i4_header_decoded & 1)
-    {
-        if(ps_dec->ps_cur_sps != NULL)
-            *ps_seq = *ps_dec->ps_cur_sps;
-        else
-            return ERROR_INV_SPS_PPS_T;
-    }
-
     if((ps_dec->i4_header_decoded & 1) &&
        (1 == ps_dec->ps_sps[u1_seq_parameter_set_id].u1_is_valid) &&
        (ps_dec->ps_sps[u1_seq_parameter_set_id].u1_profile_idc != u1_profile_idc))
@@ -1404,6 +1367,15 @@ WORD32 isvcd_parse_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stream_t *p
     ps_seq->u2_frm_ht_in_mbs = u4_pic_height_in_map_units;
     u2_pic_wd = (u4_pic_width_in_mbs << 4);
     u2_pic_ht = (u4_pic_height_in_map_units << 4);
+    if(ps_svc_lyr_dec->pic_width < u2_pic_wd)
+    {
+        ps_svc_lyr_dec->pic_width = u2_pic_wd;
+    }
+    if(ps_svc_lyr_dec->pic_height < u2_pic_ht)
+    {
+        ps_svc_lyr_dec->pic_height = u2_pic_ht;
+    }
+
     /*--------------------------------------------------------------------*/
     /* Get the value of MaxMbAddress and Number of bits needed for it     */
     /*--------------------------------------------------------------------*/
@@ -1639,37 +1611,9 @@ WORD32 isvcd_parse_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stream_t *p
     ps_subset_seq->u2_crop_offset_y = u2_crop_offset_y;
     ps_subset_seq->u2_crop_offset_uv = u2_crop_offset_uv;
 
-    if(((ps_dec->u2_pic_wd * ps_dec->u2_pic_ht) <
-        (ps_subset_seq->u2_pic_wd * ps_subset_seq->u2_pic_ht)) ||
-       (ps_dec->i4_reorder_depth < ps_subset_seq->i4_reorder_depth))
-    {
-        ps_dec->i4_reorder_depth = ps_subset_seq->i4_reorder_depth;
-
-        ps_dec->u2_disp_height = ps_subset_seq->u2_disp_height;
-        ps_dec->u2_disp_width = ps_subset_seq->u2_disp_width;
-        ps_dec->u2_pic_wd = ps_subset_seq->u2_pic_wd;
-        ps_dec->u2_pic_ht = ps_subset_seq->u2_pic_ht;
-        ps_dec->u4_total_mbs = ps_seq->u2_total_num_of_mbs << (1 - ps_seq->u1_frame_mbs_only_flag);
-
-        /* Determining the Width and Height of Frame from that of Picture */
-        ps_dec->u2_frm_wd_y = ps_subset_seq->u2_frm_wd_y;
-        ps_dec->u2_frm_ht_y = ps_subset_seq->u2_frm_ht_y;
-        ps_dec->u2_frm_wd_uv = ps_subset_seq->u2_frm_wd_uv;
-        ps_dec->u2_frm_ht_uv = ps_subset_seq->u2_frm_ht_uv;
-
-        ps_dec->s_pad_mgr.u1_pad_len_y_v = ps_subset_seq->u1_pad_len_y_v;
-        ps_dec->s_pad_mgr.u1_pad_len_cr_v = ps_subset_seq->u1_pad_len_cr_v;
-
-        ps_dec->u2_frm_wd_in_mbs = ps_seq->u2_frm_wd_in_mbs;
-        ps_dec->u2_frm_ht_in_mbs = ps_seq->u2_frm_ht_in_mbs;
-        ps_dec->u2_crop_offset_y = ps_subset_seq->u2_crop_offset_y;
-        ps_dec->u2_crop_offset_uv = ps_subset_seq->u2_crop_offset_uv;
-    }
-
     ps_seq->u1_is_valid = TRUE;
     ps_dec->ps_sps[u1_seq_parameter_set_id] = *ps_seq;
     ps_svc_lyr_dec->ps_subset_sps[u1_seq_parameter_set_id] = *ps_subset_seq;
-    ps_dec->ps_cur_sps = &ps_dec->ps_sps[u1_seq_parameter_set_id];
     ps_svc_lyr_dec->ps_cur_subset_sps = &ps_svc_lyr_dec->ps_subset_sps[u1_seq_parameter_set_id];
 
     return OK;
