@@ -853,6 +853,14 @@ WORD32 ih264d_parse_fgc(dec_bit_stream_t *ps_bitstrm, dec_struct_t *ps_dec,
 
                 for(i = 0; i <= ps_sei->s_sei_fgc_params.au1_num_intensity_intervals_minus1[c]; i++)
                 {
+                    /* Although the fag end of both the NALU and the bitstream buffer */
+                    /* is being parsed, not all FGC SEI symbols would have been */
+                    /* decoded semantically. The code below detects this condition */
+                    if((ps_bitstrm->u4_ofst + 8 + 8) >= ps_bitstrm->u4_max_ofst)
+                    {
+                        return ERROR_INV_SEI_FGC_PARAMS;
+                    }
+
                     ps_sei->s_sei_fgc_params.au1_intensity_interval_lower_bound[c][i] =
                         (UWORD8) ih264d_get_bits_h264(ps_bitstrm, 8);
 

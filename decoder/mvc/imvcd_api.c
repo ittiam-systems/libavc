@@ -737,7 +737,9 @@ static IV_API_CALL_STATUS_T imvcd_view_decode(iv_obj_t *ps_dec_hdl, imvcd_video_
 
             if(u4_nalu_buf_size > u4_bitstream_buf_size)
             {
-                if(IV_SUCCESS != imvcd_bitstream_buf_realloc(ps_view_ctxt, u4_nalu_buf_size))
+                /* 64 extra bytes to account for OOB accesses during SEI parsing in */
+                /* some fuzzer bitstreams */
+                if(IV_SUCCESS != imvcd_bitstream_buf_realloc(ps_view_ctxt, u4_nalu_buf_size + 64))
                 {
                     return IV_FAIL;
                 }
