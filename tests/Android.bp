@@ -26,16 +26,17 @@ package {
 cc_test {
     name: "AvcEncTest",
     gtest: true,
+    test_suites: ["device-tests"],
 
-    srcs : [ "AvcEncTest.cpp" ],
+    srcs: ["AvcEncTest.cpp"],
 
     shared_libs: [
         "libutils",
-        "liblog"
+        "liblog",
     ],
 
     static_libs: [
-        "libavcenc"
+        "libavcenc",
     ],
 
     cflags: [
