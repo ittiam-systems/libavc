@@ -1095,6 +1095,20 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
         ret = ih264d_parse_vui_parametres(&ps_seq->s_vui, ps_bitstrm);
         if(ret != OK)
             return ret;
+
+        if (ps_dec->pu1_bits_buf_dynamic != NULL) {
+            vui_t *ps_vui = &ps_seq->s_vui;
+            dec_seq_params_t *ps_sps_old = ps_dec->ps_sps;
+            vui_t *ps_vui_old = &ps_sps_old->s_vui;
+
+            if (ps_vui->u1_video_full_range_flag != ps_vui_old->u1_video_full_range_flag ||
+                ps_vui->u1_colour_primaries != ps_vui_old->u1_colour_primaries ||
+                ps_vui->u1_tfr_chars != ps_vui_old->u1_tfr_chars ||
+                ps_vui->u1_matrix_coeffs != ps_vui_old->u1_matrix_coeffs) {
+                ps_dec->u1_res_changed = 1;
+                return IVD_RES_CHANGED;
+            }
+        }
     }
 
     /* Compare older num_reorder_frames with the new one if header is already decoded */
