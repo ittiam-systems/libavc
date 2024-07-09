@@ -766,6 +766,12 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
         if(ps_dec->u2_frm_ht_in_mbs != ps_seq->u2_frm_ht_in_mbs) return ERROR_INV_SLICE_HDR_T;
     }
 
+    if(ps_dec->u1_init_dec_flag == 1)
+    {
+        if(ps_dec->u2_disp_height != ps_subset_seq->u2_disp_height) return ERROR_INV_SLICE_HDR_T;
+        if(ps_dec->u2_disp_width != ps_subset_seq->u2_disp_width) return ERROR_INV_SLICE_HDR_T;
+    }
+
     ps_dec->i4_reorder_depth = ps_subset_seq->i4_reorder_depth;
 
     ps_dec->u2_disp_height = ps_subset_seq->u2_disp_height;
@@ -2002,6 +2008,12 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
     {
         if(ps_dec->u2_frm_wd_in_mbs != ps_seq->u2_frm_wd_in_mbs) return ERROR_INV_SLICE_HDR_T;
         if(ps_dec->u2_frm_ht_in_mbs != ps_seq->u2_frm_ht_in_mbs) return ERROR_INV_SLICE_HDR_T;
+    }
+
+    if(ps_dec->u1_init_dec_flag == 1)
+    {
+        if(ps_dec->u2_disp_height != ps_subset_seq->u2_disp_height) return ERROR_INV_SLICE_HDR_T;
+        if(ps_dec->u2_disp_width != ps_subset_seq->u2_disp_width) return ERROR_INV_SLICE_HDR_T;
     }
 
     if(ps_seq->u1_profile_idc == BASE_PROFILE_IDC)
