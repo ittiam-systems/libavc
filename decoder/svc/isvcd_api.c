@@ -4474,16 +4474,17 @@ WORD32 isvcd_dec_non_vcl(void *pv_out_non_vcl, void *pv_seq_params, void *pv_pic
             case PIC_PARAM_NAL:
 
                 i_status = isvcd_parse_pps(ps_svc_lyr_dec, ps_bitstrm);
-                if(i_status == ERROR_INV_SPS_PPS_T) return i_status;
                 if(!i_status)
                 {
                     ps_dec->i4_header_decoded |= 0x2;
                     ps_svcd_ctxt->u4_num_pps_ctr++;
                 }
+                if(i_status) return i_status;
                 break;
             case SEI_NAL:
             {
                 i_status = ih264d_parse_sei_message(ps_dec, ps_bitstrm);
+                if(i_status) return i_status;
                 ih264d_parse_sei(ps_dec, ps_bitstrm);
             }
             break;
@@ -4545,7 +4546,7 @@ WORD32 isvcd_seq_hdr_dec(svc_dec_ctxt_t *ps_svcd_ctxt, ivd_video_decode_ip_t *ps
     /*          2. Picture parameter set                      */
     /*          3. SEI message                                */
     /* ------------------------------------------------------ */
-    isvcd_dec_non_vcl(&ps_svcd_ctxt->s_non_vcl_nal, ps_svcd_ctxt->ps_sps, ps_svcd_ctxt->ps_pps,
+    i4_status = isvcd_dec_non_vcl(&ps_svcd_ctxt->s_non_vcl_nal, ps_svcd_ctxt->ps_sps, ps_svcd_ctxt->ps_pps,
                       ps_svcd_ctxt);
 
     return (i4_status);
@@ -4579,7 +4580,7 @@ WORD32 isvcd_seq_hdr_dec(svc_dec_ctxt_t *ps_svcd_ctxt, ivd_video_decode_ip_t *ps
 WORD32 isvcd_pre_parse_refine_au(svc_dec_ctxt_t *ps_svcd_ctxt, ivd_video_decode_ip_t *ps_in_bufs,
                                  UWORD32 *pu4_bytes_consumed)
 {
-    WORD32 i4_status, i4_non_vcl_status;
+    WORD32 i4_status = 0, i4_non_vcl_status;
     UWORD32 u4_bytes_consumed = 0;
     dec_struct_t *ps_dec;
     svc_dec_lyr_struct_t *ps_svc_lyr_dec;
@@ -4602,6 +4603,10 @@ WORD32 isvcd_pre_parse_refine_au(svc_dec_ctxt_t *ps_svcd_ctxt, ivd_video_decode_
         }
     }
     *pu4_bytes_consumed = u4_bytes_consumed;
+    if (i4_status)
+    {
+        return NOT_OK;
+    }
     if(1 == ps_dec->i4_decode_header)
     {
         return OK;
