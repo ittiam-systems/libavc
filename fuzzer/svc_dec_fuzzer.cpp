@@ -312,7 +312,8 @@ void Codec::allocFrame()
 void Codec::decodeHeader(const uint8_t *data, size_t size)
 {
     setParams(IVD_DECODE_HEADER);
-    while(size > 0)
+    size_t numDecodeCalls = 0;
+    while(size > 0 && numDecodeCalls < kMaxNumDecodeCalls)
     {
         IV_API_CALL_STATUS_T ret;
         isvcd_video_decode_ip_t s_video_decode_ip;
@@ -339,6 +340,7 @@ void Codec::decodeHeader(const uint8_t *data, size_t size)
 
         data += bytes_consumed;
         size -= bytes_consumed;
+        numDecodeCalls++;
 
         mWidth = std::min(s_video_decode_op.s_ivd_video_decode_op_t.u4_pic_wd, (UWORD32) 10240);
         mHeight = std::min(s_video_decode_op.s_ivd_video_decode_op_t.u4_pic_ht, (UWORD32) 10240);
