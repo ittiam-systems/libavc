@@ -172,8 +172,8 @@ WORD32 ih264d_decode_pic_order_cnt(UWORD8 u1_is_idr_slice,
             /* POC TYPE 0 */
             if(u1_is_idr_slice)
             {
-                ps_prev_poc->i4_pic_order_cnt_msb = 0;
-                ps_prev_poc->i4_pic_order_cnt_lsb = 0;
+                ps_cur_poc->i4_pic_order_cnt_msb = 0;
+                ps_cur_poc->i4_pic_order_cnt_lsb = 0;
             }
             if(ps_prev_poc->u1_mmco_equalto5)
             {
