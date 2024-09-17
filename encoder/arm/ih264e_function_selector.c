@@ -119,8 +119,13 @@ void ih264e_init_function_ptr(void *pv_codec)
         case ARCH_ARM_A57:
         case ARCH_ARM_V8_NEON:
         default:
+#ifdef DARWIN
+            ih264e_init_function_ptr_generic(ps_codec);
+            break;
+#else
             ih264e_init_function_ptr_neon_av8(ps_codec);
             break;
+#endif
 #elif !defined(DISABLE_NEON)
         case ARCH_ARM_A9Q:
         case ARCH_ARM_A9A:

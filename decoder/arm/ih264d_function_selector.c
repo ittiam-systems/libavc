@@ -64,8 +64,13 @@ void ih264d_init_function_ptr(dec_struct_t *ps_codec)
 #if defined(ARMV8)
         case ARCH_ARMV8_GENERIC:
         default:
+#ifdef DARWIN
+            ih264d_init_function_ptr_generic(ps_codec);
+            break;
+#else
             ih264d_init_function_ptr_av8(ps_codec);
             break;
+#endif
 #elif !defined(DISABLE_NEON)
         case ARCH_ARM_A5:
         case ARCH_ARM_A7:

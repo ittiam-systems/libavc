@@ -3,9 +3,9 @@ set(CMAKE_C_STANDARD 90)
 
 # Adds compiler options for all targets
 function(libavc_add_compile_options)
-  if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+  if("${SYSTEM_PROCESSOR}" STREQUAL "aarch64" OR "${SYSTEM_PROCESSOR}" STREQUAL "arm64")
     add_compile_options(-march=armv8-a)
-  elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch32")
+  elseif("${SYSTEM_PROCESSOR}" STREQUAL "aarch32")
     add_compile_options(-march=armv7-a -mfpu=neon)
   else()
     add_compile_options(-msse4.2 -mno-avx)
@@ -34,9 +34,15 @@ endfunction()
 
 # Adds defintions for all targets
 function(libavc_add_definitions)
-  if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+  if("${SYSTEM_NAME}" STREQUAL "Darwin")
+    if("${SYSTEM_PROCESSOR}" STREQUAL "arm64")
+      add_definitions(-DARMV8 -DDARWIN -DDEFAULT_ARCH=D_ARCH_ARMV8_GENERIC)
+    else()
+      add_definitions(-DX86 -DDARWIN -DDISABLE_AVX2 -DDEFAULT_ARCH=D_ARCH_X86_GENERIC)
+    endif()
+  elseif("${SYSTEM_PROCESSOR}" STREQUAL "aarch64")
     add_definitions(-DARMV8 -DDEFAULT_ARCH=D_ARCH_ARMV8_GENERIC)
-  elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch32")
+  elseif("${SYSTEM_PROCESSOR}" STREQUAL "aarch32")
     add_definitions(-DARMV7 -DDEFAULT_ARCH=D_ARCH_ARM_A9Q)
   else()
     add_definitions(-DX86 -DX86_LINUX=1 -DDISABLE_AVX2
@@ -83,6 +89,10 @@ function(libavc_add_executable NAME LIB)
   add_dependencies(${NAME} ${LIB} ${ARG_LIBS})
 
   target_link_libraries(${NAME} ${LIB} ${ARG_LIBS})
+  if("${SYSTEM_NAME}" STREQUAL "Android")
+    target_link_libraries(${NAME} ${log-lib})
+  endif()
+
   if(ARG_FUZZER)
     target_compile_options(${NAME}
                            PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)

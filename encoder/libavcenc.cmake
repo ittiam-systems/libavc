@@ -44,7 +44,7 @@ list(
 
 include_directories(${AVC_ROOT}/encoder)
 
-if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+if("${SYSTEM_PROCESSOR}" STREQUAL "aarch64" OR "${SYSTEM_PROCESSOR}" STREQUAL "arm64")
   list(
     APPEND
     LIBAVCENC_ASMS
@@ -57,7 +57,7 @@ if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
     "${AVC_ROOT}/encoder/armv8/ime_distortion_metrics_av8.s")
 
   include_directories(${AVC_ROOT}/encoder/armv8)
-elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch32")
+elseif("${SYSTEM_PROCESSOR}" STREQUAL "aarch32")
   list(
     APPEND
     LIBAVCENC_ASMS

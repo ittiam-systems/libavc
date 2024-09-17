@@ -36,8 +36,8 @@ list(
 
 include_directories(${AVC_ROOT}/decoder)
 
-if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64" OR "${CMAKE_SYSTEM_PROCESSOR}"
-                                                     STREQUAL "aarch32")
+if("${SYSTEM_PROCESSOR}" STREQUAL "aarch64" OR "${SYSTEM_PROCESSOR}" STREQUAL "arm64"
+     OR "${SYSTEM_PROCESSOR}" STREQUAL "aarch32")
   list(
     APPEND LIBAVCDEC_ASMS "${AVC_ROOT}/decoder/arm/ih264d_function_selector.c"
     "${AVC_ROOT}/decoder/arm/ih264d_function_selector_a9q.c"
