@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 3.9.1)
 project(libavc C CXX)
-enable_language(ASM)
+
+if(NOT DEFINED SYSTEM_NAME)
+  set(SYSTEM_NAME ${CMAKE_HOST_SYSTEM_NAME})
+endif()
+
+if(NOT DEFINED SYSTEM_PROCESSOR)
+  set(SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR})
+endif()
+
+if(NOT "${SYSTEM_NAME}" STREQUAL "Darwin")
+  enable_language(ASM)
+endif()
 
 set(AVC_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(AVC_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}")
@@ -17,6 +28,16 @@ if("${AVC_ROOT}" STREQUAL "${AVC_CONFIG_DIR}")
       "$ mkdir -p ./build\n"
       "$ cd ./build\n"
       "And re-run CMake from the build directory.")
+endif()
+
+if("${SYSTEM_NAME}" STREQUAL "Android")
+    find_library(log-lib log QUIET)
+    if(NOT log-lib)
+      message(FATAL_ERROR "Could NOT find log library, retry after installing \
+                           log library at sysroot.")
+    else()
+      message(STATUS "Found log-lib: ${log-lib}")
+    endif()
 endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)

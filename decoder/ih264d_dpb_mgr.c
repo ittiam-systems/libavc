@@ -18,7 +18,7 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #ifdef __ANDROID__
-#include <log/log.h>
+#include <android/log.h>
 #endif
 #include "ih264_typedefs.h"
 #include "ih264_macros.h"
@@ -38,6 +38,17 @@
 #include "ih264_error.h"
 #include "ih264_buf_mgr.h"
 #include "assert.h"
+
+#ifdef __ANDROID__
+#ifndef ALOG
+#define ALOG(priority, tag, ...) ((void)__android_log_print(ANDROID_##priority, tag, __VA_ARGS__))
+#define ALOGE(...) ALOG(LOG_ERROR, NULL, __VA_ARGS__)
+inline int android_errorWriteLog(int tag, const char* subTag) {
+    ALOGE("android_errorWriteLog(%x, %s)", tag, subTag);
+    return 0;
+}
+#endif
+#endif
 
 /*!
  ***************************************************************************

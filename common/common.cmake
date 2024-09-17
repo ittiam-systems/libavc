@@ -27,7 +27,7 @@ include_directories(${AVC_ROOT}/common)
 include_directories(${AVC_ROOT}/common/mvc)
 
 # arm/x86 sources
-if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+if("${SYSTEM_PROCESSOR}" STREQUAL "aarch64" OR "${SYSTEM_PROCESSOR}" STREQUAL "arm64")
   list(
     APPEND
     LIBAVC_COMMON_ASMS
@@ -59,7 +59,7 @@ if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
 
   include_directories(${AVC_ROOT}/common/arm)
   include_directories(${AVC_ROOT}/common/armv8)
-elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch32")
+elseif("${SYSTEM_PROCESSOR}" STREQUAL "aarch32")
   list(
     APPEND
     LIBAVC_COMMON_ASMS
