@@ -1,0 +1,19 @@
+{
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.configureArgs": [
+        "-DENABLE_MVC=OFF",
+        "-DENABLE_SVC=OFF",
+        "-DENABLE_TESTS=OFF",
+        "-DCMAKE_C_COMPILER=clang",
+        "-DCMAKE_CXX_COMPILER=clang++"
+    ],
+    "cmake.preferredGenerators": [
+        "Unix Makefiles"
+    ],
+    "cmake.debugConfig": {
+        "avcenc": "avcenc",
+        "avcdec": "avcdec"
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+}
