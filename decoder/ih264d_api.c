@@ -1628,7 +1628,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
             ps_dec->apv_proc_done_mutex[i] =
                             (UWORD8 *)pv_buf + ((2 * i + 1) * mutex_size);
 
-            ret = ithread_mutex_init(ps_dec->apv_proc_start_mutex[0]);
+            ret = ithread_mutex_init(ps_dec->apv_proc_start_mutex[i]);
             RETURN_IF((ret != IV_SUCCESS), ret);
 
             ret = ithread_mutex_init(ps_dec->apv_proc_done_mutex[i]);
