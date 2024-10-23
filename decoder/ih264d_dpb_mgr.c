@@ -730,7 +730,7 @@ WORD32 ih264d_ref_idx_reordering(dec_struct_t *ps_dec, UWORD8 uc_lx)
     dpb_manager_t *ps_dpb_mgr = ps_dec->ps_dpb_mgr;
     UWORD16 u4_cur_pic_num = ps_dec->ps_cur_slice->u2_frame_num;
     /*< Maximum Picture Number Minus 1 */
-    UWORD16 ui_max_frame_num =
+    UWORD32 ui_max_frame_num =
                     ps_dec->ps_cur_sps->u2_u4_max_pic_num_minus1 + 1;
 
     WORD32 i, count = 0;
@@ -776,7 +776,7 @@ WORD32 ih264d_ref_idx_reordering(dec_struct_t *ps_dec, UWORD8 uc_lx)
             {
                 // diffPicNum is +ve
                 i_temp = (WORD32)u2_pred_frame_num + (WORD32)ui_nextUev;
-                if(i_temp >= ui_max_frame_num)
+                if(i_temp >= (WORD32)ui_max_frame_num)
                     i_temp -= ui_max_frame_num;
             }
             /* Find the dpb with the matching picNum (picNum==frameNum for framePic) */
