@@ -343,7 +343,7 @@ typedef struct
     UWORD8 u1_arbitrary_slice_order_allowed_flag;
     UWORD8 u1_redundant_slices_allowed_flag;
     UWORD8 u1_bits_in_frm_num; /** Number of bits in frame num */
-    UWORD16 u2_u4_max_pic_num_minus1; /** Maximum frame num minus 1 */
+    UWORD32 u2_u4_max_pic_num_minus1; /** Maximum frame num minus 1 */
     UWORD8 u1_pic_order_cnt_type; /** 0 - 2 indicates the method to code picture order count */
     UWORD8 u1_log2_max_pic_order_cnt_lsb_minus;
     WORD32 i4_max_pic_order_cntLsb;
