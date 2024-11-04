@@ -161,8 +161,6 @@ cc_defaults {
         "-Werror",
         "-Wno-unused-variable",
         "-Wno-null-pointer-arithmetic",
-        // #KEEP_THREAD_ACTIVE is experimental
-        "-UKEEP_THREADS_ACTIVE",
     ],
     vendor_available: true,
     host_supported: true,
@@ -785,6 +783,9 @@ cc_library_static {
 cc_library_static {
     name: "libsvcdec",
     defaults: ["libavc_dec_defaults"],
+    cflags: [
+        "-UKEEP_THREADS_ACTIVE",
+    ],
     whole_static_libs: [
         "libavcdec",
     ],
