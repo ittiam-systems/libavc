@@ -1096,9 +1096,9 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
         if(ret != OK)
             return ret;
 
-        if (ps_dec->pu1_bits_buf_dynamic != NULL) {
+        if (ps_dec->pu1_bits_buf_dynamic != NULL && ps_dec->ps_cur_sps != NULL) {
             vui_t *ps_vui = &ps_seq->s_vui;
-            dec_seq_params_t *ps_sps_old = ps_dec->ps_sps;
+            dec_seq_params_t *ps_sps_old = ps_dec->ps_cur_sps;
             vui_t *ps_vui_old = &ps_sps_old->s_vui;
 
             if (ps_vui->u1_video_full_range_flag != ps_vui_old->u1_video_full_range_flag ||
