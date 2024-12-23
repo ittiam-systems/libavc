@@ -353,54 +353,42 @@ IV_API_CALL_STATUS_T Codec::decodeFrame(const uint8_t *data, size_t size, size_t
     return ret;
 }
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
-    if(size < 1)
-    {
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+    if(size < 1) {
         return 0;
     }
 
     WORD32 ret;
-
-    size_t colorFormatOfst = std::min((size_t) OFFSET_COLOR_FORMAT, size - 1);
-    size_t numCoresOfst = std::min((size_t) OFFSET_NUM_CORES, size - 1);
-    size_t architectureOfst = std::min((size_t) OFFSET_ARCH, size - 1);
+    size_t colorFormatOfst = std::min((size_t)OFFSET_COLOR_FORMAT, size - 1);
+    size_t numCoresOfst = std::min((size_t)OFFSET_NUM_CORES, size - 1);
+    size_t architectureOfst = std::min((size_t)OFFSET_ARCH, size - 1);
     size_t architectureIdx = data[architectureOfst] % kSupportedArchitectures;
     size_t colorFormatIdx = data[colorFormatOfst] % kSupportedColorFormats;
     uint32_t numCores = (data[numCoresOfst] % kMaxCores) + 1;
     uint32_t numDecodeCalls = 0;
 
-    IVD_ARCH_T arch = (IVD_ARCH_T) supportedArchitectures[architectureIdx];
-    IV_COLOR_FORMAT_T colorFormat = (IV_COLOR_FORMAT_T) (supportedColorFormats[colorFormatIdx]);
+    IVD_ARCH_T arch = (IVD_ARCH_T)supportedArchitectures[architectureIdx];
+    IV_COLOR_FORMAT_T colorFormat = (IV_COLOR_FORMAT_T)(supportedColorFormats[colorFormatIdx]);
 
     Codec cCodec = Codec(colorFormat, numCores);
-
     cCodec.setArchitecture(arch);
 
     ret = cCodec.decodeHeader(data, size);
-
-    if(IV_SUCCESS != ret)
-    {
+    if(IV_SUCCESS != ret) {
         return 0;
     }
 
     ret = cCodec.allocFrame();
-
-    if(IV_SUCCESS != ret)
-    {
+    if(IV_SUCCESS != ret) {
         cCodec.freeFrame();
-
         return 0;
     }
 
-    while((size > 0) && (numDecodeCalls < kMaxNumDecodeCalls))
-    {
+    while((size > 0) && (numDecodeCalls < kMaxNumDecodeCalls)) {
         size_t bytesConsumed;
-
         IV_API_CALL_STATUS_T ret = cCodec.decodeFrame(data, size, &bytesConsumed);
 
-        if(ret != IV_SUCCESS)
-        {
+        if(ret != IV_SUCCESS) {
             break;
         }
 
