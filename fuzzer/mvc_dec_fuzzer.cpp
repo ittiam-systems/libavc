@@ -353,8 +353,16 @@ IV_API_CALL_STATUS_T Codec::decodeFrame(const uint8_t *data, size_t size, size_t
     return ret;
 }
 
+static const IV_COLOR_FORMAT_T supportedColorFormats[] = {
+    IV_YUV_420P, IV_YUV_422ILE, IV_YUV_420SP_UV, IV_YUV_420SP_VU
+};
+static const IVD_ARCH_T supportedArchitectures[] = {
+    ARCH_ARM_NEONINTR, ARCH_X86_GENERIC, ARCH_X86_SSSE3, ARCH_X86_SSE42, ARCH_ARM_GENERIC
+};
+static const int kMaxNumDecodeCalls = 5000;
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-    if(size < 1) {
+    if (size < 1) {
         return 0;
     }
 
@@ -374,21 +382,21 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     cCodec.setArchitecture(arch);
 
     ret = cCodec.decodeHeader(data, size);
-    if(IV_SUCCESS != ret) {
+    if (IV_SUCCESS != ret) {
         return 0;
     }
 
     ret = cCodec.allocFrame();
-    if(IV_SUCCESS != ret) {
+    if (IV_SUCCESS != ret) {
         cCodec.freeFrame();
         return 0;
     }
 
-    while((size > 0) && (numDecodeCalls < kMaxNumDecodeCalls)) {
+    while ((size > 0) && (numDecodeCalls < kMaxNumDecodeCalls)) {
         size_t bytesConsumed;
         IV_API_CALL_STATUS_T ret = cCodec.decodeFrame(data, size, &bytesConsumed);
 
-        if(ret != IV_SUCCESS) {
+        if (ret != IV_SUCCESS) {
             break;
         }
 
