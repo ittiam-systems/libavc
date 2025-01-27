@@ -737,9 +737,10 @@ static IV_API_CALL_STATUS_T imvcd_view_decode(iv_obj_t *ps_dec_hdl, imvcd_video_
               parsing than what was implied by the distance between successive
               start codes.The primary culprit is the NEXTBITS macro which requires
               reading 4 additional bytes of the bitstream buffer.To alleviate
-              this, 4 bytes per 4x4 TU have been additionally allocated to the
-              bitstream buffer. */
-            UWORD32 u4_nalu_buf_size = ((UWORD32) i4_nalu_length) + 8 + 4 * 16;
+              this, 16 bytes per 4x4 TU have been additionally allocated to the
+              bitstream buffer. Also, chroma bytes are added for 4:2:0/4:2:2 */
+
+            UWORD32 u4_nalu_buf_size = ((UWORD32) i4_nalu_length) + 8 + EXTRA_BS_OFFSET;
 
             if(u4_nalu_buf_size > u4_bitstream_buf_size)
             {
