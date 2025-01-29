@@ -83,6 +83,7 @@ cc_defaults {
         "-Wall",
         "-Werror",
         "-Wno-error=constant-conversion",
+        "-UKEEP_THREADS_ACTIVE",
     ],
     arch: {
         arm: {
