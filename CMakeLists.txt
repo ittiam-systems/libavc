@@ -18,6 +18,7 @@ set(AVC_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 option(ENABLE_MVC "Enables svcenc and svcdec builds" OFF)
 option(ENABLE_SVC "Enables svcenc and svcdec builds" OFF)
 option(ENABLE_TESTS "Enables gtest based unit tests" OFF)
+option(KEEP_THREADS_ACTIVE "Enable KEEP THREADS ACTIVE" OFF)
 
 if("${AVC_ROOT}" STREQUAL "${AVC_CONFIG_DIR}")
   message(

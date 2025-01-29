@@ -109,6 +109,278 @@
 /* Function Definitions                                                      */
 /*****************************************************************************/
 
+#ifdef KEEP_THREADS_ACTIVE
+/**
+*******************************************************************************
+*
+* @brief
+*  Initializes the thread pool for multi-threaded encoding.
+*
+* @par Description:
+*  Creates and initializes the thread pool based on the number of configured
+*  cores. It spawns worker threads and sets up necessary synchronization
+*  mechanisms.
+*
+* @param[in] ps_codec
+*  Pointer to the codec context structure.
+*
+* @returns  IV_SUCCESS on success, IV_FAIL on failure.
+*
+*******************************************************************************
+*/
+WORD32 ih264e_thread_pool_init(codec_t *ps_codec)
+{
+    /* temp var */
+    WORD32 i = 0, j = 0, ret = 0;
+
+    /* thread pool */
+    thread_pool_t *ps_pool = &ps_codec->s_thread_pool;
+
+    /* Return if already initialized */
+    if (ps_pool->i4_init_done == 1) return IV_SUCCESS;
+
+    /* initializing thread pool initialization done */
+    ps_pool->i4_init_done = 0;
+
+    /* initializing end of stream */
+    ps_pool->i4_end_of_stream = 0;
+
+    /* initializing active threads */
+    ps_pool->i4_working_threads = 0;
+
+    /* Initialize new frame ready flag */
+    ps_pool->i4_has_frame = 0;
+
+    /* thread pool mutex init */
+    ret = ithread_mutex_init(ps_codec->s_thread_pool.pv_thread_pool_mutex);
+    if (ret != 0) {
+        ih264e_thread_pool_shutdown(ps_codec);
+        return IV_FAIL;
+    }
+
+    /* thread pool conditional init */
+    ret = ithread_cond_init(ps_codec->s_thread_pool.pv_thread_pool_cond);
+    if (ret != 0) {
+        ih264e_thread_pool_shutdown(ps_codec);
+        return IV_FAIL;
+    }
+
+    for (i = 1; i < ps_codec->s_cfg.u4_num_cores; i++)
+    {
+        ret = ithread_create(&ps_pool->apv_threads[i], NULL, ih264e_thread_worker,
+                             (void *) &ps_codec->as_process[i]);
+        if (ret != 0)
+        {
+            ih264e_thread_pool_shutdown(ps_codec);
+            return IV_FAIL;
+        }
+        ps_codec->ai4_process_thread_created[i] = 1;
+        ps_codec->i4_proc_thread_cnt++;
+    }
+
+    /* Thread pool initialized */
+    ps_pool->i4_init_done = 1;
+    return IV_SUCCESS;
+}
+
+/**
+*******************************************************************************
+*
+* @brief
+*  Shuts down the thread pool and cleans up resources.
+*
+* @par Description:
+*  Signals worker threads to terminate, joins all active threads, and
+*  destroys associated synchronization primitives.
+*
+* @param[in] ps_codec
+*  Pointer to the codec context structure.
+*
+* @returns  IV_SUCCESS on success, IV_FAIL on failure.
+*
+*******************************************************************************
+*/
+WORD32 ih264e_thread_pool_shutdown(codec_t *ps_codec)
+{
+    /* thread pool */
+    thread_pool_t *ps_pool = &ps_codec->s_thread_pool;
+
+    /* temp var */
+    WORD32 i = 0, j = 0;
+    WORD32 ret = IV_SUCCESS;
+
+    /* Wake all threads waiting */
+    ithread_mutex_lock(ps_codec->s_thread_pool.pv_thread_pool_mutex);
+    ps_pool->i4_end_of_stream = 1;
+    ithread_cond_broadcast(ps_codec->s_thread_pool.pv_thread_pool_cond);
+    ithread_mutex_unlock(ps_codec->s_thread_pool.pv_thread_pool_mutex);
+
+    /* Join threads */
+    for (i = 1; i < ps_codec->s_cfg.u4_num_cores; i++)
+    {
+        if (ps_codec->ai4_process_thread_created[i])
+        {
+            if (ithread_join(ps_pool->apv_threads[i], NULL) != 0)
+            {
+                ret = IV_FAIL;
+            }
+            ps_codec->ai4_process_thread_created[i] = 0;
+            ps_codec->i4_proc_thread_cnt--;
+        }
+    }
+
+    /* Destroy all mutexes and conds */
+    ithread_mutex_destroy(ps_codec->s_thread_pool.pv_thread_pool_mutex);
+    ithread_cond_destroy(ps_codec->s_thread_pool.pv_thread_pool_cond);
+
+    return ret;
+}
+
+/**
+*******************************************************************************
+*
+* @brief
+*  Worker thread function for processing encoding tasks.
+*
+* @par Description:
+*  Waits for available jobs and processes encoding tasks until signaled to
+*  terminate.
+*
+* @param[in] pv_proc
+*  Pointer to the process context.
+*
+* @returns  IH264_SUCCESS on completion.
+*
+*******************************************************************************
+*/
+static WORD32 ih264e_thread_worker(void *pv_proc)
+{
+    /* process ctxt */
+    process_ctxt_t *ps_proc = (process_ctxt_t *)pv_proc;
+
+    /* process ctxt */
+    codec_t *ps_codec = ps_proc->ps_codec;
+
+    /* thread pool ctxt */
+    thread_pool_t *ps_pool = &ps_codec->s_thread_pool;
+
+    while (1) {
+        // Wait until a frame is ready or end of stream
+        ithread_mutex_lock(ps_pool->pv_thread_pool_mutex);
+        while (!ps_pool->i4_has_frame && !ps_pool->i4_end_of_stream) {
+            ithread_cond_wait(ps_pool->pv_thread_pool_cond,
+                              ps_pool->pv_thread_pool_mutex);
+        }
+
+        if (ps_pool->i4_end_of_stream) {
+            ithread_mutex_unlock(ps_pool->pv_thread_pool_mutex);
+            break;
+        }
+
+        /* incrementing active threads */
+        ps_pool->i4_working_threads++;
+        ithread_mutex_unlock(ps_pool->pv_thread_pool_mutex);
+
+        /* worker processes available jobs */
+        ih264e_process_thread(pv_proc);
+
+        /* decreasing active threads */
+        ithread_mutex_lock(ps_pool->pv_thread_pool_mutex);
+        ps_pool->i4_working_threads--;
+
+        /* Notify main thread if all workers are done */
+        if (ps_pool->i4_working_threads == 0 &&
+            ih264_get_job_count_in_list(ps_codec->pv_proc_jobq) == 0 &&
+            ih264_get_job_count_in_list(ps_codec->pv_entropy_jobq) == 0)
+        {
+            ps_pool->i4_has_frame = 0;
+            ithread_cond_signal(ps_pool->pv_thread_pool_cond);
+        }
+        ithread_mutex_unlock(ps_pool->pv_thread_pool_mutex);
+    }
+
+    return IH264_SUCCESS;
+}
+
+/**
+*******************************************************************************
+*
+* @brief
+*  Resets the thread pool state for the next encoding frame.
+*
+* @par Description:
+*  Resets the active thread count and signals worker threads to start
+*  processing a new frame.
+*
+* @param[in] ps_codec
+*  Pointer to the codec context structure.
+*
+* @returns  IH264_SUCCESS on success.
+*
+*******************************************************************************
+*/
+WORD32 ih264e_thread_pool_activate(codec_t *ps_codec)
+{
+    IH264_ERROR_T ret = IH264_SUCCESS;
+
+    /* thread pool ctxt */
+    thread_pool_t *ps_pool = &ps_codec->s_thread_pool;
+
+    if (ps_codec->i4_proc_thread_cnt == 0) {
+        return ret;
+    }
+
+    /* reset working threads and new frame */
+    ithread_mutex_lock(ps_pool->pv_thread_pool_mutex);
+    ps_pool->i4_working_threads = 0;
+    ps_pool->i4_has_frame = 1;
+    ithread_cond_broadcast(ps_pool->pv_thread_pool_cond);
+    ithread_mutex_unlock(ps_pool->pv_thread_pool_mutex);
+
+    return ret;
+}
+
+/**
+*******************************************************************************
+*
+* @brief
+*  Synchronizes the thread pool by waiting for all tasks to complete.
+*
+* @par Description:
+*  Ensures that all worker threads complete their processing before
+*  proceeding to the next frame.
+*
+* @param[in] ps_codec
+*  Pointer to the codec context structure.
+*
+* @returns  IH264_SUCCESS on success.
+*
+*******************************************************************************
+*/
+WORD32 ih264e_thread_pool_sync(codec_t *ps_codec)
+{
+    IH264_ERROR_T ret = IH264_SUCCESS;
+
+    /* thread pool ctxt */
+    thread_pool_t *ps_pool = &ps_codec->s_thread_pool;
+
+    /* skip for single thread */
+    if (ps_codec->i4_proc_thread_cnt == 0) {
+        return ret;
+    }
+
+    // Wait for workers to complete
+    ithread_mutex_lock(ps_pool->pv_thread_pool_mutex);
+    while (ps_pool->i4_has_frame == 1) {
+        ithread_cond_wait(ps_pool->pv_thread_pool_cond,
+                          ps_pool->pv_thread_pool_mutex);
+    }
+    ithread_mutex_unlock(ps_pool->pv_thread_pool_mutex);
+
+    return ret;
+}
+#else
+
 /**
 ******************************************************************************
 *
@@ -149,6 +421,7 @@ void ih264e_join_threads(codec_t *ps_codec)
 
    ps_codec->i4_proc_thread_cnt = 0;
 }
+#endif /* KEEP_THREADS_ACTIVE */
 
 /**
 ******************************************************************************
@@ -586,6 +859,11 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
         {
             ps_codec->i4_gen_header = 1;
         }
+
+#ifdef KEEP_THREADS_ACTIVE /* initialize thread pool */
+        ih264e_thread_pool_init(ps_codec);
+#endif /* KEEP_THREADS_ACTIVE */
+
     }
 
     /* generate header and return when encoder is operated in header mode */
@@ -667,6 +945,16 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
                             ps_video_encode_op->s_ive_op.u4_error_code,
                             IV_FAIL);
 
+#ifdef KEEP_THREADS_ACTIVE
+        /* reset thread pool and prepare for new frame */
+        ih264e_thread_pool_activate(ps_codec);
+
+        /* main thread */
+        ih264e_process_thread(&ps_codec->as_process[0]);
+
+        /* sync all threads */
+        ih264e_thread_pool_sync(ps_codec);
+#else
         for (i = 0; i < num_thread_cnt; i++)
         {
             ret = ithread_create(ps_codec->apv_proc_thread_handle[i],
@@ -690,6 +978,7 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
         /* Join threads at the end of encoding a frame */
         ih264e_join_threads(ps_codec);
+#endif /* KEEP_THREADS_ACTIVE */
 
         ih264_list_reset(ps_codec->pv_proc_jobq);
 
