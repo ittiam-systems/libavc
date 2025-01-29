@@ -41,8 +41,23 @@
 /*****************************************************************************/
 /* Function Declarations                                                     */
 /*****************************************************************************/
+#ifdef KEEP_THREADS_ACTIVE
+
+WORD32 ih264e_thread_pool_init(codec_t *ps_codec);
+
+WORD32 ih264e_thread_pool_shutdown(codec_t *ps_codec);
+
+static WORD32 ih264e_thread_worker(void *pv_proc);
+
+WORD32 ih264e_thread_pool_activate(codec_t *ps_codec);
+
+WORD32 ih264e_thread_pool_sync(codec_t *ps_codec);
+
+#else
 
 void ih264e_join_threads(codec_t *ps_codec);
+
+#endif /* KEEP_THREADS_ACTIVE */
 
 void ih264e_compute_quality_stats(process_ctxt_t *ps_proc);
 

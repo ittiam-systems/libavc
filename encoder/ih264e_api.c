@@ -3494,6 +3494,29 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
     }
     DEBUG("\nMemory record Id %d = %d \n", MEM_REC_SLICE_MAP, ps_mem_rec->u4_mem_size);
 
+#ifdef KEEP_THREADS_ACTIVE
+    /************************************************************************
+    * Request memory for thread pool context                            *
+    ***********************************************************************/
+    ps_mem_rec = &ps_mem_rec_base[MEM_REC_THREAD_POOL];
+    {
+        /* total size of the mem record */
+        WORD32 total_size = 0;
+
+        /* mutex size */
+        total_size += ALIGN128(ithread_get_mutex_lock_size());
+
+        /* condition variable size */
+        total_size += ALIGN128(ithread_get_cond_size());
+
+        /* size for thread handles array */
+        total_size += (MAX_PROCESS_THREADS * ALIGN128(ithread_get_handle_size()));
+
+        /* Store the total calculated size in memory record */
+        ps_mem_rec->u4_mem_size = total_size;
+    }
+    DEBUG("\nMemory record Id %d = %d \n", MEM_REC_THREAD_POOL, ps_mem_rec->u4_mem_size);
+#else
     /************************************************************************
      * Request memory to hold thread handles for each processing thread     *
      ************************************************************************/
@@ -3504,6 +3527,7 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
         ps_mem_rec->u4_mem_size = MAX_PROCESS_THREADS * handle_size;
     }
     DEBUG("\nMemory record Id %d = %d \n", MEM_REC_THREAD_HANDLE, ps_mem_rec->u4_mem_size);
+#endif /* KEEP_THREADS_ACTIVE */
 
     /************************************************************************
      * Request memory to hold mutex for control calls                       *
@@ -4417,6 +4441,29 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
         }
     }
 
+#ifdef KEEP_THREADS_ACTIVE
+    ps_mem_rec = &ps_mem_rec_base[MEM_REC_THREAD_POOL];
+    {
+        /* temp var */
+        WORD32 i = 0;
+
+        UWORD8 *pu1_buf = (UWORD8 *)ps_mem_rec->pv_base;
+
+        /* Assign mutex pointer */
+        ps_codec->s_thread_pool.pv_thread_pool_mutex = (void *)pu1_buf;
+        pu1_buf += ALIGN128(ithread_get_mutex_lock_size());
+
+        /* Assign condition variable pointer */
+        ps_codec->s_thread_pool.pv_thread_pool_cond = (void *)pu1_buf;
+        pu1_buf += ALIGN128(ithread_get_cond_size());
+
+        for (i = 0; i < MAX_PROCESS_THREADS; i++)
+        {
+            ps_codec->s_thread_pool.apv_threads[i] = (void *)pu1_buf;
+            pu1_buf += ALIGN128(ithread_get_handle_size());
+        }
+    }
+#else
     ps_mem_rec = &ps_mem_rec_base[MEM_REC_THREAD_HANDLE];
     {
         WORD32 handle_size = ithread_get_handle_size();
@@ -4427,6 +4474,7 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
                             + (i * handle_size);
         }
     }
+#endif /* KEEP_THREADS_ACTIVE */
 
     ps_mem_rec = &ps_mem_rec_base[MEM_REC_CTL_MUTEX];
     {
@@ -4940,8 +4988,12 @@ static WORD32 ih264e_retrieve_memrec(iv_obj_t *ps_codec_obj,
         return IV_FAIL;
     }
 
+#ifdef KEEP_THREADS_ACTIVE
+    ih264e_thread_pool_shutdown(ps_codec);
+#else
     /* join threads upon at end of sequence */
     ih264e_join_threads(ps_codec);
+#endif /* KEEP_THREADS_ACTIVE */
 
     /* collect list of memory records used by the encoder library */
     memcpy(ps_ip->s_ive_ip.ps_mem_rec, ps_codec->ps_mem_rec_backup,
@@ -6133,6 +6185,10 @@ static WORD32 ih264e_reset(iv_obj_t *ps_codec_obj,
 
     if (ps_codec != NULL)
     {
+#ifdef KEEP_THREADS_ACTIVE
+        /* Shutdown active threads before reinitialization */
+        ih264e_thread_pool_shutdown(ps_codec);
+#endif
         ih264e_init(ps_codec);
     }
     else
