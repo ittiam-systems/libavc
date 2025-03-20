@@ -109,7 +109,6 @@
 /* Function Definitions                                                      */
 /*****************************************************************************/
 
-#ifdef KEEP_THREADS_ACTIVE
 /**
 *******************************************************************************
 *
@@ -378,7 +377,6 @@ WORD32 ih264e_thread_pool_sync(codec_t *ps_codec)
 
     return ret;
 }
-#else
 
 /**
 ******************************************************************************
@@ -420,7 +418,6 @@ void ih264e_join_threads(codec_t *ps_codec)
 
    ps_codec->i4_proc_thread_cnt = 0;
 }
-#endif /* KEEP_THREADS_ACTIVE */
 
 /**
 ******************************************************************************
@@ -859,10 +856,10 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
             ps_codec->i4_gen_header = 1;
         }
 
-#ifdef KEEP_THREADS_ACTIVE /* initialize thread pool */
-        ih264e_thread_pool_init(ps_codec);
-#endif /* KEEP_THREADS_ACTIVE */
-
+        if (ps_codec->s_cfg.u4_keep_threads_active)
+        {
+            ih264e_thread_pool_init(ps_codec);
+        }
     }
 
     /* generate header and return when encoder is operated in header mode */
@@ -944,40 +941,42 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
                             ps_video_encode_op->s_ive_op.u4_error_code,
                             IV_FAIL);
 
-#ifdef KEEP_THREADS_ACTIVE
-        /* reset thread pool and prepare for new frame */
-        ih264e_thread_pool_activate(ps_codec);
-
-        /* main thread */
-        ih264e_process_thread(&ps_codec->as_process[0]);
-
-        /* sync all threads */
-        ih264e_thread_pool_sync(ps_codec);
-#else
-        for (i = 0; i < num_thread_cnt; i++)
+        if (ps_codec->s_cfg.u4_keep_threads_active)
         {
-            ret = ithread_create(ps_codec->apv_proc_thread_handle[i],
-                                 NULL,
-                                 (void *)ih264e_process_thread,
-                                 &ps_codec->as_process[i + 1]);
-            if (ret != 0)
+            /* reset thread pool and prepare for new frame */
+            ih264e_thread_pool_activate(ps_codec);
+
+            /* main thread */
+            ih264e_process_thread(&ps_codec->as_process[0]);
+
+            /* sync all threads */
+            ih264e_thread_pool_sync(ps_codec);
+        }
+        else
+        {
+            for (i = 0; i < num_thread_cnt; i++)
             {
-                printf("pthread Create Failed");
-                assert(0);
+                ret = ithread_create(ps_codec->apv_proc_thread_handle[i],
+                                     NULL,
+                                     (void *)ih264e_process_thread,
+                                     &ps_codec->as_process[i + 1]);
+                if (ret != 0)
+                {
+                    printf("pthread Create Failed");
+                    assert(0);
+                }
+
+                ps_codec->ai4_process_thread_created[i] = 1;
+
+                ps_codec->i4_proc_thread_cnt++;
             }
 
-            ps_codec->ai4_process_thread_created[i] = 1;
+            /* launch job */
+            ih264e_process_thread(ps_proc);
 
-            ps_codec->i4_proc_thread_cnt++;
+            /* Join threads at the end of encoding a frame */
+            ih264e_join_threads(ps_codec);
         }
-
-
-        /* launch job */
-        ih264e_process_thread(ps_proc);
-
-        /* Join threads at the end of encoding a frame */
-        ih264e_join_threads(ps_codec);
-#endif /* KEEP_THREADS_ACTIVE */
 
         ih264_list_reset(ps_codec->pv_proc_jobq);
 
@@ -1267,12 +1266,10 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
     ps_video_encode_op->s_ive_op.s_out_buf = s_out_buf.s_bits_buf;
 
-#ifdef KEEP_THREADS_ACTIVE
-    if(ps_video_encode_op->s_ive_op.u4_is_last)
+    if (ps_codec->s_cfg.u4_keep_threads_active && ps_video_encode_op->s_ive_op.u4_is_last)
     {
         ih264e_thread_pool_shutdown(ps_codec);
     }
-#endif
 
     return IV_SUCCESS;
 }
