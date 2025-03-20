@@ -582,6 +582,9 @@ typedef struct
     /** SEI structure                                                         */
     sei_params_t                                s_sei;
 
+    /** Enabling thread pool                                                  */
+    UWORD32                                     u4_keep_threads_active;
+
 }cfg_params_t;
 
 
@@ -1155,7 +1158,6 @@ typedef struct
 
 } entropy_ctxt_t;
 
-#ifdef KEEP_THREADS_ACTIVE
 /**
  ******************************************************************************
  *  @brief     The thread_pool_t structure manages a pool of worker threads,
@@ -1201,7 +1203,6 @@ typedef struct
     WORD32 i4_working_threads;
 
 } thread_pool_t;
-#endif /* KEEP_THREADS_ACTIVE */
 
 /**
 ******************************************************************************
@@ -2462,12 +2463,10 @@ struct _codec_t
      */
      void *pv_out_buf_mgr_base;
 
-#ifdef KEEP_THREADS_ACTIVE
     /**
      * Thread pool
      */
     thread_pool_t s_thread_pool;
-#endif /* KEEP_THREADS_ACTIVE */
 
     /**
      * Buffer manager for output buffers
@@ -2555,12 +2554,10 @@ struct _codec_t
      */
     process_ctxt_t as_process[MAX_PROCESS_CTXT];
 
-#ifndef KEEP_THREADS_ACTIVE
     /**
      * Thread handle for each of the processing threads
      */
     void *apv_proc_thread_handle[MAX_PROCESS_THREADS];
-#endif
 
     /**
      * Structure for global PSNR

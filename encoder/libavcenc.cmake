@@ -90,7 +90,3 @@ add_library(libavcenc STATIC ${LIBAVC_COMMON_SRCS} ${LIBAVC_COMMON_ASMS}
                              ${LIBAVCENC_SRCS} ${LIBAVCENC_ASMS})
 
 target_compile_definitions(libavcenc PRIVATE N_MB_ENABLE)
-
-if(KEEP_THREADS_ACTIVE)
-  target_compile_definitions(libavcenc PRIVATE KEEP_THREADS_ACTIVE)
-endif()

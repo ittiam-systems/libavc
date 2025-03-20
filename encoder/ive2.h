@@ -325,11 +325,14 @@ typedef struct
     /** Slice parameter                                                     */
     UWORD32                                 u4_slice_param;
 
-    /** Processor architecture                                          */
-    IV_ARCH_T                                   e_arch;
+    /** Processor architecture                                              */
+    IV_ARCH_T                               e_arch;
 
-    /** SOC details                                                     */
-    IV_SOC_T                                    e_soc;
+    /** SOC details                                                         */
+    IV_SOC_T                                e_soc;
+
+    /** Enabling thread pool                                                */
+    UWORD32                                 u4_keep_threads_active;
 
 
 }ive_init_ip_t;

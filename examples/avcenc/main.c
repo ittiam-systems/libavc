@@ -134,6 +134,7 @@ typedef enum
     MB_INFO_TYPE,
     PIC_INFO_FILE,
     PIC_INFO_TYPE,
+    KEEP_THREADS_ACTIVE,
 } ARGUMENT_T;
 
 /*****************************************************************************/
@@ -234,6 +235,7 @@ static const argument_t argument_mapping[] =
         { "--", "--mb_info_type", MB_INFO_TYPE, "MB info type\n"},
         { "--", "--pic_info_file", PIC_INFO_FILE, "Pic info file\n"},
         { "--", "--pic_info_type", PIC_INFO_TYPE, "Pic info type\n"},
+        { "--", "--keep_threads_active", KEEP_THREADS_ACTIVE, "keep threads active\n"},
 };
 
 
@@ -775,6 +777,10 @@ void parse_argument(app_ctxt_t *ps_app_ctxt, CHAR *argument, CHAR *value)
 
         case INTRA_4x4_ENABLE:
             sscanf(value, "%d", &ps_app_ctxt->u4_enable_intra_4x4);
+            break;
+
+        case KEEP_THREADS_ACTIVE:
+            sscanf(value, "%d", &ps_app_ctxt->u4_keep_threads_active);
             break;
 
         case INVALID:
@@ -2728,6 +2734,7 @@ int main(int argc, char *argv[])
         s_fill_mem_rec_ip.s_ive_ip.e_color_format = DEFAULT_INP_COLOR_FMT;
         s_fill_mem_rec_ip.s_ive_ip.u4_max_srch_rng_x = DEFAULT_MAX_SRCH_RANGE_X;
         s_fill_mem_rec_ip.s_ive_ip.u4_max_srch_rng_y = DEFAULT_MAX_SRCH_RANGE_Y;
+        s_fill_mem_rec_ip.s_ive_ip.u4_keep_threads_active = s_app_ctxt.u4_keep_threads_active;
 
         s_fill_mem_rec_op.s_ive_op.u4_size = sizeof(ih264e_fill_mem_rec_op_t);
 
@@ -2810,6 +2817,7 @@ int main(int argc, char *argv[])
         s_init_ip.s_ive_ip.u4_slice_param = s_app_ctxt.u4_slice_param;
         s_init_ip.s_ive_ip.e_arch = s_app_ctxt.e_arch;
         s_init_ip.s_ive_ip.e_soc = s_app_ctxt.e_soc;
+        s_init_ip.s_ive_ip.u4_keep_threads_active = s_app_ctxt.u4_keep_threads_active;
 
         s_init_op.s_ive_op.u4_size = sizeof(ih264e_init_op_t);
 

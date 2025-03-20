@@ -558,7 +558,6 @@ IH264_ERROR_T ih264_list_dequeue(list_t *ps_list, void *pv_buf, WORD32 blocking)
     return ret;
 }
 
-#ifdef KEEP_THREADS_ACTIVE
 /**
 *******************************************************************************
 *
@@ -585,4 +584,3 @@ WORD32 ih264_get_job_count_in_list(list_t *ps_list)
     RETURN_IF((ih264_list_unlock(ps_list) != IH264_SUCCESS), 0);
     return jobs;
 }
-#endif /* KEEP_THREADS_ACTIVE */

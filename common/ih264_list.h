@@ -100,10 +100,6 @@ IH264_ERROR_T ih264_list_queue(list_t *ps_list, void *pv_buf, WORD32 blocking);
 IH264_ERROR_T ih264_list_dequeue(list_t *ps_list, void *pv_buf,
                                  WORD32 blocking);
 
-#ifdef KEEP_THREADS_ACTIVE
-
 WORD32 ih264_get_job_count_in_list(list_t *ps_list);
-
-#endif /* KEEP_THREADS_ACTIVE */
 
 #endif /* _IH264_LIST_H_ */

@@ -95,12 +95,8 @@ WORD32  ithread_cond_wait(void *cond, void *mutex);
 
 WORD32  ithread_cond_signal(void *cond);
 
-#ifdef KEEP_THREADS_ACTIVE
-
 UWORD32 ithread_get_cond_size(void);
 
 WORD32  ithread_cond_broadcast(void *cond);
-
-#endif /* KEEP_THREADS_ACTIVE */
 
 #endif /* _ITHREAD_H_ */

@@ -384,6 +384,8 @@ typedef struct
     ih264e_ctl_set_sei_ave_params_ip_t s_sei_ave_params;
     ih264e_ctl_set_sei_sii_params_ip_t s_sei_sii_params;
 
+    UWORD32 u4_keep_threads_active;
+
 } app_ctxt_t;
 
 

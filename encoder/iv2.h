@@ -335,6 +335,9 @@ typedef struct {
     /** Maximum search range to be used in Y direction                      */
     UWORD32                                     u4_max_srch_rng_y;
 
+    /** Enabling thread pool                                                */
+    UWORD32                                     u4_keep_threads_active;
+
 }iv_fill_mem_rec_ip_t;
 
 
