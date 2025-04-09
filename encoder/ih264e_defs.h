@@ -469,10 +469,17 @@ enum
      */
     MEM_REC_SLICE_MAP,
 
+#ifdef KEEP_THREADS_ACTIVE
+    /**
+     * Holds thread pool
+     */
+    MEM_REC_THREAD_POOL,
+#else
     /**
      * Holds thread handles
      */
     MEM_REC_THREAD_HANDLE,
+#endif /* KEEP_THREADS_ACTIVE */
 
     /**
      * Holds control call mutex

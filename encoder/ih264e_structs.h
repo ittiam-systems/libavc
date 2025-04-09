@@ -1155,6 +1155,54 @@ typedef struct
 
 } entropy_ctxt_t;
 
+#ifdef KEEP_THREADS_ACTIVE
+/**
+ ******************************************************************************
+ *  @brief     The thread_pool_t structure manages a pool of worker threads,
+ *             providing synchronization mechanisms for job scheduling, codec
+ *             processing, and controlled execution flow.
+ ******************************************************************************
+ */
+typedef struct
+{
+    /**
+     * Array of worker thread handles
+     */
+    void *apv_threads[MAX_PROCESS_THREADS];
+
+    /**
+     * Mutex for synchronizing access to the thread pool
+     */
+    void *pv_thread_pool_mutex;
+
+    /**
+     * Condition variable for signaling worker threads
+     */
+    void *pv_thread_pool_cond;
+
+    /**
+     * Flag indicating whether the thread pool is initialized
+     */
+    WORD32 i4_init_done;
+
+    /**
+     * Flag indicating whether the thread pool should be terminated
+     */
+    WORD32 i4_end_of_stream;
+
+    /**
+     * Flag indicating the availability of a new frame for processing
+     */
+    WORD32 i4_has_frame;
+
+    /**
+     * Number of threads currently processing tasks
+     */
+    WORD32 i4_working_threads;
+
+} thread_pool_t;
+#endif /* KEEP_THREADS_ACTIVE */
+
 /**
 ******************************************************************************
 *  @brief      macro block info.
@@ -2414,6 +2462,13 @@ struct _codec_t
      */
      void *pv_out_buf_mgr_base;
 
+#ifdef KEEP_THREADS_ACTIVE
+    /**
+     * Thread pool
+     */
+    thread_pool_t s_thread_pool;
+#endif /* KEEP_THREADS_ACTIVE */
+
     /**
      * Buffer manager for output buffers
      */
@@ -2500,10 +2555,12 @@ struct _codec_t
      */
     process_ctxt_t as_process[MAX_PROCESS_CTXT];
 
+#ifndef KEEP_THREADS_ACTIVE
     /**
      * Thread handle for each of the processing threads
      */
     void *apv_proc_thread_handle[MAX_PROCESS_THREADS];
+#endif
 
     /**
      * Structure for global PSNR
