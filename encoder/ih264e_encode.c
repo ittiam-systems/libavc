@@ -1276,5 +1276,12 @@ WORD32 ih264e_encode(iv_obj_t *ps_codec_obj, void *pv_api_ip, void *pv_api_op)
 
     ps_video_encode_op->s_ive_op.s_out_buf = s_out_buf.s_bits_buf;
 
+#ifdef KEEP_THREADS_ACTIVE
+    if(ps_video_encode_op->s_ive_op.u4_is_last)
+    {
+        ih264e_thread_pool_shutdown(ps_codec);
+    }
+#endif
+
     return IV_SUCCESS;
 }
