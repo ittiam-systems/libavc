@@ -131,7 +131,7 @@
 WORD32 ih264e_thread_pool_init(codec_t *ps_codec)
 {
     /* temp var */
-    WORD32 i = 0, j = 0, ret = 0;
+    WORD32 i = 0, ret = 0;
 
     /* thread pool */
     thread_pool_t *ps_pool = &ps_codec->s_thread_pool;
@@ -151,33 +151,19 @@ WORD32 ih264e_thread_pool_init(codec_t *ps_codec)
     /* Initialize new frame ready flag */
     ps_pool->i4_has_frame = 0;
 
-    /* thread pool mutex init */
-    ret = ithread_mutex_init(ps_codec->s_thread_pool.pv_thread_pool_mutex);
-    if (ret != 0)
-    {
-        ih264e_thread_pool_shutdown(ps_codec);
-        return IV_FAIL;
-    }
-
-    /* thread pool conditional init */
-    ret = ithread_cond_init(ps_codec->s_thread_pool.pv_thread_pool_cond);
-    if (ret != 0)
-    {
-        ih264e_thread_pool_shutdown(ps_codec);
-        return IV_FAIL;
-    }
-
     for (i = 1; i < ps_codec->s_cfg.u4_num_cores; i++)
     {
         ret = ithread_create(&ps_pool->apv_threads[i], NULL, ih264e_thread_worker,
                              (void *) &ps_codec->as_process[i]);
         if (ret != 0)
         {
-            ih264e_thread_pool_shutdown(ps_codec);
-            return IV_FAIL;
+            ps_codec->ai4_process_thread_created[i] = 0;
         }
-        ps_codec->ai4_process_thread_created[i] = 1;
-        ps_codec->i4_proc_thread_cnt++;
+        else
+        {
+            ps_codec->ai4_process_thread_created[i] = 1;
+            ps_codec->i4_proc_thread_cnt++;
+        }
     }
 
     /* Thread pool initialized */
@@ -208,7 +194,7 @@ WORD32 ih264e_thread_pool_shutdown(codec_t *ps_codec)
     thread_pool_t *ps_pool = &ps_codec->s_thread_pool;
 
     /* temp var */
-    WORD32 i = 0, j = 0;
+    WORD32 i = 0;
     WORD32 ret = IV_SUCCESS;
 
     /* Wake all threads waiting */
@@ -226,14 +212,19 @@ WORD32 ih264e_thread_pool_shutdown(codec_t *ps_codec)
             {
                 ret = IV_FAIL;
             }
-            ps_codec->ai4_process_thread_created[i] = 0;
-            ps_codec->i4_proc_thread_cnt--;
+            else
+            {
+                ps_codec->ai4_process_thread_created[i] = 0;
+                ps_codec->i4_proc_thread_cnt--;
+            }
         }
     }
 
-    /* Destroy all mutexes and conds */
-    ithread_mutex_destroy(ps_codec->s_thread_pool.pv_thread_pool_mutex);
-    ithread_cond_destroy(ps_codec->s_thread_pool.pv_thread_pool_cond);
+    /* Reset all thread pool state variables */
+    ps_pool->i4_init_done = 0;
+    ps_pool->i4_end_of_stream = 0;
+    ps_pool->i4_working_threads = 0;
+    ps_pool->i4_has_frame = 0;
 
     return ret;
 }
