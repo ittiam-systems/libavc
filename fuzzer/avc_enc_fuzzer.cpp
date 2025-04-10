@@ -136,6 +136,7 @@ class Codec {
     void setSeiCcvParams();
     void setSeiSiiParams();
     void logVersion();
+    void retrieveMemRecords();
     bool mHalfPelEnable = 1;
     bool mQPelEnable = 1;
     bool mIntra4x4 = 0;
@@ -878,6 +879,21 @@ void Codec::logVersion() {
     return;
 }
 
+void Codec::retrieveMemRecords()
+{
+    iv_retrieve_mem_rec_ip_t s_retrieve_ip{};
+    iv_retrieve_mem_rec_op_t s_retrieve_op{};
+
+    s_retrieve_ip.e_cmd = IV_CMD_RETRIEVE_MEMREC;
+    s_retrieve_ip.u4_size = sizeof(iv_retrieve_mem_rec_ip_t);
+    s_retrieve_ip.ps_mem_rec = mMemRecords;
+
+    s_retrieve_op.u4_size = sizeof(iv_retrieve_mem_rec_op_t);
+
+    ive_api_function(mCodecCtx, &s_retrieve_ip, &s_retrieve_op);
+    return;
+}
+
 void Codec::encodeFrames(const uint8_t *data, size_t size) {
     size_t frameSize = (mIvVideoColorFormat == IV_YUV_422ILE) ? (mWidth * mHeight * 2)
                                                               : ((mWidth * mHeight * 3) / 2);
@@ -982,6 +998,7 @@ void Codec::encodeFrames(const uint8_t *data, size_t size) {
         ++numEncodeCalls;
         free(outputBuffer);
     }
+    retrieveMemRecords();
     for (const auto &buffer : inBuffers) {
         free(std::get<0>(buffer));
         if (std::get<1>(buffer)) {
