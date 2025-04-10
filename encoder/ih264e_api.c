@@ -2857,6 +2857,14 @@ static WORD32 ih264e_init(codec_t *ps_codec)
     /* ctl mutex init */
     ithread_mutex_init(ps_codec->pv_ctl_mutex);
 
+#ifdef KEEP_THREADS_ACTIVE
+    /* thread pool mutex init */
+    ithread_mutex_init(ps_codec->s_thread_pool.pv_thread_pool_mutex);
+
+    /* thread pool conditional init */
+    ithread_cond_init(ps_codec->s_thread_pool.pv_thread_pool_cond);
+#endif /* KEEP_THREADS_ACTIVE */
+
     /* Set encoder chroma format */
     ps_codec->e_codec_color_format =
                     (ps_cfg->e_inp_color_fmt == IV_YUV_420SP_VU) ?
@@ -5005,7 +5013,10 @@ static WORD32 ih264e_retrieve_memrec(iv_obj_t *ps_codec_obj,
     ih264_list_free(ps_codec->pv_proc_jobq);
     ithread_mutex_destroy(ps_codec->pv_ctl_mutex);
     ithread_mutex_destroy(ps_codec->pv_entropy_mutex);
-
+#ifdef KEEP_THREADS_ACTIVE
+    ithread_cond_destroy(ps_codec->s_thread_pool.pv_thread_pool_cond);
+    ithread_mutex_destroy(ps_codec->s_thread_pool.pv_thread_pool_mutex);
+#endif /* KEEP_THREADS_ACTIVE */
 
     ih264_buf_mgr_free((buf_mgr_t *)ps_codec->pv_mv_buf_mgr);
     ih264_buf_mgr_free((buf_mgr_t *)ps_codec->pv_ref_buf_mgr);
