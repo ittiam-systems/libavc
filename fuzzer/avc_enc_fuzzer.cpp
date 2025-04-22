@@ -235,7 +235,7 @@ bool Codec::initEncoder(const uint8_t **pdata, size_t *psize) {
     mForceIdrInterval = data[IDX_FORCE_IDR_INTERVAL] & 0x07;
     mDynamicBitRateInterval = data[IDX_DYNAMIC_BITRATE_INTERVAL] & 0x07;
     mDynamicFrameRateInterval = data[IDX_DYNAMIC_FRAME_RATE_INTERVAL] & 0x07;
-    mKeepThreadsActive = 0;
+    mKeepThreadsActive = 1;
 
     /* Getting Number of MemRecords */
     iv_num_mem_rec_ip_t sNumMemRecIp{};
