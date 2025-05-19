@@ -152,7 +152,7 @@ WORD32 ih264e_thread_pool_init(codec_t *ps_codec)
 
     for (i = 1; i < ps_codec->s_cfg.u4_num_cores; i++)
     {
-        ret = ithread_create(&ps_pool->apv_threads[i], NULL, ih264e_thread_worker,
+        ret = ithread_create(ps_pool->apv_threads[i], NULL, ih264e_thread_worker,
                              (void *) &ps_codec->as_process[i]);
         if (ret != 0)
         {
