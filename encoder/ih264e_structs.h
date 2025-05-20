@@ -1168,11 +1168,6 @@ typedef struct
 typedef struct
 {
     /**
-     * Array of worker thread handles
-     */
-    void *apv_threads[MAX_PROCESS_THREADS];
-
-    /**
      * Mutex for synchronizing access to the thread pool
      */
     void *pv_thread_pool_mutex;

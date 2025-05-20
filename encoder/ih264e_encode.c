@@ -152,7 +152,7 @@ WORD32 ih264e_thread_pool_init(codec_t *ps_codec)
 
     for (i = 1; i < ps_codec->s_cfg.u4_num_cores; i++)
     {
-        ret = ithread_create(ps_pool->apv_threads[i], NULL, ih264e_thread_worker,
+        ret = ithread_create(ps_codec->apv_proc_thread_handle[i], NULL, ih264e_thread_worker,
                              (void *) &ps_codec->as_process[i]);
         if (ret != 0)
         {
@@ -207,7 +207,7 @@ WORD32 ih264e_thread_pool_shutdown(codec_t *ps_codec)
     {
         if (ps_codec->ai4_process_thread_created[i])
         {
-            if (ithread_join(ps_pool->apv_threads[i], NULL) != 0)
+            if (ithread_join(ps_codec->apv_proc_thread_handle[i], NULL) != 0)
             {
                 ret = IV_FAIL;
             }
