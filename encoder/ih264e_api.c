@@ -3504,35 +3504,21 @@ static WORD32 ih264e_fill_num_mem_rec(void *pv_api_ip, void *pv_api_op)
     }
     DEBUG("\nMemory record Id %d = %d \n", MEM_REC_SLICE_MAP, ps_mem_rec->u4_mem_size);
 
+    /************************************************************************
+     * Request memory to hold thread handles and synchronization variables  *
+     ************************************************************************/
     ps_mem_rec = &ps_mem_rec_base[MEM_REC_THREAD_HANDLE];
-    /************************************************************************
-     * Request memory for thread pool context                                *
-     ************************************************************************/
-    if (ps_ip->s_ive_ip.u4_keep_threads_active)
     {
-        /* total size of the mem record */
-        WORD32 total_size = 0;
-
-        /* mutex size */
-        total_size += ALIGN128(ithread_get_mutex_lock_size());
-
-        /* condition variable size */
-        total_size += ALIGN128(ithread_get_cond_size());
-
-        /* size for thread handles array */
-        total_size += (MAX_PROCESS_THREADS * ALIGN128(ithread_get_handle_size()));
-
-        /* Store the total calculated size in memory record */
-        ps_mem_rec->u4_mem_size = total_size;
-    }
-    else
-    /************************************************************************
-     * Request memory to hold thread handles for each processing thread     *
-     ************************************************************************/
-    {
+        WORD32 thread_pool_size = 0;
         WORD32 handle_size = ithread_get_handle_size();
 
-        ps_mem_rec->u4_mem_size = MAX_PROCESS_THREADS * handle_size;
+        if (ps_ip->s_ive_ip.u4_keep_threads_active)
+        {
+            thread_pool_size += ithread_get_mutex_lock_size();
+            thread_pool_size += ithread_get_cond_size();
+        }
+
+        ps_mem_rec->u4_mem_size = thread_pool_size + (MAX_PROCESS_THREADS * handle_size);
     }
     DEBUG("\nMemory record Id %d = %d \n", MEM_REC_THREAD_HANDLE, ps_mem_rec->u4_mem_size);
 
@@ -4450,38 +4436,22 @@ static WORD32 ih264e_init_mem_rec(iv_obj_t *ps_codec_obj,
     }
 
     ps_mem_rec = &ps_mem_rec_base[MEM_REC_THREAD_HANDLE];
-    if (ps_ip->s_ive_ip.u4_keep_threads_active)
     {
-        /* temp var */
-        WORD32 i = 0;
-
         UWORD8 *pu1_buf = (UWORD8 *)ps_mem_rec->pv_base;
-
-        /* Assign mutex pointer */
-        ps_codec->s_thread_pool.pv_thread_pool_mutex = (void *)pu1_buf;
-        pu1_buf += ALIGN128(ithread_get_mutex_lock_size());
-
-        /* Assign condition variable pointer */
-        ps_codec->s_thread_pool.pv_thread_pool_cond = (void *)pu1_buf;
-        pu1_buf += ALIGN128(ithread_get_cond_size());
-
-        for (i = 0; i < MAX_PROCESS_THREADS; i++)
-        {
-            ps_codec->s_thread_pool.apv_threads[i] = (void *)pu1_buf;
-            pu1_buf += ALIGN128(ithread_get_handle_size());
-        }
-    }
-    else
-    {
-        /* temp var */
-        WORD32 i = 0;
-
         WORD32 handle_size = ithread_get_handle_size();
 
+        if (ps_ip->s_ive_ip.u4_keep_threads_active)
+        {
+            ps_codec->s_thread_pool.pv_thread_pool_mutex = (void *)pu1_buf;
+            pu1_buf += ithread_get_mutex_lock_size();
+
+            ps_codec->s_thread_pool.pv_thread_pool_cond = (void *)pu1_buf;
+            pu1_buf += ithread_get_cond_size();
+        }
+
         for (i = 0; i < MAX_PROCESS_THREADS; i++)
         {
-            ps_codec->apv_proc_thread_handle[i] = (UWORD8 *) ps_mem_rec->pv_base
-                            + (i * handle_size);
+            ps_codec->apv_proc_thread_handle[i] = (void *)(pu1_buf + (i * handle_size));
         }
     }
 
