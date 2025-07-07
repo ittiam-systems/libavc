@@ -363,7 +363,7 @@ static IV_API_CALL_STATUS_T imvcd_view_ctxt_init(imvcd_create_ip_t *ps_ip,
 
     ps_view_ctxt->i4_max_poc = 0;
     ps_view_ctxt->i4_prev_max_display_seq = 0;
-    ps_view_ctxt->u1_recon_mb_grp = 4;
+    ps_view_ctxt->u4_recon_mb_grp = 4;
     ps_view_ctxt->i4_reorder_depth = -1;
     ps_view_ctxt->u1_second_field = 0;
     ps_view_ctxt->s_prev_seq_params.u1_eoseq_pending = 0;

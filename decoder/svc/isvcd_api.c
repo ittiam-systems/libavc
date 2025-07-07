@@ -1169,7 +1169,7 @@ void isvcd_init_decoder(svc_dec_lyr_struct_t *ps_dec_svc_lyr_params)
 
     ps_dec->i4_max_poc = 0;
     ps_dec->i4_prev_max_display_seq = 0;
-    ps_dec->u1_recon_mb_grp = 4;
+    ps_dec->u4_recon_mb_grp = 4;
     ps_dec->i4_reorder_depth = -1;
 
     /* Field PIC initializations */

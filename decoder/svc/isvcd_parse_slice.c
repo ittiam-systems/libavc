@@ -472,7 +472,7 @@ WORD32 isvcd_start_of_pic(svc_dec_lyr_struct_t *ps_svc_lyr_dec, WORD32 i4_poc,
     ps_dec->ps_mv_cur = ps_dec->s_cur_pic.ps_mv;
     ps_dec->ps_mv_top = ps_dec->ps_mv_top_p[0];
     ps_dec->u1_mv_top_p = 0;
-    ps_dec->u1_mb_idx = 0;
+    ps_dec->u4_mb_idx = 0;
     ps_dec->ps_mv_left = ps_dec->s_cur_pic.ps_mv;
     ps_dec->u2_total_mbs_coded = 0;
     ps_dec->i4_submb_ofst = -(SUB_BLK_SIZE);
@@ -548,11 +548,11 @@ WORD32 isvcd_start_of_pic(svc_dec_lyr_struct_t *ps_svc_lyr_dec, WORD32 i4_poc,
     {
         UWORD8 u1_field_pic_flag = ps_dec->ps_cur_slice->u1_field_pic_flag;
         UWORD8 u1_mbaff = ps_cur_slice->u1_mbaff_frame_flag;
-        UWORD8 uc_lastmbs = (((ps_dec->u2_pic_wd) >> 4) % (ps_dec->u1_recon_mb_grp >> u1_mbaff));
+        UWORD8 uc_lastmbs = (((ps_dec->u2_pic_wd) >> 4) % (ps_dec->u4_recon_mb_grp >> u1_mbaff));
         UWORD16 ui16_lastmbs_widthY =
-            (uc_lastmbs ? (uc_lastmbs << 4) : ((ps_dec->u1_recon_mb_grp >> u1_mbaff) << 4));
+            (uc_lastmbs ? (uc_lastmbs << 4) : ((ps_dec->u4_recon_mb_grp >> u1_mbaff) << 4));
         UWORD16 ui16_lastmbs_widthUV =
-            uc_lastmbs ? (uc_lastmbs << 3) : ((ps_dec->u1_recon_mb_grp >> u1_mbaff) << 3);
+            uc_lastmbs ? (uc_lastmbs << 3) : ((ps_dec->u4_recon_mb_grp >> u1_mbaff) << 3);
 
         ps_dec->s_tran_addrecon.pu1_dest_y = ps_dec->s_cur_pic.pu1_buf1;
         ps_dec->s_tran_addrecon.pu1_dest_u = ps_dec->s_cur_pic.pu1_buf2;
@@ -568,8 +568,8 @@ WORD32 isvcd_start_of_pic(svc_dec_lyr_struct_t *ps_svc_lyr_dec, WORD32 i4_poc,
         }
 
         /* Normal Increment of Pointer */
-        ps_dec->s_tran_addrecon.u4_inc_y[0] = ((ps_dec->u1_recon_mb_grp << 4) >> u1_mbaff);
-        ps_dec->s_tran_addrecon.u4_inc_uv[0] = ((ps_dec->u1_recon_mb_grp << 4) >> u1_mbaff);
+        ps_dec->s_tran_addrecon.u4_inc_y[0] = ((ps_dec->u4_recon_mb_grp << 4) >> u1_mbaff);
+        ps_dec->s_tran_addrecon.u4_inc_uv[0] = ((ps_dec->u4_recon_mb_grp << 4) >> u1_mbaff);
 
         /* End of Row Increment */
         ps_dec->s_tran_addrecon.u4_inc_y[1] =
@@ -583,8 +583,8 @@ WORD32 isvcd_start_of_pic(svc_dec_lyr_struct_t *ps_svc_lyr_dec, WORD32 i4_poc,
         /* only once per picture.                      */
         ih264d_assign_pic_num(ps_dec);
         ps_dec->s_tran_addrecon.u2_mv_top_left_inc =
-            (ps_dec->u1_recon_mb_grp << 2) - 1 - (u1_mbaff << 2);
-        ps_dec->s_tran_addrecon.u2_mv_left_inc = ((ps_dec->u1_recon_mb_grp >> u1_mbaff) - 1)
+            (ps_dec->u4_recon_mb_grp << 2) - 1 - (u1_mbaff << 2);
+        ps_dec->s_tran_addrecon.u2_mv_left_inc = ((ps_dec->u4_recon_mb_grp >> u1_mbaff) - 1)
                                                  << (4 + u1_mbaff);
     }
     /**********************************************************************/

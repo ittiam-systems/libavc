@@ -1095,7 +1095,7 @@ static WORD32 imvcd_pic_init(mvc_dec_ctxt_t *ps_mvcd_ctxt, pocstruct_t *ps_cur_p
     // Increment by 2 ,so that left mb (mbaff decrements by 2)  will always be
     // valid
     ps_view_ctxt->ps_top_mb_row += 2;
-    ps_view_ctxt->u1_mb_idx = 0;
+    ps_view_ctxt->u4_mb_idx = 0;
     ps_view_ctxt->u2_total_mbs_coded = 0;
     ps_view_ctxt->i4_submb_ofst = -(SUB_BLK_SIZE);
     ps_view_ctxt->i2_prev_slice_mbx = -1;
@@ -1148,8 +1148,8 @@ static WORD32 imvcd_pic_init(mvc_dec_ctxt_t *ps_mvcd_ctxt, pocstruct_t *ps_cur_p
                              ps_mvcd_ctxt->ps_cur_au->i4_frame_num,
                              ps_sps->u1_gaps_in_frame_num_value_allowed_flag);
 
-        ps_view_ctxt->s_tran_addrecon.u2_mv_top_left_inc = (ps_view_ctxt->u1_recon_mb_grp << 2) - 1;
-        ps_view_ctxt->s_tran_addrecon.u2_mv_left_inc = (ps_view_ctxt->u1_recon_mb_grp - 1) << 4;
+        ps_view_ctxt->s_tran_addrecon.u2_mv_top_left_inc = (ps_view_ctxt->u4_recon_mb_grp << 2) - 1;
+        ps_view_ctxt->s_tran_addrecon.u2_mv_left_inc = (ps_view_ctxt->u4_recon_mb_grp - 1) << 4;
     }
 
     if((ps_sps->u1_profile_idc == HIGH_PROFILE_IDC) ||
@@ -1242,7 +1242,7 @@ static WORD32 imvcd_corrupted_slice_handler(mvc_dec_ctxt_t *ps_mvcd_ctxt)
     nalu_mvc_ext_t *ps_cur_nalu_mvc_ext = imvcd_get_cur_nalu_mvc_ext(ps_mvcd_ctxt);
 
     UWORD32 u4_num_mbs = 0;
-    UWORD32 u4_mb_idx = ps_view_ctxt->u1_mb_idx;
+    UWORD32 u4_mb_idx = ps_view_ctxt->u4_mb_idx;
     UWORD32 u4_remaining_mbs =
         (ps_view_ctxt->ps_cur_sps->u2_max_mb_addr + 1) - ps_view_ctxt->u2_total_mbs_coded;
 
@@ -1384,7 +1384,7 @@ static WORD32 imvcd_corrupted_slice_handler(mvc_dec_ctxt_t *ps_mvcd_ctxt)
     /******************************************************/
     ps_view_ctxt->u1_qp = ps_slice->u1_slice_qp;
     ih264d_update_qp(ps_view_ctxt, 0);
-    u4_mb_idx = ps_view_ctxt->u1_mb_idx;
+    u4_mb_idx = ps_view_ctxt->u4_mb_idx;
     ps_parse_mb_data = ps_view_ctxt->ps_parse_mb_data;
     u4_num_mbs = u4_mb_idx;
 
@@ -1411,7 +1411,7 @@ static WORD32 imvcd_corrupted_slice_handler(mvc_dec_ctxt_t *ps_mvcd_ctxt)
         ps_cur_deblk_mb = ps_view_ctxt->ps_deblk_mbn + u4_num_mbs;
 
         ps_parse_mb_data->u1_num_part = 1;
-        ps_parse_mb_data->u1_isI_mb = 0;
+        ps_parse_mb_data->u4_isI_mb = 0;
 
         /**************************************************************/
         /* Get the required information for decoding of MB            */
@@ -1464,7 +1464,7 @@ static WORD32 imvcd_corrupted_slice_handler(mvc_dec_ctxt_t *ps_mvcd_ctxt)
         b_is_slice_end = !u4_mb_skip_run;
         ps_cur_mb_info->u1_end_of_slice = !u4_mb_skip_run;
         b_tfr_n_mb =
-            (u4_num_mbs == ps_view_ctxt->u1_recon_mb_grp) || b_is_end_of_row || b_is_slice_end;
+            (u4_num_mbs == ps_view_ctxt->u4_recon_mb_grp) || b_is_end_of_row || b_is_slice_end;
         b_decode_nmb = b_tfr_n_mb || b_is_slice_end;
 
         if(b_decode_nmb)
@@ -1495,7 +1495,7 @@ static WORD32 imvcd_corrupted_slice_handler(mvc_dec_ctxt_t *ps_mvcd_ctxt)
             }
 
             u4_mb_idx = u4_num_mbs;
-            ps_view_ctxt->u1_mb_idx = u4_num_mbs;
+            ps_view_ctxt->u4_mb_idx = u4_num_mbs;
         }
     }
 
