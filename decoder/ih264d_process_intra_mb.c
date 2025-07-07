@@ -715,7 +715,7 @@ UWORD32 ih264d_unpack_luma_coeff8x8_mb(dec_struct_t * ps_dec,
  */
 WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                                dec_mb_info_t * ps_cur_mb_info,
-                               UWORD8 u1_mb_num)
+                               UWORD32 u4_mb_num)
 {
     UWORD8 u1_mb_type = ps_cur_mb_info->u1_mb_type;
     UWORD8 uc_temp = ps_cur_mb_info->u1_mb_ngbr_availablity;
@@ -758,7 +758,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
     UWORD8 *pu1_prev_intra4x4_pred_mode_data = (UWORD8 *)ps_dec->pv_proc_tu_coeff_data;                 //Pointer to keep track of intra4x4_pred_mode data in pv_proc_tu_coeff_data buffer
     u1_mbaff = ps_dec->ps_cur_slice->u1_mbaff_frame_flag;
     u1_topmb = ps_cur_mb_info->u1_topmb;
-    u4_num_pmbair = (u1_mb_num >> u1_mbaff);
+    u4_num_pmbair = (u4_mb_num >> u1_mbaff);
 
 
     /*--------------------------------------------------------------------*/
@@ -1353,7 +1353,8 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
     else if((u1_mb_type == I_4x4_MB) && (ps_cur_mb_info->u1_tran_form8x8 == 1))
     {
         UWORD8 u1_is_left_sub_block, u1_is_top_sub_block = uc_useTopMB;
-        UWORD8 u1_sub_blk_x, u1_sub_blk_y, u1_sub_mb_num;
+        UWORD8 u1_sub_blk_x, u1_sub_blk_y;
+        UWORD32 u4_sub_mb_num;
         WORD8 i1_top_pred_mode;
         WORD8 i1_left_pred_mode;
         UWORD8 *pu1_top, *pu1_left, *pu1_top_left;
@@ -1565,20 +1566,20 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
         }
 
         /* Scan the sub-blocks in Raster Scan Order */
-        for(u1_sub_mb_num = 0; u1_sub_mb_num < 4; u1_sub_mb_num++)
+        for(u4_sub_mb_num = 0; u4_sub_mb_num < 4; u4_sub_mb_num++)
         {
-            u1_sub_blk_x = (u1_sub_mb_num & 0x1);
-            u1_sub_blk_y = (u1_sub_mb_num >> 1);
+            u1_sub_blk_x = (u4_sub_mb_num & 0x1);
+            u1_sub_blk_y = (u4_sub_mb_num >> 1);
             i1_top_pred_mode = pi1_cur_pred_mode[u1_sub_blk_x << 1];
             i1_left_pred_mode = pi1_left_pred_mode[u1_sub_blk_y << 1];
 
-            if(2 == u1_sub_mb_num)
+            if(2 == u4_sub_mb_num)
             {
                 i1_left_pred_mode = pi1_left_pred_mode[(u1_sub_blk_y << 1)
                                 + u4_4x4_left_offset];
             }
 
-            u1_use_top_right_mb = (!!CHECKBIT(ui2_top_rt_mask, u1_sub_mb_num));
+            u1_use_top_right_mb = (!!CHECKBIT(ui2_top_rt_mask, u4_sub_mb_num));
 
             /*********** left subblock availability**********/
             if(u1_sub_blk_x)
@@ -1621,7 +1622,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             }
 
             /***************** Top Left *********************/
-            if(u1_sub_mb_num)
+            if(u4_sub_mb_num)
             {
                 pu1_top_left = (u1_sub_blk_x) ?
                                 pu1_top - 1 : pu1_left - ui_rec_width;
@@ -1649,10 +1650,10 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                 /* for a MB with 8x8 intrapredicition                               */
                 /********************************************************************/
                 PROFILE_DISABLE_INTRA_PRED()
-                if(!pu1_prev_intra4x4_pred_mode_flag[u1_sub_mb_num])
+                if(!pu1_prev_intra4x4_pred_mode_flag[u4_sub_mb_num])
                 {
-                    i1_intra_pred = pu1_rem_intra4x4_pred_mode[u1_sub_mb_num]
-                                    + (pu1_rem_intra4x4_pred_mode[u1_sub_mb_num]
+                    i1_intra_pred = pu1_rem_intra4x4_pred_mode[u4_sub_mb_num]
+                                    + (pu1_rem_intra4x4_pred_mode[u4_sub_mb_num]
                                                     >= i1_intra_pred);
                 }
                 i1_intra_pred = CLIP3(0, 8, i1_intra_pred);
@@ -1694,7 +1695,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             }
 
             /* Inverse Transform and Reconstruction */
-            if(CHECKBIT(ps_cur_mb_info->u1_cbp, u1_sub_mb_num))
+            if(CHECKBIT(ps_cur_mb_info->u1_cbp, u4_sub_mb_num))
             {
                 WORD16 *pi2_scale_matrix_ptr;
                 WORD16 ai2_tmp[64];
@@ -1703,7 +1704,7 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                                 ps_dec->s_high_profile.i2_scalinglist8x8[0];
                 PROFILE_DISABLE_IQ_IT_RECON()
                 {
-                    if(CHECKBIT(u4_luma_dc_only_cbp, u1_sub_mb_num))
+                    if(CHECKBIT(u4_luma_dc_only_cbp, u4_sub_mb_num))
                     {
                         ps_dec->pf_iquant_itrans_recon_luma_8x8_dc(
                                         pi2_y_coeff1,

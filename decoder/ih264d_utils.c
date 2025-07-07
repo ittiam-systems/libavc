@@ -725,8 +725,8 @@ WORD32 ih264d_get_dpb_size(dec_seq_params_t *ps_seq)
 }
 
 /**************************************************************************/
-/* This function initialises the value of ps_dec->u1_recon_mb_grp         */
-/* ps_dec->u1_recon_mb_grp must satisfy the following criteria            */
+/* This function initialises the value of ps_dec->u4_recon_mb_grp         */
+/* ps_dec->u4_recon_mb_grp must satisfy the following criteria            */
 /*  - multiple of 2 (required for N/2 parse-mvpred design)                */
 /*  - multiple of 4 (if it is not a frame_mbs_only sequence),             */
 /*         in this case N/2 itself needs to be even for mbpair processing */
@@ -738,16 +738,16 @@ WORD32 ih264d_init_dec_mb_grp(dec_struct_t *ps_dec)
     dec_seq_params_t *ps_seq = ps_dec->ps_cur_sps;
     UWORD8 u1_frm = ps_seq->u1_frame_mbs_only_flag;
 
-    ps_dec->u1_recon_mb_grp = ps_dec->u2_frm_wd_in_mbs << ps_seq->u1_mb_aff_flag;
+    ps_dec->u4_recon_mb_grp = ps_dec->u2_frm_wd_in_mbs << ps_seq->u1_mb_aff_flag;
 
-    ps_dec->u1_recon_mb_grp_pair = ps_dec->u1_recon_mb_grp >> 1;
+    ps_dec->u4_recon_mb_grp_pair = ps_dec->u4_recon_mb_grp >> 1;
 
-    if(!ps_dec->u1_recon_mb_grp)
+    if(!ps_dec->u4_recon_mb_grp)
     {
         return ERROR_MB_GROUP_ASSGN_T;
     }
 
-    ps_dec->u4_num_mbs_prev_nmb = ps_dec->u1_recon_mb_grp;
+    ps_dec->u4_num_mbs_prev_nmb = ps_dec->u4_recon_mb_grp;
 
     return OK;
 }
@@ -796,9 +796,9 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
     /*--------------------------------------------------------------------*/
     /* Get the value of MaxMbAddress and frmheight in Mbs                 */
     /*--------------------------------------------------------------------*/
-    ps_seq->u2_max_mb_addr =
-                    (ps_seq->u2_frm_wd_in_mbs
-                                    * (ps_dec->u2_pic_ht
+    ps_seq->u4_max_mb_addr =
+                    ((UWORD32)ps_seq->u2_frm_wd_in_mbs
+                                    * ((UWORD32)ps_dec->u2_pic_ht
                                                     >> (4
                                                                     + ps_dec->ps_cur_slice->u1_field_pic_flag)))
                                     - 1;
@@ -1917,7 +1917,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     UWORD16 u4_chroma_wd = ps_dec->u2_frm_wd_uv;
     WORD8 c_i = 0;
     dec_seq_params_t *ps_sps = ps_dec->ps_cur_sps;
-    UWORD32 u4_total_mbs = ps_sps->u2_total_num_of_mbs << uc_frmOrFld;
+    UWORD32 u4_total_mbs = ps_sps->u4_total_num_of_mbs << uc_frmOrFld;
     UWORD32 u4_wd_mbs = ps_dec->u2_frm_wd_in_mbs;
     UWORD32 u4_ht_mbs = ps_dec->u2_frm_ht_in_mbs;
     UWORD32 u4_blk_wd;
@@ -1958,14 +1958,14 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
 
     ps_dec->ps_pred_start = ps_dec->ps_pred;
 
-    size = sizeof(parse_pmbarams_t) * (ps_dec->u1_recon_mb_grp);
+    size = sizeof(parse_pmbarams_t) * (ps_dec->u4_recon_mb_grp);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     memset(pv_buf, 0, size);
     ps_dec->ps_parse_mb_data = pv_buf;
 
     size = sizeof(parse_part_params_t)
-                        * ((ps_dec->u1_recon_mb_grp) << 4);
+                        * ((ps_dec->u4_recon_mb_grp) << 4);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     memset(pv_buf, 0, size);
@@ -1988,14 +1988,14 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
      for CABAC context representing MB not available */
     ps_dec->p_ctxt_inc_mb_map += 1;
 
-    size = (sizeof(mv_pred_t) * ps_dec->u1_recon_mb_grp
+    size = (sizeof(mv_pred_t) * ps_dec->u4_recon_mb_grp
                         * 16);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     memset(pv_buf, 0, size);
     ps_dec->ps_mv_p[0] = pv_buf;
 
-    size = (sizeof(mv_pred_t) * ps_dec->u1_recon_mb_grp
+    size = (sizeof(mv_pred_t) * ps_dec->u4_recon_mb_grp
                         * 16);
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
@@ -2007,7 +2007,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
         for(i = 0; i < MV_SCRATCH_BUFS; i++)
         {
             size = (sizeof(mv_pred_t)
-                            * ps_dec->u1_recon_mb_grp * 4);
+                            * ps_dec->u4_recon_mb_grp * 4);
             pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
             RETURN_IF((NULL == pv_buf), IV_FAIL);
             memset(pv_buf, 0, size);

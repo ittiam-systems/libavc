@@ -318,8 +318,8 @@ typedef struct
 
     /* Following are derived from the above two */
     UWORD16 u2_fld_ht_in_mbs; /** Field height expressed in MB units */
-    UWORD16 u2_max_mb_addr; /** Total number of macroblocks in a coded picture */
-    UWORD16 u2_total_num_of_mbs; /** Total number of macroblocks in a coded picture */
+    UWORD32 u4_max_mb_addr; /** Total number of macroblocks in a coded picture */
+    UWORD32 u4_total_num_of_mbs; /** Total number of macroblocks in a coded picture */
     UWORD32 u4_fld_ht; /** field height */
     UWORD32 u4_cwidth; /** chroma width */
     UWORD32 u4_chr_frm_ht; /** chroma height */
@@ -517,7 +517,7 @@ typedef struct
     WORD32 (*pf_decodeDirect)(struct _DecStruct *ps_dec,
                               UWORD8 u1_wd_x,
                               dec_mb_info_t *ps_cur_mb_info,
-                              UWORD8 u1_mb_num);
+                              UWORD32 u4_mb_num);
     UWORD8 u1_redundant_pic_cnt;
     WORD8 i1_slice_qs_delta;
     UWORD8 u1_nal_ref_idc; /** NAL ref idc of the Slice NAL unit */
@@ -581,7 +581,7 @@ typedef struct
 
 typedef struct
 {
-    UWORD8 u1_isI_mb;
+    UWORD32 u4_isI_mb;
     UWORD8 u1_num_part;
     UWORD32 *pu4_wt_offst[MAX_REFIDX_INFO_PER_MB];
     WORD8 i1_ref_idx[2][MAX_REFIDX_INFO_PER_MB];
@@ -795,8 +795,8 @@ typedef struct _DecStruct
     /************************************************************/
     /* MB_GROUP should be a multiple of 2                       */
     /************************************************************/
-    UWORD8 u1_recon_mb_grp;
-    UWORD8 u1_recon_mb_grp_pair;
+    UWORD32 u4_recon_mb_grp;
+    UWORD32 u4_recon_mb_grp_pair;
     /* Variables to handle Cabac */
     decoding_envirnoment_t s_cab_dec_env; /* < Structure for decoding_envirnoment_t */
     /* These things need to be updated at each MbLevel */
@@ -988,11 +988,11 @@ typedef struct _DecStruct
     /* Function pointers to read Params common to CAVLC and CABAC */
     WORD32 (*pf_parse_inter_mb)(struct _DecStruct * ps_dec,
                                 dec_mb_info_t * ps_cur_mb_info,
-                                UWORD8 u1_mb_num,
-                                UWORD8 u1_num_mbsNby2);
+                                UWORD32 u4_mb_num,
+                                UWORD32 u4_num_mbsNby2);
     WORD32 (*pf_mvpred_ref_tfr_nby2mb)(struct _DecStruct * ps_dec,
-                                     UWORD8 u1_num_mbs,
-                                     UWORD8 u1_num_mbsNby2);
+                                     UWORD32 u4_num_mbs,
+                                     UWORD32 u4_num_mbsNby2);
 
     WORD32 (*pf_parse_inter_slice)(struct _DecStruct * ps_dec,
                                    dec_slice_params_t * ps_slice,
@@ -1061,7 +1061,7 @@ typedef struct _DecStruct
     /* Variables used for gaps in frame number */
     UWORD16 u2_prev_ref_frame_num;
 
-    UWORD8 u1_mb_idx;
+    UWORD32 u4_mb_idx;
     struct pic_buffer_t *ps_col_pic;
     void (*pf_parse_mvdirect)(struct _DecStruct*,
                            struct pic_buffer_t*,
@@ -1087,7 +1087,7 @@ typedef struct _DecStruct
                         mv_pred_t *ps_mv_pred,
                         mv_pred_t *ps_mv_nmb,
                         mv_pred_t *ps_mv_ntop,
-                        UWORD8 u1_sub_mb_num,
+                        UWORD32 u4_sub_mb_num,
                         UWORD8 uc_mb_part_width,
                         UWORD8 uc_lxstart,
                         UWORD8 uc_lxend,
@@ -1113,12 +1113,12 @@ typedef struct _DecStruct
     by declaring this after a pointer or an integer */
     WORD8 pi1_left_pred_mode[8];
 
-    UWORD8 u1_mb_idx_mv;
+    UWORD32 u4_mb_idx_mv;
     UWORD16 u2_mv_2mb[2];
     UWORD32 u4_skip_frm_mask;
 
     /* variable for finding the no.of mbs decoded in the current picture */
-    UWORD16 u2_total_mbs_coded;
+    UWORD32 u4_total_mbs_coded;
     /* member added for supporting fragmented annex - B */
 //  frg_annex_read_t s_frag_annex_read;
     /* added for vui_t, sei support*/
@@ -1305,9 +1305,9 @@ typedef struct _DecStruct
     ivd_get_display_frame_op_t s_disp_op;
     UWORD32 u4_output_present;
 
-    volatile UWORD16 cur_dec_mb_num;
-    volatile UWORD16 cur_recon_mb_num;
-    volatile UWORD16 u2_cur_mb_addr;
+    volatile UWORD32 cur_dec_mb_num;
+    volatile UWORD32 cur_recon_mb_num;
+    volatile UWORD32 u4_cur_mb_addr;
     WORD16 i2_dec_thread_mb_y;
     WORD16 i2_recon_thread_mb_y;
 

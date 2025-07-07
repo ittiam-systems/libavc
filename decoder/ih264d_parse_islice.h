@@ -50,7 +50,7 @@ WORD32 ih264d_parse_residual4x4_cabac(dec_struct_t * ps_dec,
                                       UWORD8 u1_offset);
 WORD32 ih264d_parse_imb_cavlc(dec_struct_t * ps_dec,
                               dec_mb_info_t * ps_cur_mb_info,
-                              UWORD8 u1_mb_num,
+                              UWORD32 u4_mb_num,
                               UWORD8 u1_mb_type);
 WORD32 ih264d_parse_imb_cabac(dec_struct_t * ps_dec,
                               dec_mb_info_t * ps_cur_mb_info,
@@ -64,32 +64,32 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
                                       UWORD16 u2_first_mb_in_slice);
 WORD32 ih264d_parse_pmb_cavlc(dec_struct_t * ps_dec,
                               dec_mb_info_t * ps_cur_mb_info,
-                              UWORD8 u1_mb_num,
-                              UWORD8 u1_num_mbsNby2);
+                              UWORD32 u4_mb_num,
+                              UWORD32 u4_num_mbsNby2);
 WORD32 ih264d_parse_pmb_cabac(dec_struct_t * ps_dec,
                               dec_mb_info_t * ps_cur_mb_info,
-                              UWORD8 u1_mb_num,
-                              UWORD8 u1_num_mbsNby2);
+                              UWORD32 u4_mb_num,
+                              UWORD32 u4_num_mbsNby2);
 
 WORD32 ih264d_parse_bmb_non_direct_cavlc(dec_struct_t * ps_dec,
                                        dec_mb_info_t * ps_cur_mb_info,
-                                       UWORD8 u1_mb_num,
-                                       UWORD8 u1_mbNumModNBy2);
+                                       UWORD32 u4_mb_num,
+                                       UWORD32 u4_mbNumModNBy2);
 
 WORD32 ih264d_parse_bmb_non_direct_cabac(dec_struct_t * ps_dec,
                                        dec_mb_info_t * ps_cur_mb_info,
-                                       UWORD8 u1_mb_num,
-                                       UWORD8 u1_mbNumModNBy2);
+                                       UWORD32 u4_mb_num,
+                                       UWORD32 u4_mbNumModNBy2);
 
 WORD32 ih264d_parse_bmb_cavlc(dec_struct_t * ps_dec,
                               dec_mb_info_t * ps_cur_mb_info,
-                              UWORD8 u1_mb_num,
-                              UWORD8 u1_num_mbsNby2);
+                              UWORD32 u4_mb_num,
+                              UWORD32 u4_num_mbsNby2);
 
 WORD32 ih264d_parse_bmb_cabac(dec_struct_t * ps_dec,
                               dec_mb_info_t * ps_cur_mb_info,
-                              UWORD8 u1_mb_num,
-                              UWORD8 u1_num_mbsNby2);
+                              UWORD32 u4_mb_num,
+                              UWORD32 u4_num_mbsNby2);
 
 WORD32 ih264d_parse_inter_slice_data_cavlc(dec_struct_t * ps_dec,
                                            dec_slice_params_t * ps_slice,
@@ -101,12 +101,12 @@ WORD32 ih264d_parse_inter_slice_data_cabac(dec_struct_t * ps_dec,
 
 WORD32 ParseBMb(dec_struct_t * ps_dec,
                 dec_mb_info_t * ps_cur_mb_info,
-                UWORD8 u1_mb_num,
-                UWORD8 u1_num_mbsNby2);
+                UWORD32 u4_mb_num,
+                UWORD32 u4_num_mbsNby2);
 
 WORD32 ih264d_parse_ipcm_mb(dec_struct_t * ps_dec,
                             dec_mb_info_t *ps_cur_mb_info,
-                            UWORD8 u1_mbNum);
+                            UWORD32 u4_mbNum);
 WORD32 ih264d_parse_islice(dec_struct_t *ps_dec,
                             UWORD16 u2_first_mb_in_slice);
 
