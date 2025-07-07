@@ -385,7 +385,7 @@ void ih264d_recon_deblk_slice(dec_struct_t *ps_dec, tfr_ctxt_t *ps_tfr_cxt)
     UWORD32 u4_mb_num;
     UWORD16 u2_first_mb_in_slice;
     UWORD32 i2_pic_wdin_mbs;
-    UWORD8 u1_num_mbsleft, u1_end_of_row;
+    UWORD32 u4_num_mbsleft, u4_end_of_row;
     UWORD8 u1_mbaff;
     UWORD16 i16_mb_x, i16_mb_y;
     WORD32 j;
@@ -445,7 +445,7 @@ void ih264d_recon_deblk_slice(dec_struct_t *ps_dec, tfr_ctxt_t *ps_tfr_cxt)
         }
     }
 
-    u4_max_addr = ps_dec->ps_cur_sps->u2_max_mb_addr;
+    u4_max_addr = ps_dec->ps_cur_sps->u4_max_mb_addr;
     u1_mb_aff = ps_dec->ps_cur_slice->u1_mbaff_frame_flag;
     u2_first_mb_in_slice = ps_dec->ps_computebs_cur_slice->u4_first_mb_in_slice;
     i2_pic_wdin_mbs = ps_dec->u2_frm_wd_in_mbs;
@@ -513,17 +513,17 @@ void ih264d_recon_deblk_slice(dec_struct_t *ps_dec, tfr_ctxt_t *ps_tfr_cxt)
     {
         WORD32 recon_mb_grp,bs_mb_grp;
         WORD32 nop_cnt = 8*128;
-        u1_num_mbsleft = ((i2_pic_wdin_mbs - i16_mb_x) << u1_mbaff);
-        if(u1_num_mbsleft <= ps_dec->u1_recon_mb_grp)
+        u4_num_mbsleft = ((i2_pic_wdin_mbs - i16_mb_x) << u1_mbaff);
+        if(u4_num_mbsleft <= ps_dec->u4_recon_mb_grp)
         {
-            recon_mb_grp = u1_num_mbsleft;
-            u1_end_of_row = 1;
+            recon_mb_grp = u4_num_mbsleft;
+            u4_end_of_row = 1;
             i16_mb_x = 0;
         }
         else
         {
-            recon_mb_grp = ps_dec->u1_recon_mb_grp;
-            u1_end_of_row = 0;
+            recon_mb_grp = ps_dec->u4_recon_mb_grp;
+            u4_end_of_row = 0;
             i16_mb_x += (recon_mb_grp >> u1_mbaff);
         }
 
@@ -609,18 +609,18 @@ void ih264d_recon_deblk_slice(dec_struct_t *ps_dec, tfr_ctxt_t *ps_tfr_cxt)
 
         if(j != recon_mb_grp)
         {
-            u1_end_of_row = 0;
+            u4_end_of_row = 0;
         }
 
         {
             tfr_ctxt_t *ps_trns_addr = &ps_dec->s_tran_iprecon;
             UWORD16 u2_mb_y;
 
-            ps_trns_addr->pu1_dest_y += ps_trns_addr->u4_inc_y[u1_end_of_row];
-            ps_trns_addr->pu1_dest_u += ps_trns_addr->u4_inc_uv[u1_end_of_row];
-            ps_trns_addr->pu1_dest_v += ps_trns_addr->u4_inc_uv[u1_end_of_row];
+            ps_trns_addr->pu1_dest_y += ps_trns_addr->u4_inc_y[u4_end_of_row];
+            ps_trns_addr->pu1_dest_u += ps_trns_addr->u4_inc_uv[u4_end_of_row];
+            ps_trns_addr->pu1_dest_v += ps_trns_addr->u4_inc_uv[u4_end_of_row];
 
-            if(u1_end_of_row)
+            if(u4_end_of_row)
             {
                 ps_dec->i2_recon_thread_mb_y += (1 << u1_mbaff);
                 u2_mb_y = ps_dec->i2_recon_thread_mb_y;
@@ -665,7 +665,7 @@ void ih264d_recon_deblk_slice(dec_struct_t *ps_dec, tfr_ctxt_t *ps_tfr_cxt)
 
             if(ps_dec->u4_cur_bs_mb_num > ps_dec->u4_cur_deblk_mb_num)
             {
-                if(u1_end_of_row)
+                if(u4_end_of_row)
                 {
                     u4_num_mbs = ps_dec->u4_cur_bs_mb_num
                                     - ps_dec->u4_cur_deblk_mb_num;
@@ -724,7 +724,7 @@ void ih264d_recon_deblk_thread(dec_struct_t *ps_dec)
 
             DEBUG_THREADS_PRINTF(" Exit  compute bs slice \n");
 
-            if(ps_dec->cur_recon_mb_num > ps_dec->ps_cur_sps->u2_max_mb_addr)
+            if(ps_dec->cur_recon_mb_num > ps_dec->ps_cur_sps->u4_max_mb_addr)
             {
                     break;
             }

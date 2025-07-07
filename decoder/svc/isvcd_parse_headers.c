@@ -418,11 +418,11 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
     /*--------------------------------------------------------------------*/
     /* Get the value of MaxMbAddress and Number of bits needed for it     */
     /*--------------------------------------------------------------------*/
-    ps_seq->u2_max_mb_addr = (ps_seq->u2_frm_wd_in_mbs * ps_seq->u2_frm_ht_in_mbs) - 1;
+    ps_seq->u4_max_mb_addr = (ps_seq->u2_frm_wd_in_mbs * ps_seq->u2_frm_ht_in_mbs) - 1;
 
-    ps_seq->u2_total_num_of_mbs = ps_seq->u2_max_mb_addr + 1;
+    ps_seq->u4_total_num_of_mbs = ps_seq->u4_max_mb_addr + 1;
 
-    ps_seq->u1_level_idc = ih264d_correct_level_idc(u1_level_idc, ps_seq->u2_total_num_of_mbs);
+    ps_seq->u1_level_idc = ih264d_correct_level_idc(u1_level_idc, ps_seq->u4_total_num_of_mbs);
 
     u1_frm = ih264d_get_bit_h264(ps_bitstrm);
 
@@ -1379,9 +1379,9 @@ WORD32 isvcd_parse_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stream_t *p
     /*--------------------------------------------------------------------*/
     /* Get the value of MaxMbAddress and Number of bits needed for it     */
     /*--------------------------------------------------------------------*/
-    ps_seq->u2_max_mb_addr = (ps_seq->u2_frm_wd_in_mbs * ps_seq->u2_frm_ht_in_mbs) - 1;
-    ps_seq->u2_total_num_of_mbs = ps_seq->u2_max_mb_addr + 1;
-    ps_seq->u1_level_idc = ih264d_correct_level_idc(u1_level_idc, ps_seq->u2_total_num_of_mbs);
+    ps_seq->u4_max_mb_addr = (ps_seq->u2_frm_wd_in_mbs * ps_seq->u2_frm_ht_in_mbs) - 1;
+    ps_seq->u4_total_num_of_mbs = ps_seq->u4_max_mb_addr + 1;
+    ps_seq->u1_level_idc = ih264d_correct_level_idc(u1_level_idc, ps_seq->u4_total_num_of_mbs);
 
     u1_frm = ih264d_get_bit_h264(ps_bitstrm);
     if((ps_dec->i4_header_decoded & 1) &&

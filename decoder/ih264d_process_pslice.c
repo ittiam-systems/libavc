@@ -68,8 +68,8 @@ void ih264d_insert_pic_in_ref_pic_listx(struct pic_buffer_t *ps_ref_pic_buf_lx,
 }
 
 WORD32 ih264d_mv_pred_ref_tfr_nby2_pmb(dec_struct_t * ps_dec,
-                                     UWORD8 u1_mb_idx,
-                                     UWORD8 u1_num_mbs)
+                                     UWORD32 u4_mb_idx,
+                                     UWORD32 u4_num_mbs)
 {
     parse_pmbarams_t * ps_mb_part_info;
     parse_part_params_t * ps_part;
@@ -80,12 +80,12 @@ WORD32 ih264d_mv_pred_ref_tfr_nby2_pmb(dec_struct_t * ps_dec,
     WORD32 i2_mv_x, i2_mv_y;
     WORD32 ret;
 
-    ps_dec->i4_submb_ofst -= (u1_num_mbs - u1_mb_idx) << 4;
-    ps_mb_part_info = ps_dec->ps_parse_mb_data; // + u1_mb_idx;
-    ps_part = ps_dec->ps_parse_part_params; // + u1_mb_idx;
+    ps_dec->i4_submb_ofst -= (WORD32)(u4_num_mbs - u4_mb_idx) << 4;
+    ps_mb_part_info = ps_dec->ps_parse_mb_data; // + u4_mb_idx;
+    ps_part = ps_dec->ps_parse_part_params; // + u4_mb_idx;
 
     /* N/2 Mb MvPred and Transfer Setup Loop */
-    for(i = u1_mb_idx; i < u1_num_mbs; i++, ps_mb_part_info++)
+    for(i = u4_mb_idx; i < u4_num_mbs; i++, ps_mb_part_info++)
     {
         UWORD32 u1_colz;
         UWORD32 u1_field;
@@ -110,7 +110,7 @@ WORD32 ih264d_mv_pred_ref_tfr_nby2_pmb(dec_struct_t * ps_dec,
         ps_dec->u2_mv_2mb[i & 0x1] = 0;
 
         /* Look for MV Prediction and Reference Transfer in Non-I Mbs */
-        if(!ps_mb_part_info->u1_isI_mb)
+        if(!ps_mb_part_info->u4_isI_mb)
         {
             UWORD32 u1_blk_no;
             WORD32 i1_ref_idx, i1_ref_idx1;
@@ -124,7 +124,7 @@ WORD32 ih264d_mv_pred_ref_tfr_nby2_pmb(dec_struct_t * ps_dec,
 
             /* MB Level initialisations */
             ps_dec->u4_num_pmbair = i >> u1_mbaff;
-            ps_dec->u1_mb_idx_mv = i;
+            ps_dec->u4_mb_idx_mv = i;
             ppu4_wt_ofst = ps_mb_part_info->pu4_wt_offst;
             pps_ref_frame = ps_dec->ps_ref_pic_buf_lx[0];
             /* CHANGED CODE */
@@ -330,11 +330,11 @@ WORD32 ih264d_mv_pred_ref_tfr_nby2_pmb(dec_struct_t * ps_dec,
 
 
 WORD32 ih264d_decode_recon_tfr_nmb(dec_struct_t * ps_dec,
-                                   UWORD8 u1_mb_idx,
-                                   UWORD8 u1_num_mbs,
-                                   UWORD8 u1_num_mbs_next,
-                                   UWORD8 u1_tfr_n_mb,
-                                   UWORD8 u1_end_of_row)
+                                   UWORD32 u4_mb_idx,
+                                   UWORD32 u4_num_mbs,
+                                   UWORD32 u4_num_mbs_next,
+                                   UWORD32 u4_tfr_n_mb,
+                                   UWORD32 u4_end_of_row)
 {
     WORD32 i,j;
     UWORD32 u1_end_of_row_next;
@@ -354,7 +354,7 @@ WORD32 ih264d_decode_recon_tfr_nmb(dec_struct_t * ps_dec,
 
 
     /* N Mb MC Loop */
-    for(i = u1_mb_idx; i < u1_num_mbs; i++)
+    for(i = u4_mb_idx; i < u4_num_mbs; i++)
     {
         ps_cur_mb_info = ps_dec->ps_nmb_info + i;
         ps_dec->u4_dma_buf_idx = 0;
@@ -418,7 +418,7 @@ WORD32 ih264d_decode_recon_tfr_nmb(dec_struct_t * ps_dec,
 
 
     /* N Mb IQ IT RECON  Loop */
-    for(j = u1_mb_idx; j < i; j++)
+    for(j = u4_mb_idx; j < i; j++)
     {
         ps_cur_mb_info = ps_dec->ps_nmb_info + j;
 
@@ -462,12 +462,12 @@ WORD32 ih264d_decode_recon_tfr_nmb(dec_struct_t * ps_dec,
         u4_wd_uv = ps_dec->u2_frm_wd_uv << u1_field_pic_flag;
 
 
-        ps_cur_mb_info = ps_dec->ps_nmb_info + u1_mb_idx;
+        ps_cur_mb_info = ps_dec->ps_nmb_info + u4_mb_idx;
 
         ps_dec->u4_deblk_mb_x = ps_cur_mb_info->u2_mbx;
         ps_dec->u4_deblk_mb_y = ps_cur_mb_info->u2_mby;
 
-        for(j = u1_mb_idx; j < i; j++)
+        for(j = u4_mb_idx; j < i; j++)
         {
 
             ih264d_deblock_mb_nonmbaff(ps_dec, ps_tfr_cxt,
@@ -483,15 +483,15 @@ WORD32 ih264d_decode_recon_tfr_nmb(dec_struct_t * ps_dec,
 
 
 
-    if(u1_tfr_n_mb)
+    if(u4_tfr_n_mb)
     {
         /****************************************************************/
         /* Check for End Of Row in Next iteration                       */
         /****************************************************************/
         u1_end_of_row_next =
-                        u1_num_mbs_next
-                                        && (u1_num_mbs_next
-                                                        <= (ps_dec->u1_recon_mb_grp
+                        u4_num_mbs_next
+                                        && (u4_num_mbs_next
+                                                        <= (ps_dec->u4_recon_mb_grp
                                                                         >> u1_mbaff));
 
         /****************************************************************/
@@ -502,9 +502,9 @@ WORD32 ih264d_decode_recon_tfr_nmb(dec_struct_t * ps_dec,
         /* N-Mb MV Data             ( To Ext MV Buffer )                */
         /* N-Mb MVTop/TopRight Data ( To Int MV Top Scratch Buffers)    */
         /****************************************************************/
-        ih264d_transfer_mb_group_data(ps_dec, u1_num_mbs, u1_end_of_row,
+        ih264d_transfer_mb_group_data(ps_dec, u4_num_mbs, u4_end_of_row,
                                       u1_end_of_row_next);
-        ps_dec->u4_num_mbs_prev_nmb = u1_num_mbs;
+        ps_dec->u4_num_mbs_prev_nmb = u4_num_mbs;
 
         ps_dec->u4_pred_info_idx = 0;
         ps_dec->u4_dma_buf_idx = 0;
@@ -528,7 +528,7 @@ WORD32 ih264d_decode_recon_tfr_nmb(dec_struct_t * ps_dec,
  */
 WORD32 ih264d_process_inter_mb(dec_struct_t * ps_dec,
                                dec_mb_info_t * ps_cur_mb_info,
-                               UWORD8 u1_mb_num)
+                               UWORD32 u4_mb_num)
 {
     /* CHANGED CODE */
     UWORD8 *pu1_rec_y, *pu1_rec_u, *pu1_rec_v;
@@ -547,7 +547,7 @@ WORD32 ih264d_process_inter_mb(dec_struct_t * ps_dec,
     /* CHANGED CODE */
 
     uc_botMb = 1 - ps_cur_mb_info->u1_topmb;
-    u4_num_pmbair = (u1_mb_num >> u1_mbaff);
+    u4_num_pmbair = (u4_mb_num >> u1_mbaff);
     u1_mb_field_decoding_flag = ps_cur_mb_info->u1_mb_field_decodingflag;
 
 

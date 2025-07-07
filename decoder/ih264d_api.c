@@ -1265,7 +1265,7 @@ void ih264d_init_decoder(void * ps_dec_params)
     ps_dec->u1_pr_sl_type = 0xFF;
     ps_dec->u2_mbx = 0xffff;
     ps_dec->u2_mby = 0;
-    ps_dec->u2_total_mbs_coded = 0;
+    ps_dec->u4_total_mbs_coded = 0;
 
     /* POC initializations */
     ps_prev_poc = &ps_dec->s_prev_pic_poc;
@@ -1291,7 +1291,7 @@ void ih264d_init_decoder(void * ps_dec_params)
 
     ps_dec->i4_max_poc = 0;
     ps_dec->i4_prev_max_display_seq = 0;
-    ps_dec->u1_recon_mb_grp = 4;
+    ps_dec->u4_recon_mb_grp = 4;
     ps_dec->i4_reorder_depth = -1;
 
     /* Field PIC initializations */
@@ -2490,8 +2490,8 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         ih264d_init_decoder(ps_dec);
     }
 
-    ps_dec->u2_cur_mb_addr = 0;
-    ps_dec->u2_total_mbs_coded = 0;
+    ps_dec->u4_cur_mb_addr = 0;
+    ps_dec->u4_total_mbs_coded = 0;
     ps_dec->u2_cur_slice_num = 0;
     ps_dec->cur_dec_mb_num = 0;
     ps_dec->cur_recon_mb_num = 0;
@@ -2663,7 +2663,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     if((ps_dec->u4_pic_buf_got == 1)
             && (ret != IVD_MEM_ALLOC_FAILED)
-            && ps_dec->u2_total_mbs_coded < ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
+            && ps_dec->u4_total_mbs_coded < ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
     {
         // last slice - missing/corruption
         WORD32 num_mb_skipped;
@@ -2673,14 +2673,14 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         WORD32 ht_in_mbs;
         ht_in_mbs = ps_dec->u2_pic_ht >> (4 + ps_dec->ps_cur_slice->u1_field_pic_flag);
         num_mb_skipped = (ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
-                            - ps_dec->u2_total_mbs_coded;
+                            - ps_dec->u4_total_mbs_coded;
 
         if(ps_dec->u4_first_slice_in_pic && (ps_dec->u4_pic_buf_got == 0))
             prev_slice_err = 1;
         else
             prev_slice_err = 2;
 
-        if(ps_dec->u4_first_slice_in_pic && (ps_dec->u2_total_mbs_coded == 0))
+        if(ps_dec->u4_first_slice_in_pic && (ps_dec->u4_total_mbs_coded == 0))
             prev_slice_err = 1;
 
         ret1 = ih264d_mark_err_slice_skip(ps_dec, num_mb_skipped, ps_dec->u1_nal_unit_type == IDR_SLICE_NAL, ps_dec->ps_cur_slice->u2_frame_num,
@@ -2819,7 +2819,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         /*set to complete ,as we dont support partial frame decode*/
         if(ps_dec->i4_header_decoded == 3)
         {
-            ps_dec->u2_total_mbs_coded = ps_dec->ps_cur_sps->u2_max_mb_addr + 1;
+            ps_dec->u4_total_mbs_coded = ps_dec->ps_cur_sps->u4_max_mb_addr + 1;
         }
 
         /*Update the i4_frametype at the end of picture*/

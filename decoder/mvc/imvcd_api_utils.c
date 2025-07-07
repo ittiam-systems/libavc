@@ -350,8 +350,8 @@ void imvcd_view_init(mvc_dec_ctxt_t *ps_mvcd_ctxt)
 
     ps_view_ctxt->u4_num_fld_in_frm = 0;
     ps_view_ctxt->u4_slice_start_code_found = 0;
-    ps_view_ctxt->u2_cur_mb_addr = 0;
-    ps_view_ctxt->u2_total_mbs_coded = 0;
+    ps_view_ctxt->u4_cur_mb_addr = 0;
+    ps_view_ctxt->u4_total_mbs_coded = 0;
     ps_view_ctxt->u2_cur_slice_num = 0;
     ps_view_ctxt->cur_dec_mb_num = 0;
     ps_view_ctxt->cur_recon_mb_num = 0;

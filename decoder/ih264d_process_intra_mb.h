@@ -59,7 +59,7 @@ WORD32 ih264d_read_intra_pred_modes(dec_struct_t *ps_dec,
 
 WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                                dec_mb_info_t * ps_cur_mb_info,
-                               UWORD8 u1_mb_num);
+                               UWORD32 u4_mb_num);
 
 #endif  /* _IH264D_PROCESS_INTRA_MB_H_ */
 

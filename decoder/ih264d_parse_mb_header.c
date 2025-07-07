@@ -1308,7 +1308,7 @@ WORD16 ih264d_parse_mvd_cabac(dec_bit_stream_t * ps_bitstrm,
     {
         /* Read Suffix */
         k = ih264d_decode_bypass_bins_unary(ps_cab_env, ps_bitstrm);
-        i2_suf = (1 << k) - 1;
+        i2_suf = (k > 15) ? INT16_MAX : ((1 << k) - 1);
         k = k + 3;
         i2_suf = (i2_suf << 3);
         i2_mvd += i2_suf;

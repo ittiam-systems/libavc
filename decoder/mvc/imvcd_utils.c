@@ -686,7 +686,7 @@ WORD32 imvcd_allocate_dynamic_bufs(mvc_dec_ctxt_t *ps_mvcd_ctxt)
     dec_struct_t *ps_view_ctxt = &ps_mvcd_ctxt->s_view_dec_ctxt;
     dec_seq_params_t *ps_sps = ps_view_ctxt->ps_cur_sps;
 
-    UWORD32 u4_total_mbs = ps_sps->u2_total_num_of_mbs;
+    UWORD32 u4_total_mbs = ps_sps->u4_total_num_of_mbs;
     UWORD32 u4_wd_mbs = ps_view_ctxt->u2_frm_wd_in_mbs;
     UWORD32 u4_ht_mbs = ps_view_ctxt->u2_frm_ht_in_mbs;
     const WORD32 i4_default_alignment = 128;
@@ -726,13 +726,13 @@ WORD32 imvcd_allocate_dynamic_bufs(mvc_dec_ctxt_t *ps_mvcd_ctxt)
     ps_view_ctxt->ps_computebs_cur_slice = ps_view_ctxt->ps_dec_slice_buf;
     ps_view_ctxt->ps_pred_start = ps_view_ctxt->ps_pred;
 
-    i4_mem_size = sizeof(parse_pmbarams_t) * (ps_view_ctxt->u1_recon_mb_grp);
+    i4_mem_size = sizeof(parse_pmbarams_t) * (ps_view_ctxt->u4_recon_mb_grp);
     pv_buf = ps_view_ctxt->pf_aligned_alloc(pv_mem_ctxt, i4_default_alignment, i4_mem_size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     memset(pv_buf, 0, i4_mem_size);
     ps_view_ctxt->ps_parse_mb_data = pv_buf;
 
-    i4_mem_size = sizeof(parse_part_params_t) * ((ps_view_ctxt->u1_recon_mb_grp) << 4);
+    i4_mem_size = sizeof(parse_part_params_t) * ((ps_view_ctxt->u4_recon_mb_grp) << 4);
     pv_buf = ps_view_ctxt->pf_aligned_alloc(pv_mem_ctxt, i4_default_alignment, i4_mem_size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     memset(pv_buf, 0, i4_mem_size);
@@ -753,13 +753,13 @@ WORD32 imvcd_allocate_dynamic_bufs(mvc_dec_ctxt_t *ps_mvcd_ctxt)
      for CABAC context representing MB not available */
     ps_view_ctxt->p_ctxt_inc_mb_map += 1;
 
-    i4_mem_size = sizeof(mv_pred_t) * ps_view_ctxt->u1_recon_mb_grp * 16;
+    i4_mem_size = sizeof(mv_pred_t) * ps_view_ctxt->u4_recon_mb_grp * 16;
     pv_buf = ps_view_ctxt->pf_aligned_alloc(pv_mem_ctxt, i4_default_alignment, i4_mem_size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     memset(pv_buf, 0, i4_mem_size);
     ps_view_ctxt->ps_mv_p[0] = pv_buf;
 
-    i4_mem_size = sizeof(mv_pred_t) * ps_view_ctxt->u1_recon_mb_grp * 16;
+    i4_mem_size = sizeof(mv_pred_t) * ps_view_ctxt->u4_recon_mb_grp * 16;
     pv_buf = ps_view_ctxt->pf_aligned_alloc(pv_mem_ctxt, i4_default_alignment, i4_mem_size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
     memset(pv_buf, 0, i4_mem_size);
@@ -767,7 +767,7 @@ WORD32 imvcd_allocate_dynamic_bufs(mvc_dec_ctxt_t *ps_mvcd_ctxt)
 
     for(i = 0; i < MV_SCRATCH_BUFS; i++)
     {
-        i4_mem_size = (sizeof(mv_pred_t) * ps_view_ctxt->u1_recon_mb_grp * 4);
+        i4_mem_size = (sizeof(mv_pred_t) * ps_view_ctxt->u4_recon_mb_grp * 4);
         pv_buf = ps_view_ctxt->pf_aligned_alloc(pv_mem_ctxt, i4_default_alignment, i4_mem_size);
         RETURN_IF((NULL == pv_buf), IV_FAIL);
         memset(pv_buf, 0, i4_mem_size);
