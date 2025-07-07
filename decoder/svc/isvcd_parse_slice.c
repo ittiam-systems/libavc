@@ -290,7 +290,7 @@ WORD32 isvcd_start_of_pic(svc_dec_lyr_struct_t *ps_svc_lyr_dec, WORD32 i4_poc,
     if(ps_dec->u1_separate_parse)
     {
         UWORD32 num_mbs;
-        num_mbs = ps_dec->ps_cur_sps->u2_total_num_of_mbs
+        num_mbs = ps_dec->ps_cur_sps->u4_total_num_of_mbs
                   << (1 - ps_dec->ps_cur_sps->u1_frame_mbs_only_flag);
 
         if(ps_dec->pu1_dec_mb_map)
@@ -472,9 +472,9 @@ WORD32 isvcd_start_of_pic(svc_dec_lyr_struct_t *ps_svc_lyr_dec, WORD32 i4_poc,
     ps_dec->ps_mv_cur = ps_dec->s_cur_pic.ps_mv;
     ps_dec->ps_mv_top = ps_dec->ps_mv_top_p[0];
     ps_dec->u1_mv_top_p = 0;
-    ps_dec->u1_mb_idx = 0;
+    ps_dec->u4_mb_idx = 0;
     ps_dec->ps_mv_left = ps_dec->s_cur_pic.ps_mv;
-    ps_dec->u2_total_mbs_coded = 0;
+    ps_dec->u4_total_mbs_coded = 0;
     ps_dec->i4_submb_ofst = -(SUB_BLK_SIZE);
     ps_dec->u4_pred_info_idx = 0;
     ps_dec->u4_pred_info_pkd_idx = 0;
@@ -548,11 +548,11 @@ WORD32 isvcd_start_of_pic(svc_dec_lyr_struct_t *ps_svc_lyr_dec, WORD32 i4_poc,
     {
         UWORD8 u1_field_pic_flag = ps_dec->ps_cur_slice->u1_field_pic_flag;
         UWORD8 u1_mbaff = ps_cur_slice->u1_mbaff_frame_flag;
-        UWORD8 uc_lastmbs = (((ps_dec->u2_pic_wd) >> 4) % (ps_dec->u1_recon_mb_grp >> u1_mbaff));
+        UWORD8 uc_lastmbs = (((ps_dec->u2_pic_wd) >> 4) % (ps_dec->u4_recon_mb_grp >> u1_mbaff));
         UWORD16 ui16_lastmbs_widthY =
-            (uc_lastmbs ? (uc_lastmbs << 4) : ((ps_dec->u1_recon_mb_grp >> u1_mbaff) << 4));
+            (uc_lastmbs ? (uc_lastmbs << 4) : ((ps_dec->u4_recon_mb_grp >> u1_mbaff) << 4));
         UWORD16 ui16_lastmbs_widthUV =
-            uc_lastmbs ? (uc_lastmbs << 3) : ((ps_dec->u1_recon_mb_grp >> u1_mbaff) << 3);
+            uc_lastmbs ? (uc_lastmbs << 3) : ((ps_dec->u4_recon_mb_grp >> u1_mbaff) << 3);
 
         ps_dec->s_tran_addrecon.pu1_dest_y = ps_dec->s_cur_pic.pu1_buf1;
         ps_dec->s_tran_addrecon.pu1_dest_u = ps_dec->s_cur_pic.pu1_buf2;
@@ -568,8 +568,8 @@ WORD32 isvcd_start_of_pic(svc_dec_lyr_struct_t *ps_svc_lyr_dec, WORD32 i4_poc,
         }
 
         /* Normal Increment of Pointer */
-        ps_dec->s_tran_addrecon.u4_inc_y[0] = ((ps_dec->u1_recon_mb_grp << 4) >> u1_mbaff);
-        ps_dec->s_tran_addrecon.u4_inc_uv[0] = ((ps_dec->u1_recon_mb_grp << 4) >> u1_mbaff);
+        ps_dec->s_tran_addrecon.u4_inc_y[0] = ((ps_dec->u4_recon_mb_grp << 4) >> u1_mbaff);
+        ps_dec->s_tran_addrecon.u4_inc_uv[0] = ((ps_dec->u4_recon_mb_grp << 4) >> u1_mbaff);
 
         /* End of Row Increment */
         ps_dec->s_tran_addrecon.u4_inc_y[1] =
@@ -583,8 +583,8 @@ WORD32 isvcd_start_of_pic(svc_dec_lyr_struct_t *ps_svc_lyr_dec, WORD32 i4_poc,
         /* only once per picture.                      */
         ih264d_assign_pic_num(ps_dec);
         ps_dec->s_tran_addrecon.u2_mv_top_left_inc =
-            (ps_dec->u1_recon_mb_grp << 2) - 1 - (u1_mbaff << 2);
-        ps_dec->s_tran_addrecon.u2_mv_left_inc = ((ps_dec->u1_recon_mb_grp >> u1_mbaff) - 1)
+            (ps_dec->u4_recon_mb_grp << 2) - 1 - (u1_mbaff << 2);
+        ps_dec->s_tran_addrecon.u2_mv_left_inc = ((ps_dec->u4_recon_mb_grp >> u1_mbaff) - 1)
                                                  << (4 + u1_mbaff);
     }
     /**********************************************************************/
@@ -697,7 +697,7 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
     }
 
     /*we currently don not support ASO*/
-    if(((u2_first_mb_in_slice << ps_cur_slice->u1_mbaff_frame_flag) <= ps_dec->u2_cur_mb_addr) &&
+    if(((u2_first_mb_in_slice << ps_cur_slice->u1_mbaff_frame_flag) <= ps_dec->u4_cur_mb_addr) &&
        (ps_dec->u4_first_slice_in_pic == 0))
     {
         return ERROR_CORRUPTED_SLICE;
@@ -794,7 +794,7 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
 
     ps_dec->u2_pic_wd = ps_subset_seq->u2_pic_wd;
     ps_dec->u2_pic_ht = ps_subset_seq->u2_pic_ht;
-    ps_dec->u4_total_mbs = ps_seq->u2_total_num_of_mbs << (1 - ps_seq->u1_frame_mbs_only_flag);
+    ps_dec->u4_total_mbs = ps_seq->u4_total_num_of_mbs << (1 - ps_seq->u1_frame_mbs_only_flag);
 
     /* Determining the Width and Height of Frame from that of Picture */
     ps_dec->u2_frm_wd_y = ps_subset_seq->u2_frm_wd_y;
@@ -847,7 +847,7 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
             ps_prev_poc->u1_bot_field = ps_cur_poc->u1_bot_field;
         }
 
-        ps_dec->u2_total_mbs_coded = 0;
+        ps_dec->u4_total_mbs_coded = 0;
     }
     /* Get the field related flags  */
     if(!ps_seq->u1_frame_mbs_only_flag)
@@ -983,7 +983,7 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
                 ps_cur_slice->u1_bottom_field_flag = 0;
 
             num_mb_skipped =
-                (ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs) - ps_dec->u2_total_mbs_coded;
+                (ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs) - ps_dec->u4_total_mbs_coded;
             ps_cur_poc = &ps_dec->s_cur_pic_poc;
 
             u1_is_idr_slice = ps_cur_slice->u1_nal_unit_type == IDR_SLICE_NAL;
@@ -1015,20 +1015,20 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
              * conceal the current frame completely */
             prev_slice_err = 2;
             num_mb_skipped =
-                (ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs) - ps_dec->u2_total_mbs_coded;
+                (ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs) - ps_dec->u4_total_mbs_coded;
             ps_cur_poc = &s_tmp_poc;
         }
     }
     else
     {
-        if((u2_first_mb_in_slice << u1_mbaff) > ps_dec->u2_total_mbs_coded)
+        if((u2_first_mb_in_slice << u1_mbaff) > ps_dec->u4_total_mbs_coded)
         {
             // previous slice - missing/corruption
             prev_slice_err = 2;
-            num_mb_skipped = (u2_first_mb_in_slice << u1_mbaff) - ps_dec->u2_total_mbs_coded;
+            num_mb_skipped = (u2_first_mb_in_slice << u1_mbaff) - ps_dec->u4_total_mbs_coded;
             ps_cur_poc = &s_tmp_poc;
         }
-        else if((u2_first_mb_in_slice << u1_mbaff) < ps_dec->u2_total_mbs_coded)
+        else if((u2_first_mb_in_slice << u1_mbaff) < ps_dec->u4_total_mbs_coded)
         {
             return ERROR_CORRUPTED_SLICE;
         }
@@ -1052,7 +1052,7 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
             return ERROR_INCOMPLETE_FRAME;
         }
 
-        if(ps_dec->u2_total_mbs_coded >= ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
+        if(ps_dec->u4_total_mbs_coded >= ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
         {
             /* return if all MBs in frame are parsed*/
             ps_dec->u1_first_slice_in_stream = 0;
@@ -1129,7 +1129,7 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
     /* Increment only if the current slice has atleast 1 more MB */
     if(ps_dec->u4_first_slice_in_pic == 0 &&
        (ps_dec->ps_parse_cur_slice->u4_first_mb_in_slice <
-        (UWORD32) (ps_dec->u2_total_mbs_coded >> ps_dec->ps_cur_slice->u1_mbaff_frame_flag)))
+        (UWORD32) (ps_dec->u4_total_mbs_coded >> ps_dec->ps_cur_slice->u1_mbaff_frame_flag)))
     {
         ps_dec->ps_parse_cur_slice++;
         ps_dec->u2_cur_slice_num++;
@@ -1405,7 +1405,7 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
                         ps_dec->ps_deblk_pic + (u2_first_mb_in_slice << u1_mb_aff);
                 }
 
-                ps_dec->u2_cur_mb_addr = (u2_first_mb_in_slice << u1_mb_aff);
+                ps_dec->u4_cur_mb_addr = (u2_first_mb_in_slice << u1_mb_aff);
 
                 ps_dec->ps_mv_cur =
                     ps_dec->s_cur_pic.ps_mv + ((u2_first_mb_in_slice << u1_mb_aff) << 4);
@@ -1427,7 +1427,7 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
             u2_mb_x = 0xffff;
             u2_mb_y = 0;
             // assign the deblock structure pointers to start of slice
-            ps_dec->u2_cur_mb_addr = 0;
+            ps_dec->u4_cur_mb_addr = 0;
             ps_dec->ps_deblk_mbn = ps_dec->ps_deblk_pic;
             ps_dec->ps_mv_cur = ps_dec->s_cur_pic.ps_mv;
             ps_trns_addr->pu1_dest_y = ps_dec->s_cur_pic.pu1_buf1;
@@ -1548,7 +1548,7 @@ WORD32 isvcd_parse_decode_slice_ext_nal(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_re
     ps_dec->i2_prev_slice_mby = ps_dec->u2_mby;
 
     /* End of Picture detection */
-    if(ps_dec->u2_total_mbs_coded >= (ps_seq->u2_max_mb_addr + 1))
+    if(ps_dec->u4_total_mbs_coded >= (ps_seq->u4_max_mb_addr + 1))
     {
         ps_dec->u1_pic_decode_done = 1;
     }
@@ -1947,7 +1947,7 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
     }
 
     /*we currently don not support ASO*/
-    if(((u2_first_mb_in_slice << ps_cur_slice->u1_mbaff_frame_flag) <= ps_dec->u2_cur_mb_addr) &&
+    if(((u2_first_mb_in_slice << ps_cur_slice->u1_mbaff_frame_flag) <= ps_dec->u4_cur_mb_addr) &&
        (ps_dec->u4_first_slice_in_pic == 0))
     {
         return ERROR_CORRUPTED_SLICE;
@@ -2045,7 +2045,7 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
 
     ps_dec->u2_pic_wd = ps_subset_seq->u2_pic_wd;
     ps_dec->u2_pic_ht = ps_subset_seq->u2_pic_ht;
-    ps_dec->u4_total_mbs = ps_seq->u2_total_num_of_mbs << (1 - ps_seq->u1_frame_mbs_only_flag);
+    ps_dec->u4_total_mbs = ps_seq->u4_total_num_of_mbs << (1 - ps_seq->u1_frame_mbs_only_flag);
 
     /* Determining the Width and Height of Frame from that of Picture */
     ps_dec->u2_frm_wd_y = ps_subset_seq->u2_frm_wd_y;
@@ -2097,7 +2097,7 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
             ps_prev_poc->u1_bot_field = ps_cur_poc->u1_bot_field;
         }
 
-        ps_dec->u2_total_mbs_coded = 0;
+        ps_dec->u4_total_mbs_coded = 0;
     }
     /* Get the field related flags  */
     if(!ps_seq->u1_frame_mbs_only_flag)
@@ -2232,7 +2232,7 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
                 ps_cur_slice->u1_bottom_field_flag = 0;
 
             num_mb_skipped =
-                (ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs) - ps_dec->u2_total_mbs_coded;
+                (ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs) - ps_dec->u4_total_mbs_coded;
             ps_cur_poc = &ps_dec->s_cur_pic_poc;
 
             u1_is_idr_slice = ps_cur_slice->u1_nal_unit_type == IDR_SLICE_NAL;
@@ -2264,20 +2264,20 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
              * conceal the current frame completely */
             prev_slice_err = 2;
             num_mb_skipped =
-                (ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs) - ps_dec->u2_total_mbs_coded;
+                (ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs) - ps_dec->u4_total_mbs_coded;
             ps_cur_poc = &s_tmp_poc;
         }
     }
     else
     {
-        if((u2_first_mb_in_slice << u1_mbaff) > ps_dec->u2_total_mbs_coded)
+        if((u2_first_mb_in_slice << u1_mbaff) > ps_dec->u4_total_mbs_coded)
         {
             // previous slice - missing/corruption
             prev_slice_err = 2;
-            num_mb_skipped = (u2_first_mb_in_slice << u1_mbaff) - ps_dec->u2_total_mbs_coded;
+            num_mb_skipped = (u2_first_mb_in_slice << u1_mbaff) - ps_dec->u4_total_mbs_coded;
             ps_cur_poc = &s_tmp_poc;
         }
-        else if((u2_first_mb_in_slice << u1_mbaff) < ps_dec->u2_total_mbs_coded)
+        else if((u2_first_mb_in_slice << u1_mbaff) < ps_dec->u4_total_mbs_coded)
         {
             return ERROR_CORRUPTED_SLICE;
         }
@@ -2301,7 +2301,7 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
             return ERROR_INCOMPLETE_FRAME;
         }
 
-        if(ps_dec->u2_total_mbs_coded >= ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
+        if(ps_dec->u4_total_mbs_coded >= ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
         {
             /* return if all MBs in frame are parsed*/
             ps_dec->u1_first_slice_in_stream = 0;
@@ -2378,7 +2378,7 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
     /* Increment only if the current slice has atleast 1 more MB */
     if(ps_dec->u4_first_slice_in_pic == 0 &&
        (ps_dec->ps_parse_cur_slice->u4_first_mb_in_slice <
-        (UWORD32) (ps_dec->u2_total_mbs_coded >> ps_dec->ps_cur_slice->u1_mbaff_frame_flag)))
+        (UWORD32) (ps_dec->u4_total_mbs_coded >> ps_dec->ps_cur_slice->u1_mbaff_frame_flag)))
     {
         ps_dec->ps_parse_cur_slice++;
         ps_dec->u2_cur_slice_num++;
@@ -2660,7 +2660,7 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
                         ps_dec->ps_deblk_pic + (u2_first_mb_in_slice << u1_mb_aff);
                 }
 
-                ps_dec->u2_cur_mb_addr = (u2_first_mb_in_slice << u1_mb_aff);
+                ps_dec->u4_cur_mb_addr = (u2_first_mb_in_slice << u1_mb_aff);
 
                 ps_dec->ps_mv_cur =
                     ps_dec->s_cur_pic.ps_mv + ((u2_first_mb_in_slice << u1_mb_aff) << 4);
@@ -2682,7 +2682,7 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
             u2_mb_x = 0xffff;
             u2_mb_y = 0;
             // assign the deblock structure pointers to start of slice
-            ps_dec->u2_cur_mb_addr = 0;
+            ps_dec->u4_cur_mb_addr = 0;
             ps_dec->ps_deblk_mbn = ps_dec->ps_deblk_pic;
             ps_dec->ps_mv_cur = ps_dec->s_cur_pic.ps_mv;
             ps_trns_addr->pu1_dest_y = ps_dec->s_cur_pic.pu1_buf1;
@@ -2795,7 +2795,7 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
 
     /* End of Picture detection */
 
-    if(ps_dec->u2_total_mbs_coded >= (ps_seq->u2_max_mb_addr + 1))
+    if(ps_dec->u4_total_mbs_coded >= (ps_seq->u4_max_mb_addr + 1))
     {
         ps_dec->u1_pic_decode_done = 1;
     }

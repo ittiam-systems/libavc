@@ -134,7 +134,7 @@ WORD32 isvcd_parse_islice_data_cabac(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
     ps_dec->i1_prev_mb_qp_delta = 0;
 
     /* initializations */
-    u1_mb_idx = ps_dec->u1_mb_idx;
+    u1_mb_idx = ps_dec->u4_mb_idx;
     u1_num_mbs = u1_mb_idx;
     uc_more_data_flag = 1;
     i2_cur_mb_addr = u2_first_mb_in_slice << u1_mbaff;
@@ -143,7 +143,7 @@ WORD32 isvcd_parse_islice_data_cabac(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
         UWORD16 u2_mbx;
         ps_dec->pv_prev_mb_parse_tu_coeff_data = ps_dec->pv_parse_tu_coeff_data;
 
-        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u2_max_mb_addr)
+        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u4_max_mb_addr)
         {
             break;
         }
@@ -253,7 +253,7 @@ WORD32 isvcd_parse_islice_data_cabac(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
         u1_num_mbs_next = i2_pic_wdin_mbs - u2_mbx - 1;
         u1_end_of_row = (!u1_num_mbs_next) && (!(u1_mbaff && (u1_num_mbs & 0x01)));
         u1_tfr_n_mb =
-            (u1_num_mbs == ps_dec->u1_recon_mb_grp) || u1_end_of_row || (!uc_more_data_flag);
+            (u1_num_mbs == ps_dec->u4_recon_mb_grp) || u1_end_of_row || (!uc_more_data_flag);
         ps_cur_mb_info->u1_end_of_slice = (!uc_more_data_flag);
 
         if(u1_tfr_n_mb || (!uc_more_data_flag))
@@ -279,10 +279,10 @@ WORD32 isvcd_parse_islice_data_cabac(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
                                                         u1_end_of_row);
                 }
             }
-            ps_dec->u2_total_mbs_coded += u1_num_mbs;
+            ps_dec->u4_total_mbs_coded += u1_num_mbs;
             if(u1_tfr_n_mb) u1_num_mbs = 0;
             u1_mb_idx = u1_num_mbs;
-            ps_dec->u1_mb_idx = u1_num_mbs;
+            ps_dec->u4_mb_idx = u1_num_mbs;
         }
     } while(uc_more_data_flag);
 
@@ -339,7 +339,7 @@ WORD32 isvcd_parse_islice_data_cavlc(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
     u1_mbaff = ps_slice->u1_mbaff_frame_flag;
 
     /* initializations */
-    u1_mb_idx = ps_dec->u1_mb_idx;
+    u1_mb_idx = ps_dec->u4_mb_idx;
     u1_num_mbs = u1_mb_idx;
 
     uc_more_data_flag = 1;
@@ -348,7 +348,7 @@ WORD32 isvcd_parse_islice_data_cavlc(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
     {
         UWORD8 u1_mb_type;
         ps_dec->pv_prev_mb_parse_tu_coeff_data = ps_dec->pv_parse_tu_coeff_data;
-        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u2_max_mb_addr)
+        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u4_max_mb_addr)
         {
             break;
         }
@@ -460,7 +460,7 @@ WORD32 isvcd_parse_islice_data_cavlc(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
         u1_num_mbs_next = i2_pic_wdin_mbs - ps_dec->u2_mbx - 1;
         u1_end_of_row = (!u1_num_mbs_next) && (!(u1_mbaff && (u1_num_mbs & 0x01)));
         u1_tfr_n_mb =
-            (u1_num_mbs == ps_dec->u1_recon_mb_grp) || u1_end_of_row || (!uc_more_data_flag);
+            (u1_num_mbs == ps_dec->u4_recon_mb_grp) || u1_end_of_row || (!uc_more_data_flag);
         ps_cur_mb_info->u1_end_of_slice = (!uc_more_data_flag);
 
         if(u1_tfr_n_mb || (!uc_more_data_flag))
@@ -486,10 +486,10 @@ WORD32 isvcd_parse_islice_data_cavlc(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
                                                         u1_end_of_row);
                 }
             }
-            ps_dec->u2_total_mbs_coded += u1_num_mbs;
+            ps_dec->u4_total_mbs_coded += u1_num_mbs;
             if(u1_tfr_n_mb) u1_num_mbs = 0;
             u1_mb_idx = u1_num_mbs;
-            ps_dec->u1_mb_idx = u1_num_mbs;
+            ps_dec->u4_mb_idx = u1_num_mbs;
         }
     } while(uc_more_data_flag);
 
@@ -1230,7 +1230,7 @@ WORD32 isvcd_parse_eislice_data_cabac(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
     ps_dec->i1_prev_mb_qp_delta = 0;
     ps_cab_env = &ps_dec->s_cab_dec_env;
     /* initializations */
-    u1_mb_idx = ps_dec->u1_mb_idx;
+    u1_mb_idx = ps_dec->u4_mb_idx;
     u1_num_mbs = u1_mb_idx;
     uc_more_data_flag = 1;
     i2_cur_mb_addr = u2_first_mb_in_slice << u1_mbaff;
@@ -1238,7 +1238,7 @@ WORD32 isvcd_parse_eislice_data_cabac(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
     {
         UWORD16 u2_mbx;
         ps_dec->pv_prev_mb_parse_tu_coeff_data = ps_dec->pv_parse_tu_coeff_data;
-        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u2_max_mb_addr)
+        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u4_max_mb_addr)
         {
             break;
         }
@@ -1402,7 +1402,7 @@ WORD32 isvcd_parse_eislice_data_cabac(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
         u1_num_mbs_next = i2_pic_wdin_mbs - u2_mbx - 1;
         u1_end_of_row = (!u1_num_mbs_next) && (!(u1_mbaff && (u1_num_mbs & 0x01)));
         u1_tfr_n_mb =
-            (u1_num_mbs == ps_dec->u1_recon_mb_grp) || u1_end_of_row || (!uc_more_data_flag);
+            (u1_num_mbs == ps_dec->u4_recon_mb_grp) || u1_end_of_row || (!uc_more_data_flag);
         ps_cur_mb_info->u1_end_of_slice = (!uc_more_data_flag);
 
         if(u1_tfr_n_mb || (!uc_more_data_flag))
@@ -1421,10 +1421,10 @@ WORD32 isvcd_parse_eislice_data_cabac(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
                                                               u1_end_of_row);
                 if(ret != OK) return ret;
             }
-            ps_dec->u2_total_mbs_coded += u1_num_mbs;
+            ps_dec->u4_total_mbs_coded += u1_num_mbs;
             if(u1_tfr_n_mb) u1_num_mbs = 0;
             u1_mb_idx = u1_num_mbs;
-            ps_dec->u1_mb_idx = u1_num_mbs;
+            ps_dec->u4_mb_idx = u1_num_mbs;
         }
     } while(uc_more_data_flag);
 
@@ -1482,7 +1482,7 @@ WORD32 isvcd_parse_eislice_data_cavlc(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
     ih264d_update_qp(ps_dec, 0);
     u1_mbaff = ps_slice->u1_mbaff_frame_flag;
 
-    u1_mb_idx = ps_dec->u1_mb_idx;
+    u1_mb_idx = ps_dec->u4_mb_idx;
     u1_num_mbs = u1_mb_idx;
     uc_more_data_flag = 1;
     i2_cur_mb_addr = u2_first_mb_in_slice << u1_mbaff;
@@ -1491,7 +1491,7 @@ WORD32 isvcd_parse_eislice_data_cavlc(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
     {
         UWORD8 u1_mb_type;
         ps_dec->pv_prev_mb_parse_tu_coeff_data = ps_dec->pv_parse_tu_coeff_data;
-        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u2_max_mb_addr)
+        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u4_max_mb_addr)
         {
             break;
         }
@@ -1627,7 +1627,7 @@ WORD32 isvcd_parse_eislice_data_cavlc(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
         u1_num_mbs_next = i2_pic_wdin_mbs - ps_dec->u2_mbx - 1;
         u1_end_of_row = (!u1_num_mbs_next) && (!(u1_mbaff && (u1_num_mbs & 0x01)));
         u1_tfr_n_mb =
-            (u1_num_mbs == ps_dec->u1_recon_mb_grp) || u1_end_of_row || (!uc_more_data_flag);
+            (u1_num_mbs == ps_dec->u4_recon_mb_grp) || u1_end_of_row || (!uc_more_data_flag);
         ps_cur_mb_info->u1_end_of_slice = (!uc_more_data_flag);
 
         if(u1_tfr_n_mb || (!uc_more_data_flag))
@@ -1646,10 +1646,10 @@ WORD32 isvcd_parse_eislice_data_cavlc(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
                                                               u1_end_of_row);
                 if(ret != OK) return ret;
             }
-            ps_dec->u2_total_mbs_coded += u1_num_mbs;
+            ps_dec->u4_total_mbs_coded += u1_num_mbs;
             if(u1_tfr_n_mb) u1_num_mbs = 0;
             u1_mb_idx = u1_num_mbs;
-            ps_dec->u1_mb_idx = u1_num_mbs;
+            ps_dec->u4_mb_idx = u1_num_mbs;
         }
     } while(uc_more_data_flag);
 

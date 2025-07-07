@@ -104,7 +104,7 @@ UWORD32 isvcd_get_mb_info_cabac_nonmbaff(dec_struct_t *ps_dec, const UWORD16 u2_
     /*--------------------------------------------------------------------*/
     mb_x = (WORD16) ps_dec->u2_mbx;
     mb_y = (WORD16) ps_dec->u2_mby;
-    ps_dec->u2_cur_mb_addr = u2_cur_mb_address;
+    ps_dec->u4_cur_mb_addr = u2_cur_mb_address;
 
     mb_x++;
     if((UWORD32) mb_x == u2_frm_width_in_mb)
@@ -283,7 +283,7 @@ UWORD32 isvcd_get_mb_info_cavlc_nonmbaff(dec_struct_t *ps_dec, const UWORD16 u2_
     mb_x = (WORD16) ps_dec->u2_mbx;
     mb_y = (WORD16) ps_dec->u2_mby;
 
-    ps_dec->u2_cur_mb_addr = u2_cur_mb_address;
+    ps_dec->u4_cur_mb_addr = u2_cur_mb_address;
 
     mb_x++;
 

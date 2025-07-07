@@ -71,8 +71,8 @@ WORD32 isvcd_process_inter_mb_rsd_pred_target_lyr(svc_dec_lyr_struct_t *ps_svc_l
                                                   UWORD8 u1_inference_mode,
                                                   UWORD16 *pu2_res_luma_csbp);
 
-WORD32 isvcd_mv_pred_ref_tfr_nby2_epmb(dec_struct_t *ps_dec, UWORD8 u1_num_mbs,
-                                       UWORD8 u1_num_mbsNby2);
+WORD32 isvcd_mv_pred_ref_tfr_nby2_epmb(dec_struct_t *ps_dec, UWORD32 u4_num_mbs,
+                                       UWORD32 u4_num_mbsNby2);
 
 WORD32 isvcd_decode_recon_tfr_nmb_non_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
                                                UWORD8 u1_mb_idx, UWORD8 u1_num_mbs,

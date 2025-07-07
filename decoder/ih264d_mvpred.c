@@ -142,7 +142,7 @@ void ih264d_get_motion_vector_predictor(mv_pred_t * ps_result,
  */
 
 void ih264d_mbaff_mv_pred(mv_pred_t **ps_mv_pred,
-                          UWORD8 u1_sub_mb_num,
+                          UWORD32 u4_sub_mb_num,
                           mv_pred_t *ps_mv_nmb,
                           mv_pred_t *ps_mv_ntop,
                           dec_struct_t *ps_dec,
@@ -152,7 +152,7 @@ void ih264d_mbaff_mv_pred(mv_pred_t **ps_mv_pred,
 {
     UWORD16 u2_a_in = 0, u2_b_in = 0, u2_c_in = 0, u2_d_in = 0;
     mv_pred_t *ps_mvpred_l, *ps_mvpred_tmp;
-    UWORD8 u1_sub_mb_x = (u1_sub_mb_num & 3), uc_sub_mb_y = (u1_sub_mb_num >> 2);
+    UWORD32 u4_sub_mb_x = (u4_sub_mb_num & 3), uc_sub_mb_y = (u4_sub_mb_num >> 2);
     UWORD8 u1_is_cur_mb_fld, u1_is_left_mb_fld, u1_is_top_mb_fld;
     UWORD8 u1_is_cur_mb_top;
 
@@ -169,7 +169,7 @@ void ih264d_mbaff_mv_pred(mv_pred_t **ps_mv_pred,
     ps_mv_pred[TOP_R] = &(ps_dec->s_default_mv_pred);
 
     /* Check if the left subMb is available */
-    if(u1_sub_mb_x)
+    if(u4_sub_mb_x)
     {
         u2_a_in = 1;
         ps_mv_pred[LEFT] = (ps_mv_nmb - 1);
@@ -239,12 +239,12 @@ void ih264d_mbaff_mv_pred(mv_pred_t **ps_mv_pred,
      TopRightSubMbIndx = TopLeftSubMbIndx + (WidthOfMbPartition - 6) / 2
      */
     u2_c_in = CHECKBIT(ps_cur_mb_info->u2_top_right_avail_mask,
-                        (u1_sub_mb_num + uc_mb_part_width - 1));
+                        (u4_sub_mb_num + uc_mb_part_width - 1));
     if(u2_c_in)
     {
         ps_mv_pred[TOP_R] = ps_mv_pred[TOP] + uc_mb_part_width;
         pu0_scale[TOP_R] = pu0_scale[TOP];
-        if((uc_sub_mb_y == 0) && ((u1_sub_mb_x + uc_mb_part_width) > 3))
+        if((uc_sub_mb_y == 0) && ((u4_sub_mb_x + uc_mb_part_width) > 3))
         {
             UWORD8 uc_isTopRtMbFld;
             uc_isTopRtMbFld = ps_cur_mb_info->ps_top_right_mb->u1_mb_fld;
@@ -259,7 +259,7 @@ void ih264d_mbaff_mv_pred(mv_pred_t **ps_mv_pred,
     }
     else
     {
-        u2_d_in = CHECKBIT(ps_cur_mb_info->u2_top_left_avail_mask, u1_sub_mb_num);
+        u2_d_in = CHECKBIT(ps_cur_mb_info->u2_top_left_avail_mask, u4_sub_mb_num);
 
         /* Check if the the top left subMB is available */
         if(u2_d_in)
@@ -269,7 +269,7 @@ void ih264d_mbaff_mv_pred(mv_pred_t **ps_mv_pred,
             ps_mv_pred[TOP_R] = ps_mv_pred[TOP] - 1;
             pu0_scale[TOP_R] = pu0_scale[TOP];
 
-            if(u1_sub_mb_x == 0)
+            if(u4_sub_mb_x == 0)
             {
                 if((uc_sub_mb_y > 0) || ((u1_is_cur_mb_top | u1_is_cur_mb_fld) == 0))
                 {
@@ -333,7 +333,7 @@ void ih264d_mbaff_mv_pred(mv_pred_t **ps_mv_pred,
  */
 #if(!MVPRED_NONMBAFF)
 void ih264d_non_mbaff_mv_pred(mv_pred_t **ps_mv_pred,
-                              UWORD8 u1_sub_mb_num,
+                              UWORD32 u4_sub_mb_num,
                               mv_pred_t *ps_mv_nmb,
                               mv_pred_t *ps_mv_ntop,
                               dec_struct_t *ps_dec,
@@ -341,7 +341,7 @@ void ih264d_non_mbaff_mv_pred(mv_pred_t **ps_mv_pred,
                               dec_mb_info_t *ps_cur_mb_info)
 {
     UWORD16 u2_b_in = 0, u2_c_in = 0, u2_d_in = 0;
-    UWORD8 u1_sub_mb_x = (u1_sub_mb_num & 3), uc_sub_mb_y = (u1_sub_mb_num >> 2);
+    UWORD32 u4_sub_mb_x = (u4_sub_mb_num & 3), uc_sub_mb_y = (u4_sub_mb_num >> 2);
 
     /* Checking in the subMB exists, calculating their motion vectors to be
      used as predictors and the reference frames of those subMBs */
@@ -351,7 +351,7 @@ void ih264d_non_mbaff_mv_pred(mv_pred_t **ps_mv_pred,
     ps_mv_pred[TOP_R] = &(ps_dec->s_default_mv_pred);
     /* Check if the left subMb is available */
 
-    if(u1_sub_mb_x)
+    if(u4_sub_mb_x)
     {
         ps_mv_pred[LEFT] = (ps_mv_nmb - 1);
     }
@@ -387,7 +387,7 @@ void ih264d_non_mbaff_mv_pred(mv_pred_t **ps_mv_pred,
      TopRightSubMbIndx = TopLeftSubMbIndx + (WidthOfMbPartition - 6) / 2
      */
     u2_c_in = CHECKBIT(ps_cur_mb_info->u2_top_right_avail_mask,
-                        (u1_sub_mb_num + uc_mb_part_width - 1));
+                        (u4_sub_mb_num + uc_mb_part_width - 1));
     if(u2_c_in)
     {
         ps_mv_pred[TOP_R] = (ps_mv_ntop + uc_mb_part_width);
@@ -395,19 +395,19 @@ void ih264d_non_mbaff_mv_pred(mv_pred_t **ps_mv_pred,
         if(uc_sub_mb_y == 0)
         {
             /* CHANGED CODE */
-            if((u1_sub_mb_x + uc_mb_part_width) > 3)
+            if((u4_sub_mb_x + uc_mb_part_width) > 3)
                 ps_mv_pred[TOP_R] += 12;
         }
     }
     else
     {
-        u2_d_in = CHECKBIT(ps_cur_mb_info->u2_top_left_avail_mask, u1_sub_mb_num);
+        u2_d_in = CHECKBIT(ps_cur_mb_info->u2_top_left_avail_mask, u4_sub_mb_num);
         /* Check if the the top left subMB is available */
         if(u2_d_in)
         {
             /* CHANGED CODE */
             ps_mv_pred[TOP_R] = (ps_mv_ntop - 1);
-            if(u1_sub_mb_x == 0)
+            if(u4_sub_mb_x == 0)
             {
                 if(uc_sub_mb_y)
                 {
@@ -460,7 +460,7 @@ UWORD8 ih264d_mvpred_nonmbaffB(dec_struct_t *ps_dec,
                                mv_pred_t *ps_mv_nmb,
                                mv_pred_t *ps_mv_ntop,
                                mv_pred_t *ps_mv_final_pred,
-                               UWORD8 u1_sub_mb_num,
+                               UWORD32 u4_sub_mb_num,
                                UWORD8 uc_mb_part_width,
                                UWORD8 u1_lx_start,
                                UWORD8 u1_lxend,
@@ -471,7 +471,7 @@ UWORD8 ih264d_mvpred_nonmbaffB(dec_struct_t *ps_dec,
     UWORD8 uc_B2, uc_lx, u1_ref_idx;
     UWORD8 u1_direct_zero_pred_flag = 0;
 
-    ih264d_non_mbaff_mv_pred(ps_mv_pred, u1_sub_mb_num, ps_mv_nmb, ps_mv_ntop,
+    ih264d_non_mbaff_mv_pred(ps_mv_pred, u4_sub_mb_num, ps_mv_nmb, ps_mv_ntop,
                              ps_dec, uc_mb_part_width, ps_cur_mb_info);
 
     for(uc_lx = u1_lx_start; uc_lx < u1_lxend; uc_lx++)
@@ -482,7 +482,7 @@ UWORD8 ih264d_mvpred_nonmbaffB(dec_struct_t *ps_dec,
         {
             case PRED_16x8:
                 /* Directional prediction for a 16x8 MB partition */
-                if(u1_sub_mb_num == 0)
+                if(u4_sub_mb_num == 0)
                 {
                     /* Calculating the MV pred for the top 16x8 block */
                     if(ps_mv_pred[TOP]->i1_ref_frame[uc_lx] == u1_ref_idx)
@@ -536,7 +536,7 @@ UWORD8 ih264d_mvpred_nonmbaffB(dec_struct_t *ps_dec,
                 break;
             case PRED_8x16:
                 /* Directional prediction for a 8x16 MB partition */
-                if(u1_sub_mb_num == 0)
+                if(u4_sub_mb_num == 0)
                 {
                     if(ps_mv_pred[LEFT]->i1_ref_frame[uc_lx] == u1_ref_idx)
                     {
@@ -695,7 +695,7 @@ UWORD8 ih264d_mvpred_nonmbaff(dec_struct_t *ps_dec,
                               mv_pred_t *ps_mv_nmb,
                               mv_pred_t *ps_mv_ntop,
                               mv_pred_t *ps_mv_final_pred,
-                              UWORD8 u1_sub_mb_num,
+                              UWORD32 u4_sub_mb_num,
                               UWORD8 uc_mb_part_width,
                               UWORD8 u1_lx_start,
                               UWORD8 u1_lxend,
@@ -707,7 +707,7 @@ UWORD8 ih264d_mvpred_nonmbaff(dec_struct_t *ps_dec,
     UWORD8 u1_direct_zero_pred_flag = 0;
     UNUSED(u1_lx_start);
     UNUSED(u1_lxend);
-    ih264d_non_mbaff_mv_pred(ps_mv_pred, u1_sub_mb_num, ps_mv_nmb, ps_mv_ntop,
+    ih264d_non_mbaff_mv_pred(ps_mv_pred, u4_sub_mb_num, ps_mv_nmb, ps_mv_ntop,
                              ps_dec, uc_mb_part_width, ps_cur_mb_info);
 
     u1_ref_idx = ps_mv_final_pred->i1_ref_frame[0];
@@ -716,7 +716,7 @@ UWORD8 ih264d_mvpred_nonmbaff(dec_struct_t *ps_dec,
     {
         case PRED_16x8:
             /* Directional prediction for a 16x8 MB partition */
-            if(u1_sub_mb_num == 0)
+            if(u4_sub_mb_num == 0)
             {
                 /* Calculating the MV pred for the top 16x8 block */
                 if(ps_mv_pred[TOP]->i1_ref_frame[0] == u1_ref_idx)
@@ -768,7 +768,7 @@ UWORD8 ih264d_mvpred_nonmbaff(dec_struct_t *ps_dec,
             break;
         case PRED_8x16:
             /* Directional prediction for a 8x16 MB partition */
-            if(u1_sub_mb_num == 0)
+            if(u4_sub_mb_num == 0)
             {
                 if(ps_mv_pred[LEFT]->i1_ref_frame[0] == u1_ref_idx)
                 {
@@ -925,7 +925,7 @@ UWORD8 ih264d_mvpred_mbaff(dec_struct_t *ps_dec,
                            mv_pred_t *ps_mv_nmb,
                            mv_pred_t *ps_mv_ntop,
                            mv_pred_t *ps_mv_final_pred,
-                           UWORD8 u1_sub_mb_num,
+                           UWORD32 u4_sub_mb_num,
                            UWORD8 uc_mb_part_width,
                            UWORD8 u1_lx_start,
                            UWORD8 u1_lxend,
@@ -937,7 +937,7 @@ UWORD8 ih264d_mvpred_mbaff(dec_struct_t *ps_dec,
     UWORD8 u1_direct_zero_pred_flag = 0;
 
     pu0_scale[0] = pu0_scale[1] = pu0_scale[2] = 0;
-    ih264d_mbaff_mv_pred(ps_mv_pred, u1_sub_mb_num, ps_mv_nmb, ps_mv_ntop, ps_dec,
+    ih264d_mbaff_mv_pred(ps_mv_pred, u4_sub_mb_num, ps_mv_nmb, ps_mv_ntop, ps_dec,
                          uc_mb_part_width, ps_cur_mb_info, pu0_scale);
     for(i = 0; i < 3; i++)
     {
@@ -970,7 +970,7 @@ UWORD8 ih264d_mvpred_mbaff(dec_struct_t *ps_dec,
         {
             case PRED_16x8:
                 /* Directional prediction for a 16x8 MB partition */
-                if(u1_sub_mb_num == 0)
+                if(u4_sub_mb_num == 0)
                 {
                     /* Calculating the MV pred for the top 16x8 block */
                     if(ps_mv_pred[TOP]->i1_ref_frame[uc_lx] == u1_ref_idx)
@@ -1024,7 +1024,7 @@ UWORD8 ih264d_mvpred_mbaff(dec_struct_t *ps_dec,
                 break;
             case PRED_8x16:
                 /* Directional prediction for a 8x16 MB partition */
-                if(u1_sub_mb_num == 0)
+                if(u4_sub_mb_num == 0)
                 {
                     if(ps_mv_pred[LEFT]->i1_ref_frame[uc_lx] == u1_ref_idx)
                     {
@@ -1168,7 +1168,7 @@ UWORD8 ih264d_mvpred_mbaff(dec_struct_t *ps_dec,
 void ih264d_rep_mv_colz(dec_struct_t *ps_dec,
                         mv_pred_t *ps_mv_pred_src,
                         mv_pred_t *ps_mv_pred_dst,
-                        UWORD8 u1_sub_mb_num,
+                        UWORD32 u4_sub_mb_num,
                         UWORD8 u1_colz,
                         UWORD8 u1_ht,
                         UWORD8 u1_wd)
@@ -1176,7 +1176,7 @@ void ih264d_rep_mv_colz(dec_struct_t *ps_dec,
 
     UWORD8 k, m;
     UWORD8 *pu1_colz = ps_dec->pu1_col_zero_flag + ps_dec->i4_submb_ofst
-                    + u1_sub_mb_num;
+                    + u4_sub_mb_num;
 
     for(k = 0; k < u1_ht; k++)
     {
