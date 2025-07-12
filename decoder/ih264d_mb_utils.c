@@ -1389,9 +1389,9 @@ void ih264d_get_mbaff_neighbours(dec_struct_t * ps_dec,
  **************************************************************************
  */
 void ih264d_transfer_mb_group_data(dec_struct_t * ps_dec,
-                                   const UWORD8 u1_num_mbs,
-                                   const UWORD8 u1_end_of_row, /* Cur n-Mb End of Row Flag */
-                                   const UWORD8 u1_end_of_row_next /* Next n-Mb End of Row Flag */
+                                   const UWORD32 u4_num_mbs,
+                                   const UWORD32 u4_end_of_row, /* Cur n-Mb End of Row Flag */
+                                   const UWORD32 u4_end_of_row_next /* Next n-Mb End of Row Flag */
                                    )
 {
     dec_mb_info_t *ps_cur_mb_info = ps_dec->ps_nmb_info;
@@ -1401,14 +1401,14 @@ void ih264d_transfer_mb_group_data(dec_struct_t * ps_dec,
     UWORD32 u4_frame_stride;
     mb_neigbour_params_t *ps_temp;
     const UWORD8 u1_mbaff = ps_dec->ps_cur_slice->u1_mbaff_frame_flag;
-    UNUSED(u1_end_of_row_next);
+    UNUSED(u4_end_of_row_next);
 
-    ps_trns_addr->pu1_dest_y += ps_trns_addr->u4_inc_y[u1_end_of_row];
-    ps_trns_addr->pu1_dest_u += ps_trns_addr->u4_inc_uv[u1_end_of_row];
-    ps_trns_addr->pu1_dest_v += ps_trns_addr->u4_inc_uv[u1_end_of_row];
+    ps_trns_addr->pu1_dest_y += ps_trns_addr->u4_inc_y[u4_end_of_row];
+    ps_trns_addr->pu1_dest_u += ps_trns_addr->u4_inc_uv[u4_end_of_row];
+    ps_trns_addr->pu1_dest_v += ps_trns_addr->u4_inc_uv[u4_end_of_row];
 
     /* Swap top and current pointers */
-    if(u1_end_of_row)
+    if(u4_end_of_row)
     {
 
         if(ps_dec->u1_separate_parse)
@@ -1443,12 +1443,12 @@ void ih264d_transfer_mb_group_data(dec_struct_t * ps_dec,
     /*
      * The Slice boundary is also a valid condition to transfer. So recalculate
      * the Left increment, in case the number of MBs is lesser than the
-     * N MB value. u1_num_mbs will be equal to N of N MB if the entire N Mb is
+     * N MB value. u4_num_mbs will be equal to N of N MB if the entire N Mb is
      * decoded.
      */
-    ps_dec->s_tran_addrecon.u2_mv_left_inc = ((u1_num_mbs >> u1_mbaff) - 1)
+    ps_dec->s_tran_addrecon.u2_mv_left_inc = ((WORD16)(u4_num_mbs >> u1_mbaff) - 1)
                     << (4 + u1_mbaff);
-    ps_dec->s_tran_addrecon.u2_mv_top_left_inc = (u1_num_mbs << 2) - 1
+    ps_dec->s_tran_addrecon.u2_mv_top_left_inc = (WORD16)(u4_num_mbs << 2) - 1
                     - (u1_mbaff << 2);
 
     if(ps_dec->u1_separate_parse == 0)
@@ -1457,14 +1457,14 @@ void ih264d_transfer_mb_group_data(dec_struct_t * ps_dec,
         ps_dec->ps_mv_left = ps_dec->ps_mv_cur
                         + ps_dec->s_tran_addrecon.u2_mv_left_inc;
 
-        ps_dec->ps_mv_cur += (u1_num_mbs << 4);
+        ps_dec->ps_mv_cur += (u4_num_mbs << 4);
     }
 
     /* Increment deblock parameters pointer in external memory */
 
     if(ps_dec->u1_separate_parse == 0)
     {
-        ps_dec->ps_deblk_mbn += u1_num_mbs;
+        ps_dec->ps_deblk_mbn += u4_num_mbs;
     }
 
 }

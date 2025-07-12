@@ -1291,7 +1291,7 @@ void ih264d_init_decoder(void * ps_dec_params)
 
     ps_dec->i4_max_poc = 0;
     ps_dec->i4_prev_max_display_seq = 0;
-    ps_dec->u1_recon_mb_grp = 4;
+    ps_dec->u4_recon_mb_grp = 4;
     ps_dec->i4_reorder_depth = -1;
 
     /* Field PIC initializations */
