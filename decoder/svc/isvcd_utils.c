@@ -117,7 +117,7 @@ WORD16 isvcd_allocate_dynamic_bufs(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
     WORD16 i16_status = 0;
     UWORD8 uc_frmOrFld = (1 - ps_dec->ps_cur_sps->u1_frame_mbs_only_flag);
     dec_seq_params_t *ps_sps = ps_dec->ps_cur_sps;
-    UWORD32 u4_total_mbs = ps_sps->u2_total_num_of_mbs << uc_frmOrFld;
+    UWORD32 u4_total_mbs = ps_sps->u4_total_num_of_mbs << uc_frmOrFld;
     WORD32 size;
     void *pv_buf;
     void *pv_mem_ctxt = ps_dec->pv_mem_ctxt;
@@ -773,7 +773,7 @@ WORD32 isvcd_init_pic(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD16 u2_frame_num
     /*--------------------------------------------------------------------*/
     /* Get the value of MaxMbAddress and frmheight in Mbs                 */
     /*--------------------------------------------------------------------*/
-    ps_seq->u2_max_mb_addr =
+    ps_seq->u4_max_mb_addr =
         (ps_seq->u2_frm_wd_in_mbs *
          (ps_dec->u2_pic_ht >> (4 + ps_dec->ps_cur_slice->u1_field_pic_flag))) -
         1;

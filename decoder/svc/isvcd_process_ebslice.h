@@ -46,8 +46,8 @@ WORD32 isvcd_parse_ebslice(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD16 u2_firs
 
 WORD32 isvcd_parse_bslice(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD16 u2_first_mb_in_slice);
 
-WORD32 isvcd_mv_pred_ref_tfr_nby2_ebmb(dec_struct_t *ps_svc_lyr_dec, UWORD8 u1_mb_idx,
-                                       UWORD8 u1_num_mbs);
+WORD32 isvcd_mv_pred_ref_tfr_nby2_ebmb(dec_struct_t *ps_svc_lyr_dec, UWORD32 u4_mb_idx,
+                                       UWORD32 u4_num_mbs);
 
 WORD32 isvcd_parse_bmb_non_direct_cabac(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
                                         dec_mb_info_t *ps_cur_mb_info,
@@ -60,5 +60,5 @@ WORD32 isvcd_parse_bmb_non_direct_cavlc(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
                                         UWORD8 u1_num_mbsNby2);
 
 WORD32 isvcd_decode_spatial_direct(dec_struct_t *ps_svc_lyr_dec, UWORD8 u1_wd_x,
-                                   dec_mb_info_t *ps_cur_mb_info, UWORD8 u1_mb_num);
+                                   dec_mb_info_t *ps_cur_mb_info, UWORD32 u4_mb_num);
 #endif /* _ISVCD_PROCESS_EBSLICE_H_ */

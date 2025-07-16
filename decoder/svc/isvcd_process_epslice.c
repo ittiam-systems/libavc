@@ -178,7 +178,7 @@ WORD32 isvcd_interlyr_motion_mode_pred(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
  *    0 on Success and Error code otherwise
  **************************************************************************
  */
-WORD32 isvcd_mv_pred_ref_tfr_nby2_epmb(dec_struct_t *ps_dec, UWORD8 u1_mb_idx, UWORD8 u1_num_mbs)
+WORD32 isvcd_mv_pred_ref_tfr_nby2_epmb(dec_struct_t *ps_dec, UWORD32 u4_mb_idx, UWORD32 u4_num_mbs)
 {
     svc_dec_lyr_struct_t *ps_svc_lyr_dec = (svc_dec_lyr_struct_t *) ps_dec;
     parse_pmbarams_t *ps_mb_part_info;
@@ -190,12 +190,12 @@ WORD32 isvcd_mv_pred_ref_tfr_nby2_epmb(dec_struct_t *ps_dec, UWORD8 u1_mb_idx, U
     dec_svc_mb_info_t *ps_svc_cur_mb_info;
     WORD32 i2_mv_x, i2_mv_y;
 
-    ps_dec->i4_submb_ofst -= (u1_num_mbs - u1_mb_idx) << 4;
+    ps_dec->i4_submb_ofst -= (u4_num_mbs - u4_mb_idx) << 4;
     ps_mb_part_info = ps_dec->ps_parse_mb_data;
     ps_part = ps_dec->ps_parse_part_params;
 
     /* N/2 Mb MvPred and Transfer Setup Loop */
-    for(i = u1_mb_idx; i < u1_num_mbs; i++, ps_mb_part_info++)
+    for(i = u4_mb_idx; i < u4_num_mbs; i++, ps_mb_part_info++)
     {
         UWORD32 u1_colz;
         UWORD32 u1_field;
@@ -217,7 +217,7 @@ WORD32 isvcd_mv_pred_ref_tfr_nby2_epmb(dec_struct_t *ps_dec, UWORD8 u1_mb_idx, U
         ps_dec->u2_mv_2mb[i & 0x1] = 0;
 
         /* Look for MV Prediction and Reference Transfer in Non-I Mbs */
-        if(!ps_mb_part_info->u1_isI_mb)
+        if(!ps_mb_part_info->u4_isI_mb)
         {
             UWORD32 u1_blk_no;
             WORD32 i1_ref_idx, i1_ref_idx1;
@@ -233,7 +233,7 @@ WORD32 isvcd_mv_pred_ref_tfr_nby2_epmb(dec_struct_t *ps_dec, UWORD8 u1_mb_idx, U
 
             /* MB Level initialisations */
             ps_dec->u4_num_pmbair = i >> u1_mbaff;
-            ps_dec->u1_mb_idx_mv = i;
+            ps_dec->u4_mb_idx_mv = i;
             ppu4_wt_ofst = ps_mb_part_info->pu4_wt_offst;
             pps_ref_frame = ps_dec->ps_ref_pic_buf_lx[0];
 
@@ -1415,7 +1415,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_non_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_
 
         for(j = u1_mb_idx; j < i; j++)
         {
-            if(ps_dec->u4_cur_deblk_mb_num > ps_dec->ps_cur_sps->u2_max_mb_addr)
+            if(ps_dec->u4_cur_deblk_mb_num > ps_dec->ps_cur_sps->u4_max_mb_addr)
             {
                 return NOT_OK;
             }
@@ -1430,7 +1430,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_non_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_
         /* Check for End Of Row in Next iteration                       */
         /****************************************************************/
         u1_end_of_row_next =
-            u1_num_mbs_next && (u1_num_mbs_next <= (ps_dec->u1_recon_mb_grp >> u1_mbaff));
+            u1_num_mbs_next && (u1_num_mbs_next <= (ps_dec->u4_recon_mb_grp >> u1_mbaff));
 
         /****************************************************************/
         /* Transfer the Following things                                */
@@ -1600,7 +1600,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
                 }
             }
 
-            if(ps_dec->u4_cur_deblk_mb_num > ps_dec->ps_cur_sps->u2_max_mb_addr)
+            if(ps_dec->u4_cur_deblk_mb_num > ps_dec->ps_cur_sps->u4_max_mb_addr)
             {
                 return NOT_OK;
             }
@@ -1616,7 +1616,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
         /* Check for End Of Row in Next iteration                       */
         /****************************************************************/
         u1_end_of_row_next =
-            u1_num_mbs_next && (u1_num_mbs_next <= (ps_dec->u1_recon_mb_grp >> u1_mbaff));
+            u1_num_mbs_next && (u1_num_mbs_next <= (ps_dec->u4_recon_mb_grp >> u1_mbaff));
 
         /****************************************************************/
         /* Transfer the Following things                                */

@@ -82,8 +82,8 @@ void ih264d_deblock_mb_level(dec_struct_t *ps_dec,
  */
 WORD32 ih264d_parse_pmb_cavlc(dec_struct_t * ps_dec,
                               dec_mb_info_t * ps_cur_mb_info,
-                              UWORD8 u1_mb_num,
-                              UWORD8 u1_num_mbsNby2)
+                              UWORD32 u4_mb_num,
+                              UWORD32 u4_num_mbsNby2)
 {
     UWORD32 u1_num_mb_part;
     UWORD32 uc_sub_mb;
@@ -92,7 +92,7 @@ WORD32 ih264d_parse_pmb_cavlc(dec_struct_t * ps_dec,
     UWORD32 *pu4_bitstrm_ofst = &ps_bitstrm->u4_ofst;
 
     parse_pmbarams_t * ps_parse_mb_data = ps_dec->ps_parse_mb_data
-                    + u1_num_mbsNby2;
+                    + u4_num_mbsNby2;
     WORD8 * pi1_ref_idx = ps_parse_mb_data->i1_ref_idx[0];
     const UWORD8 u1_mbaff = ps_dec->ps_cur_slice->u1_mbaff_frame_flag;
     const UWORD8 * pu1_num_mb_part = (const UWORD8 *)gau1_ih264d_num_mb_part;
@@ -202,7 +202,7 @@ WORD32 ih264d_parse_pmb_cavlc(dec_struct_t * ps_dec,
         else
         {
             /* When there exists only a single frame to predict from */
-            UWORD8 uc_i;
+            UWORD32 uc_i;
             for(uc_i = 0; uc_i < u1_num_mb_part; uc_i++)
                 /* Storing Reference Idx Information */
                 pi1_ref_idx[uc_i] = 0;
@@ -210,12 +210,13 @@ WORD32 ih264d_parse_pmb_cavlc(dec_struct_t * ps_dec,
     }
 
     {
-        UWORD8 u1_p_idx, uc_i;
+        UWORD8 u1_p_idx;
+        UWORD32 uc_i;
         parse_part_params_t * ps_part = ps_dec->ps_part;
         UWORD8 u1_sub_mb_mode, u1_num_subpart, u1_mb_part_width, u1_mb_part_height;
-        UWORD8 u1_sub_mb_num;
+        UWORD32 u4_sub_mb_num;
         const UWORD8 * pu1_top_left_sub_mb_indx;
-        mv_pred_t * ps_mv, *ps_mv_start = ps_dec->ps_mv_cur + (u1_mb_num << 4);
+        mv_pred_t * ps_mv, *ps_mv_start = ps_dec->ps_mv_cur + (u4_mb_num << 4);
         /* Loading the table pointers */
         const UWORD8 * pu1_mb_partw = (const UWORD8 *)gau1_ih264d_mb_partw;
         const UWORD8 * pu1_mb_parth = (const UWORD8 *)gau1_ih264d_mb_parth;
@@ -238,7 +239,7 @@ WORD32 ih264d_parse_pmb_cavlc(dec_struct_t * ps_dec,
         u1_mb_part_width = pu1_mb_partw[u1_mb_type];
         u1_mb_part_height = pu1_mb_parth[u1_mb_type];
         pu1_top_left_sub_mb_indx = pu1_sub_mb_indx_mod + (u1_mb_type << 1);
-        u1_sub_mb_num = 0;
+        u4_sub_mb_num = 0;
 
         /* Loop on number of partitions */
         for(uc_i = 0, u1_p_idx = 0; uc_i < u1_num_mb_part; uc_i++)
@@ -251,7 +252,7 @@ WORD32 ih264d_parse_pmb_cavlc(dec_struct_t * ps_dec,
                 u1_mb_part_width = pu1_sub_mb_partw[u1_sub_mb_mode];
                 u1_mb_part_height = pu1_sub_mb_parth[u1_sub_mb_mode];
                 pu1_top_left_sub_mb_indx = pu1_sub_mb_indx_mod + (u1_sub_mb_mode << 1);
-                u1_sub_mb_num = u2_sub_mb_num >> 12;
+                u4_sub_mb_num = u2_sub_mb_num >> 12;
                 u4_sum_mb_mode_pack <<= 8;
                 u2_sub_mb_num <<= 4;
             }
@@ -260,8 +261,8 @@ WORD32 ih264d_parse_pmb_cavlc(dec_struct_t * ps_dec,
             for(uc_j = 0; uc_j < u1_num_subpart; uc_j++, pu1_top_left_sub_mb_indx++)
             {
                 WORD16 i2_mvx, i2_mvy;
-                u1_sub_mb_num += *pu1_top_left_sub_mb_indx;
-                ps_mv = ps_mv_start + u1_sub_mb_num;
+                u4_sub_mb_num += *pu1_top_left_sub_mb_indx;
+                ps_mv = ps_mv_start + u4_sub_mb_num;
 
                 /* Reading the differential Mv from the bitstream */
                 //i2_mvx = ih264d_sev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
@@ -302,7 +303,7 @@ WORD32 ih264d_parse_pmb_cavlc(dec_struct_t * ps_dec,
 
                 /* Storing Info for partitions */
                 ps_part->u1_is_direct = PART_NOT_DIRECT;
-                ps_part->u1_sub_mb_num = u1_sub_mb_num;
+                ps_part->u1_sub_mb_num = u4_sub_mb_num;
                 ps_part->u1_partheight = u1_mb_part_height;
                 ps_part->u1_partwidth = u1_mb_part_width;
 
@@ -430,13 +431,13 @@ WORD32 ih264d_parse_pmb_cavlc(dec_struct_t * ps_dec,
  */
 WORD32 ih264d_parse_pmb_cabac(dec_struct_t * ps_dec,
                               dec_mb_info_t * ps_cur_mb_info,
-                              UWORD8 u1_mb_num,
-                              UWORD8 u1_num_mbsNby2)
+                              UWORD32 u4_mb_num,
+                              UWORD32 u4_num_mbsNby2)
 {
     UWORD32 u1_num_mb_part;
     UWORD32 uc_sub_mb;
     parse_pmbarams_t * ps_parse_mb_data = ps_dec->ps_parse_mb_data
-                    + u1_num_mbsNby2;
+                    + u4_num_mbsNby2;
     WORD8 * pi1_ref_idx = ps_parse_mb_data->i1_ref_idx[0];
     const UWORD8 * pu1_num_mb_part = (const UWORD8 *)gau1_ih264d_num_mb_part;
     const UWORD32 u1_mb_type = ps_cur_mb_info->u1_mb_type;
@@ -584,12 +585,13 @@ WORD32 ih264d_parse_pmb_cabac(dec_struct_t * ps_dec,
     }
 
     {
-        UWORD8 u1_p_idx, uc_i;
+        UWORD8 u1_p_idx;
+        UWORD32 uc_i;
         parse_part_params_t * ps_part = ps_dec->ps_part;
         UWORD8 u1_sub_mb_mode, u1_num_subpart, u1_mb_part_width, u1_mb_part_height;
-        UWORD8 u1_sub_mb_num;
+        UWORD32 u4_sub_mb_num;
         const UWORD8 * pu1_top_left_sub_mb_indx;
-        mv_pred_t *ps_mv_start = ps_dec->ps_mv_cur + (u1_mb_num << 4);
+        mv_pred_t *ps_mv_start = ps_dec->ps_mv_cur + (u4_mb_num << 4);
         UWORD16 u2_sub_mb_num_pack = 0x028A;
 
         /* Loading the table pointers */
@@ -612,7 +614,7 @@ WORD32 ih264d_parse_pmb_cabac(dec_struct_t * ps_dec,
         u1_mb_part_width = pu1_mb_partw[u1_mb_type];
         u1_mb_part_height = pu1_mb_parth[u1_mb_type];
         pu1_top_left_sub_mb_indx = pu1_sub_mb_indx_mod + (u1_mb_type << 1);
-        u1_sub_mb_num = 0;
+        u4_sub_mb_num = 0;
 
         /* Loop on number of partitions */
         for(uc_i = 0, u1_p_idx = 0; uc_i < u1_num_mb_part; uc_i++)
@@ -625,7 +627,7 @@ WORD32 ih264d_parse_pmb_cabac(dec_struct_t * ps_dec,
                 u1_mb_part_width = pu1_sub_mb_partw[u1_sub_mb_mode];
                 u1_mb_part_height = pu1_sub_mb_parth[u1_sub_mb_mode];
                 pu1_top_left_sub_mb_indx = pu1_sub_mb_indx_mod + (u1_sub_mb_mode << 1);
-                u1_sub_mb_num = u2_sub_mb_num_pack >> 12;
+                u4_sub_mb_num = u2_sub_mb_num_pack >> 12;
                 u4_sub_mb_pack <<= 8;
                 u2_sub_mb_num_pack <<= 4;
             }
@@ -634,12 +636,12 @@ WORD32 ih264d_parse_pmb_cabac(dec_struct_t * ps_dec,
             {
                 mv_pred_t * ps_mv;
 
-                u1_sub_mb_num += *pu1_top_left_sub_mb_indx;
-                ps_mv = ps_mv_start + u1_sub_mb_num;
+                u4_sub_mb_num += *pu1_top_left_sub_mb_indx;
+                ps_mv = ps_mv_start + u4_sub_mb_num;
 
                 /* Storing Info for partitions */
                 ps_part->u1_is_direct = PART_NOT_DIRECT;
-                ps_part->u1_sub_mb_num = u1_sub_mb_num;
+                ps_part->u1_sub_mb_num = u4_sub_mb_num;
                 ps_part->u1_partheight = u1_mb_part_height;
                 ps_part->u1_partwidth = u1_mb_part_width;
 
@@ -647,7 +649,7 @@ WORD32 ih264d_parse_pmb_cabac(dec_struct_t * ps_dec,
                 u1_p_idx++;
                 ps_part++;
 
-                ih264d_get_mvd_cabac(u1_sub_mb_num, 0, u1_mb_part_width,
+                ih264d_get_mvd_cabac(u4_sub_mb_num, 0, u1_mb_part_width,
                                      u1_mb_part_height, 1, ps_dec, ps_mv);
             }
         }
@@ -848,7 +850,7 @@ WORD32 ih264d_parse_inter_slice_data_cabac(dec_struct_t * ps_dec,
     i2_cur_mb_addr = u2_first_mb_in_slice;
     ps_dec->u1_qp = ps_slice->u1_slice_qp;
     ih264d_update_qp(ps_dec, 0);
-    u1_mb_idx = ps_dec->u1_mb_idx;
+    u1_mb_idx = ps_dec->u4_mb_idx;
     u1_num_mbs = u1_mb_idx;
     u1_num_mbsNby2 = 0;
     u1_mbaff = ps_slice->u1_mbaff_frame_flag;
@@ -875,7 +877,7 @@ WORD32 ih264d_parse_inter_slice_data_cabac(dec_struct_t * ps_dec,
 
         ps_dec->pv_prev_mb_parse_tu_coeff_data = ps_dec->pv_parse_tu_coeff_data;
 
-        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u2_max_mb_addr)
+        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u4_max_mb_addr)
         {
             break;
         }
@@ -891,7 +893,7 @@ WORD32 ih264d_parse_inter_slice_data_cabac(dec_struct_t * ps_dec,
 
         /* Storing Default partition info */
         ps_parse_mb_data->u1_num_part = 1;
-        ps_parse_mb_data->u1_isI_mb = 0;
+        ps_parse_mb_data->u4_isI_mb = 0;
 
         /***************************************************************/
         /* Get the required information for decoding of MB             */
@@ -972,7 +974,7 @@ WORD32 ih264d_parse_inter_slice_data_cabac(dec_struct_t * ps_dec,
             {
                 /* Storing Intra partition info */
                 ps_parse_mb_data->u1_num_part = 0;
-                ps_parse_mb_data->u1_isI_mb = 1;
+                ps_parse_mb_data->u4_isI_mb = 1;
 
                 if((25 + u1_mb_threshold) == u1_mb_type)
                 {
@@ -1046,7 +1048,7 @@ WORD32 ih264d_parse_inter_slice_data_cabac(dec_struct_t * ps_dec,
         u1_num_mbs_next = i2_pic_wdin_mbs - ps_dec->u2_mbx - 1;
         u1_end_of_row = (!u1_num_mbs_next) && (!(u1_mbaff && (u1_num_mbs & 0x01)));
         u1_slice_end = !uc_more_data_flag;
-        u1_tfr_n_mb = (u1_num_mbs == ps_dec->u1_recon_mb_grp) || u1_end_of_row
+        u1_tfr_n_mb = (u1_num_mbs == ps_dec->u4_recon_mb_grp) || u1_end_of_row
                         || u1_slice_end;
         u1_decode_nmb = u1_tfr_n_mb || u1_slice_end;
         ps_cur_mb_info->u1_end_of_slice = u1_slice_end;
@@ -1085,11 +1087,11 @@ WORD32 ih264d_parse_inter_slice_data_cabac(dec_struct_t * ps_dec,
                                             u1_num_mbs_next, u1_tfr_n_mb,
                                             u1_end_of_row);
             }
-            ps_dec->u2_total_mbs_coded += u1_num_mbs;
+            ps_dec->u4_total_mbs_coded += u1_num_mbs;
             if(u1_tfr_n_mb)
                 u1_num_mbs = 0;
             u1_mb_idx = u1_num_mbs;
-            ps_dec->u1_mb_idx = u1_num_mbs;
+            ps_dec->u4_mb_idx = u1_num_mbs;
 
         }
     }
@@ -1178,7 +1180,7 @@ WORD32 ih264d_parse_inter_slice_data_cavlc(dec_struct_t * ps_dec,
     /******************************************************/
     ps_dec->u1_qp = ps_slice->u1_slice_qp;
     ih264d_update_qp(ps_dec, 0);
-    u1_mb_idx = ps_dec->u1_mb_idx;
+    u1_mb_idx = ps_dec->u4_mb_idx;
     u1_num_mbs = u1_mb_idx;
 
     u1_num_mbsNby2 = 0;
@@ -1194,7 +1196,7 @@ WORD32 ih264d_parse_inter_slice_data_cavlc(dec_struct_t * ps_dec,
 
         ps_dec->pv_prev_mb_parse_tu_coeff_data = ps_dec->pv_parse_tu_coeff_data;
 
-        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u2_max_mb_addr)
+        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u4_max_mb_addr)
         {
             break;
         }
@@ -1211,7 +1213,7 @@ WORD32 ih264d_parse_inter_slice_data_cavlc(dec_struct_t * ps_dec,
 
         /* Storing Default partition info */
         ps_parse_mb_data->u1_num_part = 1;
-        ps_parse_mb_data->u1_isI_mb = 0;
+        ps_parse_mb_data->u4_isI_mb = 0;
 
         if((!i2_mb_skip_run) && (!u1_read_mb_type))
         {
@@ -1334,7 +1336,7 @@ WORD32 ih264d_parse_inter_slice_data_cavlc(dec_struct_t * ps_dec,
             {
                 /* Storing Intra partition info */
                 ps_parse_mb_data->u1_num_part = 0;
-                ps_parse_mb_data->u1_isI_mb = 1;
+                ps_parse_mb_data->u4_isI_mb = 1;
 
                 if((25 + u1_mb_threshold) == u1_mb_type)
                 {
@@ -1391,7 +1393,7 @@ WORD32 ih264d_parse_inter_slice_data_cavlc(dec_struct_t * ps_dec,
         u1_num_mbs_next = i2_pic_wdin_mbs - ps_dec->u2_mbx - 1;
         u1_end_of_row = (!u1_num_mbs_next) && (!(u1_mbaff && (u1_num_mbs & 0x01)));
         u1_slice_end = (!(uc_more_data_flag || i2_mb_skip_run));
-        u1_tfr_n_mb = (u1_num_mbs == ps_dec->u1_recon_mb_grp) || u1_end_of_row
+        u1_tfr_n_mb = (u1_num_mbs == ps_dec->u4_recon_mb_grp) || u1_end_of_row
                         || u1_slice_end;
         u1_decode_nmb = u1_tfr_n_mb || u1_slice_end;
         ps_cur_mb_info->u1_end_of_slice = u1_slice_end;
@@ -1432,11 +1434,11 @@ WORD32 ih264d_parse_inter_slice_data_cavlc(dec_struct_t * ps_dec,
                                             u1_num_mbs_next, u1_tfr_n_mb,
                                             u1_end_of_row);
             }
-            ps_dec->u2_total_mbs_coded += u1_num_mbs;
+            ps_dec->u4_total_mbs_coded += u1_num_mbs;
             if(u1_tfr_n_mb)
                 u1_num_mbs = 0;
             u1_mb_idx = u1_num_mbs;
-            ps_dec->u1_mb_idx = u1_num_mbs;
+            ps_dec->u4_mb_idx = u1_num_mbs;
 
         }
 //ps_dec->ps_pred++;
@@ -1459,7 +1461,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
 {
     WORD32 i2_cur_mb_addr;
     UWORD32 u1_num_mbs, u1_num_mbsNby2;
-    UWORD32 u1_mb_idx = ps_dec->u1_mb_idx;
+    UWORD32 u1_mb_idx = ps_dec->u4_mb_idx;
     UWORD32 i2_mb_skip_run;
 
     UWORD32 u1_num_mbs_next, u1_end_of_row;
@@ -1634,7 +1636,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
             if((ps_dec->ps_cur_slice->u1_mbaff_frame_flag) && (ps_dec->u4_num_mbs_cur_nmb & 1))
             {
                 ps_dec->u4_num_mbs_cur_nmb = ps_dec->u4_num_mbs_cur_nmb - 1;
-                ps_dec->u2_cur_mb_addr--;
+                ps_dec->u4_cur_mb_addr--;
             }
 
             u1_num_mbs = ps_dec->u4_num_mbs_cur_nmb;
@@ -1665,7 +1667,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
             {
                 // Going back 1 mb
                 ps_dec->pv_parse_tu_coeff_data = ps_dec->pv_prev_mb_parse_tu_coeff_data;
-                ps_dec->u2_cur_mb_addr--;
+                ps_dec->u4_cur_mb_addr--;
                 ps_dec->i4_submb_ofst -= SUB_BLK_SIZE;
 
                 // Parse/decode N-MB left unparsed
@@ -1694,12 +1696,12 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                     ih264d_decode_recon_tfr_nmb(ps_dec, u1_mb_idx, u1_num_mbs,
                             u1_num_mbs_next, u1_tfr_n_mb, u1_end_of_row);
                 }
-                ps_dec->u2_total_mbs_coded += u1_num_mbs;
-                ps_dec->u1_mb_idx = 0;
+                ps_dec->u4_total_mbs_coded += u1_num_mbs;
+                ps_dec->u4_mb_idx = 0;
                 ps_dec->u4_num_mbs_cur_nmb = 0;
             }
 
-            if(ps_dec->u2_total_mbs_coded
+            if(ps_dec->u4_total_mbs_coded
                     >= ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
             {
                 ps_dec->u1_pic_decode_done = 1;
@@ -1708,7 +1710,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
 
             /* Inserting new slice only if the current slice has atleast 1 MB*/
             if(ps_dec->ps_parse_cur_slice->u4_first_mb_in_slice <
-                    (UWORD32)(ps_dec->u2_total_mbs_coded >> ps_slice->u1_mbaff_frame_flag))
+                    (UWORD32)(ps_dec->u4_total_mbs_coded >> ps_slice->u1_mbaff_frame_flag))
             {
                 ps_dec->i2_prev_slice_mbx = ps_dec->u2_mbx;
                 ps_dec->i2_prev_slice_mby = ps_dec->u2_mby;
@@ -1750,14 +1752,14 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
         ps_dec->ps_parse_cur_slice->ppv_map_ref_idx_to_poc = (volatile void **)pu1_buf;
     }
     u1_mbaff = ps_slice->u1_mbaff_frame_flag;
-    ps_dec->ps_cur_slice->u2_first_mb_in_slice = ps_dec->u2_total_mbs_coded >> u1_mbaff;
+    ps_dec->ps_cur_slice->u2_first_mb_in_slice = ps_dec->u4_total_mbs_coded >> u1_mbaff;
     ps_dec->ps_cur_slice->i1_slice_alpha_c0_offset = 0;
     ps_dec->ps_cur_slice->i1_slice_beta_offset = 0;
 
     if(ps_dec->ps_cur_slice->u1_field_pic_flag)
         ps_dec->u2_prv_frame_num = ps_dec->ps_cur_slice->u2_frame_num;
 
-    ps_dec->ps_parse_cur_slice->u4_first_mb_in_slice = ps_dec->u2_total_mbs_coded >> u1_mbaff;
+    ps_dec->ps_parse_cur_slice->u4_first_mb_in_slice = ps_dec->u4_total_mbs_coded >> u1_mbaff;
     ps_dec->ps_parse_cur_slice->u2_log2Y_crwd =    ps_dec->ps_cur_slice->u2_log2Y_crwd;
 
 
@@ -1792,7 +1794,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
     ps_dec->u1_slice_header_done = 2;
     ps_dec->u1_qp = ps_slice->u1_slice_qp;
     ih264d_update_qp(ps_dec, 0);
-    u1_mb_idx = ps_dec->u1_mb_idx;
+    u1_mb_idx = ps_dec->u4_mb_idx;
     ps_parse_mb_data = ps_dec->ps_parse_mb_data;
     u1_num_mbs = u1_mb_idx;
 
@@ -1800,14 +1802,14 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
     u1_tfr_n_mb = 0;
     u1_decode_nmb = 0;
     u1_num_mbsNby2 = 0;
-    i2_cur_mb_addr = ps_dec->u2_total_mbs_coded;
+    i2_cur_mb_addr = ps_dec->u4_total_mbs_coded;
     i2_mb_skip_run = num_mb_skip;
 
     while(!u1_slice_end)
     {
         UWORD8 u1_mb_type;
 
-        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u2_max_mb_addr)
+        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u4_max_mb_addr)
             break;
 
         ps_cur_mb_info = ps_dec->ps_nmb_info + u1_num_mbs;
@@ -1821,7 +1823,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
 
         /* Storing Default partition info */
         ps_parse_mb_data->u1_num_part = 1;
-        ps_parse_mb_data->u1_isI_mb = 0;
+        ps_parse_mb_data->u4_isI_mb = 0;
 
         /**************************************************************/
         /* Get the required information for decoding of MB            */
@@ -1885,7 +1887,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
         u1_num_mbs_next = i2_pic_wdin_mbs - ps_dec->u2_mbx - 1;
         u1_end_of_row = (!u1_num_mbs_next) && (!(u1_mbaff && (u1_num_mbs & 0x01)));
         u1_slice_end = !i2_mb_skip_run;
-        u1_tfr_n_mb = (u1_num_mbs == ps_dec->u1_recon_mb_grp) || u1_end_of_row
+        u1_tfr_n_mb = (u1_num_mbs == ps_dec->u4_recon_mb_grp) || u1_end_of_row
                         || u1_slice_end;
         u1_decode_nmb = u1_tfr_n_mb || u1_slice_end;
         ps_cur_mb_info->u1_end_of_slice = u1_slice_end;
@@ -1909,11 +1911,11 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
                 ih264d_decode_recon_tfr_nmb(ps_dec, u1_mb_idx, u1_num_mbs, u1_num_mbs_next,
                                             u1_tfr_n_mb, u1_end_of_row);
             }
-            ps_dec->u2_total_mbs_coded += u1_num_mbs;
+            ps_dec->u4_total_mbs_coded += u1_num_mbs;
             if(u1_tfr_n_mb)
                 u1_num_mbs = 0;
             u1_mb_idx = u1_num_mbs;
-            ps_dec->u1_mb_idx = u1_num_mbs;
+            ps_dec->u4_mb_idx = u1_num_mbs;
         }
     }
 
@@ -1934,7 +1936,7 @@ WORD32 ih264d_mark_err_slice_skip(dec_struct_t * ps_dec,
     ps_dec->i2_prev_slice_mbx = ps_dec->u2_mbx;
     ps_dec->i2_prev_slice_mby = ps_dec->u2_mby;
 
-    if(ps_dec->u2_total_mbs_coded
+    if(ps_dec->u4_total_mbs_coded
             >= ps_dec->u2_frm_ht_in_mbs * ps_dec->u2_frm_wd_in_mbs)
     {
         ps_dec->u1_pic_decode_done = 1;

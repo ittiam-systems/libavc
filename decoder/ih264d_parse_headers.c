@@ -903,13 +903,13 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
     /*--------------------------------------------------------------------*/
     /* Get the value of MaxMbAddress and Number of bits needed for it     */
     /*--------------------------------------------------------------------*/
-    ps_seq->u2_max_mb_addr = (ps_seq->u2_frm_wd_in_mbs
-                    * ps_seq->u2_frm_ht_in_mbs) - 1;
+    ps_seq->u4_max_mb_addr = ((UWORD32)ps_seq->u2_frm_wd_in_mbs
+                    * (UWORD32)ps_seq->u2_frm_ht_in_mbs) - 1;
 
-    ps_seq->u2_total_num_of_mbs = ps_seq->u2_max_mb_addr + 1;
+    ps_seq->u4_total_num_of_mbs = ps_seq->u4_max_mb_addr + 1;
 
     ps_seq->u1_level_idc = ih264d_correct_level_idc(
-                    u1_level_idc, ps_seq->u2_total_num_of_mbs);
+                    u1_level_idc, ps_seq->u4_total_num_of_mbs);
 
     u1_frm = ih264d_get_bit_h264(ps_bitstrm);
     if((ps_dec->i4_header_decoded & 1) && (ps_seq->u1_frame_mbs_only_flag != u1_frm))
@@ -1154,7 +1154,7 @@ WORD32 ih264d_parse_sps(dec_struct_t *ps_dec, dec_bit_stream_t *ps_bitstrm)
 
     ps_dec->u2_pic_wd = u2_pic_wd;
     ps_dec->u2_pic_ht = u2_pic_ht;
-    ps_dec->u4_total_mbs = ps_seq->u2_total_num_of_mbs << (1 - ps_seq->u1_frame_mbs_only_flag);
+    ps_dec->u4_total_mbs = ps_seq->u4_total_num_of_mbs << (1 - ps_seq->u1_frame_mbs_only_flag);
 
     /* Determining the Width and Height of Frame from that of Picture */
     ps_dec->u2_frm_wd_y = u2_frm_wd_y;

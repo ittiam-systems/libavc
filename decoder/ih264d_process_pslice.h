@@ -49,20 +49,20 @@ WORD32 parsePSliceData(dec_struct_t * ps_dec,
 
 WORD32 ih264d_process_inter_mb(dec_struct_t * ps_dec,
                                dec_mb_info_t * ps_cur_mb_info,
-                               UWORD8 u1_mb_num);
+                               UWORD32 u4_mb_num);
 
 void ih264d_init_ref_idx_lx_p(dec_struct_t *ps_dec);
 
 WORD32 ih264d_mv_pred_ref_tfr_nby2_pmb(dec_struct_t * ps_dec,
-                                     UWORD8 u1_num_mbs,
-                                     UWORD8 u1_num_mbsNby2);
+                                     UWORD32 u4_num_mbs,
+                                     UWORD32 u4_num_mbsNby2);
 
 WORD32 ih264d_decode_recon_tfr_nmb(dec_struct_t * ps_dec,
-                                 UWORD8 u1_mb_idx,
-                                 UWORD8 u1_num_mbs,
-                                 UWORD8 u1_num_mbs_next,
-                                 UWORD8 u1_tfr_n_mb,
-                                 UWORD8 u1_end_of_row);
+                                 UWORD32 u4_mb_idx,
+                                 UWORD32 u4_num_mbs,
+                                 UWORD32 u4_num_mbs_next,
+                                 UWORD32 u4_tfr_n_mb,
+                                 UWORD32 u4_end_of_row);
 
 void ih264d_insert_pic_in_ref_pic_listx(struct pic_buffer_t *ps_ref_pic_buf_lx,
                                         struct pic_buffer_t *ps_pic);

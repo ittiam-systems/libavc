@@ -344,7 +344,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec, U
     }
 
     /*handle the last mb in picture case*/
-    if(ps_dec->cur_dec_mb_num > ps_dec->ps_cur_sps->u2_max_mb_addr)
+    if(ps_dec->cur_dec_mb_num > ps_dec->ps_cur_sps->u4_max_mb_addr)
         ps_dec->u4_cur_slice_decode_done = 1;
 
     if(i != u1_num_mbs)
@@ -496,7 +496,7 @@ WORD32 isvcd_decode_slice_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
     {
         u1_num_mbsleft = ((i2_pic_wdin_mbs - i16_mb_x) << u1_mbaff);
 
-        if(u1_num_mbsleft <= ps_dec->u1_recon_mb_grp)
+        if(u1_num_mbsleft <= ps_dec->u4_recon_mb_grp)
         {
             u1_num_mbs = u1_num_mbsleft;
 
@@ -507,10 +507,10 @@ WORD32 isvcd_decode_slice_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
         }
         else
         {
-            u1_num_mbs = ps_dec->u1_recon_mb_grp;
+            u1_num_mbs = ps_dec->u4_recon_mb_grp;
 
             /*Indicate number of mb's left in a row*/
-            u1_num_mbs_next = i2_pic_wdin_mbs - i16_mb_x - (ps_dec->u1_recon_mb_grp >> u1_mbaff);
+            u1_num_mbs_next = i2_pic_wdin_mbs - i16_mb_x - (ps_dec->u4_recon_mb_grp >> u1_mbaff);
             i16_mb_x += (u1_num_mbs >> u1_mbaff);
             u1_end_of_row = 0;
         }
@@ -572,7 +572,7 @@ void isvcd_decode_picture_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
             if(OK != ret) break;
             DEBUG_THREADS_PRINTF(" Exit  isvcd_decode_slice_thread\n");
 
-            if(ps_dec->cur_dec_mb_num > ps_dec->ps_cur_sps->u2_max_mb_addr)
+            if(ps_dec->cur_dec_mb_num > ps_dec->ps_cur_sps->u4_max_mb_addr)
             {
                 /*Last slice in frame*/
                 break;

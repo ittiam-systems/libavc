@@ -105,14 +105,14 @@ static IV_API_CALL_STATUS_T imvcd_check_sps_and_subset_sps(mvc_dec_ctxt_t *ps_mv
 
             if(i4_max_mb_addr == INT32_MIN)
             {
-                i4_max_mb_addr = ps_view_ctxt->ps_sps[i].u2_max_mb_addr;
+                i4_max_mb_addr = ps_view_ctxt->ps_sps[i].u4_max_mb_addr;
             }
-            else if(i4_max_mb_addr != ps_view_ctxt->ps_sps[i].u2_max_mb_addr)
+            else if(i4_max_mb_addr != ps_view_ctxt->ps_sps[i].u4_max_mb_addr)
             {
                 return IV_FAIL;
             }
 
-            if(ps_view_ctxt->ps_sps[i].u2_max_mb_addr >
+            if(ps_view_ctxt->ps_sps[i].u4_max_mb_addr >
                imvcd_get_num_mbs_in_level(ps_view_ctxt->ps_sps[i].u1_level_idc))
             {
                 return IV_FAIL;
@@ -148,14 +148,14 @@ static IV_API_CALL_STATUS_T imvcd_check_sps_and_subset_sps(mvc_dec_ctxt_t *ps_mv
 
             if(i4_max_mb_addr == INT32_MIN)
             {
-                i4_max_mb_addr = ps_mvcd_ctxt->as_subset_sps[i].s_sps_data.u2_max_mb_addr;
+                i4_max_mb_addr = ps_mvcd_ctxt->as_subset_sps[i].s_sps_data.u4_max_mb_addr;
             }
-            else if(i4_max_mb_addr != ps_mvcd_ctxt->as_subset_sps[i].s_sps_data.u2_max_mb_addr)
+            else if(i4_max_mb_addr != ps_mvcd_ctxt->as_subset_sps[i].s_sps_data.u4_max_mb_addr)
             {
                 return IV_FAIL;
             }
 
-            if(ps_mvcd_ctxt->as_subset_sps[i].s_sps_data.u2_max_mb_addr >
+            if(ps_mvcd_ctxt->as_subset_sps[i].s_sps_data.u4_max_mb_addr >
                imvcd_get_num_mbs_in_level(ps_mvcd_ctxt->as_subset_sps[i].s_sps_data.u1_level_idc))
             {
                 return IV_FAIL;

@@ -87,7 +87,7 @@ void ih264d_itrans_recon_luma_dc(dec_struct_t *ps_dec,
  */
 WORD32 ih264d_parse_imb_cavlc(dec_struct_t * ps_dec,
                               dec_mb_info_t * ps_cur_mb_info,
-                              UWORD8 u1_mb_num,
+                              UWORD32 u4_mb_num,
                               UWORD8 u1_mb_type)
 {
     WORD32 i4_delta_qp;
@@ -101,7 +101,7 @@ WORD32 ih264d_parse_imb_cavlc(dec_struct_t * ps_dec,
 
     dec_bit_stream_t * const ps_bitstrm = ps_dec->ps_bitstrm;
     UWORD32 *pu4_bitstrm_ofst = &ps_bitstrm->u4_ofst;
-    UNUSED(u1_mb_num);
+    UNUSED(u4_mb_num);
     ps_cur_mb_info->u1_tran_form8x8 = 0;
     ps_cur_mb_info->ps_curmb->u1_tran_form8x8 = 0;
 
@@ -756,16 +756,16 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
                                       UWORD16 u2_first_mb_in_slice)
 {
     UWORD8 uc_more_data_flag;
-    UWORD8 u1_num_mbs, u1_mb_idx;
+    UWORD32 u4_num_mbs, u4_mb_idx;
     dec_mb_info_t *ps_cur_mb_info;
     deblk_mb_t *ps_cur_deblk_mb;
     dec_bit_stream_t * const ps_bitstrm = ps_dec->ps_bitstrm;
     UWORD32 *pu4_bitstrm_ofst = &ps_bitstrm->u4_ofst;
     UWORD32 *pu4_bitstrm_buf = ps_bitstrm->pu4_buffer;
     UWORD16 i2_pic_wdin_mbs = ps_dec->u2_frm_wd_in_mbs;
-    WORD16 i2_cur_mb_addr;
+    WORD32 i4_cur_mb_addr;
     UWORD8 u1_mbaff;
-    UWORD8 u1_num_mbs_next, u1_end_of_row, u1_tfr_n_mb;
+    UWORD32 u4_num_mbs_next, u4_end_of_row, u4_tfr_n_mb;
     WORD32 ret = OK;
 
     ps_dec->u1_qp = ps_slice->u1_slice_qp;
@@ -773,11 +773,11 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
     u1_mbaff = ps_slice->u1_mbaff_frame_flag;
 
     /* initializations */
-    u1_mb_idx = ps_dec->u1_mb_idx;
-    u1_num_mbs = u1_mb_idx;
+    u4_mb_idx = ps_dec->u4_mb_idx;
+    u4_num_mbs = u4_mb_idx;
 
     uc_more_data_flag = 1;
-    i2_cur_mb_addr = u2_first_mb_in_slice << u1_mbaff;
+    i4_cur_mb_addr = u2_first_mb_in_slice << u1_mbaff;
 
     do
     {
@@ -785,14 +785,14 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
 
         ps_dec->pv_prev_mb_parse_tu_coeff_data = ps_dec->pv_parse_tu_coeff_data;
 
-        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u2_max_mb_addr)
+        if(i4_cur_mb_addr > ps_dec->ps_cur_sps->u4_max_mb_addr)
         {
             break;
         }
 
-        ps_cur_mb_info = ps_dec->ps_nmb_info + u1_num_mbs;
-        ps_dec->u4_num_mbs_cur_nmb = u1_num_mbs;
-        ps_dec->u4_num_pmbair = (u1_num_mbs >> u1_mbaff);
+        ps_cur_mb_info = ps_dec->ps_nmb_info + u4_num_mbs;
+        ps_dec->u4_num_mbs_cur_nmb = u4_num_mbs;
+        ps_dec->u4_num_pmbair = (u4_num_mbs >> u1_mbaff);
 
         ps_cur_mb_info->u1_end_of_slice = 0;
 
@@ -800,12 +800,12 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
         /* Get the required information for decoding of MB             */
         /* mb_x, mb_y , neighbour availablity,                         */
         /***************************************************************/
-        ps_dec->pf_get_mb_info(ps_dec, i2_cur_mb_addr, ps_cur_mb_info, 0);
+        ps_dec->pf_get_mb_info(ps_dec, i4_cur_mb_addr, ps_cur_mb_info, 0);
 
         /***************************************************************/
         /* Set the deblocking parameters for this MB                   */
         /***************************************************************/
-        ps_cur_deblk_mb = ps_dec->ps_deblk_mbn + u1_num_mbs;
+        ps_cur_deblk_mb = ps_dec->ps_deblk_mbn + u4_num_mbs;
 
         if(ps_dec->u4_app_disable_deblk_frm == 0)
             ih264d_set_deblocking_parameters(ps_cur_deblk_mb, ps_slice,
@@ -852,14 +852,14 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
         {
             /* I_PCM_MB */
             ps_cur_mb_info->ps_curmb->u1_mb_type = I_PCM_MB;
-            ret = ih264d_parse_ipcm_mb(ps_dec, ps_cur_mb_info, u1_num_mbs);
+            ret = ih264d_parse_ipcm_mb(ps_dec, ps_cur_mb_info, u4_num_mbs);
             if(ret != OK)
                 return ret;
             ps_cur_deblk_mb->u1_mb_qp = 0;
         }
         else
         {
-            ret = ih264d_parse_imb_cavlc(ps_dec, ps_cur_mb_info, u1_num_mbs, u1_mb_type);
+            ret = ih264d_parse_imb_cavlc(ps_dec, ps_cur_mb_info, u4_num_mbs, u1_mb_type);
             if(ret != OK)
                 return ret;
             ps_cur_deblk_mb->u1_mb_qp = ps_dec->u1_qp;
@@ -876,7 +876,7 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
         if(u1_mbaff)
         {
             ih264d_update_mbaff_left_nnz(ps_dec, ps_cur_mb_info);
-            if(!uc_more_data_flag && (0 == (i2_cur_mb_addr & 1)))
+            if(!uc_more_data_flag && (0 == (i4_cur_mb_addr & 1)))
             {
                 return ERROR_EOB_FLUSHBITS_T;
             }
@@ -885,12 +885,12 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
         /* Get next Macroblock address                                */
         /**************************************************************/
 
-        i2_cur_mb_addr++;
+        i4_cur_mb_addr++;
 
 
         /* Store the colocated information */
         {
-            mv_pred_t *ps_mv_nmb_start = ps_dec->ps_mv_cur + (u1_num_mbs << 4);
+            mv_pred_t *ps_mv_nmb_start = ps_dec->ps_mv_cur + (u4_num_mbs << 4);
 
             mv_pred_t s_mvPred =
                 {
@@ -906,50 +906,50 @@ WORD32 ih264d_parse_islice_data_cavlc(dec_struct_t * ps_dec,
         {
             if(ps_dec->u4_app_disable_deblk_frm == 0)
                 ps_dec->pf_compute_bs(ps_dec, ps_cur_mb_info,
-                                     (UWORD16)(u1_num_mbs >> u1_mbaff));
+                                     (UWORD16)(u4_num_mbs >> u1_mbaff));
         }
-        u1_num_mbs++;
+        u4_num_mbs++;
 
         /****************************************************************/
         /* Check for End Of Row                                         */
         /****************************************************************/
-        u1_num_mbs_next = i2_pic_wdin_mbs - ps_dec->u2_mbx - 1;
-        u1_end_of_row = (!u1_num_mbs_next) && (!(u1_mbaff && (u1_num_mbs & 0x01)));
-        u1_tfr_n_mb = (u1_num_mbs == ps_dec->u1_recon_mb_grp) || u1_end_of_row
+        u4_num_mbs_next = i2_pic_wdin_mbs - ps_dec->u2_mbx - 1;
+        u4_end_of_row = (!u4_num_mbs_next) && (!(u1_mbaff && (u4_num_mbs & 0x01)));
+        u4_tfr_n_mb = (u4_num_mbs == ps_dec->u4_recon_mb_grp) || u4_end_of_row
                         || (!uc_more_data_flag);
         ps_cur_mb_info->u1_end_of_slice = (!uc_more_data_flag);
 
         /*H264_DEC_DEBUG_PRINT("Pic: %d Mb_X=%d Mb_Y=%d",
          ps_slice->i4_poc >> ps_slice->u1_field_pic_flag,
          ps_dec->u2_mbx,ps_dec->u2_mby + (1 - ps_cur_mb_info->u1_topmb));
-         H264_DEC_DEBUG_PRINT("u1_tfr_n_mb || (!uc_more_data_flag): %d", u1_tfr_n_mb || (!uc_more_data_flag));*/
-        if(u1_tfr_n_mb || (!uc_more_data_flag))
+         H264_DEC_DEBUG_PRINT("u4_tfr_n_mb || (!uc_more_data_flag): %d", u4_tfr_n_mb || (!uc_more_data_flag));*/
+        if(u4_tfr_n_mb || (!uc_more_data_flag))
         {
 
             if(ps_dec->u1_separate_parse)
             {
-                ih264d_parse_tfr_nmb(ps_dec, u1_mb_idx, u1_num_mbs,
-                                     u1_num_mbs_next, u1_tfr_n_mb, u1_end_of_row);
-                ps_dec->ps_nmb_info +=  u1_num_mbs;
+                ih264d_parse_tfr_nmb(ps_dec, u4_mb_idx, u4_num_mbs,
+                                     u4_num_mbs_next, u4_tfr_n_mb, u4_end_of_row);
+                ps_dec->ps_nmb_info +=  u4_num_mbs;
             }
             else
             {
-                ih264d_decode_recon_tfr_nmb(ps_dec, u1_mb_idx, u1_num_mbs,
-                                            u1_num_mbs_next, u1_tfr_n_mb,
-                                            u1_end_of_row);
+                ih264d_decode_recon_tfr_nmb(ps_dec, u4_mb_idx, u4_num_mbs,
+                                            u4_num_mbs_next, u4_tfr_n_mb,
+                                            u4_end_of_row);
             }
-            ps_dec->u2_total_mbs_coded += u1_num_mbs;
-            if(u1_tfr_n_mb)
-                u1_num_mbs = 0;
-            u1_mb_idx = u1_num_mbs;
-            ps_dec->u1_mb_idx = u1_num_mbs;
+            ps_dec->u4_total_mbs_coded += u4_num_mbs;
+            if(u4_tfr_n_mb)
+                u4_num_mbs = 0;
+            u4_mb_idx = u4_num_mbs;
+            ps_dec->u4_mb_idx = u4_num_mbs;
 
         }
     }
     while(uc_more_data_flag);
 
     ps_dec->u4_num_mbs_cur_nmb = 0;
-    ps_dec->ps_cur_slice->u4_mbs_in_slice = i2_cur_mb_addr
+    ps_dec->ps_cur_slice->u4_mbs_in_slice = i4_cur_mb_addr
 
                         - (u2_first_mb_in_slice << u1_mbaff);
 
@@ -985,15 +985,15 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
                                       UWORD16 u2_first_mb_in_slice)
 {
     UWORD8 uc_more_data_flag;
-    UWORD8 u1_num_mbs, u1_mb_idx;
+    UWORD32 u4_num_mbs, u4_mb_idx;
     dec_mb_info_t *ps_cur_mb_info;
     deblk_mb_t *ps_cur_deblk_mb;
 
     dec_bit_stream_t * const ps_bitstrm = ps_dec->ps_bitstrm;
     UWORD16 i2_pic_wdin_mbs = ps_dec->u2_frm_wd_in_mbs;
-    WORD16 i2_cur_mb_addr;
+    WORD32 i4_cur_mb_addr;
     UWORD8 u1_mbaff;
-    UWORD8 u1_num_mbs_next, u1_end_of_row, u1_tfr_n_mb;
+    UWORD32 u4_num_mbs_next, u4_end_of_row, u4_tfr_n_mb;
     WORD32 ret = OK;
 
     ps_dec->u1_qp = ps_slice->u1_slice_qp;
@@ -1013,18 +1013,18 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
     ps_dec->i1_prev_mb_qp_delta = 0;
 
     /* initializations */
-    u1_mb_idx = ps_dec->u1_mb_idx;
-    u1_num_mbs = u1_mb_idx;
+    u4_mb_idx = ps_dec->u4_mb_idx;
+    u4_num_mbs = u4_mb_idx;
 
     uc_more_data_flag = 1;
-    i2_cur_mb_addr = u2_first_mb_in_slice << u1_mbaff;
+    i4_cur_mb_addr = u2_first_mb_in_slice << u1_mbaff;
     do
     {
         UWORD16 u2_mbx;
 
         ps_dec->pv_prev_mb_parse_tu_coeff_data = ps_dec->pv_parse_tu_coeff_data;
 
-        if(i2_cur_mb_addr > ps_dec->ps_cur_sps->u2_max_mb_addr)
+        if(i4_cur_mb_addr > ps_dec->ps_cur_sps->u4_max_mb_addr)
         {
             break;
         }
@@ -1032,9 +1032,9 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
         {
             UWORD8 u1_mb_type;
 
-            ps_cur_mb_info = ps_dec->ps_nmb_info + u1_num_mbs;
-            ps_dec->u4_num_mbs_cur_nmb = u1_num_mbs;
-            ps_dec->u4_num_pmbair = (u1_num_mbs >> u1_mbaff);
+            ps_cur_mb_info = ps_dec->ps_nmb_info + u4_num_mbs;
+            ps_dec->u4_num_mbs_cur_nmb = u4_num_mbs;
+            ps_dec->u4_num_pmbair = (u4_num_mbs >> u1_mbaff);
 
             ps_cur_mb_info->u1_end_of_slice = 0;
 
@@ -1042,7 +1042,7 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
             /* Get the required information for decoding of MB                  */
             /* mb_x, mb_y , neighbour availablity,                              */
             /***************************************************************/
-            ps_dec->pf_get_mb_info(ps_dec, i2_cur_mb_addr, ps_cur_mb_info, 0);
+            ps_dec->pf_get_mb_info(ps_dec, i4_cur_mb_addr, ps_cur_mb_info, 0);
             u2_mbx = ps_dec->u2_mbx;
 
             /*********************************************************************/
@@ -1054,7 +1054,7 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
             /***************************************************************/
             /* Set the deblocking parameters for this MB                   */
             /***************************************************************/
-            ps_cur_deblk_mb = ps_dec->ps_deblk_mbn + u1_num_mbs;
+            ps_cur_deblk_mb = ps_dec->ps_deblk_mbn + u4_num_mbs;
             if(ps_dec->u4_app_disable_deblk_frm == 0)
                 ih264d_set_deblocking_parameters(
                                 ps_cur_deblk_mb, ps_slice,
@@ -1077,7 +1077,7 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
             {
                 /* I_PCM_MB */
                 ps_cur_mb_info->ps_curmb->u1_mb_type = I_PCM_MB;
-                ret = ih264d_parse_ipcm_mb(ps_dec, ps_cur_mb_info, u1_num_mbs);
+                ret = ih264d_parse_ipcm_mb(ps_dec, ps_cur_mb_info, u4_num_mbs);
                 if(ret != OK)
                     return ret;
                 ps_cur_deblk_mb->u1_mb_qp = 0;
@@ -1114,17 +1114,17 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
 
             if(u1_mbaff)
             {
-                if(!uc_more_data_flag && (0 == (i2_cur_mb_addr & 1)))
+                if(!uc_more_data_flag && (0 == (i4_cur_mb_addr & 1)))
                 {
                     return ERROR_EOB_FLUSHBITS_T;
                 }
             }
             /* Next macroblock information */
-            i2_cur_mb_addr++;
+            i4_cur_mb_addr++;
             /* Store the colocated information */
             {
 
-                mv_pred_t *ps_mv_nmb_start = ps_dec->ps_mv_cur + (u1_num_mbs << 4);
+                mv_pred_t *ps_mv_nmb_start = ps_dec->ps_mv_cur + (u4_num_mbs << 4);
                 mv_pred_t s_mvPred =
                     {
                         { 0, 0, 0, 0 },
@@ -1139,49 +1139,49 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
             {
                 if(ps_dec->u4_app_disable_deblk_frm == 0)
                     ps_dec->pf_compute_bs(ps_dec, ps_cur_mb_info,
-                                         (UWORD16)(u1_num_mbs >> u1_mbaff));
+                                         (UWORD16)(u4_num_mbs >> u1_mbaff));
             }
-            u1_num_mbs++;
+            u4_num_mbs++;
 
         }
 
         /****************************************************************/
         /* Check for End Of Row                                         */
         /****************************************************************/
-        u1_num_mbs_next = i2_pic_wdin_mbs - u2_mbx - 1;
-        u1_end_of_row = (!u1_num_mbs_next) && (!(u1_mbaff && (u1_num_mbs & 0x01)));
-        u1_tfr_n_mb = (u1_num_mbs == ps_dec->u1_recon_mb_grp) || u1_end_of_row
+        u4_num_mbs_next = i2_pic_wdin_mbs - u2_mbx - 1;
+        u4_end_of_row = (!u4_num_mbs_next) && (!(u1_mbaff && (u4_num_mbs & 0x01)));
+        u4_tfr_n_mb = (u4_num_mbs == ps_dec->u4_recon_mb_grp) || u4_end_of_row
                         || (!uc_more_data_flag);
         ps_cur_mb_info->u1_end_of_slice = (!uc_more_data_flag);
 
-        if(u1_tfr_n_mb || (!uc_more_data_flag))
+        if(u4_tfr_n_mb || (!uc_more_data_flag))
         {
 
 
             if(ps_dec->u1_separate_parse)
             {
-                ih264d_parse_tfr_nmb(ps_dec, u1_mb_idx, u1_num_mbs,
-                                     u1_num_mbs_next, u1_tfr_n_mb, u1_end_of_row);
-                ps_dec->ps_nmb_info +=  u1_num_mbs;
+                ih264d_parse_tfr_nmb(ps_dec, u4_mb_idx, u4_num_mbs,
+                                     u4_num_mbs_next, u4_tfr_n_mb, u4_end_of_row);
+                ps_dec->ps_nmb_info +=  u4_num_mbs;
             }
             else
             {
-                ih264d_decode_recon_tfr_nmb(ps_dec, u1_mb_idx, u1_num_mbs,
-                                            u1_num_mbs_next, u1_tfr_n_mb,
-                                            u1_end_of_row);
+                ih264d_decode_recon_tfr_nmb(ps_dec, u4_mb_idx, u4_num_mbs,
+                                            u4_num_mbs_next, u4_tfr_n_mb,
+                                            u4_end_of_row);
             }
-            ps_dec->u2_total_mbs_coded += u1_num_mbs;
-            if(u1_tfr_n_mb)
-                u1_num_mbs = 0;
-            u1_mb_idx = u1_num_mbs;
-            ps_dec->u1_mb_idx = u1_num_mbs;
+            ps_dec->u4_total_mbs_coded += u4_num_mbs;
+            if(u4_tfr_n_mb)
+                u4_num_mbs = 0;
+            u4_mb_idx = u4_num_mbs;
+            ps_dec->u4_mb_idx = u4_num_mbs;
 
         }
     }
     while(uc_more_data_flag);
 
     ps_dec->u4_num_mbs_cur_nmb = 0;
-    ps_dec->ps_cur_slice->u4_mbs_in_slice = i2_cur_mb_addr
+    ps_dec->ps_cur_slice->u4_mbs_in_slice = i4_cur_mb_addr
 
                         - (u2_first_mb_in_slice << u1_mbaff);
 
@@ -1211,7 +1211,7 @@ WORD32 ih264d_parse_islice_data_cabac(dec_struct_t * ps_dec,
 
 WORD32 ih264d_parse_ipcm_mb(dec_struct_t * ps_dec,
                           dec_mb_info_t *ps_cur_mb_info,
-                          UWORD8 u1_mbNum)
+                          UWORD32 u4_mbNum)
 {
     dec_bit_stream_t * const ps_bitstrm = ps_dec->ps_bitstrm;
     UWORD8 u1_mbaff = ps_dec->ps_cur_slice->u1_mbaff_frame_flag;
@@ -1263,7 +1263,7 @@ WORD32 ih264d_parse_ipcm_mb(dec_struct_t * ps_dec,
 
     ps_dec->i1_prev_mb_qp_delta = 0;
     /* Get neighbour MB's */
-    u1_num_mb_pair = (u1_mbNum >> u1_mbaff);
+    u1_num_mb_pair = (u4_mbNum >> u1_mbaff);
 
     /*****************************************************************************/
     /* calculate the RECON buffer YUV pointers for the PCM data                  */
