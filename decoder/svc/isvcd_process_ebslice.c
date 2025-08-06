@@ -183,15 +183,16 @@ void isvcd_one_to_one(svc_dec_lyr_struct_t *ps_svc_lyr_dec, struct pic_buffer_t 
  **************************************************************************
  */
 WORD32 isvcd_decode_spatial_direct(dec_struct_t *ps_dec, UWORD8 u1_wd_x,
-                                   dec_mb_info_t *ps_cur_mb_info, UWORD8 u1_mb_num)
+                                   dec_mb_info_t *ps_cur_mb_info, UWORD32 u4_mb_num)
 {
     svc_dec_lyr_struct_t *ps_svc_lyr_dec = (svc_dec_lyr_struct_t *) ps_dec;
     mv_pred_t s_mv_pred = {0};
     mv_pred_t *ps_mv;
-    UWORD8 u1_col_zero_flag, u1_sub_mb_num, u1_direct_zero_pred_flag = 0;
+    UWORD8 u1_col_zero_flag, u1_direct_zero_pred_flag = 0;
+    UWORD32 u4_sub_mb_num;
     UWORD8 u1_mbaff = ps_dec->ps_cur_slice->u1_mbaff_frame_flag;
     mv_pred_t *ps_mv_ntop_start;
-    mv_pred_t *ps_mv_nmb_start = ps_dec->ps_mv_cur + (u1_mb_num << 4);
+    mv_pred_t *ps_mv_nmb_start = ps_dec->ps_mv_cur + (u4_mb_num << 4);
     UWORD8 partition_size, sub_partition, u1_mb_partw, u1_mb_parth;
     UWORD8 i;
     WORD8 i1_pred, i1_ref_frame0, i1_ref_frame1;
@@ -211,7 +212,7 @@ WORD32 isvcd_decode_spatial_direct(dec_struct_t *ps_dec, UWORD8 u1_wd_x,
 
     mv_pred_t s_temp_mv_pred = {0};
     ps_mv_ntop_start =
-        ps_dec->ps_mv_cur + (u1_mb_num << 4) - (ps_dec->u2_frm_wd_in_mbs << (4 + u1_mbaff)) + 12;
+        ps_dec->ps_mv_cur + (u4_mb_num << 4) - (ps_dec->u2_frm_wd_in_mbs << (4 + u1_mbaff)) + 12;
 
     u1_direct_zero_pred_flag =
         ps_dec->pf_mvpred(ps_dec, ps_cur_mb_info, (ps_mv_nmb_start + ps_dec->u1_sub_mb_num),
@@ -345,7 +346,7 @@ WORD32 isvcd_decode_spatial_direct(dec_struct_t *ps_dec, UWORD8 u1_wd_x,
             i2_mvY1 = i2_spat_pred_mv[3];
         }
 
-        u1_sub_mb_num = ps_dec->u1_sub_mb_num;
+        u4_sub_mb_num = ps_dec->u1_sub_mb_num;
         u1_mb_partw = (u1_wd_x >> 2);
 
         if(i1_ref_frame0 >= 0)
@@ -359,7 +360,7 @@ WORD32 isvcd_decode_spatial_direct(dec_struct_t *ps_dec, UWORD8 u1_wd_x,
                 i2_mv[1] = i2_mv_y;
 
                 ps_pred_pkd = ps_dec->ps_pred_pkd + ps_dec->u4_pred_info_pkd_idx;
-                ih264d_fill_pred_info(i2_mv, u1_mb_partw, u1_mb_partw, u1_sub_mb_num, i1_pred,
+                ih264d_fill_pred_info(i2_mv, u1_mb_partw, u1_mb_partw, u4_sub_mb_num, i1_pred,
                                       ps_pred_pkd, ps_pic_buff0->u1_pic_buf_id, i1_ref_idx,
                                       pui32_weight_ofsts, ps_pic_buff0->u1_pic_type);
                 ps_dec->u4_pred_info_pkd_idx++;
@@ -378,7 +379,7 @@ WORD32 isvcd_decode_spatial_direct(dec_struct_t *ps_dec, UWORD8 u1_wd_x,
                 i2_mv[1] = i2_mvY1;
 
                 ps_pred_pkd = ps_dec->ps_pred_pkd + ps_dec->u4_pred_info_pkd_idx;
-                ih264d_fill_pred_info(i2_mv, u1_mb_partw, u1_mb_partw, u1_sub_mb_num, i1_pred,
+                ih264d_fill_pred_info(i2_mv, u1_mb_partw, u1_mb_partw, u4_sub_mb_num, i1_pred,
                                       ps_pred_pkd, ps_pic_buff1->u1_pic_buf_id, i1_ref_idx,
                                       pui32_weight_ofsts, ps_pic_buff1->u1_pic_type);
                 ps_dec->u4_pred_info_pkd_idx++;
@@ -418,10 +419,10 @@ WORD32 isvcd_decode_spatial_direct(dec_struct_t *ps_dec, UWORD8 u1_wd_x,
                       ((u1_final_ref_idx == 0) && (ABS(i2_mv_x) <= 1) && (ABS(i2_mv_y) <= 1));
             u1_colz |= (u1_packed_mb_sub_mb_mode << 6);
         }
-        ps_mv = ps_mv_nmb_start + u1_sub_mb_num;
+        ps_mv = ps_mv_nmb_start + u4_sub_mb_num;
         if(ps_mv)
         {
-            ih264d_rep_mv_colz(ps_dec, &s_temp_mv_pred, ps_mv, u1_sub_mb_num, u1_colz, u1_mb_partw,
+            ih264d_rep_mv_colz(ps_dec, &s_temp_mv_pred, ps_mv, u4_sub_mb_num, u1_colz, u1_mb_partw,
                                u1_mb_partw);
         }
         else
@@ -511,7 +512,7 @@ WORD32 isvcd_decode_spatial_direct(dec_struct_t *ps_dec, UWORD8 u1_wd_x,
     for(i = 0; i < s_mvdirect.i1_num_partitions; i++)
     {
         partition_size = s_mvdirect.i1_partitionsize[i];
-        u1_sub_mb_num = s_mvdirect.i1_submb_num[i];
+        u4_sub_mb_num = s_mvdirect.i1_submb_num[i];
 
         sub_partition = partition_size >> 2;
         partition_size &= 0x3;
@@ -541,7 +542,7 @@ WORD32 isvcd_decode_spatial_direct(dec_struct_t *ps_dec, UWORD8 u1_wd_x,
                     WORD8 i1_ref_idx = 0;
 
                     ps_pred_pkd = ps_dec->ps_pred_pkd + ps_dec->u4_pred_info_pkd_idx;
-                    ih264d_fill_pred_info(pi2_final_mv0, u1_mb_partw, u1_mb_parth, u1_sub_mb_num,
+                    ih264d_fill_pred_info(pi2_final_mv0, u1_mb_partw, u1_mb_parth, u4_sub_mb_num,
                                           i1_pred, ps_pred_pkd, ps_pic_buff0->u1_pic_buf_id,
                                           i1_ref_idx, pui32_weight_ofsts,
                                           ps_pic_buff0->u1_pic_type);
@@ -556,7 +557,7 @@ WORD32 isvcd_decode_spatial_direct(dec_struct_t *ps_dec, UWORD8 u1_wd_x,
                 WORD8 i1_ref_idx = 0;
 
                 ps_pred_pkd = ps_dec->ps_pred_pkd + ps_dec->u4_pred_info_pkd_idx;
-                ih264d_fill_pred_info(pi2_final_mv1, u1_mb_partw, u1_mb_parth, u1_sub_mb_num,
+                ih264d_fill_pred_info(pi2_final_mv1, u1_mb_partw, u1_mb_parth, u4_sub_mb_num,
                                       i1_pred, ps_pred_pkd, ps_pic_buff1->u1_pic_buf_id, i1_ref_idx,
                                       pui32_weight_ofsts, ps_pic_buff1->u1_pic_type);
                 ps_dec->u4_pred_info_pkd_idx++;
@@ -600,10 +601,10 @@ WORD32 isvcd_decode_spatial_direct(dec_struct_t *ps_dec, UWORD8 u1_wd_x,
                       ((u1_final_ref_idx == 0) && (ABS(i2_mv_x) <= 1) && (ABS(i2_mv_y) <= 1));
             u1_colz |= (u1_packed_mb_sub_mb_mode << 4);
         }
-        ps_mv = ps_mv_nmb_start + u1_sub_mb_num;
+        ps_mv = ps_mv_nmb_start + u4_sub_mb_num;
         if(ps_mv)
         {
-            ih264d_rep_mv_colz(ps_dec, &s_temp_mv_pred, ps_mv, u1_sub_mb_num, u1_colz, u1_mb_parth,
+            ih264d_rep_mv_colz(ps_dec, &s_temp_mv_pred, ps_mv, u4_sub_mb_num, u1_colz, u1_mb_parth,
                                u1_mb_partw);
         }
         else

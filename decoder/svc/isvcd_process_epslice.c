@@ -1171,9 +1171,9 @@ WORD32 isvcd_process_ii_mb(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_mb_info_t *
  **************************************************************************
  */
 WORD32 isvcd_decode_recon_tfr_nmb_non_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
-                                               UWORD8 u1_mb_idx, UWORD8 u1_num_mbs,
-                                               UWORD8 u1_num_mbs_next, UWORD8 u1_tfr_n_mb,
-                                               UWORD8 u1_end_of_row)
+                                               UWORD32 u4_mb_idx, UWORD32 u4_num_mbs,
+                                               UWORD32 u4_num_mbs_next, UWORD32 u4_tfr_n_mb,
+                                               UWORD32 u4_end_of_row)
 {
     WORD32 i, j;
     dec_struct_t *ps_dec = &ps_svc_lyr_dec->s_dec;
@@ -1195,7 +1195,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_non_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_
         return NOT_OK;
     }
     /* N Mb MC Loop */
-    for(i = u1_mb_idx; i < u1_num_mbs; i++)
+    for(i = u4_mb_idx; i < u4_num_mbs; i++)
     {
         ps_cur_mb_info = ps_dec->ps_nmb_info + i;
         ps_dec->u4_dma_buf_idx = 0;
@@ -1270,7 +1270,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_non_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_
     }
 
     /* N Mb IQ IT RECON  Loop */
-    for(j = u1_mb_idx; j < i; j++)
+    for(j = u4_mb_idx; j < i; j++)
     {
         ps_cur_mb_info = ps_dec->ps_nmb_info + j;
         ps_svc_cur_mb_info = ps_svc_lyr_dec->ps_svc_nmb_info + j;
@@ -1408,12 +1408,12 @@ WORD32 isvcd_decode_recon_tfr_nmb_non_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_
         u4_wd_y = ps_dec->u2_frm_wd_y << u1_field_pic_flag;
         u4_wd_uv = ps_dec->u2_frm_wd_uv << u1_field_pic_flag;
 
-        ps_cur_mb_info = ps_dec->ps_nmb_info + u1_mb_idx;
+        ps_cur_mb_info = ps_dec->ps_nmb_info + u4_mb_idx;
 
         ps_dec->u4_deblk_mb_x = ps_cur_mb_info->u2_mbx;
         ps_dec->u4_deblk_mb_y = ps_cur_mb_info->u2_mby;
 
-        for(j = u1_mb_idx; j < i; j++)
+        for(j = u4_mb_idx; j < i; j++)
         {
             if(ps_dec->u4_cur_deblk_mb_num > ps_dec->ps_cur_sps->u4_max_mb_addr)
             {
@@ -1424,13 +1424,13 @@ WORD32 isvcd_decode_recon_tfr_nmb_non_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_
         }
     }
 
-    if(u1_tfr_n_mb)
+    if(u4_tfr_n_mb)
     {
         /****************************************************************/
         /* Check for End Of Row in Next iteration                       */
         /****************************************************************/
         u1_end_of_row_next =
-            u1_num_mbs_next && (u1_num_mbs_next <= (ps_dec->u4_recon_mb_grp >> u1_mbaff));
+            u4_num_mbs_next && (u4_num_mbs_next <= (ps_dec->u4_recon_mb_grp >> u1_mbaff));
 
         /****************************************************************/
         /* Transfer the Following things                                */
@@ -1440,8 +1440,8 @@ WORD32 isvcd_decode_recon_tfr_nmb_non_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_
         /* N-Mb MV Data             ( To Ext MV Buffer )                */
         /* N-Mb MVTop/TopRight Data ( To Int MV Top Scratch Buffers)    */
         /****************************************************************/
-        ih264d_transfer_mb_group_data(ps_dec, u1_num_mbs, u1_end_of_row, u1_end_of_row_next);
-        ps_dec->u4_num_mbs_prev_nmb = u1_num_mbs;
+        ih264d_transfer_mb_group_data(ps_dec, u4_num_mbs, u4_end_of_row, u1_end_of_row_next);
+        ps_dec->u4_num_mbs_prev_nmb = u4_num_mbs;
         ps_dec->u4_pred_info_idx = 0;
         ps_dec->u4_dma_buf_idx = 0;
     }
@@ -1458,9 +1458,9 @@ WORD32 isvcd_decode_recon_tfr_nmb_non_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_
  *    0 on Success and Error code otherwise
  **************************************************************************
  */
-WORD32 isvcd_decode_recon_tfr_nmb_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD8 u1_mb_idx,
-                                           UWORD8 u1_num_mbs, UWORD8 u1_num_mbs_next,
-                                           UWORD8 u1_tfr_n_mb, UWORD8 u1_end_of_row)
+WORD32 isvcd_decode_recon_tfr_nmb_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD32 u1_mb_idx,
+                                           UWORD32 u4_num_mbs, UWORD32 u4_num_mbs_next,
+                                           UWORD32 u4_tfr_n_mb, UWORD32 u4_end_of_row)
 {
     WORD32 j;
     dec_struct_t *ps_dec = &ps_svc_lyr_dec->s_dec;
@@ -1483,7 +1483,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
     }
 
     /* N Mb IQ IT + Residual Store for Inter / + Recon for Intra Loop */
-    for(j = u1_mb_idx; j < u1_num_mbs; j++)
+    for(j = u1_mb_idx; j < u4_num_mbs; j++)
     {
         ps_dec->u4_dma_buf_idx = 0;
         ps_dec->u4_pred_info_idx = 0;
@@ -1546,7 +1546,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
         ps_dec->u4_deblk_mb_x = ps_cur_mb_info->u2_mbx;
         ps_dec->u4_deblk_mb_y = ps_cur_mb_info->u2_mby;
 
-        for(j = u1_mb_idx; j < u1_num_mbs; j++)
+        for(j = u1_mb_idx; j < u4_num_mbs; j++)
         {
             /* IN SVC base layers only intra MB's Need to be deblocked*/
             deblk_mb_t *ps_top_mb, *ps_left_mb, *ps_cur_mb;
@@ -1610,13 +1610,13 @@ WORD32 isvcd_decode_recon_tfr_nmb_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
         }
     }
 
-    if(u1_tfr_n_mb)
+    if(u4_tfr_n_mb)
     {
         /****************************************************************/
         /* Check for End Of Row in Next iteration                       */
         /****************************************************************/
         u1_end_of_row_next =
-            u1_num_mbs_next && (u1_num_mbs_next <= (ps_dec->u4_recon_mb_grp >> u1_mbaff));
+            u4_num_mbs_next && (u4_num_mbs_next <= (ps_dec->u4_recon_mb_grp >> u1_mbaff));
 
         /****************************************************************/
         /* Transfer the Following things                                */
@@ -1626,8 +1626,8 @@ WORD32 isvcd_decode_recon_tfr_nmb_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
         /* N-Mb MV Data             ( To Ext MV Buffer )                */
         /* N-Mb MVTop/TopRight Data ( To Int MV Top Scratch Buffers)    */
         /****************************************************************/
-        ih264d_transfer_mb_group_data(ps_dec, u1_num_mbs, u1_end_of_row, u1_end_of_row_next);
-        ps_dec->u4_num_mbs_prev_nmb = u1_num_mbs;
+        ih264d_transfer_mb_group_data(ps_dec, u4_num_mbs, u4_end_of_row, u1_end_of_row_next);
+        ps_dec->u4_num_mbs_prev_nmb = u4_num_mbs;
         ps_dec->u4_pred_info_idx = 0;
         ps_dec->u4_dma_buf_idx = 0;
     }
@@ -1646,7 +1646,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
 **************************************************************************
 */
 WORD32 isvcd_process_ibl_mb(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_mb_info_t *ps_cur_mb_info,
-                            UWORD8 u1_mb_num, UWORD8 u1_inter_intra_mode)
+                            UWORD32 u4_mb_num, UWORD8 u1_inter_intra_mode)
 {
     dec_struct_t *ps_dec = &ps_svc_lyr_dec->s_dec;
     intra_sampling_ctxt_t *ps_ctxt;
@@ -1671,7 +1671,7 @@ WORD32 isvcd_process_ibl_mb(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_mb_info_t 
     ref_mb_map_t *ps_y_off_len_chroma;
     mb_coord_t s_mb_coord = {0};
     WORD32 ret = OK;
-    UNUSED(u1_mb_num);
+    UNUSED(u4_mb_num);
 
     ps_ctxt = (intra_sampling_ctxt_t *) ps_svc_lyr_dec->pv_intra_sample_ctxt;
     ps_svc_dec_ref_layer = ps_svc_lyr_dec->ps_dec_svc_ref_layer;
@@ -1962,7 +1962,7 @@ WORD32 isvcd_process_residual_resample_mb(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
  **************************************************************************
  */
 WORD32 isvcd_process_inter_mb_rsd_pred_target_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
-                                                  dec_mb_info_t *ps_cur_mb_info, UWORD8 u1_mb_num,
+                                                  dec_mb_info_t *ps_cur_mb_info, UWORD32 u4_mb_num,
                                                   UWORD8 u1_inference_mode,
                                                   UWORD16 *pu2_res_luma_csbp)
 {
@@ -1986,7 +1986,7 @@ WORD32 isvcd_process_inter_mb_rsd_pred_target_lyr(svc_dec_lyr_struct_t *ps_svc_l
         return NOT_OK;
     }
     uc_botMb = 1 - ps_cur_mb_info->u1_topmb;
-    u4_num_pmbair = (u1_mb_num >> u1_mbaff);
+    u4_num_pmbair = (u4_mb_num >> u1_mbaff);
     u1_mb_field_decoding_flag = ps_cur_mb_info->u1_mb_field_decodingflag;
 
     pu1_rec_y = ps_frame_buf->pu1_dest_y + (u4_num_pmbair << 4);

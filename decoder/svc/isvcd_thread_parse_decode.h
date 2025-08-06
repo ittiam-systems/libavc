@@ -36,8 +36,8 @@
 
 #ifndef _ISVCD_THREAD_PARSE_DECPDE_H_
 #define _ISVCD_THREAD_PARSE_DECPDE_H_
-WORD32 isvcd_decode_recon_tfr_nmb_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD8 u1_num_mbs,
-                                         UWORD8 u1_num_mbs_next, UWORD8 u1_end_of_row);
+WORD32 isvcd_decode_recon_tfr_nmb_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD32 u4_num_mbs,
+                                         UWORD32 u4_num_mbs_next, UWORD32 u4_end_of_row);
 void isvcd_decode_picture_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec);
 WORD32 isvcd_decode_slice_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec);
 void ih264d_compute_bs_non_mbaff_thread(dec_struct_t *ps_dec, dec_mb_info_t *ps_cur_mb_info,

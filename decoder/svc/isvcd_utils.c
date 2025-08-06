@@ -774,8 +774,8 @@ WORD32 isvcd_init_pic(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD16 u2_frame_num
     /* Get the value of MaxMbAddress and frmheight in Mbs                 */
     /*--------------------------------------------------------------------*/
     ps_seq->u4_max_mb_addr =
-        (ps_seq->u2_frm_wd_in_mbs *
-         (ps_dec->u2_pic_ht >> (4 + ps_dec->ps_cur_slice->u1_field_pic_flag))) -
+        ((UWORD32)ps_seq->u2_frm_wd_in_mbs *
+         ((UWORD32)ps_dec->u2_pic_ht >> (4 + ps_dec->ps_cur_slice->u1_field_pic_flag))) -
         1;
     ps_dec->u2_frm_ht_in_mbs = (ps_dec->u2_pic_ht >> (4 + ps_dec->ps_cur_slice->u1_field_pic_flag));
 

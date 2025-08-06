@@ -548,7 +548,7 @@ WORD32 isvcd_start_of_pic(svc_dec_lyr_struct_t *ps_svc_lyr_dec, WORD32 i4_poc,
     {
         UWORD8 u1_field_pic_flag = ps_dec->ps_cur_slice->u1_field_pic_flag;
         UWORD8 u1_mbaff = ps_cur_slice->u1_mbaff_frame_flag;
-        UWORD8 uc_lastmbs = (((ps_dec->u2_pic_wd) >> 4) % (ps_dec->u4_recon_mb_grp >> u1_mbaff));
+        UWORD16 uc_lastmbs = (((ps_dec->u2_pic_wd) >> 4) % (ps_dec->u4_recon_mb_grp >> u1_mbaff));
         UWORD16 ui16_lastmbs_widthY =
             (uc_lastmbs ? (uc_lastmbs << 4) : ((ps_dec->u4_recon_mb_grp >> u1_mbaff) << 4));
         UWORD16 ui16_lastmbs_widthUV =
@@ -1929,7 +1929,7 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
 
     WORD32 ret;
     WORD32 prev_slice_err, num_mb_skipped;
-    UWORD8 u1_mbaff;
+    UWORD32 u4_mbaff;
     pocstruct_t *ps_cur_poc;
 
     UWORD32 u4_temp;
@@ -2200,7 +2200,7 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
     /* Check for error in slice and parse the missing/corrupted MB's      */
     /* as skip-MB's in an inserted P-slice                                */
     /*--------------------------------------------------------------------*/
-    u1_mbaff = ps_seq->u1_mb_aff_flag && (!u1_field_pic_flag);
+    u4_mbaff = ps_seq->u1_mb_aff_flag && (!u1_field_pic_flag);
     prev_slice_err = 0;
 
     if(i1_is_end_of_poc || ps_dec->u1_first_slice_in_stream)
@@ -2243,7 +2243,7 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
             {
                 /* first slice - missing/header corruption */
                 prev_slice_err = 1;
-                num_mb_skipped = u2_first_mb_in_slice << u1_mbaff;
+                num_mb_skipped = u2_first_mb_in_slice << u4_mbaff;
                 ps_cur_poc = &s_tmp_poc;
 
                 /* initializing slice parameters */
@@ -2270,14 +2270,14 @@ WORD32 isvcd_parse_decode_slice(UWORD8 u1_is_idr_slice, UWORD8 u1_nal_ref_idc,
     }
     else
     {
-        if((u2_first_mb_in_slice << u1_mbaff) > ps_dec->u4_total_mbs_coded)
+        if((u2_first_mb_in_slice << u4_mbaff) > ps_dec->u4_total_mbs_coded)
         {
             // previous slice - missing/corruption
             prev_slice_err = 2;
-            num_mb_skipped = (u2_first_mb_in_slice << u1_mbaff) - ps_dec->u4_total_mbs_coded;
+            num_mb_skipped = (u2_first_mb_in_slice << u4_mbaff) - ps_dec->u4_total_mbs_coded;
             ps_cur_poc = &s_tmp_poc;
         }
-        else if((u2_first_mb_in_slice << u1_mbaff) < ps_dec->u4_total_mbs_coded)
+        else if((u2_first_mb_in_slice << u4_mbaff) < ps_dec->u4_total_mbs_coded)
         {
             return ERROR_CORRUPTED_SLICE;
         }
