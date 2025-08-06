@@ -71,8 +71,8 @@
 /*         DD MM YYYY   Author(s)       Changes (Describe the changes made)  */
 /*                      ITTIAM                                               */
 /*****************************************************************************/
-WORD32 isvcd_decode_recon_tfr_nmb_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD8 u1_num_mbs,
-                                         UWORD8 u1_num_mbs_next, UWORD8 u1_end_of_row)
+WORD32 isvcd_decode_recon_tfr_nmb_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD32 u4_num_mbs,
+                                         UWORD32 u4_num_mbs_next, UWORD32 u4_end_of_row)
 {
     WORD32 i, j;
     dec_mb_info_t *ps_cur_mb_info;
@@ -101,7 +101,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec, U
             (UWORD32) (ps_dec->i2_dec_thread_mb_y + (1 << u1_mbaff)) * ps_dec->u2_frm_wd_in_mbs - 1;
         u4_mb_num = u2_cur_dec_mb_num;
         /*introducing 1 MB delay*/
-        u4_mb_num = MIN(u4_mb_num + u1_num_mbs + 1, u4_max_mb);
+        u4_mb_num = MIN(u4_mb_num + u4_num_mbs + 1, u4_max_mb);
 
         CHECK_MB_MAP_BYTE(u4_mb_num, ps_dec->pu1_dec_mb_map, u4_cond);
         if(u4_cond)
@@ -141,7 +141,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec, U
     }
 
     /* N Mb MC Loop */
-    for(i = 0; i < u1_num_mbs; i++)
+    for(i = 0; i < u4_num_mbs; i++)
     {
         u4_mb_num = u2_cur_dec_mb_num;
         GET_SLICE_NUM_MAP(ps_dec->pu2_slice_num_map, u2_cur_dec_mb_num, u2_slice_num);
@@ -347,14 +347,14 @@ WORD32 isvcd_decode_recon_tfr_nmb_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec, U
     if(ps_dec->cur_dec_mb_num > ps_dec->ps_cur_sps->u4_max_mb_addr)
         ps_dec->u4_cur_slice_decode_done = 1;
 
-    if(i != u1_num_mbs)
+    if(i != u4_num_mbs)
     {
-        u1_end_of_row = 0;
+        u4_end_of_row = 0;
         /*Number of MB's left in row*/
-        u1_num_mbs_next = u1_num_mbs_next + ((u1_num_mbs - i) >> u1_mbaff);
+        u4_num_mbs_next = u4_num_mbs_next + ((u4_num_mbs - i) >> u1_mbaff);
     }
 
-    ih264d_decode_tfr_nmb(ps_dec, (i), u1_num_mbs_next, u1_end_of_row);
+    ih264d_decode_tfr_nmb(ps_dec, (i), u4_num_mbs_next, u4_end_of_row);
 
     return OK;
 }
@@ -379,10 +379,10 @@ WORD32 isvcd_decode_recon_tfr_nmb_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec, U
 /*****************************************************************************/
 WORD32 isvcd_decode_slice_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
 {
-    UWORD8 u1_num_mbs_next, u1_num_mbsleft, u1_end_of_row = 0;
+    UWORD32 u4_num_mbs_next, u4_num_mbsleft, u4_end_of_row = 0;
     dec_struct_t *ps_dec = &ps_svc_lyr_dec->s_dec;
     const UWORD32 i2_pic_wdin_mbs = ps_dec->u2_frm_wd_in_mbs;
-    UWORD8 u1_mbaff, u1_num_mbs;
+    UWORD32 u4_mbaff, u4_num_mbs;
 
     UWORD16 u2_first_mb_in_slice;
     UWORD16 i16_mb_x, i16_mb_y;
@@ -435,13 +435,13 @@ WORD32 isvcd_decode_slice_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
         }
     }
 
-    u1_mbaff = ps_dec->ps_cur_slice->u1_mbaff_frame_flag;
+    u4_mbaff = ps_dec->ps_cur_slice->u1_mbaff_frame_flag;
     u2_first_mb_in_slice = ps_dec->ps_decode_cur_slice->u4_first_mb_in_slice;
     i16_mb_x = MOD(u2_first_mb_in_slice, i2_pic_wdin_mbs);
     i16_mb_y = DIV(u2_first_mb_in_slice, i2_pic_wdin_mbs);
-    i16_mb_y <<= u1_mbaff;
+    i16_mb_y <<= u4_mbaff;
     ps_dec->i2_dec_thread_mb_y = i16_mb_y;
-    ps_dec->cur_dec_mb_num = u2_first_mb_in_slice << u1_mbaff;
+    ps_dec->cur_dec_mb_num = u2_first_mb_in_slice << u4_mbaff;
 
     if((ps_dec->u4_num_cores == 2) || !ps_dec->i1_recon_in_thread3_flag)
     {
@@ -494,30 +494,30 @@ WORD32 isvcd_decode_slice_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
 
     while(ps_dec->u4_cur_slice_decode_done != 1)
     {
-        u1_num_mbsleft = ((i2_pic_wdin_mbs - i16_mb_x) << u1_mbaff);
+        u4_num_mbsleft = ((i2_pic_wdin_mbs - i16_mb_x) << u4_mbaff);
 
-        if(u1_num_mbsleft <= ps_dec->u4_recon_mb_grp)
+        if(u4_num_mbsleft <= ps_dec->u4_recon_mb_grp)
         {
-            u1_num_mbs = u1_num_mbsleft;
+            u4_num_mbs = u4_num_mbsleft;
 
             /*Indicate number of mb's left in a row*/
-            u1_num_mbs_next = 0;
-            u1_end_of_row = 1;
+            u4_num_mbs_next = 0;
+            u4_end_of_row = 1;
             i16_mb_x = 0;
         }
         else
         {
-            u1_num_mbs = ps_dec->u4_recon_mb_grp;
+            u4_num_mbs = ps_dec->u4_recon_mb_grp;
 
             /*Indicate number of mb's left in a row*/
-            u1_num_mbs_next = i2_pic_wdin_mbs - i16_mb_x - (ps_dec->u4_recon_mb_grp >> u1_mbaff);
-            i16_mb_x += (u1_num_mbs >> u1_mbaff);
-            u1_end_of_row = 0;
+            u4_num_mbs_next = i2_pic_wdin_mbs - i16_mb_x - (ps_dec->u4_recon_mb_grp >> u4_mbaff);
+            i16_mb_x += (u4_num_mbs >> u4_mbaff);
+            u4_end_of_row = 0;
         }
         if(ps_svc_lyr_dec->u1_layer_identifier == TARGET_LAYER)
         {
-            ret = isvcd_decode_recon_tfr_nmb_thread(ps_svc_lyr_dec, u1_num_mbs, u1_num_mbs_next,
-                                                    u1_end_of_row);
+            ret = isvcd_decode_recon_tfr_nmb_thread(ps_svc_lyr_dec, u4_num_mbs, u4_num_mbs_next,
+                                                    u4_end_of_row);
         }
         if(ret != OK) return ret;
     }

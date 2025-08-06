@@ -45,14 +45,14 @@
 WORD32 isvcd_parse_epslice(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD16 u2_first_mb_in_slice);
 
 WORD32 isvcd_parse_pmb_cabac(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_mb_info_t *ps_cur_mb_info,
-                             dec_svc_mb_info_t *ps_svc_cur_mb_info, UWORD8 u1_mb_num,
-                             UWORD8 u1_num_mbsNby2);
+                             dec_svc_mb_info_t *ps_svc_cur_mb_info, UWORD32 u4_mb_num,
+                             UWORD32 u4_num_mbsNby2);
 
 WORD32 isvcd_parse_pmb_cavlc(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_mb_info_t *ps_cur_mb_info,
-                             dec_svc_mb_info_t *ps_svc_cur_mb_info, UWORD8 u1_mb_num,
-                             UWORD8 u1_num_mbsNby2);
+                             dec_svc_mb_info_t *ps_svc_cur_mb_info, UWORD32 u4_mb_num,
+                             UWORD32 u4_num_mbsNby2);
 WORD32 isvcd_process_ibl_mb(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_mb_info_t *ps_cur_mb_info,
-                            UWORD8 u1_mb_num, UWORD8 u1_inter_intra_mode);
+                            UWORD32 u4_mb_num, UWORD8 u1_inter_intra_mode);
 
 WORD32 isvcd_process_residual_resample_mb(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
                                           dec_mb_info_t *ps_cur_mb_info);
@@ -67,7 +67,7 @@ WORD32 isvcd_process_inter_mb_rsd_pred_non_target(svc_dec_lyr_struct_t *ps_svc_l
                                                   UWORD16 *pu2_res_luma_csbp);
 
 WORD32 isvcd_process_inter_mb_rsd_pred_target_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
-                                                  dec_mb_info_t *ps_cur_mb_info, UWORD8 u1_mb_num,
+                                                  dec_mb_info_t *ps_cur_mb_info, UWORD32 u4_mb_num,
                                                   UWORD8 u1_inference_mode,
                                                   UWORD16 *pu2_res_luma_csbp);
 
@@ -75,12 +75,12 @@ WORD32 isvcd_mv_pred_ref_tfr_nby2_epmb(dec_struct_t *ps_dec, UWORD32 u4_num_mbs,
                                        UWORD32 u4_num_mbsNby2);
 
 WORD32 isvcd_decode_recon_tfr_nmb_non_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec,
-                                               UWORD8 u1_mb_idx, UWORD8 u1_num_mbs,
-                                               UWORD8 u1_num_mbs_next, UWORD8 u1_tfr_n_mb,
-                                               UWORD8 u1_end_of_row);
-WORD32 isvcd_decode_recon_tfr_nmb_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD8 u1_mb_idx,
-                                           UWORD8 u1_num_mbs, UWORD8 u1_num_mbs_next,
-                                           UWORD8 u1_tfr_n_mb, UWORD8 u1_end_of_row);
+                                               UWORD32 u4_mb_idx, UWORD32 u4_num_mbs,
+                                               UWORD32 u4_num_mbs_next, UWORD32 u4_tfr_n_mb,
+                                               UWORD32 u4_end_of_row);
+WORD32 isvcd_decode_recon_tfr_nmb_base_lyr(svc_dec_lyr_struct_t *ps_svc_lyr_dec, UWORD32 u4_mb_idx,
+                                           UWORD32 u4_num_mbs, UWORD32 u4_num_mbs_next,
+                                           UWORD32 u4_tfr_n_mb, UWORD32 u4_end_of_row);
 void isvcd_retrive_infer_mode_mv(svc_dec_lyr_struct_t *ps_svc_lyr_dec, mv_pred_t *ps_mvpred,
                                  UWORD8 u1_lx, UWORD8 u1_sub_mb_num);
 

@@ -517,7 +517,7 @@ typedef struct _SvcDecLyrStruct
      */
     WORD32(*pf_parse_inter_mb_svc_ext)
     (struct _SvcDecLyrStruct *ps_dec, dec_mb_info_t *ps_cur_mb_info,
-     dec_svc_mb_info_t *ps_svc_cur_mb_info, UWORD8 u1_mb_num, UWORD8 u1_num_mbsNby2);
+     dec_svc_mb_info_t *ps_svc_cur_mb_info, UWORD32 u4_mb_num, UWORD32 u4_num_mbsNby2);
 
     WORD32(*pf_parse_inter_slice_svc_ext)
     (struct _SvcDecLyrStruct *ps_dec, dec_slice_params_t *ps_slice, UWORD16 u2_first_mb_in_slice);
