@@ -1079,29 +1079,7 @@ void isvcd_init_decoder(svc_dec_lyr_struct_t *ps_dec_svc_lyr_params)
     /* Free any dynamic buffers that are allocated */
     isvcd_free_dynamic_bufs(ps_svc_lyr_dec);
 
-    {
-        UWORD8 i;
-        struct pic_buffer_t *ps_init_dpb;
-        ps_init_dpb = ps_dec->ps_dpb_mgr->ps_init_dpb[0][0];
-        for(i = 0; i < 2 * MAX_REF_BUFS; i++)
-        {
-            ps_init_dpb->pu1_buf1 = NULL;
-            ps_init_dpb->u1_long_term_frm_idx = MAX_REF_BUFS + 1;
-            ps_dec->ps_dpb_mgr->ps_init_dpb[0][i] = ps_init_dpb;
-            ps_dec->ps_dpb_mgr->ps_mod_dpb[0][i] = ps_init_dpb;
-            ps_init_dpb++;
-        }
-
-        ps_init_dpb = ps_dec->ps_dpb_mgr->ps_init_dpb[1][0];
-        for(i = 0; i < 2 * MAX_REF_BUFS; i++)
-        {
-            ps_init_dpb->pu1_buf1 = NULL;
-            ps_init_dpb->u1_long_term_frm_idx = MAX_REF_BUFS + 1;
-            ps_dec->ps_dpb_mgr->ps_init_dpb[1][i] = ps_init_dpb;
-            ps_dec->ps_dpb_mgr->ps_mod_dpb[1][i] = ps_init_dpb;
-            ps_init_dpb++;
-        }
-    }
+    isvcd_init_dpb_ref_bufs(ps_dec);
 
     ps_cur_slice = ps_dec->ps_cur_slice;
     ps_dec->init_done = 0;
