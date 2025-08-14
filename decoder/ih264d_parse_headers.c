@@ -418,7 +418,7 @@ WORD32 ih264d_parse_pps(dec_struct_t * ps_dec, dec_bit_stream_t * ps_bitstrm)
 
     /* High profile related syntax elements */
     u1_more_data_flag = MORE_RBSP_DATA(ps_bitstrm);
-    if(u1_more_data_flag && (ps_pps->ps_sps->u1_profile_idc == HIGH_PROFILE_IDC))
+    if(u1_more_data_flag)
     {
         /* read transform_8x8_mode_flag  */
         ps_pps->i4_transform_8x8_mode_flag = (WORD32)ih264d_get_bit_h264(

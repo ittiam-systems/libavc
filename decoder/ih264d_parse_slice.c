@@ -690,16 +690,13 @@ WORD32 ih264d_start_of_pic(dec_struct_t *ps_dec,
         {
             ret = ih264d_form_default_scaling_matrix(ps_dec);
         }
-
-        if(ps_pps->i4_transform_8x8_mode_flag)
-        {
-            ps_dec->s_high_profile.u1_transform8x8_present = 1;
-        }
     }
     else
     {
         ret = ih264d_form_default_scaling_matrix(ps_dec);
     }
+
+    ps_dec->s_high_profile.u1_transform8x8_present = ps_pps->i4_transform_8x8_mode_flag;
 
     if(ret != OK)
         return ret;
