@@ -60,6 +60,6 @@ WORD32 isvcd_decode_pic_order_cnt(
     dec_pic_params_t *ps_pps, UWORD8 u1_nal_ref_idc, UWORD8 u1_bottom_field_flag,
     UWORD8 u1_field_pic_flag, WORD32 *pi4_poc, dec_struct_t *ps_dec);
 
-void isvcd_init_dpb_ref_bufs(dpb_manager_t *ps_dpb_mgr);
+void isvcd_init_dpb_ref_bufs(dec_struct_t *ps_dec);
 
 #endif /*_ISVCD_UTILS_H_*/
