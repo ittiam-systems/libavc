@@ -106,5 +106,10 @@ ih264_weighted_pred_ft ih264_weighted_pred_chroma_sse42;
 ih264_weighted_bi_pred_ft ih264_weighted_bi_pred_luma_sse42;
 ih264_weighted_bi_pred_ft ih264_weighted_bi_pred_chroma_sse42;
 
+ 
+/* AVX2 */
+ih264_weighted_bi_pred_ft ih264_weighted_bi_pred_luma_avx2;
+ih264_weighted_bi_pred_ft ih264_weighted_bi_pred_chroma_avx2;
+
 #endif /* _IH264_WEIGHTED_PRED_H_ */
 

@@ -138,4 +138,11 @@ ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_vert_hpel_ssse3;
 ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_hpel_vert_qpel_ssse3;
 ih264_inter_pred_chroma_ft ih264_inter_pred_chroma_ssse3;
 
+/* AVX2 Intrinsic Declarations */
+
+ih264_inter_pred_chroma_ft ih264_inter_pred_chroma_avx2;
+ih264_inter_pred_luma_ft   ih264_inter_pred_luma_copy_avx2;
+ih264_inter_pred_luma_ft ih264_inter_pred_luma_horz_qpel_vert_qpel_avx2;
+
+
 #endif /* _IH264_INTER_PRED_FILTERS_H_ */

@@ -52,6 +52,7 @@
 #include "ih264_error.h"
 #include "ih264_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
+#include "ih264_deblk_edge_filters.h"
 
 #include "ih264d_structs.h"
 #include "ih264d_function_selector.h"
@@ -68,6 +69,11 @@ void ih264d_init_function_ptr(dec_struct_t *ps_codec)
         case ARCH_X86_SSSE3:
             ih264d_init_function_ptr_ssse3(ps_codec);
             break;
+        case ARCH_X86_AVX2:
+            ih264d_init_function_ptr_ssse3(ps_codec);
+            ih264d_init_function_ptr_sse42(ps_codec);
+            ih264d_init_function_ptr_avx2(ps_codec);
+            break;
         case ARCH_X86_SSE42:
         default:
             ih264d_init_function_ptr_ssse3(ps_codec);
@@ -83,7 +89,7 @@ void ih264d_init_arch(dec_struct_t *ps_codec)
 #elif DEFAULT_ARCH == D_ARCH_X86_SSSE3
     ps_codec->e_processor_arch = ARCH_X86_SSSE3;
 #elif DEFAULT_ARCH == D_ARCH_X86_AVX2
-    ps_codec->e_processor_arch = D_ARCH_X86_AVX2;
+    ps_codec->e_processor_arch = ARCH_X86_AVX2;
 #else
     ps_codec->e_processor_arch = ARCH_X86_GENERIC;
 #endif

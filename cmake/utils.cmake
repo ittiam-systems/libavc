@@ -8,7 +8,7 @@ function(libavc_add_compile_options)
   elseif("${SYSTEM_PROCESSOR}" STREQUAL "aarch32")
     add_compile_options(-march=armv7-a -mfpu=neon)
   else()
-    add_compile_options(-msse4.2 -mno-avx)
+    add_compile_options(-msse4.2 -mavx2 -mfma)
   endif()
   add_compile_options(-Wdeclaration-after-statement)
 
@@ -45,8 +45,8 @@ function(libavc_add_definitions)
   elseif("${SYSTEM_PROCESSOR}" STREQUAL "aarch32")
     add_definitions(-DARMV7 -DDEFAULT_ARCH=D_ARCH_ARM_A9Q)
   else()
-    add_definitions(-DX86 -DX86_LINUX=1 -DDISABLE_AVX2
-                    -DDEFAULT_ARCH=D_ARCH_X86_SSE42)
+    add_definitions(-DX86 -DX86_LINUX=1
+	    -DDEFAULT_ARCH=D_ARCH_X86_SSE42)
   endif()
 endfunction()
 

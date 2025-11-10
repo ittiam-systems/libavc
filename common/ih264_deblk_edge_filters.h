@@ -159,4 +159,12 @@ ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_ssse3;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_mbaff_ssse3;
 ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_mbaff_ssse3;
 
+
+/* AVX2 */
+ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_vert_bslt4_avx2;
+ih264_deblk_chroma_edge_bslt4_ft ih264_deblk_chroma_horz_bslt4_avx2;
+ih264_deblk_edge_bslt4_ft ih264_deblk_luma_horz_bslt4_avx2;
+ih264_deblk_edge_bslt4_ft ih264_deblk_luma_vert_bslt4_avx2;
+
+
 #endif /* _IH264_DEBLK_EDGE_FILTERS_H_ */
