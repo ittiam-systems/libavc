@@ -231,4 +231,10 @@ ih264_ihadamard_scaling_ft ih264_ihadamard_scaling_4x4_sse42;
 ih264_hadamard_quant_ft ih264_hadamard_quant_4x4_sse42;
 ih264_hadamard_quant_ft ih264_hadamard_quant_2x2_uv_sse42;
 
+/*AVX2 Declarations*/
+ih264_ihadamard_scaling_ft ih264_ihadamard_scaling_4x4_avx2;
+ih264_ihadamard_scaling_ft ih264_ihadamard_scaling_2x2_uv_avx2;
+ih264_iquant_itrans_recon_ft ih264_iquant_itrans_recon_4x4_avx2;
+
+
 #endif /* _IH264_TRANS_QUANT_ITRANS_IQUANT_H_ */

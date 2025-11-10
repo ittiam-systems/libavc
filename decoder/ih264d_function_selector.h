@@ -67,5 +67,6 @@ void ih264d_init_function_ptr_sse42(dec_struct_t *ps_codec);
 
 void ih264d_init_function_ptr_a9q(dec_struct_t *ps_codec);
 void ih264d_init_function_ptr_av8(dec_struct_t *ps_codec);
+void ih264d_init_function_ptr_avx2(dec_struct_t *ps_codec);
 
 #endif /* _IH264D_FUNCTION_SELECTOR_H_ */

@@ -54,7 +54,8 @@ else()
   list(
     APPEND LIBMVCDEC_ASMS "${AVC_ROOT}/decoder/x86/ih264d_function_selector.c"
     "${AVC_ROOT}/decoder/x86/ih264d_function_selector_sse42.c"
-    "${AVC_ROOT}/decoder/x86/ih264d_function_selector_ssse3.c")
+    "${AVC_ROOT}/decoder/x86/ih264d_function_selector_ssse3.c"
+    "${AVC_ROOT}/decoder/x86/ih264d_function_selector_avx2.c")
 endif()
 
 add_library(libmvcdec STATIC ${LIBAVC_COMMON_SRCS} ${LIBAVC_COMMON_ASMS}

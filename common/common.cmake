@@ -108,7 +108,13 @@ else()
     "${AVC_ROOT}/common/x86/ih264_mem_fns_ssse3.c"
     "${AVC_ROOT}/common/x86/ih264_padding_ssse3.c"
     "${AVC_ROOT}/common/x86/ih264_resi_trans_quant_sse42.c"
-    "${AVC_ROOT}/common/x86/ih264_weighted_pred_sse42.c")
+    "${AVC_ROOT}/common/x86/ih264_weighted_pred_sse42.c"
+    "${AVC_ROOT}/common/x86/ih264_ihadamard_scaling_avx2.c"
+    "${AVC_ROOT}/common/x86/ih264_deblk_chroma_avx2.c"
+    "${AVC_ROOT}/common/x86/ih264_deblk_luma_avx2.c"
+    "${AVC_ROOT}/common/x86/ih264_iquant_itrans_recon_avx2.c"
+    "${AVC_ROOT}/common/x86/ih264_weighted_pred_avx2.c"
+    "${AVC_ROOT}/common/x86/ih264_inter_pred_filters_avx2.c")
 
   include_directories(${AVC_ROOT}/common/x86)
 endif()

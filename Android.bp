@@ -237,6 +237,56 @@ cc_defaults {
 }
 
 cc_library_static {
+    name: "libavc_avx2",
+    defaults: ["libavc_dec_defaults"],
+    visibility: ["//visibility:private"],
+    export_include_dirs: [
+        "common",
+        "decoder",
+    ],
+    arch: {
+        x86: {
+            cflags: [
+                "-mavx2",
+                "-mfma",
+            ],
+            srcs: [
+                "common/x86/ih264_ihadamard_scaling_avx2.c",
+                "common/x86/ih264_deblk_chroma_avx2.c",
+                "common/x86/ih264_deblk_luma_avx2.c",
+                "common/x86/ih264_iquant_itrans_recon_avx2.c",
+                "common/x86/ih264_weighted_pred_avx2.c",
+                "common/x86/ih264_inter_pred_filters_avx2.c",
+                "decoder/x86/ih264d_function_selector_avx2.c",
+            ],
+        },
+        x86_64: {
+            cflags: [
+                "-mavx2",
+                "-mfma",
+            ],
+            srcs: [
+                "common/x86/ih264_ihadamard_scaling_avx2.c",
+                "common/x86/ih264_deblk_chroma_avx2.c",
+                "common/x86/ih264_deblk_luma_avx2.c",
+                "common/x86/ih264_iquant_itrans_recon_avx2.c",
+                "common/x86/ih264_weighted_pred_avx2.c",
+                "common/x86/ih264_inter_pred_filters_avx2.c",
+                "decoder/x86/ih264d_function_selector_avx2.c",
+            ],
+        },
+    },
+    sanitize: {
+        blocklist: "libavc_blocklist.txt",
+    },
+    apex_available: [
+        "//apex_available:platform", // used by libstagefright_soft_avcdec
+        "com.android.media.swcodec",
+    ],
+    min_sdk_version: "29",
+}
+
+cc_library_static {
     name: "libavcdec",
     defaults: ["libavc_dec_defaults"],
 
@@ -380,6 +430,10 @@ cc_library_static {
                 "decoder/x86/ih264d_function_selector_sse42.c",
                 "decoder/x86/ih264d_function_selector_ssse3.c",
             ],
+            whole_static_libs: [
+                "libavc_avx2",
+            ],
+
         },
 
         x86_64: {
@@ -399,6 +453,9 @@ cc_library_static {
                 "decoder/x86/ih264d_function_selector.c",
                 "decoder/x86/ih264d_function_selector_sse42.c",
                 "decoder/x86/ih264d_function_selector_ssse3.c",
+            ],
+            whole_static_libs: [
+                "libavc_avx2",
             ],
         },
     },

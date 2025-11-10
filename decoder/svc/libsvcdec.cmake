@@ -95,7 +95,8 @@ else()
     "${AVC_ROOT}/decoder/x86/svc/isvcd_iquant_itrans_residual_sse42.c"
     "${AVC_ROOT}/decoder/x86/svc/isvcd_iquant_itrans_sse42.c"
     "${AVC_ROOT}/decoder/x86/svc/isvcd_pred_residual_recon_sse42.c"
-    "${AVC_ROOT}/decoder/x86/svc/isvcd_residual_resamp_sse42.c")
+    "${AVC_ROOT}/decoder/x86/svc/isvcd_residual_resamp_sse42.c"
+    "${AVC_ROOT}/decoder/x86/ih264d_function_selector_avx2.c")
 endif()
 
 add_library(libsvcdec STATIC ${LIBAVC_COMMON_SRCS} ${LIBAVC_COMMON_ASMS}
