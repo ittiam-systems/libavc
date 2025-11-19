@@ -43,7 +43,7 @@ const IV_COLOR_FORMAT_T supportedColorFormats[] = {
  * architectures can be used in arm/arm64/x86 builds */
 const IVD_ARCH_T supportedArchitectures[] = {
     ARCH_ARM_NONEON,  ARCH_ARM_A9Q,   ARCH_ARM_NEONINTR, ARCH_ARMV8_GENERIC,
-    ARCH_X86_GENERIC, ARCH_X86_SSSE3, ARCH_X86_SSE42};
+    ARCH_X86_AVX2, ARCH_X86_GENERIC, ARCH_X86_SSSE3, ARCH_X86_SSE42};
 
 enum {
   OFFSET_COLOR_FORMAT = 6,
