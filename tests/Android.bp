@@ -25,9 +25,6 @@ package {
 
 cc_test {
     name: "AvcEncTest",
-    defaults: [
-        "no_bti",
-    ],
     gtest: true,
     test_suites: ["device-tests"],
 

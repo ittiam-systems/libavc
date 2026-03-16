@@ -88,10 +88,9 @@
 //x4=>   u4_qp_div_6
 
 .text
-.p2align 2
 
     .global ih264_ihadamard_scaling_4x4_av8
-ih264_ihadamard_scaling_4x4_av8:
+ENTRY ih264_ihadamard_scaling_4x4_av8
 
 //only one shift is done in horizontal inverse because,
 //if u4_qp_div_6 is lesser than 4 then shift value will be neagative and do negative left shift, in this case rnd_factor has value
@@ -159,6 +158,7 @@ ih264_ihadamard_scaling_4x4_av8:
     st1       {v0.4h-v3.4h}, [x1]       //store the result
 
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -202,7 +202,7 @@ ih264_ihadamard_scaling_4x4_av8:
 //                                  UWORD32 u4_qp_div_6,
 
     .global ih264_ihadamard_scaling_2x2_uv_av8
-ih264_ihadamard_scaling_2x2_uv_av8:
+ENTRY ih264_ihadamard_scaling_2x2_uv_av8
 
 //Registers used
 //   x0 : *pi2_src
@@ -244,6 +244,7 @@ ih264_ihadamard_scaling_2x2_uv_av8:
 
     st2       {v0.4s-v1.4s}, [x1]
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
