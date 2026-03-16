@@ -50,9 +50,8 @@
 //
 
 
-.text
-.p2align 2
 .include "ih264_neon_macros.s"
+.text
 
 .extern ih264_gai1_intrapred_chroma_plane_coeffs1
 .extern ih264_gai1_intrapred_chroma_plane_coeffs2
@@ -108,7 +107,7 @@
 
     .global ih264_intra_pred_chroma_8x8_mode_dc_av8
 
-ih264_intra_pred_chroma_8x8_mode_dc_av8:
+ENTRY ih264_intra_pred_chroma_8x8_mode_dc_av8
 
 
     push_v_regs
@@ -202,6 +201,7 @@ end_func:
 
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -259,7 +259,7 @@ end_func:
 
     .global ih264_intra_pred_chroma_8x8_mode_horz_av8
 
-ih264_intra_pred_chroma_8x8_mode_horz_av8:
+ENTRY ih264_intra_pred_chroma_8x8_mode_horz_av8
 
 
 
@@ -286,6 +286,7 @@ ih264_intra_pred_chroma_8x8_mode_horz_av8:
 
 
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -341,7 +342,7 @@ ih264_intra_pred_chroma_8x8_mode_horz_av8:
 
     .global ih264_intra_pred_chroma_8x8_mode_vert_av8
 
-ih264_intra_pred_chroma_8x8_mode_vert_av8:
+ENTRY ih264_intra_pred_chroma_8x8_mode_vert_av8
 
     push_v_regs
     sxtw      x3, w3
@@ -359,6 +360,7 @@ ih264_intra_pred_chroma_8x8_mode_vert_av8:
     st1       {v0.8b, v1.8b}, [x1], x3
 
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -413,7 +415,7 @@ ih264_intra_pred_chroma_8x8_mode_vert_av8:
 //    w4 =>  ui_neighboravailability
 
     .global ih264_intra_pred_chroma_8x8_mode_plane_av8
-ih264_intra_pred_chroma_8x8_mode_plane_av8:
+ENTRY ih264_intra_pred_chroma_8x8_mode_plane_av8
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
@@ -568,6 +570,7 @@ end_func_plane:
 
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 

@@ -40,9 +40,8 @@
 ///*****************************************************************************/
 
 
-.text
-.p2align 2
 .include "ih264_neon_macros.s"
+.text
 
 
 
@@ -86,7 +85,7 @@
 
     .global ih264_deblk_luma_horz_bslt4_av8
 
-ih264_deblk_luma_horz_bslt4_av8:
+ENTRY ih264_deblk_luma_horz_bslt4_av8
 
     // STMFD sp!,{x4-x7,x14}
     push_v_regs
@@ -197,6 +196,7 @@ ih264_deblk_luma_horz_bslt4_av8:
     // LDMFD sp!,{x4-x7,pc}
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -235,7 +235,7 @@ ih264_deblk_luma_horz_bslt4_av8:
 
     .global ih264_deblk_luma_horz_bs4_av8
 
-ih264_deblk_luma_horz_bs4_av8:
+ENTRY ih264_deblk_luma_horz_bs4_av8
 
     // Back up necessary registers on stack
     // STMFD sp!,{x12,x14}
@@ -385,6 +385,7 @@ ih264_deblk_luma_horz_bs4_av8:
     // LDMFD sp!,{x12,pc}
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -429,7 +430,7 @@ ih264_deblk_luma_horz_bs4_av8:
 
     .global ih264_deblk_luma_vert_bslt4_av8
 
-ih264_deblk_luma_vert_bslt4_av8:
+ENTRY ih264_deblk_luma_vert_bslt4_av8
 
     // STMFD sp!,{x12,x14}
     push_v_regs
@@ -728,6 +729,7 @@ ih264_deblk_luma_vert_bslt4_av8:
     // LDMFD sp!,{x12,pc}
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -766,7 +768,7 @@ ih264_deblk_luma_vert_bslt4_av8:
 
     .global ih264_deblk_luma_vert_bs4_av8
 
-ih264_deblk_luma_vert_bs4_av8:
+ENTRY ih264_deblk_luma_vert_bs4_av8
 
     // STMFD sp!,{x12,x14}
     push_v_regs
@@ -1082,6 +1084,7 @@ ih264_deblk_luma_vert_bs4_av8:
     // LDMFD sp!,{x12,pc}
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 

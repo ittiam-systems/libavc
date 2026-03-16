@@ -105,15 +105,14 @@
 //    w6 =>  height
 //    w7 =>  width
 //
-.text
-.p2align 2
 .include "ih264_neon_macros.s"
+.text
 
 
 
     .global ih264_inter_pred_chroma_av8
 
-ih264_inter_pred_chroma_av8:
+ENTRY ih264_inter_pred_chroma_av8
 
 
 
@@ -393,6 +392,7 @@ end_func:
     // LDMFD sp!,{x4-x12,PC}         //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 

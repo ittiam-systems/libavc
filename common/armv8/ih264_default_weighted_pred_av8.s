@@ -101,15 +101,14 @@
 //    w6      => ht
 //    w7      => wd
 //
-.text
-.p2align 2
 .include "ih264_neon_macros.s"
+.text
 
 
 
     .global ih264_default_weighted_pred_luma_av8
 
-ih264_default_weighted_pred_luma_av8:
+ENTRY ih264_default_weighted_pred_luma_av8
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
@@ -213,6 +212,7 @@ end_loops:
     // LDMFD sp!,{x4-x7,x15}                      //Reload the registers from sp
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -285,7 +285,7 @@ end_loops:
 
     .global ih264_default_weighted_pred_chroma_av8
 
-ih264_default_weighted_pred_chroma_av8:
+ENTRY ih264_default_weighted_pred_chroma_av8
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
@@ -352,6 +352,7 @@ loop_8_uv:                              //each iteration processes four rows
 end_loops_uv:
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 

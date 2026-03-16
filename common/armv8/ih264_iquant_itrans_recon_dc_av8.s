@@ -114,10 +114,9 @@
 //   =>  pi2_dc_ld_addr
 
 .text
-.p2align 2
 
     .global ih264_iquant_itrans_recon_4x4_dc_av8
-ih264_iquant_itrans_recon_4x4_dc_av8:
+ENTRY ih264_iquant_itrans_recon_4x4_dc_av8
 
     sxtw      x3, w3
     sxtw      x4, w4
@@ -166,6 +165,7 @@ donot_use_pi2_src_luma_dc:
     st1       {v2.s}[0], [x2], x4
     st1       {v2.s}[1], [x2]
     pop_v_regs
+    EXIT_FUNC
     ret
 
 // /*
@@ -223,7 +223,7 @@ donot_use_pi2_src_luma_dc:
 
 
     .global ih264_iquant_itrans_recon_chroma_4x4_dc_av8
-ih264_iquant_itrans_recon_chroma_4x4_dc_av8:
+ENTRY ih264_iquant_itrans_recon_chroma_4x4_dc_av8
 
     sxtw      x3, w3
     sxtw      x4, w4
@@ -270,6 +270,7 @@ ih264_iquant_itrans_recon_chroma_4x4_dc_av8:
     st1       {v12.d}[0], [x0], x4
     st1       {v12.d}[1], [x0]
     pop_v_regs
+    EXIT_FUNC
     ret
 
 ///*
@@ -341,7 +342,7 @@ ih264_iquant_itrans_recon_chroma_4x4_dc_av8:
 //NOT USED =>  pi2_dc_ld_addr
 
     .global ih264_iquant_itrans_recon_8x8_dc_av8
-ih264_iquant_itrans_recon_8x8_dc_av8:
+ENTRY ih264_iquant_itrans_recon_8x8_dc_av8
 
     push_v_regs
     sxtw      x3, w3
@@ -398,6 +399,7 @@ ih264_iquant_itrans_recon_8x8_dc_av8:
     st1       {v12.8b}, [x2]
 
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
