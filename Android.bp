@@ -290,7 +290,6 @@ cc_library_static {
     name: "libavcdec",
     defaults: [
         "libavc_dec_defaults",
-        "no_bti",
     ],
 
     export_include_dirs: [

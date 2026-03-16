@@ -9,9 +9,6 @@ package {
 
 cc_defaults {
     name: "libavc_fuzzer_defaults",
-    defaults: [
-        "no_bti",
-    ],
     host_supported: true,
     static_libs: ["liblog"],
     target: {
