@@ -54,9 +54,8 @@
 ///**
 //
 
-.text
-.p2align 2
 .include "ih264_neon_macros.s"
+.text
 
 
 
@@ -108,7 +107,7 @@
 
     .global ih264_intra_pred_luma_4x4_mode_vert_av8
 
-ih264_intra_pred_luma_4x4_mode_vert_av8:
+ENTRY ih264_intra_pred_luma_4x4_mode_vert_av8
 
     push_v_regs
     sxtw      x3, w3
@@ -122,6 +121,7 @@ ih264_intra_pred_luma_4x4_mode_vert_av8:
     st1       {v0.s}[0], [x1], x3
 
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -180,7 +180,7 @@ ih264_intra_pred_luma_4x4_mode_vert_av8:
 
     .global ih264_intra_pred_luma_4x4_mode_horz_av8
 
-ih264_intra_pred_luma_4x4_mode_horz_av8:
+ENTRY ih264_intra_pred_luma_4x4_mode_horz_av8
 
     push_v_regs
     sxtw      x3, w3
@@ -196,6 +196,7 @@ ih264_intra_pred_luma_4x4_mode_horz_av8:
     st1       {v4.s}[0], [x1], x3
 
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -256,7 +257,7 @@ ih264_intra_pred_luma_4x4_mode_horz_av8:
 
     .global ih264_intra_pred_luma_4x4_mode_dc_av8
 
-ih264_intra_pred_luma_4x4_mode_dc_av8:
+ENTRY ih264_intra_pred_luma_4x4_mode_dc_av8
 
 
 
@@ -343,6 +344,7 @@ end_func:
 
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -399,7 +401,7 @@ end_func:
 
     .global ih264_intra_pred_luma_4x4_mode_diag_dl_av8
 
-ih264_intra_pred_luma_4x4_mode_diag_dl_av8:
+ENTRY ih264_intra_pred_luma_4x4_mode_diag_dl_av8
 
 
     push_v_regs
@@ -429,6 +431,7 @@ end_func_diag_dl:
 
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -487,7 +490,7 @@ end_func_diag_dl:
 
     .global ih264_intra_pred_luma_4x4_mode_diag_dr_av8
 
-ih264_intra_pred_luma_4x4_mode_diag_dr_av8:
+ENTRY ih264_intra_pred_luma_4x4_mode_diag_dr_av8
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
@@ -515,6 +518,7 @@ ih264_intra_pred_luma_4x4_mode_diag_dr_av8:
 end_func_diag_dr:
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -571,7 +575,7 @@ end_func_diag_dr:
 
     .global ih264_intra_pred_luma_4x4_mode_vert_r_av8
 
-ih264_intra_pred_luma_4x4_mode_vert_r_av8:
+ENTRY ih264_intra_pred_luma_4x4_mode_vert_r_av8
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
@@ -603,6 +607,7 @@ ih264_intra_pred_luma_4x4_mode_vert_r_av8:
 end_func_vert_r:
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -657,7 +662,7 @@ end_func_vert_r:
 
     .global ih264_intra_pred_luma_4x4_mode_horz_d_av8
 
-ih264_intra_pred_luma_4x4_mode_horz_d_av8:
+ENTRY ih264_intra_pred_luma_4x4_mode_horz_d_av8
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
@@ -689,6 +694,7 @@ ih264_intra_pred_luma_4x4_mode_horz_d_av8:
 end_func_horz_d:
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -745,7 +751,7 @@ end_func_horz_d:
 
     .global ih264_intra_pred_luma_4x4_mode_vert_l_av8
 
-ih264_intra_pred_luma_4x4_mode_vert_l_av8:
+ENTRY ih264_intra_pred_luma_4x4_mode_vert_l_av8
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
@@ -772,6 +778,7 @@ ih264_intra_pred_luma_4x4_mode_vert_l_av8:
 end_func_vert_l:
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
@@ -828,7 +835,7 @@ end_func_vert_l:
 
     .global ih264_intra_pred_luma_4x4_mode_horz_u_av8
 
-ih264_intra_pred_luma_4x4_mode_horz_u_av8:
+ENTRY ih264_intra_pred_luma_4x4_mode_horz_u_av8
 
     push_v_regs
     sxtw      x3, w3
@@ -866,6 +873,7 @@ ih264_intra_pred_luma_4x4_mode_horz_u_av8:
 end_func_horz_u:
     ldp       x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 
 
