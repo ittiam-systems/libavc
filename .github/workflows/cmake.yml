@@ -2,22 +2,100 @@ name: CMake
 
 on:
   push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
 
 env:
   BUILD_TYPE: Release
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: ubuntu-latest-gcc-cmake
+            os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+            build-system: cmake
+            cmake-opts: ''
+
+          - name: ubuntu-latest-clang-cmake
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+            build-system: cmake
+            cmake-opts: ''
+
+          - name: ubuntu-24.04-arm-clang-cmake
+            os: ubuntu-24.04-arm
+            cc: clang
+            cxx: clang++
+            build-system: cmake
+            cmake-opts: ''
+
+          - name: ubuntu-latest-clang-cmake-asan-fuzzer
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+            build-system: cmake
+            cmake-opts: '-DSANITIZE=fuzzer-no-link,address'
+
+          - name: ubuntu-latest-clang-cmake-ninja
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+            build-system: cmake
+            cmake-opts: '-G Ninja'
+
+          - name: macos-latest-clang-cmake
+            os: macos-latest
+            cc: clang
+            cxx: clang++
+            build-system: cmake
+            cmake-opts: ''
+
+          - name: ubuntu-latest-cross-aarch64-cmake
+            os: ubuntu-latest
+            cc: aarch64-linux-gnu-gcc
+            cxx: aarch64-linux-gnu-g++
+            build-system: cmake
+            cmake-opts: '-DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/aarch64_toolchain.cmake'
+
+          - name: ubuntu-latest-cross-aarch32-cmake
+            os: ubuntu-latest
+            cc: arm-linux-gnueabihf-gcc
+            cxx: arm-linux-gnueabihf-g++
+            build-system: cmake
+            cmake-opts: '-DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/aarch32_toolchain.cmake'
+
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+
+    - name: Install Linux dependencies
+      if: startsWith(matrix.os,'ubuntu') && contains(matrix.cmake-opts,'-G Ninja')
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build
+
+    - name: Install cross-aarch64 dependencies
+      if: startsWith(matrix.os,'ubuntu') && contains(matrix.cmake-opts,'aarch64')
+      run: |
+        sudo apt-get update
+        sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+    - name: Install cross-arm dependencies
+      if: startsWith(matrix.os,'ubuntu') && contains(matrix.cmake-opts,'aarch32')
+      run: |
+        sudo apt-get update
+        sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/out -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DENABLE_MVC=1 -DENABLE_SVC=1 -DENABLE_TESTS=1
+      env:
+        CC: ${{ matrix.cc }}
+        CXX: ${{ matrix.cxx }}
+      run: cmake -B ${{github.workspace}}/out -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{ matrix.cmake-opts }}
 
     - name: Build
       run: cmake --build ${{github.workspace}}/out --config ${{env.BUILD_TYPE}}
