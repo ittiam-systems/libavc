@@ -112,14 +112,15 @@
 //    x6 => *pu1_tmp
 //    w7 =>  dydx
 
-.include "ih264_neon_macros.s"
 .text
+.p2align 2
+.include "ih264_neon_macros.s"
 
 
 
     .global ih264_inter_pred_luma_horz_hpel_vert_qpel_av8
 
-ENTRY ih264_inter_pred_luma_horz_hpel_vert_qpel_av8
+ih264_inter_pred_luma_horz_hpel_vert_qpel_av8:
 
 
     // store register values to stack
@@ -1118,7 +1119,6 @@ end_func:
     //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 

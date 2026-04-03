@@ -53,8 +53,9 @@
 ///**
 ///**
 
-.include "ih264_neon_macros.s"
 .text
+.p2align 2
+.include "ih264_neon_macros.s"
 
 .extern ih264_gai1_intrapred_luma_8x8_horz_u
 
@@ -108,7 +109,7 @@
 
     .global ih264_intra_pred_luma_8x8_mode_vert_av8
 
-ENTRY ih264_intra_pred_luma_8x8_mode_vert_av8
+ih264_intra_pred_luma_8x8_mode_vert_av8:
 
     // STMFD sp!, {x4-x12, x14}          //store register values to stack
     push_v_regs
@@ -130,7 +131,6 @@ ENTRY ih264_intra_pred_luma_8x8_mode_vert_av8
     // LDMFD sp!,{x4-x12,PC}         //Restoring registers from stack
     //ldp x19, x20,[sp],#16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -188,7 +188,7 @@ ENTRY ih264_intra_pred_luma_8x8_mode_vert_av8
 
     .global ih264_intra_pred_luma_8x8_mode_horz_av8
 
-ENTRY ih264_intra_pred_luma_8x8_mode_horz_av8
+ih264_intra_pred_luma_8x8_mode_horz_av8:
 
 
 
@@ -226,7 +226,6 @@ ENTRY ih264_intra_pred_luma_8x8_mode_horz_av8
     // LDMFD sp!,{x4-x12,PC}         //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -286,7 +285,7 @@ ENTRY ih264_intra_pred_luma_8x8_mode_horz_av8
 
     .global ih264_intra_pred_luma_8x8_mode_dc_av8
 
-ENTRY ih264_intra_pred_luma_8x8_mode_dc_av8
+ih264_intra_pred_luma_8x8_mode_dc_av8:
 
 
 
@@ -391,7 +390,6 @@ end_func:
     // LDMFD sp!,{x4-x12,PC}         //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -446,7 +444,7 @@ end_func:
 
     .global ih264_intra_pred_luma_8x8_mode_diag_dl_av8
 
-ENTRY ih264_intra_pred_luma_8x8_mode_diag_dl_av8
+ih264_intra_pred_luma_8x8_mode_diag_dl_av8:
 
     // STMFD sp!, {x4-x12, x14}          //store register values to stack
     push_v_regs
@@ -497,7 +495,6 @@ end_func_diag_dl:
     // LDMFD sp!,{x4-x12,PC}         //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -551,7 +548,7 @@ end_func_diag_dl:
 
     .global ih264_intra_pred_luma_8x8_mode_diag_dr_av8
 
-ENTRY ih264_intra_pred_luma_8x8_mode_diag_dr_av8
+ih264_intra_pred_luma_8x8_mode_diag_dr_av8:
 
     // STMFD sp!, {x4-x12, x14}          //store register values to stack
     push_v_regs
@@ -599,7 +596,6 @@ end_func_diag_dr:
     // LDMFD sp!,{x4-x12,PC}         //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -653,7 +649,7 @@ end_func_diag_dr:
 
     .global ih264_intra_pred_luma_8x8_mode_vert_r_av8
 
-ENTRY ih264_intra_pred_luma_8x8_mode_vert_r_av8
+ih264_intra_pred_luma_8x8_mode_vert_r_av8:
 
     // STMFD sp!, {x4-x12, x14}          //store register values to stack
     push_v_regs
@@ -727,7 +723,6 @@ end_func_vert_r:
     // LDMFD sp!,{x4-x12,PC}         //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -780,7 +775,7 @@ end_func_vert_r:
 
     .global ih264_intra_pred_luma_8x8_mode_horz_d_av8
 
-ENTRY ih264_intra_pred_luma_8x8_mode_horz_d_av8
+ih264_intra_pred_luma_8x8_mode_horz_d_av8:
 
     // STMFD sp!, {x4-x12, x14}          //store register values to stack
     push_v_regs
@@ -858,7 +853,6 @@ end_func_horz_d:
     // LDMFD sp!,{x4-x12,PC}         //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -913,7 +907,7 @@ end_func_horz_d:
 
     .global ih264_intra_pred_luma_8x8_mode_vert_l_av8
 
-ENTRY ih264_intra_pred_luma_8x8_mode_vert_l_av8
+ih264_intra_pred_luma_8x8_mode_vert_l_av8:
 
     // STMFD sp!, {x4-x12, x14}         //Restoring registers from stack
     push_v_regs
@@ -968,7 +962,6 @@ end_func_vert_l:
     // LDMFD sp!,{x4-x12,PC}         //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -1022,7 +1015,7 @@ end_func_vert_l:
 
     .global ih264_intra_pred_luma_8x8_mode_horz_u_av8
 
-ENTRY ih264_intra_pred_luma_8x8_mode_horz_u_av8
+ih264_intra_pred_luma_8x8_mode_horz_u_av8:
 
     // STMFD sp!, {x4-x12, x14}          //store register values to stack
     push_v_regs
@@ -1078,7 +1071,6 @@ end_func_horz_u:
     // LDMFD sp!,{x4-x12,PC}         //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 

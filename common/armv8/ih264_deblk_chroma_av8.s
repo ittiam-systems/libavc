@@ -38,8 +38,9 @@
 ///*****************************************************************************/
 
 
-.include "ih264_neon_macros.s"
 .text
+.p2align 2
+.include "ih264_neon_macros.s"
 
 ///**
 //*******************************************************************************
@@ -81,7 +82,7 @@
 
     .global ih264_deblk_chroma_horz_bs4_av8
 
-ENTRY ih264_deblk_chroma_horz_bs4_av8
+ih264_deblk_chroma_horz_bs4_av8:
 
     // STMFD sp!,{x4-x6,x14}            //
     push_v_regs
@@ -137,7 +138,6 @@ ENTRY ih264_deblk_chroma_horz_bs4_av8
     // LDMFD sp!,{x4-x6,pc}                //
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -182,7 +182,7 @@ ENTRY ih264_deblk_chroma_horz_bs4_av8
 
     .global ih264_deblk_chroma_vert_bs4_av8
 
-ENTRY ih264_deblk_chroma_vert_bs4_av8
+ih264_deblk_chroma_vert_bs4_av8:
 
     // STMFD sp!,{x4,x5,x12,x14}
     push_v_regs
@@ -276,7 +276,6 @@ ENTRY ih264_deblk_chroma_vert_bs4_av8
     // LDMFD sp!,{x4,x5,x12,pc}
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -330,7 +329,7 @@ ENTRY ih264_deblk_chroma_vert_bs4_av8
 
     .global ih264_deblk_chroma_horz_bslt4_av8
 
-ENTRY ih264_deblk_chroma_horz_bslt4_av8
+ih264_deblk_chroma_horz_bslt4_av8:
 
     // STMFD sp!,{x4-x9,x14}        //
     push_v_regs
@@ -411,7 +410,6 @@ ENTRY ih264_deblk_chroma_horz_bslt4_av8
 
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -466,7 +464,7 @@ ENTRY ih264_deblk_chroma_horz_bslt4_av8
 
     .global ih264_deblk_chroma_vert_bslt4_av8
 
-ENTRY ih264_deblk_chroma_vert_bslt4_av8
+ih264_deblk_chroma_vert_bslt4_av8:
 
     // STMFD sp!,{x4-x7,x10-x12,x14}
     push_v_regs
@@ -584,7 +582,6 @@ ENTRY ih264_deblk_chroma_vert_bslt4_av8
 
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 

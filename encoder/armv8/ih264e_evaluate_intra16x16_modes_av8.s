@@ -71,12 +71,13 @@
 //                                      WORD32 *pu4_sadmin,
 //                                       UWORD32 u4_valid_intra_modes)
 //
-.include "ih264_neon_macros.s"
 .text
+.p2align 2
+.include "ih264_neon_macros.s"
 
 .global ih264e_evaluate_intra16x16_modes_av8
 
-ENTRY ih264e_evaluate_intra16x16_modes_av8
+ih264e_evaluate_intra16x16_modes_av8:
 
 //x0 = pu1_src,
 //x1 = pu1_ngbr_pels_i16,
@@ -586,7 +587,6 @@ end_func:
     // LDMFD sp!,{x4-x12,PC}         //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 

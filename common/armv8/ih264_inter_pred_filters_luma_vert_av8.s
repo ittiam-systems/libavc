@@ -94,15 +94,16 @@
 //    w4 =>  ht
 //    w5 =>  wd
 
-.include "ih264_neon_macros.s"
 .text
+.p2align 2
+.include "ih264_neon_macros.s"
 
 
 
 
     .global ih264_inter_pred_luma_vert_av8
 
-ENTRY ih264_inter_pred_luma_vert_av8
+ih264_inter_pred_luma_vert_av8:
 
     // STMFD sp!, {x4-x12, x14}          //store register values to stack
     push_v_regs
@@ -449,7 +450,6 @@ end_func:
     // LDMFD sp!,{x4-x12,PC}         //Restoring registers from stack
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 

@@ -41,8 +41,9 @@
 // *******************************************************************************
 //*/
 
-.include "ih264_neon_macros.s"
 .text
+.p2align 2
+.include "ih264_neon_macros.s"
 ///**
 //*******************************************************************************
 //*
@@ -81,7 +82,7 @@
 
     .global ih264_memcpy_mul_8_av8
 
-ENTRY ih264_memcpy_mul_8_av8
+ih264_memcpy_mul_8_av8:
 
 loop_neon_memcpy_mul_8:
     // Memcpy 8 bytes
@@ -90,7 +91,6 @@ loop_neon_memcpy_mul_8:
 
     subs      w2, w2, #8
     bne       loop_neon_memcpy_mul_8
-    EXIT_FUNC
     ret
 
 
@@ -109,7 +109,7 @@ loop_neon_memcpy_mul_8:
 
     .global ih264_memcpy_av8
 
-ENTRY ih264_memcpy_av8
+ih264_memcpy_av8:
     subs      w2, w2, #8
     blt       arm_memcpy
 loop_neon_memcpy:
@@ -130,10 +130,8 @@ loop_arm_memcpy:
     strb      w3, [x0], #1
     subs      w2, w2, #1
     bne       loop_arm_memcpy
-    EXIT_FUNC
     ret
 end_func1:
-    EXIT_FUNC
     ret
 
 
@@ -148,7 +146,7 @@ end_func1:
 
     .global ih264_memset_mul_8_av8
 
-ENTRY ih264_memset_mul_8_av8
+ih264_memset_mul_8_av8:
 
 // Assumptions: numbytes is either 8, 16 or 32
     dup       v0.8b, w1
@@ -159,7 +157,6 @@ loop_memset_mul_8:
     subs      w2, w2, #8
     bne       loop_memset_mul_8
 
-    EXIT_FUNC
     ret
 
 
@@ -175,7 +172,7 @@ loop_memset_mul_8:
 
     .global ih264_memset_av8
 
-ENTRY ih264_memset_av8
+ih264_memset_av8:
     subs      w2, w2, #8
     blt       arm_memset
     dup       v0.8b, w1
@@ -195,10 +192,8 @@ loop_arm_memset:
     strb      w1, [x0], #1
     subs      w2, w2, #1
     bne       loop_arm_memset
-    EXIT_FUNC
     ret
 end_func2:
-    EXIT_FUNC
     ret
 
 
@@ -216,7 +211,7 @@ end_func2:
 
     .global ih264_memset_16bit_mul_8_av8
 
-ENTRY ih264_memset_16bit_mul_8_av8
+ih264_memset_16bit_mul_8_av8:
 
 // Assumptions: num_words is either 8, 16 or 32
 
@@ -229,7 +224,6 @@ loop_memset_16bit_mul_8:
     subs      w2, w2, #8
     bne       loop_memset_16bit_mul_8
 
-    EXIT_FUNC
     ret
 
 
@@ -246,7 +240,7 @@ loop_memset_16bit_mul_8:
 
     .global ih264_memset_16bit_av8
 
-ENTRY ih264_memset_16bit_av8
+ih264_memset_16bit_av8:
     subs      w2, w2, #8
     blt       arm_memset_16bit
     dup       v0.4h, w1
@@ -267,11 +261,9 @@ loop_arm_memset_16bit:
     strh      w1, [x0], #2
     subs      w2, w2, #1
     bne       loop_arm_memset_16bit
-    EXIT_FUNC
     ret
 
 end_func3:
-    EXIT_FUNC
     ret
 
 
