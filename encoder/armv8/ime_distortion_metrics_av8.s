@@ -76,11 +76,24 @@
 //*
 //******************************************************************************
 //*/
-.include "ih264_neon_macros.s"
 .text
+.p2align 2
+
+.macro push_v_regs
+    stp       d8, d9, [sp, #-16]!
+    stp       d10, d11, [sp, #-16]!
+    stp       d12, d13, [sp, #-16]!
+    stp       d14, d15, [sp, #-16]!
+.endm
+.macro pop_v_regs
+    ldp       d14, d15, [sp], #16
+    ldp       d12, d13, [sp], #16
+    ldp       d10, d11, [sp], #16
+    ldp       d8, d9, [sp], #16
+.endm
 
     .global ime_compute_sad_16x16_fast_av8
-ENTRY ime_compute_sad_16x16_fast_av8
+ime_compute_sad_16x16_fast_av8:
     push_v_regs
     sxtw      x2, w2
     sxtw      x3, w3
@@ -125,7 +138,6 @@ core_loop_ime_compute_sad_16x16_fast_av8:
 
     st1       {v30.s}[0], [x5]
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -164,7 +176,7 @@ core_loop_ime_compute_sad_16x16_fast_av8:
 //*/
 //
     .global ime_compute_sad_16x8_av8
-ENTRY ime_compute_sad_16x8_av8
+ime_compute_sad_16x8_av8:
 
     //chheck what stride incremtn to use
     //earlier code did not have this lsl
@@ -208,7 +220,6 @@ core_loop_ime_compute_sad_16x8_av8:
 
     st1       {v30.s}[0], [x5]
     pop_v_regs
-    EXIT_FUNC
     ret
 
 ///**
@@ -245,7 +256,7 @@ core_loop_ime_compute_sad_16x8_av8:
 //*/
 
     .global ime_compute_sad_16x16_ea8_av8
-ENTRY ime_compute_sad_16x16_ea8_av8
+ime_compute_sad_16x16_ea8_av8:
 
     push_v_regs
     sxtw      x2, w2
@@ -355,7 +366,6 @@ ENTRY ime_compute_sad_16x16_ea8_av8
 end_func_16x16:
     st1       {v31.s}[0], [x5]
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -372,7 +382,7 @@ end_func_16x16:
 //*/
 
     .global ime_calculate_sad2_prog_av8
-ENTRY ime_calculate_sad2_prog_av8
+ime_calculate_sad2_prog_av8:
 
     // x0    = ref1     <UWORD8 *>
     // x1    = ref2     <UWORD8 *>
@@ -437,7 +447,6 @@ core_loop_ime_calculate_sad2_prog_av8:
 
     st1       {v30.2s}, [x5]
     pop_v_regs
-    EXIT_FUNC
     ret
 
 ///*
@@ -453,7 +462,7 @@ core_loop_ime_calculate_sad2_prog_av8:
 //*/
 
     .global ime_calculate_sad3_prog_av8
-ENTRY ime_calculate_sad3_prog_av8
+ime_calculate_sad3_prog_av8:
 
     // x0    = ref1     <UWORD8 *>
     // x1    = ref2     <UWORD8 *>
@@ -508,7 +517,6 @@ core_loop_ime_calculate_sad3_prog_av8:
 
     st1       {v30.2s}, [x6]
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -542,7 +550,7 @@ core_loop_ime_calculate_sad3_prog_av8:
 .p2align 2
 
     .global ime_sub_pel_compute_sad_16x16_av8
-ENTRY ime_sub_pel_compute_sad_16x16_av8
+ime_sub_pel_compute_sad_16x16_av8:
     push_v_regs
     sxtw      x4, w4
     sxtw      x5, w5
@@ -611,7 +619,6 @@ core_loop_ime_sub_pel_compute_sad_16x16_av8:
 
 
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -648,7 +655,7 @@ core_loop_ime_sub_pel_compute_sad_16x16_av8:
 //******************************************************************************
 //*/
     .global ime_compute_sad_16x16_av8
-ENTRY ime_compute_sad_16x16_av8
+ime_compute_sad_16x16_av8:
     push_v_regs
     sxtw      x2, w2
     sxtw      x3, w3
@@ -689,7 +696,6 @@ core_loop_ime_compute_sad_16x16_av8:
 
     st1       {v30.s}[0], [x5]
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -706,7 +712,7 @@ core_loop_ime_compute_sad_16x16_av8:
 //*/
 
     .global ime_calculate_sad4_prog_av8
-ENTRY ime_calculate_sad4_prog_av8
+ime_calculate_sad4_prog_av8:
     push_v_regs
     sxtw      x2, w2
     sxtw      x3, w3
@@ -750,7 +756,6 @@ core_loop_ime_calculate_sad4_prog_av8:
     addp      v28.4s, v28.4s, v30.4s
     st1       {v28.4s}, [x4]
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -783,7 +788,7 @@ core_loop_ime_calculate_sad4_prog_av8:
 //*
 //*****************************************************************************
     .global ime_compute_satqd_16x16_lumainter_av8
-ENTRY ime_compute_satqd_16x16_lumainter_av8
+ime_compute_satqd_16x16_lumainter_av8:
     //x0 :pointer to src buffer
     //x1 :pointer to est buffer
     //w2 :Source stride
@@ -985,5 +990,4 @@ satdq_end_func:
     ldp       d10, d11, [sp], #16
     ldp       d8, d9, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret

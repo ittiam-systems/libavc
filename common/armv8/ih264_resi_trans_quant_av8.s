@@ -39,6 +39,7 @@
 //*******************************************************************************
 .include "ih264_neon_macros.s"
 .text
+.p2align 2
 //*****************************************************************************
 //*
 //* function name     : ih264_resi_trans_quant_4x4
@@ -62,7 +63,7 @@
 //*****************************************************************************
 
     .global ih264_resi_trans_quant_4x4_av8
-ENTRY ih264_resi_trans_quant_4x4_av8
+ih264_resi_trans_quant_4x4_av8:
 
     push_v_regs
     //x0     :pointer to src buffer
@@ -227,7 +228,6 @@ ENTRY ih264_resi_trans_quant_4x4_av8
     st1       {v26.b}[0], [x9]          //write nnz
 
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -254,7 +254,7 @@ ENTRY ih264_resi_trans_quant_4x4_av8
 //*****************************************************************************
 
     .global ih264_resi_trans_quant_chroma_4x4_av8
-ENTRY ih264_resi_trans_quant_chroma_4x4_av8
+ih264_resi_trans_quant_chroma_4x4_av8:
 
     push_v_regs
     //x0     :pointer to src buffer
@@ -430,7 +430,6 @@ ENTRY ih264_resi_trans_quant_chroma_4x4_av8
     st1       {v26.b}[0], [x9]          //write nnz
 
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -578,7 +577,6 @@ ih264_hadamard_quant_4x4_av8:
     st1       {v20.b}[0], [x6]
 
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -617,7 +615,7 @@ ih264_hadamard_quant_4x4_av8:
 //                             )
 
     .global ih264_hadamard_quant_2x2_uv_av8
-ENTRY ih264_hadamard_quant_2x2_uv_av8
+ih264_hadamard_quant_2x2_uv_av8:
 
     push_v_regs
 
@@ -684,7 +682,6 @@ ENTRY ih264_hadamard_quant_2x2_uv_av8
     st1       {v20.h}[0], [x6]          //store nnz
 
     pop_v_regs
-    EXIT_FUNC
     ret
 
 

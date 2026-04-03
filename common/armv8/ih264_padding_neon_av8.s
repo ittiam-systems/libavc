@@ -41,9 +41,9 @@
 // *******************************************************************************
 //*/
 
-.include "ih264_neon_macros.s"
 .text
-
+.p2align 2
+.include "ih264_neon_macros.s"
 ///**
 //*******************************************************************************
 //*
@@ -82,7 +82,7 @@
 
     .global ih264_pad_top_av8
 
-ENTRY ih264_pad_top_av8
+ih264_pad_top_av8:
 
     // STMFD sp!, {x4-x11,x14}                //stack stores the values of the arguments
     push_v_regs
@@ -110,7 +110,6 @@ loop_neon_pad_top:
     // LDMFD sp!,{x4-x11,pc}                //Reload the registers from SP
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -169,7 +168,7 @@ loop_neon_pad_top:
 
     .global ih264_pad_left_luma_av8
 
-ENTRY ih264_pad_left_luma_av8
+ih264_pad_left_luma_av8:
 
     // STMFD sp!, {x4-x11,x14}                //stack stores the values of the arguments
     push_v_regs
@@ -269,7 +268,6 @@ end_func:
     // LDMFD sp!,{x4-x11,pc}                //Reload the registers from SP
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -329,7 +327,7 @@ end_func:
 
     .global ih264_pad_left_chroma_av8
 
-ENTRY ih264_pad_left_chroma_av8
+ih264_pad_left_chroma_av8:
 
     // STMFD sp!, {x4-x11, x14}                //stack stores the values of the arguments
     push_v_regs
@@ -417,7 +415,6 @@ end_func_l_c:
     // LDMFD sp!,{x4-x11,pc}                //Reload the registers from SP
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -487,7 +484,7 @@ end_func_l_c:
 
     .global ih264_pad_right_luma_av8
 
-ENTRY ih264_pad_right_luma_av8
+ih264_pad_right_luma_av8:
 
     // STMFD sp!, {x4-x11, x14}                //stack stores the values of the arguments
     push_v_regs
@@ -587,7 +584,6 @@ end_func_r:
     // LDMFD sp!,{x4-x11,pc}                //Reload the registers from SP
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -646,7 +642,7 @@ end_func_r:
 
     .global ih264_pad_right_chroma_av8
 
-ENTRY ih264_pad_right_chroma_av8
+ih264_pad_right_chroma_av8:
 
     // STMFD sp!, {x4-x11, x14}                //stack stores the values of the arguments
     push_v_regs
@@ -731,7 +727,6 @@ end_func_r_c:
     // LDMFD sp!,{x4-x11,pc}                //Reload the registers from SP
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 

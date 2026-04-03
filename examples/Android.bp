@@ -9,6 +9,9 @@ package {
 
 cc_defaults {
     name: "avcdec_defaults",
+    defaults: [
+        "no_bti",
+    ],
     gtest: false,
     host_supported: true,
     cflags: [
@@ -29,6 +32,9 @@ cc_defaults {
 
 cc_defaults {
     name: "avcenc_defaults",
+    defaults: [
+        "no_bti",
+    ],
     gtest: false,
     host_supported: true,
     cflags: [

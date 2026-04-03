@@ -40,8 +40,9 @@
 // */
 
 
-.include "ih264_neon_macros.s"
 .text
+.p2align 2
+.include "ih264_neon_macros.s"
 
 ///*******************************************************************************
 //*
@@ -82,7 +83,7 @@
 
 
         .global ih264e_sixtapfilter_horz_av8
-ENTRY ih264e_sixtapfilter_horz_av8
+ih264e_sixtapfilter_horz_av8:
     // STMFD sp!,{x14}
     push_v_regs
     sxtw      x2, w2
@@ -190,7 +191,6 @@ filter_horz_loop:
     // LDMFD sp!,{pc}
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -262,7 +262,7 @@ filter_horz_loop:
 
         .global ih264e_sixtap_filter_2dvh_vert_av8
 
-ENTRY ih264e_sixtap_filter_2dvh_vert_av8
+ih264e_sixtap_filter_2dvh_vert_av8:
     // STMFD sp!,{x10,x11,x12,x14}
     push_v_regs
     sxtw      x3, w3
@@ -1000,7 +1000,6 @@ filter_2dvh_loop:
     // LDMFD sp!,{x10,x11,x12,pc}
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 filter_2dvh_skip_row:
@@ -1015,7 +1014,6 @@ filter_2dvh_skip_row:
     // LDMFD sp!,{x10,x11,x12,pc}
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 

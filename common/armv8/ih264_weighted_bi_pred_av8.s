@@ -126,14 +126,15 @@
 //    [sp+24] => ht        (w11)
 //    [sp+32] => wd        (w12)
 //
-.include "ih264_neon_macros.s"
 .text
+.p2align 2
+.include "ih264_neon_macros.s"
 
 
 
     .global ih264_weighted_bi_pred_luma_av8
 
-ENTRY ih264_weighted_bi_pred_luma_av8
+ih264_weighted_bi_pred_luma_av8:
 
     // STMFD sp!, {x4-x12,x14}                //stack stores the values of the arguments
     push_v_regs
@@ -316,7 +317,6 @@ end_loops:
     // LDMFD sp!,{x4-x12,x15}                //Reload the registers from sp
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -415,7 +415,7 @@ end_loops:
 
     .global ih264_weighted_bi_pred_chroma_av8
 
-ENTRY ih264_weighted_bi_pred_chroma_av8
+ih264_weighted_bi_pred_chroma_av8:
 
     // STMFD sp!, {x4-x12,x14}                //stack stores the values of the arguments
     push_v_regs
@@ -567,7 +567,6 @@ end_loops_uv:
     // LDMFD sp!,{x4-x12,x15}                //Reload the registers from sp
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 

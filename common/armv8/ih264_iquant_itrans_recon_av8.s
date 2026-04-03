@@ -40,8 +40,9 @@
 // *
 // *******************************************************************************
 
-.include "ih264_neon_macros.s"
 .text
+.p2align 2
+.include "ih264_neon_macros.s"
 
 ///*
 // *******************************************************************************
@@ -115,7 +116,7 @@
 //if u4_qp_div_6 is greater than 4 then shift value will be positive and do left shift, here rnd_factor is 0
 
     .global ih264_iquant_itrans_recon_4x4_av8
-ENTRY ih264_iquant_itrans_recon_4x4_av8
+ih264_iquant_itrans_recon_4x4_av8:
 
     push_v_regs
     sxtw      x3, w3
@@ -232,7 +233,6 @@ skip_loading_luma_dc_src:
     st1       {v1.s}[1], [x2]           //iv row store the value
 
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -303,7 +303,7 @@ skip_loading_luma_dc_src:
 //sp#8 => *pi2_dc_src
 
     .global ih264_iquant_itrans_recon_chroma_4x4_av8
-ENTRY ih264_iquant_itrans_recon_chroma_4x4_av8
+ih264_iquant_itrans_recon_chroma_4x4_av8:
 
 //VLD4.S16 is used because the pointer is incremented by SUB_BLK_WIDTH_4x4
 //If the macro value changes need to change the instruction according to it.
@@ -455,7 +455,6 @@ ENTRY ih264_iquant_itrans_recon_chroma_4x4_av8
     st1       {v13.8b}, [x0]
 
     pop_v_regs
-    EXIT_FUNC
     ret
 
 ///*
@@ -527,7 +526,7 @@ ENTRY ih264_iquant_itrans_recon_chroma_4x4_av8
 //NOT USED =>  pi2_dc_ld_addr
 
     .global ih264_iquant_itrans_recon_8x8_av8
-ENTRY ih264_iquant_itrans_recon_8x8_av8
+ih264_iquant_itrans_recon_8x8_av8:
 
     push_v_regs
     sxtw      x3, w3
@@ -778,7 +777,6 @@ trans_1x8_1d:
     st1       {v7.8b}, [x2]
 
     pop_v_regs
-    EXIT_FUNC
     ret
 
 

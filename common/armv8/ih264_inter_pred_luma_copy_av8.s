@@ -70,14 +70,15 @@
 //    w4 =>  ht
 //    w5 =>  wd
 
-.include "ih264_neon_macros.s"
 .text
+.p2align 2
+.include "ih264_neon_macros.s"
 
 
 
     .global ih264_inter_pred_luma_copy_av8
 
-ENTRY ih264_inter_pred_luma_copy_av8
+ih264_inter_pred_luma_copy_av8:
 
     push_v_regs
     stp       x19, x20, [sp, #-16]!
@@ -127,7 +128,6 @@ end_loops:
     // LDMFD sp!,{x4-x12,x15}                  //Reload the registers from SP
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -161,7 +161,6 @@ end_inner_loop_wd_8:
     // LDMFD sp!,{x4-x12,x15}                  //Reload the registers from SP
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 core_loop_wd_16:
@@ -194,7 +193,6 @@ end_inner_loop_wd_16:
 
     ldp       x19, x20, [sp], #16
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
@@ -240,7 +238,7 @@ end_inner_loop_wd_16:
 // No need for pushing  arm and neon registers
 
     .global ih264_interleave_copy_av8
-ENTRY ih264_interleave_copy_av8
+ih264_interleave_copy_av8:
     push_v_regs
     sxtw      x2, w2
     sxtw      x3, w3
@@ -270,7 +268,6 @@ ENTRY ih264_interleave_copy_av8
     st1       {v20.d}[1], [x0], x3
 
     pop_v_regs
-    EXIT_FUNC
     ret
 
 
