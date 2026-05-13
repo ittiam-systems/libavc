@@ -1307,9 +1307,14 @@ WORD32 ih264d_cavlc_parse4x4coeff_n8(WORD16 *pi2_coeff_block,
         u4_offset = pu1_offset[*pu4_total_coeff - 1];
         u4_total_coeff_tone = (*pu4_total_coeff << 16) | u4_trailing_ones;
 
-        ps_dec->pf_cavlc_4x4res_block[u4_offset](u4_isdc,
-                                                 u4_total_coeff_tone,
-                                                 ps_bitstrm);
+        {
+            WORD32 ret;
+            ret = ps_dec->pf_cavlc_4x4res_block[u4_offset](u4_isdc,
+                                                           u4_total_coeff_tone,
+                                                           ps_bitstrm);
+            if(ret != 0)
+                return ERROR_CAVLC_NUM_COEFF_T;
+        }
     }
 
     return OK;
