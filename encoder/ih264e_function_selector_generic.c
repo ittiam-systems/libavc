@@ -218,12 +218,6 @@ void ih264e_init_function_ptr_generic(codec_t *ps_codec)
     ps_codec->apf_compute_sad_16x16[1] = ime_compute_sad_16x16_fast;
     ps_codec->pf_compute_sad_16x8 = ime_compute_sad_16x8;
 
-    /* memory handling operations */
-    ps_codec->pf_mem_cpy = ih264_memcpy;
-    ps_codec->pf_mem_cpy_mul8 = ih264_memcpy_mul_8;
-    ps_codec->pf_mem_set = ih264_memset;
-    ps_codec->pf_mem_set_mul8 = ih264_memset_mul_8;
-
     /* sad me level functions */
     for (i = 0; i < (MAX_PROCESS_CTXT); i++)
     {

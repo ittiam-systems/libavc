@@ -297,7 +297,7 @@ void isvce_evaluate_intra16x16_modes_for_least_cost_rdoptoff(isvce_process_ctxt_
     }
     else
     {
-        ps_mem_fxns->pf_mem_set_mul8(pu1_ngbr_pels_i16, 0, MB_SIZE);
+        memset(pu1_ngbr_pels_i16, 0, MB_SIZE);
     }
     /* top pels */
     u1_mb_b = ((ps_proc->ps_ngbr_avbl->u1_mb_b) &&
@@ -306,11 +306,11 @@ void isvce_evaluate_intra16x16_modes_for_least_cost_rdoptoff(isvce_process_ctxt_
                     : 1));
     if(u1_mb_b)
     {
-        ps_mem_fxns->pf_mem_cpy_mul8(pu1_ngbr_pels_i16 + 16 + 1, pu1_mb_b, 16);
+        memcpy(pu1_ngbr_pels_i16 + 16 + 1, pu1_mb_b, 16);
     }
     else
     {
-        ps_mem_fxns->pf_mem_set_mul8(pu1_ngbr_pels_i16 + 16 + 1, 0, MB_SIZE);
+        memset(pu1_ngbr_pels_i16 + 16 + 1, 0, MB_SIZE);
     }
     /* topleft pels */
     u1_mb_d = ((ps_proc->ps_ngbr_avbl->u1_mb_d) &&
@@ -1412,7 +1412,7 @@ void isvce_evaluate_chroma_intra8x8_modes_for_least_cost_rdoptoff(isvce_process_
     }
     else
     {
-        ps_mem_fxns->pf_mem_set_mul8(pu1_ngbr_pels_c_i8x8, 0, MB_SIZE);
+        memset(pu1_ngbr_pels_c_i8x8, 0, MB_SIZE);
     }
 
     /* top pels */
@@ -1422,11 +1422,11 @@ void isvce_evaluate_chroma_intra8x8_modes_for_least_cost_rdoptoff(isvce_process_
                     : 1));
     if(u1_mb_b)
     {
-        ps_mem_fxns->pf_mem_cpy_mul8(&pu1_ngbr_pels_c_i8x8[18], pu1_mb_b, 16);
+        memcpy(&pu1_ngbr_pels_c_i8x8[18], pu1_mb_b, 16);
     }
     else
     {
-        ps_mem_fxns->pf_mem_set_mul8((pu1_ngbr_pels_c_i8x8 + 18), 0, MB_SIZE);
+        memset((pu1_ngbr_pels_c_i8x8 + 18), 0, MB_SIZE);
     }
 
     /* top left pels */

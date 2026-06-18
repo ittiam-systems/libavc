@@ -42,7 +42,7 @@ typedef void *FT_MEM_ALLOC(UWORD32 u4_size);
 
 typedef void FT_MEM_FREE(void *pv_mem);
 
-typedef void FT_MEMCPY(UWORD8 *pu1_dst, UWORD8 *pu1_src, UWORD32 num_bytes);
+
 
 typedef void FT_COPY_2D(UWORD8 *pu1_dst, WORD32 i4_dst_stride, UWORD8 *pu1_src,
                         WORD32 i4_src_stride, WORD32 i4_blk_wd, WORD32 i4_blk_ht);
@@ -50,7 +50,7 @@ typedef void FT_COPY_2D(UWORD8 *pu1_dst, WORD32 i4_dst_stride, UWORD8 *pu1_src,
 typedef void FT_MEMSET_2D(UWORD8 *pu1_dst, WORD32 i4_dst_stride, UWORD8 u1_val, WORD32 i4_blk_wd,
                           WORD32 i4_blk_ht);
 
-typedef void FT_MEMSET(UWORD8 *pu1_dst, UWORD8 value, UWORD32 num_bytes);
+
 
 typedef void FT_MEMSET_16BIT(UWORD16 *pu2_dst, UWORD16 value, UWORD32 num_words);
 
@@ -64,8 +64,7 @@ typedef UWORD8 FT_NONZERO_CHECKER(UWORD8 *pu1_data, WORD32 i4_data_strd, UWORD32
                                   UWORD32 u4_ht);
 
 /* C function declarations */
-extern FT_MEMCPY ih264_memcpy_mul_8;
-extern FT_MEMSET ih264_memset_mul_8;
+
 extern FT_MEMSET_16BIT ih264_memset_16bit;
 extern FT_MEMSET_16BIT ih264_memset_16bit_mul_8;
 extern FT_COPY_2D isvc_copy_2d;
@@ -75,14 +74,12 @@ extern FT_MEM_ALLOC isvc_memory_alloc;
 extern FT_MEM_FREE isvc_memory_free;
 
 /* A9 Q function declarations */
-extern FT_MEMCPY ih264_memcpy_mul_8_a9q;
-extern FT_MEMSET ih264_memset_mul_8_a9q;
+
 extern FT_MEMSET_16BIT ih264_memset_16bit_a9q;
 extern FT_MEMSET_16BIT ih264_memset_16bit_mul_8_a9q;
 
 /* AV8 function declarations */
-extern FT_MEMCPY ih264_memcpy_mul_8_av8;
-extern FT_MEMSET ih264_memset_mul_8_av8;
+
 extern FT_MEMSET_16BIT ih264_memset_16bit_av8;
 extern FT_MEMSET_16BIT ih264_memset_16bit_mul_8_av8;
 
@@ -90,8 +87,7 @@ extern FT_MEMSET_16BIT ih264_memset_16bit_mul_8_av8;
 extern FT_MEMSET_2D isvc_memset_2d_neon;
 
 /* SSSE3 variants */
-extern FT_MEMCPY ih264_memcpy_mul_8_ssse3;
-extern FT_MEMSET ih264_memset_mul_8_ssse3;
+
 extern FT_MEMSET_16BIT ih264_memset_16bit_mul_8_ssse3;
 extern FT_COPY_2D isvc_copy_2d_ssse3;
 

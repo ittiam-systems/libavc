@@ -63,7 +63,6 @@
 #include "isvc_structs.h"
 #include "isvc_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
 #include "isvc_mem_fns.h"
 #include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
@@ -229,10 +228,6 @@ void isvce_init_function_ptr_neon_a9q(isvce_codec_t *ps_codec)
     ps_codec->apf_compute_sad_16x16[0] = ime_compute_sad_16x16_a9q;
     ps_codec->apf_compute_sad_16x16[1] = ime_compute_sad_16x16_fast_a9q;
     ps_codec->pf_compute_sad_16x8 = ime_compute_sad_16x8_a9q;
-
-    /* memor handling operations */
-    ps_mem_fxns->pf_mem_cpy_mul8 = ih264_memcpy_mul_8_a9q;
-    ps_mem_fxns->pf_mem_set_mul8 = ih264_memset_mul_8_a9q;
 
     /* sad me level functions */
     for(i = 0; i < (MAX_PROCESS_CTXT); i++)

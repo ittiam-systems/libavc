@@ -213,12 +213,6 @@ void ih264e_init_function_ptr_neon_a9q(codec_t *ps_codec)
     ps_codec->apf_compute_sad_16x16[1] = ime_compute_sad_16x16_fast_a9q;
     ps_codec->pf_compute_sad_16x8 = ime_compute_sad_16x8_a9q;
 
-    /* memor handling operations */
-    ps_codec->pf_mem_cpy = ih264_memcpy_a9q;
-    ps_codec->pf_mem_cpy_mul8 = ih264_memcpy_mul_8_a9q;
-    ps_codec->pf_mem_set = ih264_memset_a9q;
-    ps_codec->pf_mem_set_mul8 = ih264_memset_mul_8_a9q;
-
     /* sad me level functions */
     for (i = 0; i < (MAX_PROCESS_CTXT); i++)
     {

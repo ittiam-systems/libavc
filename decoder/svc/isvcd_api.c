@@ -4986,7 +4986,7 @@ WORD32 isvcd_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                 {
                     ps_h264d_dec_op->pu1_8x8_blk_qp_map = ps_h264d_dec_ip->pu1_8x8_blk_qp_map;
                     ps_h264d_dec_op->u4_8x8_blk_qp_map_size = ps_dec->u4_total_mbs << 2;
-                    ih264_memcpy(ps_h264d_dec_op->pu1_8x8_blk_qp_map,
+                    memcpy(ps_h264d_dec_op->pu1_8x8_blk_qp_map,
                                  ps_dec->as_buf_id_info_map[disp_buf_id].pu1_qp_map,
                                  ps_dec->u4_total_mbs << 2);
                 }
@@ -4994,7 +4994,7 @@ WORD32 isvcd_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                 {
                     ps_h264d_dec_op->pu1_8x8_blk_type_map = ps_h264d_dec_ip->pu1_8x8_blk_type_map;
                     ps_h264d_dec_op->u4_8x8_blk_type_map_size = ps_dec->u4_total_mbs << 2;
-                    ih264_memcpy(ps_h264d_dec_op->pu1_8x8_blk_type_map,
+                    memcpy(ps_h264d_dec_op->pu1_8x8_blk_type_map,
                                  ps_dec->as_buf_id_info_map[disp_buf_id].pu1_mb_type_map,
                                  ps_dec->u4_total_mbs << 2);
                 }
@@ -5637,7 +5637,7 @@ WORD32 isvcd_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                     {
                         ps_h264d_dec_op->pu1_8x8_blk_qp_map = ps_h264d_dec_ip->pu1_8x8_blk_qp_map;
                         ps_h264d_dec_op->u4_8x8_blk_qp_map_size = ps_dec->u4_total_mbs << 2;
-                        ih264_memcpy(ps_h264d_dec_op->pu1_8x8_blk_qp_map,
+                        memcpy(ps_h264d_dec_op->pu1_8x8_blk_qp_map,
                                      ps_dec->as_buf_id_info_map[disp_buf_id].pu1_qp_map,
                                      ps_dec->u4_total_mbs << 2);
                     }
@@ -5646,7 +5646,7 @@ WORD32 isvcd_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                         ps_h264d_dec_op->pu1_8x8_blk_type_map =
                             ps_h264d_dec_ip->pu1_8x8_blk_type_map;
                         ps_h264d_dec_op->u4_8x8_blk_type_map_size = ps_dec->u4_total_mbs << 2;
-                        ih264_memcpy(ps_h264d_dec_op->pu1_8x8_blk_type_map,
+                        memcpy(ps_h264d_dec_op->pu1_8x8_blk_type_map,
                                      ps_dec->as_buf_id_info_map[disp_buf_id].pu1_mb_type_map,
                                      ps_dec->u4_total_mbs << 2);
                     }

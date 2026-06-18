@@ -173,9 +173,6 @@ void ih264e_init_function_ptr_ssse3(codec_t *ps_codec)
     ps_codec->pf_inter_pred_luma_vert = ih264_inter_pred_luma_vert_ssse3;
     ps_codec->pf_inter_pred_chroma = ih264_inter_pred_chroma_ssse3;
 
-    /* memory handling operations */
-    ps_codec->pf_mem_cpy_mul8 = ih264_memcpy_mul_8_ssse3;
-    ps_codec->pf_mem_set_mul8 = ih264_memset_mul_8_ssse3;
 
     /*intra mode eval -encoder level function*/
     ps_codec->pf_ih264e_evaluate_intra16x16_modes = ih264e_evaluate_intra16x16_modes_ssse3;

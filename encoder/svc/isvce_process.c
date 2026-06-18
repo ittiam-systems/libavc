@@ -1540,11 +1540,9 @@ WORD32 isvce_update_proc_ctxt(isvce_process_ctxt_t *ps_proc)
         }
         else if(I4x4 == u4_mb_type)
         {
-            ps_mem_fxns->pf_mem_cpy_mul8(
-                ps_proc->s_nbr_info.ps_left_mb_intra_modes->au1_intra_modes,
-                ps_proc->au1_intra_luma_mb_4x4_modes, 16);
-            ps_mem_fxns->pf_mem_cpy_mul8(pu1_top_mb_intra_modes,
-                                         ps_proc->au1_intra_luma_mb_4x4_modes, 16);
+            memcpy(ps_proc->s_nbr_info.ps_left_mb_intra_modes->au1_intra_modes,
+                   ps_proc->au1_intra_luma_mb_4x4_modes, 16);
+            memcpy(pu1_top_mb_intra_modes, ps_proc->au1_intra_luma_mb_4x4_modes, 16);
         }
         else if(I8x8 == u4_mb_type)
         {

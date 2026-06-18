@@ -63,7 +63,6 @@
 #include "isvc_structs.h"
 #include "isvc_trans_quant_itrans_iquant.h"
 #include "ih264_inter_pred_filters.h"
-#include "ih264_mem_fns.h"
 #include "isvc_mem_fns.h"
 #include "ih264_padding.h"
 #include "ih264_intra_pred_filters.h"
@@ -166,9 +165,6 @@ void isvce_init_function_ptr_ssse3(isvce_codec_t *ps_codec)
     ps_inter_pred_fxns->pf_inter_pred_luma_vert = ih264_inter_pred_luma_vert_ssse3;
     ps_inter_pred_fxns->pf_inter_pred_chroma = ih264_inter_pred_chroma_ssse3;
 
-    /* memory handling operations */
-    ps_mem_fxns->pf_mem_cpy_mul8 = ih264_memcpy_mul_8_ssse3;
-    ps_mem_fxns->pf_mem_set_mul8 = ih264_memset_mul_8_ssse3;
     ps_mem_fxns->pf_copy_2d = isvc_copy_2d_ssse3;
 
     /*intra mode eval -encoder level function*/

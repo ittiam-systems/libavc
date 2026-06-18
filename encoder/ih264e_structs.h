@@ -90,18 +90,6 @@ typedef void (*pf_iquant_itrans)(WORD16 *pi2_src, UWORD8 *pu1_pred, UWORD8 *pu1_
  */
 typedef void (*pf_pad)(UWORD8 *pu1_src, WORD32 src_strd, WORD32 wd, WORD32 pad_size);
 
-/**
-******************************************************************************
- *  @brief      memory handling leaf level
-******************************************************************************
- */
-typedef void (*pf_memcpy)(UWORD8 *pu1_dst, UWORD8 *pu1_src, UWORD32 num_bytes);
-
-typedef void (*pf_memset)(UWORD8 *pu1_dst, UWORD8 value, UWORD32 num_bytes);
-
-typedef void (*pf_memcpy_mul8)(UWORD8 *pu1_dst, UWORD8 *pu1_src, UWORD32 num_bytes);
-
-typedef void (*pf_memset_mul8)(UWORD8 *pu1_dst, UWORD8 value, UWORD32 num_bytes);
 
 /**
 ******************************************************************************
@@ -2847,13 +2835,6 @@ struct _codec_t
      */
     ih264e_skip_params_ft *apf_find_skip_params_me[2];
 
-    /**
-     * fn ptrs for memory handling operations
-     */
-    pf_memcpy pf_mem_cpy;
-    pf_memset pf_mem_set;
-    pf_memcpy_mul8 pf_mem_cpy_mul8;
-    pf_memset_mul8 pf_mem_set_mul8;
 
     /**
      * intra mode eval -encoder level function

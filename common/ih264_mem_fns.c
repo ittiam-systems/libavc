@@ -30,10 +30,6 @@
  *  ittiam
  *
  * @par List of Functions:
- *  ih264_memcpy
- *  ih264_memcpy_mul_8
- *  ih264_memset
- *  ih264_memset_mul_8
  *  ih264_memset_16bit
  *  ih264_memset_16bit_mul_8
  *
@@ -59,75 +55,6 @@
 
 #include "ih264_debug.h"
 #include "ih264_mem_fns.h"
-
-/**
-*******************************************************************************
-*
-* @brief memcpy of a 8,16 or 32 bytes
-*
-* @par Description
-*  Does memcpy of 8bit data from source to destination for 8,16 or 32 number of
-*  bytes
-*
-* @param[in] pu1_dst
-*  pointer to the destination
-*
-* @param[in] pu1_src
-*  pointer to the source
-*
-* @param[in] num_bytes
-*  number of bytes to copy
-*
-* @returns none
-*
-* @remarks none
-*
-*******************************************************************************
-*/
-void ih264_memcpy(UWORD8 *pu1_dst, UWORD8 *pu1_src, UWORD32 num_bytes)
-{
-    memcpy(pu1_dst, pu1_src, num_bytes);
-}
-
-void ih264_memcpy_mul_8(UWORD8 *pu1_dst, UWORD8 *pu1_src, UWORD32 num_bytes)
-{
-    ASSERT(num_bytes % 8 == 0);
-    memcpy(pu1_dst, pu1_src, num_bytes);
-}
-
-/**
-*******************************************************************************
-*
-* @brief memset of a 8,16 or 32 bytes
-*
-* @par Description
-*  Does memset of 8bit data for 8,16 or 32 number of bytes
-*
-* @param[in] pu1_dst
-*  pointer to the destination
-*
-* @param[in] value
-*  value used for memset
-*
-* @param[in] num_bytes
-*  number of bytes to set
-*
-* @returns none
-*
-* @remarks none
-*
-*******************************************************************************
-*/
-void ih264_memset(UWORD8 *pu1_dst, UWORD8 value, UWORD32 num_bytes)
-{
-    memset(pu1_dst, value, num_bytes);
-}
-
-void ih264_memset_mul_8(UWORD8 *pu1_dst, UWORD8 value, UWORD32 num_bytes)
-{
-    ASSERT(num_bytes % 8 == 0);
-    memset(pu1_dst, value, num_bytes);
-}
 
 /**
 *******************************************************************************
