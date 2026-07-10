@@ -1931,6 +1931,10 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     UWORD32 u4_luma_size, u4_chroma_size;
     void *pv_mem_ctxt = ps_dec->pv_mem_ctxt;
 
+    /* Free any dynamic buffers that are allocated earlier. As ps_dec is memset to zero  */
+    /* at the beginning, it is safe to call this even if no memory was allocated earlier */
+    ih264d_free_dynamic_bufs(ps_dec);
+
     size = u4_total_mbs;
     pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
     RETURN_IF((NULL == pv_buf), IV_FAIL);
@@ -2285,8 +2289,6 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
  */
 WORD16 ih264d_free_dynamic_bufs(dec_struct_t * ps_dec)
 {
-    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_bits_buf_dynamic);
-
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_deblk_pic);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_dec_mb_map);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_recon_mb_map);

@@ -85,6 +85,7 @@ WORD16 isvcd_free_dynamic_bufs(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
     WORD32 i;
     dec_struct_t *ps_dec = &ps_svc_lyr_dec->s_dec;
     /* Free any avc dynamic buffers that are allocated */
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_bits_buf_dynamic);
     ih264d_free_dynamic_bufs(ps_dec);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_svc_lyr_dec->pu1_crop_wnd_flag);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_svc_lyr_dec->ps_inter_lyr_mb_prms_base);
