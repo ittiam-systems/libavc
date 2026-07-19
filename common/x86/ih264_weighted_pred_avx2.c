@@ -86,10 +86,10 @@ void ih264_weighted_bi_pred_luma_avx2(UWORD8 *pu1_src1,
     __m256i wt1_8x32b, wt2_8x32b;
     __m256i ofst_8x32b, round_8x32b;
     __m256i zero;
-    zero = _mm256_set1_epi8(0);
-
     WORD32 ofst;
     WORD32 round_val, shft;
+
+    zero = _mm256_set1_epi8(0);
 
     wt1 = (WORD16)(wt1 & 0xffff);
     wt2 = (WORD16)(wt2 & 0xffff);
