@@ -225,7 +225,7 @@ WORD32 ih264d_decode_recon_tfr_nmb_thread(dec_struct_t * ps_dec,
 
     u2_cur_dec_mb_num = ps_dec->cur_dec_mb_num;
 
-    while(1)
+    while(ps_dec->i4_break_threads != 1 && ps_dec->i4_error_code == 0)
     {
 
         UWORD32 u4_max_mb = (UWORD32)(ps_dec->i2_dec_thread_mb_y + (1 << u1_mbaff)) * ps_dec->u2_frm_wd_in_mbs - 1;
@@ -266,6 +266,10 @@ WORD32 ih264d_decode_recon_tfr_nmb_thread(dec_struct_t * ps_dec,
                 }
             }
         }
+    }
+    if(ps_dec->i4_break_threads == 1 || ps_dec->i4_error_code != 0)
+    {
+        return NOT_OK;
     }
     /* N Mb MC Loop */
     for(i = 0; i < u4_num_mbs; i++)
@@ -446,15 +450,15 @@ WORD32 ih264d_decode_slice_thread(dec_struct_t *ps_dec)
     UWORD8 u1_field_pic;
     UWORD32 u4_frame_stride, x_offset, y_offset;
     WORD32 ret;
+    WORD32 nop_cnt = 8 * 128;
 
     tfr_ctxt_t *ps_trns_addr;
 
     /*check for mb map of first mb in slice to ensure slice header is parsed*/
-    while(1)
+    while(ps_dec->i4_break_threads != 1 && ps_dec->i4_error_code == 0)
     {
         UWORD32 u4_mb_num = ps_dec->cur_dec_mb_num;
         UWORD32 u4_cond = 0;
-        WORD32 nop_cnt = 8 * 128;
         CHECK_MB_MAP_BYTE(u4_mb_num, ps_dec->pu1_dec_mb_map, u4_cond);
         if(u4_cond)
         {
@@ -488,6 +492,10 @@ WORD32 ih264d_decode_slice_thread(dec_struct_t *ps_dec)
                             ps_dec->u4_cur_mb_addr);
 
         }
+    }
+    if(ps_dec->i4_break_threads == 1 || ps_dec->i4_error_code != 0)
+    {
+        return NOT_OK;
     }
 
 
@@ -624,8 +632,8 @@ void ih264d_decode_picture_thread(dec_struct_t *ps_dec )
             DEBUG_THREADS_PRINTF(" Exit  ih264d_decode_slice_thread \n");
 
 
-            if(ps_dec->cur_dec_mb_num
-                            > ps_dec->ps_cur_sps->u4_max_mb_addr)
+            if((ps_dec->cur_dec_mb_num > ps_dec->ps_cur_sps->u4_max_mb_addr) ||
+               (ps_dec->i4_error_code != 0) || (ps_dec->i4_break_threads == 1))
             {
                 /*Last slice in frame*/
                 break;

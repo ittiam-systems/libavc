@@ -340,7 +340,7 @@ void ih264d_check_mb_map_deblk(dec_struct_t *ps_dec,
     for(i = 0; i < deblk_mb_grp; i++)
     {
         WORD32 nop_cnt = 8*128;
-        while(u4_check_mb_map == 1)
+        while(u4_check_mb_map == 1 && ps_dec->i4_break_threads != 1 && ps_dec->i4_error_code == 0)
         {
             u4_mb_num = ps_dec->u4_cur_deblk_mb_num;
             /*we wait for the right mb because of intra pred data dependency*/
@@ -364,6 +364,10 @@ void ih264d_check_mb_map_deblk(dec_struct_t *ps_dec,
                     ithread_yield();
                 }
             }
+        }
+        if(ps_dec->i4_break_threads == 1 || ps_dec->i4_error_code != 0)
+        {
+            break;
         }
 
         ih264d_deblock_mb_nonmbaff(ps_dec, ps_tfr_cxt,
@@ -399,13 +403,13 @@ void ih264d_recon_deblk_slice(dec_struct_t *ps_dec, tfr_ctxt_t *ps_tfr_cxt)
     UWORD32 x_offset, y_offset;
     UWORD32 u4_slice_end;
     pad_mgr_t *ps_pad_mgr ;
+    WORD32 nop_cnt = 8*128;
 
     /*check for mb map of first mb in slice to ensure slice header is parsed*/
-    while(1)
+    while(ps_dec->i4_break_threads != 1 && ps_dec->i4_error_code == 0)
     {
         UWORD32 u4_mb_num = ps_dec->cur_recon_mb_num;
         UWORD32 u4_cond = 0;
-        WORD32 nop_cnt = 8*128;
 
         CHECK_MB_MAP_BYTE(u4_mb_num, ps_dec->pu1_recon_mb_map, u4_cond);
         if(u4_cond)
@@ -443,6 +447,10 @@ void ih264d_recon_deblk_slice(dec_struct_t *ps_dec, tfr_ctxt_t *ps_tfr_cxt)
                             ps_dec->u2_cur_mb_addr);
 
         }
+    }
+    if(ps_dec->i4_break_threads == 1 || ps_dec->i4_error_code != 0)
+    {
+        return;
     }
 
     u4_max_addr = ps_dec->ps_cur_sps->u4_max_mb_addr;
@@ -528,7 +536,7 @@ void ih264d_recon_deblk_slice(dec_struct_t *ps_dec, tfr_ctxt_t *ps_tfr_cxt)
         }
 
 
-        while(1)
+        while(ps_dec->i4_break_threads != 1 && ps_dec->i4_error_code == 0)
         {
             UWORD32 u4_cond = 0;
             UWORD32 u4_mb_num = ps_dec->cur_recon_mb_num + recon_mb_grp - 1;
@@ -573,6 +581,10 @@ void ih264d_recon_deblk_slice(dec_struct_t *ps_dec, tfr_ctxt_t *ps_tfr_cxt)
                     }
                 }
             }
+        }
+        if(ps_dec->i4_break_threads == 1 || ps_dec->i4_error_code != 0)
+        {
+            return;
         }
 
         for(j = 0; j < recon_mb_grp; j++)
@@ -724,7 +736,8 @@ void ih264d_recon_deblk_thread(dec_struct_t *ps_dec)
 
             DEBUG_THREADS_PRINTF(" Exit  compute bs slice \n");
 
-            if(ps_dec->cur_recon_mb_num > ps_dec->ps_cur_sps->u4_max_mb_addr)
+            if((ps_dec->cur_recon_mb_num > ps_dec->ps_cur_sps->u4_max_mb_addr) ||
+               (ps_dec->i4_error_code != 0) || (ps_dec->i4_break_threads == 1))
             {
                     break;
             }
