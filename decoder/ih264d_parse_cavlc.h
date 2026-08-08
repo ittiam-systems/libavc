@@ -93,12 +93,9 @@ WORD32 ih264d_cavlc_parse4x4coeff_n8(WORD16 *pi2_coeff_block,
                                       dec_struct_t *ps_dec,
                                       UWORD32 *pu4_total_coeff);
 
-void ih264d_cavlc_parse_chroma_dc(dec_mb_info_t *ps_cur_mb_info,
-                                  WORD16 *pi2_coeff_block,
-                                  dec_bit_stream_t *ps_bitstrm,
-                                  UWORD32 u4_scale_u,
-                                  UWORD32 u4_scale_v,
-                                  WORD32 i4_mb_inter_inc);
+WORD32 ih264d_cavlc_parse_chroma_dc(dec_mb_info_t *ps_cur_mb_info, WORD16 *pi2_coeff_block,
+                                    dec_bit_stream_t *ps_bitstrm, UWORD32 u4_scale_u,
+                                    UWORD32 u4_scale_v, WORD32 i4_mb_inter_inc);
 
 WORD32 ih264d_cavlc_parse_8x8block_none_available(WORD16 *pi2_coeff_block,
                                                   UWORD32 u4_sub_block_strd,
