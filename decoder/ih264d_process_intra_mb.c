@@ -926,7 +926,6 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             if((u1_err_code & u1_packed_modes) ^ u1_err_code)
             {
                 u1_intrapred_mode = 0;
-                ps_dec->i4_error_code = ERROR_INTRAPRED;
             }
         }
         {
@@ -1253,7 +1252,6 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                     if((u1_err_code & u1_packed_modes) ^ u1_err_code)
                      {
                         i1_intra_pred = 0;
-                        ps_dec->i4_error_code = ERROR_INTRAPRED;
                      }
 
                 }
@@ -1663,7 +1661,6 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
                     if((u1_err_code & u1_packed_modes) ^ u1_err_code)
                     {
                         i1_intra_pred = 0;
-                        ps_dec->i4_error_code = ERROR_INTRAPRED;
                     }
                 }
             }
@@ -1780,7 +1777,6 @@ WORD32 ih264d_process_intra_mb(dec_struct_t * ps_dec,
             if((u1_err_code & u1_packed_modes) ^ u1_err_code)
             {
                 u1_intra_chrom_pred_mode = 0;
-                ps_dec->i4_error_code = ERROR_INTRAPRED;
             }
         }
 

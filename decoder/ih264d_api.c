@@ -2283,6 +2283,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
     /* ! */
     ps_dec->u4_ts = ps_dec_ip->u4_ts;
+    ps_dec->i4_error_code = 0;
 
     ps_dec_op->u4_error_code = 0;
     ps_dec_op->e_pic_type = IV_NA_FRAME;
