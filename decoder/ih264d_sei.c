@@ -1079,6 +1079,13 @@ WORD32 ih264d_parse_sei_message(dec_struct_t *ps_dec,
         {
             u4_bits = ih264d_get_bits_h264(ps_bitstrm, 8);
             ui4_payload_size += 255;
+
+            /* Exit early if payload_size exceeds the remaining bytes,
+             * so that (payload_size << 3) cannot overflow. */
+            if(ui4_payload_size > ((ps_bitstrm->u4_max_ofst - ps_bitstrm->u4_ofst) >> 3))
+            {
+                return ERROR_EOB_GETBITS_T;
+            }
         }
         ui4_payload_size += u4_bits;
 
