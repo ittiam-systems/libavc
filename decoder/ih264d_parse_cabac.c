@@ -80,6 +80,10 @@ UWORD8 ih264d_read_coeff4x4_cabac(dec_bit_stream_t *ps_bitstrm,
 
     ps_tu_4x4 = (tu_sblk4x4_coeff_data_t *)ps_dec->pv_parse_tu_coeff_data;
     ps_tu_4x4->u2_sig_coeff_map = 0;
+
+    /* Safety: Ensure offset is within permissible bounds */
+    if (EXCEED_OFFSET(ps_bitstrm))
+        return 0;
     pi2_coeff_data = &ps_tu_4x4->ai2_level[0];
 
     u4_offset = ps_bitstrm->u4_ofst;
@@ -131,6 +135,10 @@ UWORD8 ih264d_read_coeff4x4_cabac(dec_bit_stream_t *ps_bitstrm,
         }
 
     }
+
+    /* Safety: Check before further processing */
+    if (EXCEED_OFFSET(ps_bitstrm))
+        return 0;
 
     if(u4_coded_flag)
     {
