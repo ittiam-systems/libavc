@@ -1314,13 +1314,23 @@ WORD32 ih264d_do_mmco_buffer(dpb_commands_t *ps_dpb_cmds,
                         {
                             ps_nxtDPB = ps_next_dpb;
                             ps_nxtDPB->u1_lt_idx = MAX_REF_BUFS + 1;
-                            ps_nxtDPB->u1_used_as_ref = UNUSED_FOR_REF;
-                            ps_nxtDPB->s_top_field.u1_reference_info =
-                                            UNUSED_FOR_REF;
-                            ps_nxtDPB->s_bot_field.u1_reference_info =
-                                            UNUSED_FOR_REF;
+                            
+                            if(ps_nxtDPB->s_top_field.u1_reference_info == IS_LONG_TERM)
+                                ps_nxtDPB->s_top_field.u1_reference_info =
+                                                UNUSED_FOR_REF;
+                            if(ps_nxtDPB->s_bot_field.u1_reference_info == IS_LONG_TERM)
+                                ps_nxtDPB->s_bot_field.u1_reference_info =
+                                                UNUSED_FOR_REF;
 
-                            ps_nxtDPB->ps_pic_buf = NULL;
+                            if(ps_nxtDPB->s_bot_field.u1_reference_info == UNUSED_FOR_REF && ps_nxtDPB->s_top_field.u1_reference_info == UNUSED_FOR_REF)
+                            {
+                                ps_nxtDPB->ps_pic_buf = NULL;
+                                ps_nxtDPB->u1_used_as_ref = UNUSED_FOR_REF;
+                            }
+                            else
+                            {
+                                ps_nxtDPB->u1_used_as_ref = ps_nxtDPB->s_bot_field.u1_reference_info | ps_nxtDPB->s_top_field.u1_reference_info;
+                            }
                             //Release buffer
                             ih264d_free_ref_pic_mv_bufs(ps_dpb_mgr->pv_codec_handle,
                                                         ps_nxtDPB->u1_buf_id);
