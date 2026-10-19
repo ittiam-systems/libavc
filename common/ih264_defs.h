@@ -485,7 +485,9 @@ typedef enum
 /* Number of SPS allowed */
 /* An extra buffer is allocated to write the parsed data
  * It is copied to the appropriate location later */
+#ifndef MAX_SPS_CNT
 #define MAX_SPS_CNT         (32 + 1)
+#endif
 
 /* Maximum long term reference pics */
 #define MAX_LTREF_PICS_SPS 16
@@ -501,7 +503,9 @@ typedef enum
 /* Number of PPS allowed  */
 /* An extra buffer is allocated to write the parsed data
  * It is copied to the appropriate location later */
+#ifndef MAX_PPS_CNT
 #define MAX_PPS_CNT         (256 + 1)
+#endif
 
 /*****************************************************************************/
 /* Macro definitions for sizes of MB, PU, TU, CU                            */

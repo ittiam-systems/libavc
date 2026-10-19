@@ -192,7 +192,9 @@
 /**
  *  Maximum number of cores
  */
+#ifndef MAX_NUM_CORES
 #define MAX_NUM_CORES       8
+#endif
 
 /**
  *  Maximum number of threads for pixel processing
@@ -234,7 +236,9 @@
  * MAX_SLICE_HDR_CNT is assumed to be a power of 2
  */
 
+#ifndef LOG2_MAX_SLICE_HDR_CNT
 #define LOG2_MAX_SLICE_HDR_CNT 8
+#endif
 #define MAX_SLICE_HDR_CNT (1 << LOG2_MAX_SLICE_HDR_CNT)
 
 /**
@@ -334,7 +338,9 @@
 #define MIN_RAW_BUFS_420SP_COMP      2
 
 /** Maximum number of active config paramter sets */
+#ifndef MAX_ACTIVE_CONFIG_PARAMS
 #define MAX_ACTIVE_CONFIG_PARAMS 32
+#endif
 
 /**
 ******************************************************************************
