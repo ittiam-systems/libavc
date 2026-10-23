@@ -1386,7 +1386,7 @@ void ih264d_init_decoder(void * ps_dec_params)
 
     ih264d_init_arch(ps_dec);
     ih264d_init_function_ptr(ps_dec);
-    ps_dec->e_frm_out_mode = IVD_DISPLAY_FRAME_OUT;
+    ps_dec->e_frm_out_mode = ps_dec->u4_thumbnail_mode ? IVD_DECODE_FRAME_OUT : IVD_DISPLAY_FRAME_OUT;
     ps_dec->init_done = 1;
 
 }
@@ -1581,6 +1581,7 @@ WORD32 ih264d_allocate_static_bufs(iv_obj_t **dec_hdl, void *pv_api_ip, void *pv
     ps_dec->pf_aligned_free = pf_aligned_free;
     ps_dec->pv_mem_ctxt = pv_mem_ctxt;
     ps_dec->i4_threads_active = ps_create_ip->u4_keep_threads_active;
+    ps_dec->u4_thumbnail_mode = ps_create_ip->u4_thumbnail_mode;
 
 
     size = ((sizeof(dec_seq_params_t)) * MAX_NUM_SEQ_PARAMS);
@@ -3572,6 +3573,10 @@ WORD32 ih264d_set_params(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
         ret = IV_FAIL;
     }
     ps_dec->e_frm_out_mode = ps_ctl_ip->e_frm_out_mode;
+    if(ps_dec->u4_thumbnail_mode)
+    {
+        ps_dec->e_frm_out_mode = IVD_DECODE_FRAME_OUT;
+    }
     return ret;
 
 }
@@ -3614,6 +3619,7 @@ WORD32 ih264d_set_default_params(iv_obj_t *dec_hdl,
         ps_dec->u4_app_disp_width = 0;
         ps_dec->u4_skip_frm_mask = 0;
         ps_dec->i4_decode_header = 1;
+        ps_dec->e_frm_out_mode = ps_dec->u4_thumbnail_mode ? IVD_DECODE_FRAME_OUT : IVD_DISPLAY_FRAME_OUT;
 
         ps_ctl_op->u4_error_code = 0;
     }

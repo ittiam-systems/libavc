@@ -121,6 +121,16 @@ typedef struct {
      * enable_threads
      */
     UWORD32                                  u4_keep_threads_active;
+
+    /**
+     * Flag specifying whether the decoder operates in thumbnail mode.
+     *
+     * Values and corresponding behavior:
+     * 0: Normal decoding mode
+     * 1: Thumbnail mode (decodes only the first I/IDR frame and outputs
+     *    immediately without reorder delay)
+     */
+    UWORD32                                 u4_thumbnail_mode;
 }ih264d_create_ip_t;
 
 
