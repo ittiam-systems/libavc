@@ -233,6 +233,8 @@ typedef struct
     /* Active threads present*/
     UWORD32 i4_active_threads;
 
+    UWORD32 u4_total_bytes_allocated;
+
     void *pv_disp_ctx;
     void *display_thread_handle;
     WORD32 display_thread_created;
@@ -465,10 +467,14 @@ void ih264a_aligned_free(void *pv_ctxt, void *pv_buf)
 void * ih264a_aligned_malloc(void *pv_ctxt, WORD32 alignment, WORD32 i4_size)
 {
     void *buf = NULL;
-    (void)pv_ctxt;
     if (0 != posix_memalign(&buf, alignment, i4_size))
     {
         return NULL;
+    }
+    if (pv_ctxt)
+    {
+        vid_dec_ctx_t *ps_app_ctx = (vid_dec_ctx_t *)pv_ctxt;
+        ps_app_ctx->u4_total_bytes_allocated += i4_size;
     }
     return buf;
 }
@@ -2165,6 +2171,7 @@ int main(WORD32 argc, CHAR *argv[])
     s_app_ctx.u4_chksum_save_flag = 0;
     s_app_ctx.u4_frame_info_enable = 0;
     s_app_ctx.i4_active_threads = 1;
+    s_app_ctx.u4_total_bytes_allocated = 0;
 
     s_app_ctx.get_stride = &default_get_stride;
 
@@ -2431,7 +2438,7 @@ int main(WORD32 argc, CHAR *argv[])
             s_create_ip.s_ivd_create_ip_t.e_output_format = (IV_COLOR_FORMAT_T)s_app_ctx.e_output_chroma_format;
             s_create_ip.s_ivd_create_ip_t.pf_aligned_alloc = ih264a_aligned_malloc;
             s_create_ip.s_ivd_create_ip_t.pf_aligned_free = ih264a_aligned_free;
-            s_create_ip.s_ivd_create_ip_t.pv_mem_ctxt = NULL;
+            s_create_ip.s_ivd_create_ip_t.pv_mem_ctxt = &s_app_ctx;
             s_create_ip.s_ivd_create_ip_t.u4_size = sizeof(ih264d_create_ip_t);
             s_create_op.s_ivd_create_op_t.u4_size = sizeof(ih264d_create_op_t);
             s_create_ip.u4_enable_frame_info = s_app_ctx.u4_frame_info_enable;
@@ -3608,6 +3615,7 @@ int main(WORD32 argc, CHAR *argv[])
         else
             printf("FPS achieved                    : %-3.2f\n", 1000000/avg);
     }
+    printf("Total memory allocated          : %u\n", s_app_ctx.u4_total_bytes_allocated);
 #endif
     /***********************************************************************/
     /*   Clear the decoder, close all the files, free all the memory       */
