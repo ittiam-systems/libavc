@@ -233,6 +233,9 @@ typedef struct
     /* Active threads present*/
     UWORD32 i4_active_threads;
 
+    /* Enable Thumbnail mode */
+    UWORD32 u4_thumbnail_mode;
+
     UWORD32 u4_total_bytes_allocated;
 
     void *pv_disp_ctx;
@@ -285,6 +288,7 @@ typedef enum
     PICLEN,
     PICLEN_FILE,
 
+    THUMBNAIL_MODE,
     KEEP_THREADS_ACTIVE,
 } ARGUMENT_T;
 
@@ -355,6 +359,8 @@ static const argument_t argument_mapping[] =
          "Set Architecture. Supported values  ARM_NONEON, ARM_A9Q, ARM_A7, ARM_A5, ARM_NEONINTR,ARMV8_GENERIC, X86_GENERIC, X86_SSSE3, X86_SSE4 \n" },
     {"--",  "--soc", SOC,
          "Set SOC. Supported values  GENERIC, HISI_37X \n" },
+    { "--", "--thumbnail_mode", THUMBNAIL_MODE,
+         "Enable thumbnail mode\n" },
     {"--", "--keep_threads_active", KEEP_THREADS_ACTIVE,
         "Keep threads active"},
 
@@ -1368,6 +1374,9 @@ void parse_argument(vid_dec_ctx_t *ps_app_ctx, CHAR *argument, CHAR *value)
         case DISABLE_DEBLOCK_LEVEL:
             sscanf(value, "%d", &ps_app_ctx->u4_disable_dblk_level);
             break;
+        case THUMBNAIL_MODE:
+            sscanf(value, "%d", &ps_app_ctx->u4_thumbnail_mode);
+            break;
         case KEEP_THREADS_ACTIVE:
             sscanf(value, "%d", &ps_app_ctx->i4_active_threads);
             break;
@@ -2171,6 +2180,7 @@ int main(WORD32 argc, CHAR *argv[])
     s_app_ctx.u4_chksum_save_flag = 0;
     s_app_ctx.u4_frame_info_enable = 0;
     s_app_ctx.i4_active_threads = 1;
+    s_app_ctx.u4_thumbnail_mode = 0;
     s_app_ctx.u4_total_bytes_allocated = 0;
 
     s_app_ctx.get_stride = &default_get_stride;
@@ -2443,6 +2453,7 @@ int main(WORD32 argc, CHAR *argv[])
             s_create_op.s_ivd_create_op_t.u4_size = sizeof(ih264d_create_op_t);
             s_create_ip.u4_enable_frame_info = s_app_ctx.u4_frame_info_enable;
             s_create_ip.u4_keep_threads_active = s_app_ctx.i4_active_threads;
+            s_create_ip.u4_thumbnail_mode = s_app_ctx.u4_thumbnail_mode;
 
 
 

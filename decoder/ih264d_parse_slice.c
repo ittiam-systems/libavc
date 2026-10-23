@@ -1120,6 +1120,16 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         u1_slice_type -= 5;
     }
 
+    if(ps_dec->u4_thumbnail_mode)
+    {
+        if(((u1_slice_type != I_SLICE) && (ps_dec->u4_total_frames_decoded == 0))
+                        || (ps_dec->u4_total_frames_decoded >= 2))
+        {
+            ps_dec->u4_slice_start_code_found = 0;
+            return OK;
+        }
+    }
+
     u4_temp = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
     if(u4_temp & MASK_ERR_PIC_SET_ID)
         return ERROR_INV_SLICE_HDR_T;

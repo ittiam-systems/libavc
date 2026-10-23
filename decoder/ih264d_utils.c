@@ -828,18 +828,22 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
 
         if(ps_dec->u4_share_disp_buf == 0)
         {
+            UWORD8 u1_num_ref_frames = ps_dec->u4_thumbnail_mode ? 0 : ps_seq->u1_num_ref_frames;
             if(ps_seq->u1_frame_mbs_only_flag == 1)
-                ps_dec->u1_pic_bufs = ps_dec->i4_display_delay + ps_seq->u1_num_ref_frames + 1;
+                ps_dec->u1_pic_bufs = ps_dec->i4_display_delay + u1_num_ref_frames + 1;
             else
-                ps_dec->u1_pic_bufs = ps_dec->i4_display_delay + ps_seq->u1_num_ref_frames * 2 + 2;
+                ps_dec->u1_pic_bufs = ps_dec->i4_display_delay + u1_num_ref_frames * 2 + 2;
         }
         else
         {
             ps_dec->u1_pic_bufs = (WORD32)ps_dec->u4_num_disp_bufs;
         }
 
-        /* Ensure at least two buffers are allocated */
-        ps_dec->u1_pic_bufs = MAX(ps_dec->u1_pic_bufs, 2);
+        if(!ps_dec->u4_thumbnail_mode)
+        {
+            /* Ensure at least two buffers are allocated */
+            ps_dec->u1_pic_bufs = MAX(ps_dec->u1_pic_bufs, 2);
+        }
 
         if(ps_dec->u4_share_disp_buf == 0)
             ps_dec->u1_pic_bufs = MIN(ps_dec->u1_pic_bufs,
@@ -2126,15 +2130,21 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     /* Allocate MV bank buffer */
     {
         UWORD32 col_flag_buffer_size, mvpred_buffer_size;
+        UWORD8 u1_num_ref_frames = ps_dec->u4_thumbnail_mode ?
+                        !ps_dec->ps_cur_sps->u1_frame_mbs_only_flag :
+                        ps_dec->ps_cur_sps->u1_num_ref_frames;
 
         col_flag_buffer_size = ((ps_dec->u2_pic_wd * ps_dec->u2_pic_ht) >> 4);
         mvpred_buffer_size = sizeof(mv_pred_t)
                         * ((ps_dec->u2_pic_wd * (ps_dec->u2_pic_ht + PAD_MV_BANK_ROW)) >> 4);
 
-        u4_num_bufs = ps_dec->ps_cur_sps->u1_num_ref_frames + 1;
+        u4_num_bufs = u1_num_ref_frames + 1;
 
         u4_num_bufs = MIN(u4_num_bufs, ps_dec->u1_pic_bufs);
-        u4_num_bufs = MAX(u4_num_bufs, 2);
+        if(!ps_dec->u4_thumbnail_mode)
+        {
+            u4_num_bufs = MAX(u4_num_bufs, 2);
+        }
         size = ALIGN64(mvpred_buffer_size) + ALIGN64(col_flag_buffer_size);
         size *= u4_num_bufs;
         pv_buf = ps_dec->pf_aligned_alloc(pv_mem_ctxt, 128, size);
@@ -2394,10 +2404,18 @@ WORD32 ih264d_create_mv_bank(void *pv_dec,
 
     ps_col_mv = ps_dec->ps_col_mv_base;
 
-    u4_num_bufs = ps_dec->ps_cur_sps->u1_num_ref_frames + 1;
+    {
+        UWORD8 u1_num_ref_frames = ps_dec->u4_thumbnail_mode ?
+                        !ps_dec->ps_cur_sps->u1_frame_mbs_only_flag :
+                        ps_dec->ps_cur_sps->u1_num_ref_frames;
+        u4_num_bufs = u1_num_ref_frames + 1;
+    }
 
     u4_num_bufs = MIN(u4_num_bufs, ps_dec->u1_pic_bufs);
-    u4_num_bufs = MAX(u4_num_bufs, 2);
+    if(!ps_dec->u4_thumbnail_mode)
+    {
+        u4_num_bufs = MAX(u4_num_bufs, 2);
+    }
     pu1_buf = ps_dec->pu1_mv_bank_buf_base;
     for(i = 0 ; i < u4_num_bufs ; i++)
     {
