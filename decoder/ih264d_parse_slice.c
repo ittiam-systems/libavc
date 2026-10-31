@@ -767,12 +767,6 @@ WORD32 ih264d_end_of_pic_dispbuf_mgr(dec_struct_t * ps_dec)
                     ih264d_reset_ref_bufs(ps_dec->ps_dpb_mgr);
                 ih264d_release_display_bufs(ps_dec);
             }
-            if(IVD_DECODE_FRAME_OUT != ps_dec->e_frm_out_mode)
-            {
-                ret = ih264d_assign_display_seq(ps_dec);
-                if(ret != OK)
-                    return ret;
-            }
         }
 
         if(ps_cur_slice->u1_nal_ref_idc)
@@ -859,12 +853,9 @@ WORD32 ih264d_end_of_pic_dispbuf_mgr(dec_struct_t * ps_dec)
                         || ((TOP_FIELD_ONLY | BOT_FIELD_ONLY)
                                         == ps_dec->u1_top_bottom_decoded))
         {
-            if(IVD_DECODE_FRAME_OUT == ps_dec->e_frm_out_mode)
-            {
-                ret = ih264d_assign_display_seq(ps_dec);
-                if(ret != OK)
-                    return ret;
-            }
+            ret = ih264d_assign_display_seq(ps_dec);
+            if(ret != OK)
+                return ret;
         }
     }
 
