@@ -18,6 +18,7 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 #include <malloc.h>
+#include <stdlib.h>
 #include <algorithm>
 #include <string.h>
 #include <tuple>
