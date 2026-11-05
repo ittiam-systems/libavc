@@ -169,10 +169,10 @@ typedef struct pic_buffer_t
     /* If any member is to be added, add below this            */
 
     /* u4_ofst from start of picture buffer to display position for Y buffer  */
-    UWORD16 u2_crop_offset_y;
+    UWORD32 u2_crop_offset_y;
 
     /* u4_ofst from start of picture buffer to display position for UV buffer */
-    UWORD16 u2_crop_offset_uv;
+    UWORD32 u2_crop_offset_uv;
 
     UWORD8 u1_is_short; /** (1: short 0: long) term ref pic */
     UWORD8 u1_pic_type; /** frame / field / complementary field pair */
@@ -1056,8 +1056,8 @@ typedef struct _DecStruct
     /* Variables required for cropping */
     UWORD16 u2_disp_width;
     UWORD16 u2_disp_height;
-    UWORD16 u2_crop_offset_y;
-    UWORD16 u2_crop_offset_uv;
+    UWORD32 u2_crop_offset_y;
+    UWORD32 u2_crop_offset_uv;
 
     /* Variable required to get presentation time stamp through application */
     UWORD32 u4_pts;

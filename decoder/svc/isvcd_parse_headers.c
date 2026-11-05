@@ -151,9 +151,9 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
     /* High profile related syntax element */
     WORD32 i4_i;
     /* G050 */
-    UWORD8 u1_frame_cropping_flag,
-        u1_frame_cropping_rect_left_ofst = 0, u1_frame_cropping_rect_right_ofst = 0,
-        u1_frame_cropping_rect_top_ofst = 0, u1_frame_cropping_rect_bottom_ofst = 0;
+    UWORD8 u1_frame_cropping_flag;
+    UWORD32 u1_frame_cropping_rect_left_ofst = 0, u1_frame_cropping_rect_right_ofst = 0,
+            u1_frame_cropping_rect_top_ofst = 0, u1_frame_cropping_rect_bottom_ofst = 0;
     /* G050 */
     /*--------------------------------------------------------------------*/
     /* Decode seq_parameter_set_id and profile and level values           */
@@ -503,6 +503,17 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
 
         if(u1_frame_cropping_flag)
         {
+            /* Crop offsets are ue(v) coded and can hold any 32 bit value.    */
+            /* Reject the ones exceeding picture size before scaling them     */
+            /* below, as scaling can wrap them around into the valid range    */
+            if((u1_frame_cropping_rect_right_ofst > u2_pic_wd) ||
+               (u1_frame_cropping_rect_left_ofst > u2_pic_wd) ||
+               (u1_frame_cropping_rect_bottom_ofst > u2_pic_ht) ||
+               (u1_frame_cropping_rect_top_ofst > u2_pic_ht))
+            {
+                return ERROR_INV_SPS_PPS_T;
+            }
+
             /* Calculate right and left u4_ofst for cropped picture           */
             u2_rgt_ofst = u1_frame_cropping_rect_right_ofst << 1;
             u2_lft_ofst = u1_frame_cropping_rect_left_ofst << 1;
@@ -1103,9 +1114,9 @@ WORD32 isvcd_parse_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stream_t *p
     /* High profile related syntax element */
     WORD32 i4_i;
     /* G050 */
-    UWORD8 u1_frame_cropping_flag,
-        u1_frame_cropping_rect_left_ofst = 0, u1_frame_cropping_rect_right_ofst = 0,
-        u1_frame_cropping_rect_top_ofst = 0, u1_frame_cropping_rect_bottom_ofst = 0;
+    UWORD8 u1_frame_cropping_flag;
+    UWORD32 u1_frame_cropping_rect_left_ofst = 0, u1_frame_cropping_rect_right_ofst = 0,
+            u1_frame_cropping_rect_top_ofst = 0, u1_frame_cropping_rect_bottom_ofst = 0;
     /* G050 */
     /*--------------------------------------------------------------------*/
     /* Decode seq_parameter_set_id and profile and level values           */
@@ -1461,6 +1472,17 @@ WORD32 isvcd_parse_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stream_t *p
 
         if(u1_frame_cropping_flag)
         {
+            /* Crop offsets are ue(v) coded and can hold any 32 bit value.    */
+            /* Reject the ones exceeding picture size before scaling them     */
+            /* below, as scaling can wrap them around into the valid range    */
+            if((u1_frame_cropping_rect_right_ofst > u2_pic_wd) ||
+               (u1_frame_cropping_rect_left_ofst > u2_pic_wd) ||
+               (u1_frame_cropping_rect_bottom_ofst > u2_pic_ht) ||
+               (u1_frame_cropping_rect_top_ofst > u2_pic_ht))
+            {
+                return ERROR_INV_SPS_PPS_T;
+            }
+
             /* Calculate right and left u4_ofst for cropped picture           */
             u2_rgt_ofst = u1_frame_cropping_rect_right_ofst << 1;
             u2_lft_ofst = u1_frame_cropping_rect_left_ofst << 1;
