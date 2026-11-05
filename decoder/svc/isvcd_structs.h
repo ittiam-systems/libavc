@@ -422,8 +422,8 @@ typedef struct
     UWORD16 u2_frm_ht_uv;
     UWORD8 u1_pad_len_y_v;
     UWORD8 u1_pad_len_cr_v;
-    UWORD16 u2_crop_offset_y;
-    UWORD16 u2_crop_offset_uv;
+    UWORD32 u2_crop_offset_y;
+    UWORD32 u2_crop_offset_uv;
 } dec_svc_seq_params_t;
 
 typedef struct
