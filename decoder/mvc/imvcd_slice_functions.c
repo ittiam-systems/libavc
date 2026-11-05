@@ -1060,10 +1060,13 @@ static WORD32 imvcd_pic_init(mvc_dec_ctxt_t *ps_mvcd_ctxt, pocstruct_t *ps_cur_p
     else
     {
         /* Accounting for lihbavc's idiocy */
+        /* u2_crop_offset_y is a byte offset, which doesn't fit in 16 bits and */
+        /* is wrong for chroma. Split it back into left and top offsets        */
         ps_mvcd_ctxt->ps_cur_au->as_disp_offsets[u2_view_id].u2_left_offset =
-            ps_view_ctxt->u2_crop_offset_y;
+            ps_view_ctxt->u2_crop_offset_y % ps_view_ctxt->u2_frm_wd_y;
         ps_mvcd_ctxt->ps_cur_au->as_disp_offsets[u2_view_id].u2_right_offset = 0;
-        ps_mvcd_ctxt->ps_cur_au->as_disp_offsets[u2_view_id].u2_top_offset = 0;
+        ps_mvcd_ctxt->ps_cur_au->as_disp_offsets[u2_view_id].u2_top_offset =
+            ps_view_ctxt->u2_crop_offset_y / ps_view_ctxt->u2_frm_wd_y;
         ps_mvcd_ctxt->ps_cur_au->as_disp_offsets[u2_view_id].u2_bottom_offset = 0;
     }
 

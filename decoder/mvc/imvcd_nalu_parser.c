@@ -302,13 +302,28 @@ static WORD32 imvcd_parse_subset_sps(mvc_dec_ctxt_t *ps_mvcd_ctxt, dec_bit_strea
 
     if(u4_temp)
     {
-        ps_subset_sps->s_disp_offsets.u2_left_offset =
-            ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
-        ps_subset_sps->s_disp_offsets.u2_right_offset =
-            ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
-        ps_subset_sps->s_disp_offsets.u2_top_offset = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
-        ps_subset_sps->s_disp_offsets.u2_bottom_offset =
-            ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+        UWORD32 u4_wd = ps_subset_sps->s_sps_data.u2_frm_wd_in_mbs * MB_SIZE;
+        UWORD32 u4_ht = ps_subset_sps->s_sps_data.u2_frm_ht_in_mbs * MB_SIZE;
+        UWORD32 u4_left_offset = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+        UWORD32 u4_right_offset = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+        UWORD32 u4_top_offset = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+        UWORD32 u4_bottom_offset = ih264d_uev(pu4_bitstrm_ofst, pu4_bitstrm_buf);
+
+        /* Crop offsets are ue(v) coded and can hold any 32 bit value. Reject the */
+        /* ones exceeding picture size, before they are stored in 16 bits. Once   */
+        /* those are out, the sums can't wrap, so also reject crops leaving less  */
+        /* than an MB, as ih264d_parse_sps does                                   */
+        if((u4_left_offset > u4_wd) || (u4_right_offset > u4_wd) || (u4_top_offset > u4_ht) ||
+           (u4_bottom_offset > u4_ht) || ((u4_left_offset + u4_right_offset + MB_SIZE) > u4_wd) ||
+           ((u4_top_offset + u4_bottom_offset + MB_SIZE) > u4_ht))
+        {
+            return ERROR_INV_SPS_PPS_T;
+        }
+
+        ps_subset_sps->s_disp_offsets.u2_left_offset = u4_left_offset;
+        ps_subset_sps->s_disp_offsets.u2_right_offset = u4_right_offset;
+        ps_subset_sps->s_disp_offsets.u2_top_offset = u4_top_offset;
+        ps_subset_sps->s_disp_offsets.u2_bottom_offset = u4_bottom_offset;
     }
     else
     {
