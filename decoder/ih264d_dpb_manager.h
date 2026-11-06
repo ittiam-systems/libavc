@@ -51,6 +51,7 @@
 #define RESET_ALL_PICTURES          8
 
 #define NO_LONG_TERM_INDICIES      255
+#define MAX_BUF_ID_MAP_ENTRIES     MAX_FRAMES + 1
 struct field_t
 {
     /* picNum of tbe reference field              */
@@ -98,10 +99,10 @@ typedef struct
   UWORD8 u1_num_gaps;       /** Total number of outstanding gaps */
   void * pv_codec_handle;             /* For Error Handling */
   WORD32 i4_max_frm_num;        /** Max frame number */
-  WORD32 ai4_gaps_start_frm_num[MAX_FRAMES];/** start frame number for a gap seqn */
-  WORD32 ai4_gaps_end_frm_num[MAX_FRAMES];       /** start frame number for a gap seqn */
-  WORD8  ai1_gaps_per_seq[MAX_FRAMES];      /** number of gaps with each gap seqn */
-  WORD32 ai4_poc_buf_id_map[MAX_FRAMES][3];
+  WORD32 ai4_gaps_start_frm_num[MAX_BUF_ID_MAP_ENTRIES];/** start frame number for a gap seqn */
+  WORD32 ai4_gaps_end_frm_num[MAX_BUF_ID_MAP_ENTRIES];       /** start frame number for a gap seqn */
+  WORD8  ai1_gaps_per_seq[MAX_BUF_ID_MAP_ENTRIES];      /** number of gaps with each gap seqn */
+  WORD32 ai4_poc_buf_id_map[MAX_BUF_ID_MAP_ENTRIES][3];
   WORD8 i1_poc_buf_id_entries;
   WORD8 i1_gaps_deleted;
   UWORD16 u2_pic_wd;

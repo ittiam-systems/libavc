@@ -102,7 +102,7 @@ void ih264d_init_ref_bufs(dpb_manager_t *ps_dpb_mgr)
     ps_dpb_mgr->u1_mmco_error_in_seq = 0;
 
     ps_dpb_mgr->u1_num_gaps = 0;
-    for(i = 0; i < MAX_FRAMES; i++)
+    for(i = 0; i < MAX_BUF_ID_MAP_ENTRIES; i++)
     {
         ps_dpb_mgr->ai4_gaps_start_frm_num[i] = INVALID_FRAME_NUM;
         ps_dpb_mgr->ai4_gaps_end_frm_num[i] = 0;
@@ -663,7 +663,7 @@ void ih264d_reset_ref_bufs(dpb_manager_t *ps_dpb_mgr)
 
     /* release all gaps */
     ps_dpb_mgr->u1_num_gaps = 0;
-    for(i = 0; i < MAX_FRAMES; i++)
+    for(i = 0; i < MAX_BUF_ID_MAP_ENTRIES; i++)
     {
         ps_dpb_mgr->ai4_gaps_start_frm_num[i] = INVALID_FRAME_NUM;
         ps_dpb_mgr->ai4_gaps_end_frm_num[i] = 0;
@@ -1478,7 +1478,7 @@ WORD32 ih264d_delete_gap_frm_sliding(dpb_manager_t *ps_dpb_mgr,
     if(INVALID_FRAME_NUM != i4_frame_num)
     {
         i4_gap_frame_num = i4_frame_num;
-        for(i = 0; i < MAX_FRAMES; i++)
+        for(i = 0; i < MAX_BUF_ID_MAP_ENTRIES; i++)
         {
             i4_start_frm_num = pi4_gaps_start_frm_num[i];
             if(INVALID_FRAME_NUM != i4_start_frm_num)
@@ -1514,7 +1514,7 @@ WORD32 ih264d_delete_gap_frm_sliding(dpb_manager_t *ps_dpb_mgr,
         /* of gap sequence                                                  */
         i4_gap_frame_num = pi4_gaps_start_frm_num[0];
         i1_gap_idx = 0;
-        for(i = 1; i < MAX_FRAMES; i++)
+        for(i = 1; i < MAX_BUF_ID_MAP_ENTRIES; i++)
         {
             if(INVALID_FRAME_NUM != pi4_gaps_start_frm_num[i])
             {
@@ -1544,8 +1544,8 @@ WORD32 ih264d_delete_gap_frm_sliding(dpb_manager_t *ps_dpb_mgr,
             i4_end_frm_num += i4_max_frm_num;
 
         i4_gap_frm_num_min = 0xfffffff;
-        j_min = MAX_FRAMES;
-        for(j = 0; j < MAX_FRAMES; j++)
+        j_min = MAX_BUF_ID_MAP_ENTRIES;
+        for(j = 0; j < MAX_BUF_ID_MAP_ENTRIES; j++)
         {
             i4_frm_num = ps_dpb_mgr->ai4_poc_buf_id_map[j][2];
             if((i4_start_frm_num <= i4_frm_num)
@@ -1559,7 +1559,7 @@ WORD32 ih264d_delete_gap_frm_sliding(dpb_manager_t *ps_dpb_mgr,
             }
         }
 
-        if(j_min != MAX_FRAMES)
+        if(j_min != MAX_BUF_ID_MAP_ENTRIES)
         {
 
             ps_dpb_mgr->ai4_poc_buf_id_map[j_min][0] = -1;
@@ -1628,7 +1628,7 @@ WORD32 ih264d_delete_gap_frm_mmco(dpb_manager_t *ps_dpb_mgr,
 
     if(i4_frame_num < 0)
         i4_frame_num += i4_max_frm_num;
-    for(i = 0; i < MAX_FRAMES; i++)
+    for(i = 0; i < MAX_BUF_ID_MAP_ENTRIES; i++)
     {
         i4_start_frm_num = pi4_start[i];
         if(i4_start_frm_num < 0)
@@ -1659,15 +1659,15 @@ WORD32 ih264d_delete_gap_frm_mmco(dpb_manager_t *ps_dpb_mgr,
     }
 
     /* find frame_num index, in the poc_map which needs to be deleted */
-    for(j = 0; j < MAX_FRAMES; j++)
+    for(j = 0; j < MAX_BUF_ID_MAP_ENTRIES; j++)
     {
         if(i4_frame_num == ps_dpb_mgr->ai4_poc_buf_id_map[j][2])
             break;
     }
 
-    if(MAX_FRAMES != i)
+    if(MAX_BUF_ID_MAP_ENTRIES != i)
     {
-        if(j == MAX_FRAMES)
+        if(j == MAX_BUF_ID_MAP_ENTRIES)
         {
             UWORD32 i4_error_code;
             i4_error_code = ERROR_DBP_MANAGER_T;
@@ -2008,7 +2008,7 @@ void ih264d_delete_nonref_nondisplay_pics(dpb_manager_t *ps_dpb_mgr)
     WORD32 (*i4_poc_buf_id_map)[3] = ps_dpb_mgr->ai4_poc_buf_id_map;
 
     /* remove all gaps marked as unused for ref */
-    for(i = 0; (i < MAX_FRAMES) && ps_dpb_mgr->i1_gaps_deleted; i++)
+    for(i = 0; (i < MAX_BUF_ID_MAP_ENTRIES) && ps_dpb_mgr->i1_gaps_deleted; i++)
     {
         if(GAP_FRAME_NUM == i4_poc_buf_id_map[i][2])
         {
@@ -2051,7 +2051,7 @@ WORD32 ih264d_insert_pic_in_display_list(dpb_manager_t *ps_dpb_mgr,
     WORD8 i;
     WORD32 (*i4_poc_buf_id_map)[3] = ps_dpb_mgr->ai4_poc_buf_id_map;
 
-    for(i = 0; i < MAX_FRAMES; i++)
+    for(i = 0; i < MAX_BUF_ID_MAP_ENTRIES; i++)
     {
         /* Find an empty slot */
         if(i4_poc_buf_id_map[i][0] == -1)
@@ -2069,7 +2069,7 @@ WORD32 ih264d_insert_pic_in_display_list(dpb_manager_t *ps_dpb_mgr,
         }
     }
 
-    if(MAX_FRAMES == i)
+    if(MAX_BUF_ID_MAP_ENTRIES == i)
     {
 
         UWORD32 i4_error_code;
