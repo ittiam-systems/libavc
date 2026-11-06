@@ -1289,7 +1289,7 @@ WORD32 ih264d_assign_display_seq(dec_struct_t *ps_dec)
 
     if(ps_dpb_mgr->i1_poc_buf_id_entries >= ps_dec->i4_display_delay)
     {
-        for(i = 0; i < MAX_FRAMES; i++)
+        for(i = 0; i < MAX_BUF_ID_MAP_ENTRIES; i++)
         {
             if((i4_poc_buf_id_map[i][0] != -1)
                             && (DO_NOT_DISP
@@ -1369,7 +1369,7 @@ void ih264d_release_display_bufs(dec_struct_t *ps_dec)
     for(j = 0; j < ps_dpb_mgr->i1_poc_buf_id_entries; j++)
     {
         i4_min_poc = 0x7fffffff;
-        for(i = 0; i < MAX_FRAMES; i++)
+        for(i = 0; i < MAX_BUF_ID_MAP_ENTRIES; i++)
         {
             if(i4_poc_buf_id_map[i][0] != -1)
             {
@@ -1492,7 +1492,7 @@ void ih264d_assign_pic_num(dec_struct_t *ps_dec)
     {
         WORD32 i4_start_frm, i4_end_frm;
         /* Assign pic numbers for gaps */
-        for(i = 0; i < MAX_FRAMES; i++)
+        for(i = 0; i < MAX_BUF_ID_MAP_ENTRIES; i++)
         {
             i4_start_frm = ps_dpb_mgr->ai4_gaps_start_frm_num[i];
             if(i4_start_frm != INVALID_FRAME_NUM)
@@ -1641,12 +1641,12 @@ WORD32 ih264d_decode_gaps_in_frame_num(dec_struct_t *ps_dec,
 
     /* Find a empty slot to store gap seqn info */
     i4_gaps_start_frm_num = ps_dpb_mgr->ai4_gaps_start_frm_num;
-    for(i1_gap_idx = 0; i1_gap_idx < MAX_FRAMES; i1_gap_idx++)
+    for(i1_gap_idx = 0; i1_gap_idx < MAX_BUF_ID_MAP_ENTRIES; i1_gap_idx++)
     {
         if(INVALID_FRAME_NUM == i4_gaps_start_frm_num[i1_gap_idx])
             break;
     }
-    if(MAX_FRAMES == i1_gap_idx)
+    if(MAX_BUF_ID_MAP_ENTRIES == i1_gap_idx)
     {
         UWORD32 i4_error_code;
         i4_error_code = ERROR_DBP_MANAGER_T;

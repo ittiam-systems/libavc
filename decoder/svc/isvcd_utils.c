@@ -662,11 +662,11 @@ WORD32 isvcd_decode_gaps_in_frame_num(dec_struct_t *ps_dec, UWORD16 u2_frame_num
 
     /* Find a empty slot to store gap seqn info */
     i4_gaps_start_frm_num = ps_dpb_mgr->ai4_gaps_start_frm_num;
-    for(i1_gap_idx = 0; i1_gap_idx < MAX_FRAMES; i1_gap_idx++)
+    for(i1_gap_idx = 0; i1_gap_idx < MAX_BUF_ID_MAP_ENTRIES; i1_gap_idx++)
     {
         if(INVALID_FRAME_NUM == i4_gaps_start_frm_num[i1_gap_idx]) break;
     }
-    if(MAX_FRAMES == i1_gap_idx)
+    if(MAX_BUF_ID_MAP_ENTRIES == i1_gap_idx)
     {
         UWORD32 i4_error_code;
         i4_error_code = ERROR_DBP_MANAGER_T;
