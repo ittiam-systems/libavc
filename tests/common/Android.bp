@@ -1,0 +1,45 @@
+package {
+    // See: http://go/android-license-faq
+    // A large-scale-change added 'default_applicable_licenses' to import
+    // all of the 'license_kinds' from "external_libavc_license"
+    // to get the below license kinds:
+    //   SPDX-license-identifier-Apache-2.0
+    default_applicable_licenses: ["external_libavc_license"],
+}
+
+cc_defaults {
+    name: "libavc_tests_defaults",
+    host_supported: false,
+    arch: {
+        arm: {
+            cflags: [
+                "-DARM",
+            ],
+        },
+        arm64: {
+            cflags: [
+                "-DARMV8",
+                "-DARM",
+            ],
+        },
+    },
+}
+
+cc_library_static {
+    name: "libavc_tests_common",
+    defaults: ["libavc_tests_defaults"],
+    srcs: [
+        "BitsBuf.cpp",
+        "RawBuf.cpp",
+        "Md5Wrapper.cpp",
+        "BitsFile.cpp",
+        "RawFile.cpp",
+    ],
+    export_include_dirs: ["."],
+    shared_libs: [
+        "libcrypto",
+    ],
+    static_libs: [
+        "libgtest",
+    ],
+}

@@ -1,5 +1,7 @@
 set(SYSTEM_NAME Linux)
 set(SYSTEM_PROCESSOR aarch64)
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR aarch64)
 
 # Modify these variables with paths to appropriate compilers that can produce
 # armv8 targets
@@ -11,3 +13,6 @@ set(CMAKE_C_COMPILER_AR
 set(CMAKE_CXX_COMPILER_AR
     aarch64-linux-gnu-gcc-ar
     CACHE FILEPATH "Archiver")
+
+# Build all binaries as static, so that they can be run using qemu
+set(CMAKE_EXE_LINKER_FLAGS "-static")
