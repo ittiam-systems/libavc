@@ -137,8 +137,8 @@ Codec::~Codec() {}
 void Codec::createCodec()
 {
     IV_API_CALL_STATUS_T ret;
-    ih264d_create_ip_t create_ip{};
-    ih264d_create_op_t create_op{};
+    isvcd_create_ip_t create_ip{};
+    isvcd_create_op_t create_op{};
     void *fxns = (void *) &ivd_api_function;
 
     create_ip.s_ivd_create_ip_t.e_cmd = IVD_CMD_CREATE;
@@ -147,8 +147,8 @@ void Codec::createCodec()
     create_ip.s_ivd_create_ip_t.pf_aligned_alloc = iv_aligned_malloc;
     create_ip.s_ivd_create_ip_t.pf_aligned_free = iv_aligned_free;
     create_ip.s_ivd_create_ip_t.pv_mem_ctxt = NULL;
-    create_ip.s_ivd_create_ip_t.u4_size = sizeof(ih264d_create_ip_t);
-    create_op.s_ivd_create_op_t.u4_size = sizeof(ih264d_create_op_t);
+    create_ip.s_ivd_create_ip_t.u4_size = sizeof(isvcd_create_ip_t);
+    create_op.s_ivd_create_op_t.u4_size = sizeof(isvcd_create_op_t);
 
     ret = ivd_api_function(NULL, (void *) &create_ip, (void *) &create_op);
     if(ret != IV_SUCCESS)
