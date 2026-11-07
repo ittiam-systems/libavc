@@ -17,7 +17,11 @@ set(AVC_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(AVC_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 option(ENABLE_MVC "Enables svcenc and svcdec builds" OFF)
 option(ENABLE_SVC "Enables svcenc and svcdec builds" OFF)
-option(ENABLE_TESTS "Enables gtest based unit tests" OFF)
+option(ENABLE_TESTS "Enables gtest based unit tests" ON)
+
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
 
 if("${AVC_ROOT}" STREQUAL "${AVC_CONFIG_DIR}")
   message(
@@ -41,6 +45,8 @@ if("${SYSTEM_NAME}" STREQUAL "Android")
 endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Threads REQUIRED)
 
 set(CMAKE_STATIC_LIBRARY_PREFIX "")
@@ -55,6 +61,9 @@ endif()
 include("${AVC_ROOT}/cmake/utils.cmake")
 
 libavc_add_compile_options()
+if (${ENABLE_TESTS})
+  libavc_add_gtest()
+endif()
 libavc_add_definitions()
 libavc_set_link_libraries()
 
@@ -91,5 +100,5 @@ if (${ENABLE_SVC})
 endif()
 
 if (${ENABLE_TESTS})
-    include("${AVC_ROOT}/tests/AvcEncTest.cmake")
+  include("${AVC_ROOT}/tests/common/common.cmake")
 endif()

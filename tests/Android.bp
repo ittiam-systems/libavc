@@ -1,0 +1,86 @@
+package {
+    // Inherit applicable licenses from root
+    default_team: "trendy_team_android_media_codec_framework",
+    default_applicable_licenses: ["external_libavc_license"],
+}
+
+// Decoder Test Helper Library
+cc_library_static {
+    name: "libavc_dec_helper",
+    host_supported: false,
+    srcs: [
+        "decoder/DecHelper.cpp",
+    ],
+    export_include_dirs: ["decoder"],
+    static_libs: [
+        "libavcdec",
+        "libavc_tests_common",
+        "libgtest",
+        "libgmock",
+    ],
+    shared_libs: [
+        "libcrypto",
+    ],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}
+
+// Encoder Test Helper Library
+cc_library_static {
+    name: "libavc_enc_helper",
+    host_supported: false,
+    srcs: [
+        "encoder/EncHelper.cpp",
+    ],
+    export_include_dirs: ["encoder"],
+    static_libs: [
+        "libavcenc",
+        "libavc_tests_common",
+    ],
+    shared_libs: [
+        "libcrypto",
+    ],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}
+
+cc_test {
+    name: "AvcTest",
+    gtest: true,
+    host_supported: false,
+    test_suites: ["device-tests"],
+
+    srcs: [
+        "decoder/DecTests.cpp",
+        "encoder/EncTests.cpp",
+    ],
+
+    static_libs: [
+        "libavcdec",
+        "libavcenc",
+        "libavc_dec_helper",
+        "libavc_enc_helper",
+        "libavc_tests_common",
+    ],
+
+    shared_libs: [
+        "libcrypto",
+    ],
+
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+
+    sanitize: {
+        misc_undefined: [
+            "signed-integer-overflow",
+            "unsigned-integer-overflow",
+        ],
+        //cfi: true,
+    },
+}
