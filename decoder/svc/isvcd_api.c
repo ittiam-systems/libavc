@@ -5415,6 +5415,12 @@ WORD32 isvcd_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                                     WORD32 i, bs_mb_grp;
                                     bs_mb_grp = ps_dec->cur_dec_mb_num - ps_dec->u4_cur_bs_mb_num;
 
+                                    /* decode thread exits on error; don't wait for it */
+                                    if((bs_mb_grp <= 0) && (ps_dec->i4_error_code != 0))
+                                    {
+                                        break;
+                                    }
+
                                     for(i = 0; i < bs_mb_grp; i++)
                                     {
                                         p_cur_mb =
