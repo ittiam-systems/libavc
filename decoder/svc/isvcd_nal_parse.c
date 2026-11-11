@@ -2072,7 +2072,7 @@ WORD32 isvcd_nal_parse_vcl_nal_partial(void *pv_nal_parse_ctxt, UWORD8 *pu1_stre
                 UWORD32 u4_buf_size;
 
                 /* clip the size before emulation prevention */
-                u4_buf_size = (UWORD32) CLIP3(0, (WORD32) *pu4_bytes_left,
+                u4_buf_size = (UWORD32) CLIP3(0, (WORD32) *pu4_bytes_left - 8,
                                               (ps_nal_unit->i4_buf_sizes - i4_nal_header_len));
 
                 u4_buf_inc = isvcd_nal_byte_swap_emulation(
@@ -2371,7 +2371,7 @@ WORD32 isvcd_nal_parse_non_vcl_nal(void *pv_nal_parse_ctxt, UWORD8 *pu1_stream_b
                 UWORD32 u4_buf_size;
 
                 /* clip the size before emulation prevention */
-                u4_buf_size = (UWORD32) CLIP3(0, (WORD32) *pu4_bytes_left,
+                u4_buf_size = (UWORD32) CLIP3(0, (WORD32) *pu4_bytes_left - 8,
                                               (ps_nal_unit->i4_buf_sizes - i4_nal_header_len));
 
                 u4_buf_inc = isvcd_nal_byte_swap_emulation(
