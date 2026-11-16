@@ -1,3 +1,5 @@
 # owners for external/libavc
 include platform/frameworks/av:/media/janitors/avic_OWNERS
 include platform/frameworks/av:/media/janitors/codec_OWNERS
+
+include platform/system/core:main:/janitors/OWNERS #{LAST_RESORT_SUGGESTION}
