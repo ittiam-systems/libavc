@@ -131,7 +131,7 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
     dec_svc_seq_params_t *ps_subset_seq = NULL;
     dec_subset_seq_params_t *ps_seq_svc_ext;
     UWORD8 u1_profile_idc, u1_level_idc, u1_seq_parameter_set_id, u1_mb_aff_flag = 0;
-    UWORD16 i2_max_frm_num;
+    UWORD32 u4_max_frm_num;
     UWORD32 *pu4_bitstrm_buf = ps_bitstrm->pu4_buffer;
     UWORD32 *pu4_bitstrm_ofst = &ps_bitstrm->u4_ofst;
     UWORD8 u1_frm, uc_constraint_set0_flag, uc_constraint_set1_flag, uc_constraint_set2_flag;
@@ -306,8 +306,8 @@ WORD32 isvcd_parse_subset_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stre
     ps_seq->u1_bits_in_frm_num = (UWORD8) u8_temp;
     COPYTHECONTEXT("SPS: log2_max_frame_num_minus4", (ps_seq->u1_bits_in_frm_num - 4));
 
-    i2_max_frm_num = (1 << (ps_seq->u1_bits_in_frm_num));
-    ps_seq->u2_u4_max_pic_num_minus1 = i2_max_frm_num - 1;
+    u4_max_frm_num = (1 << (ps_seq->u1_bits_in_frm_num));
+    ps_seq->u2_u4_max_pic_num_minus1 = u4_max_frm_num - 1;
     /*--------------------------------------------------------------------*/
     /* Decode picture order count and related values                      */
     /*--------------------------------------------------------------------*/
@@ -1093,7 +1093,7 @@ WORD32 isvcd_parse_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stream_t *p
     dec_seq_params_t *ps_seq = NULL;
     dec_svc_seq_params_t *ps_subset_seq = NULL;
     UWORD8 u1_profile_idc, u1_level_idc, u1_seq_parameter_set_id, u1_mb_aff_flag = 0;
-    UWORD16 i2_max_frm_num;
+    UWORD32 u4_max_frm_num;
     UWORD32 *pu4_bitstrm_buf = ps_bitstrm->pu4_buffer;
     UWORD32 *pu4_bitstrm_ofst = &ps_bitstrm->u4_ofst;
     UWORD8 u1_frm, uc_constraint_set0_flag, uc_constraint_set1_flag, uc_constraint_set2_flag;
@@ -1279,8 +1279,8 @@ WORD32 isvcd_parse_sps(svc_dec_lyr_struct_t *ps_svc_lyr_dec, dec_bit_stream_t *p
     ps_seq->u1_bits_in_frm_num = (UWORD8) u8_temp;
     COPYTHECONTEXT("SPS: log2_max_frame_num_minus4", (ps_seq->u1_bits_in_frm_num - 4));
 
-    i2_max_frm_num = (1 << (ps_seq->u1_bits_in_frm_num));
-    ps_seq->u2_u4_max_pic_num_minus1 = i2_max_frm_num - 1;
+    u4_max_frm_num = (1 << (ps_seq->u1_bits_in_frm_num));
+    ps_seq->u2_u4_max_pic_num_minus1 = u4_max_frm_num - 1;
     /*--------------------------------------------------------------------*/
     /* Decode picture order count and related values                      */
     /*--------------------------------------------------------------------*/

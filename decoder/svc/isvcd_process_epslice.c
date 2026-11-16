@@ -190,7 +190,7 @@ WORD32 isvcd_mv_pred_ref_tfr_nby2_epmb(dec_struct_t *ps_dec, UWORD32 u4_mb_idx, 
     dec_svc_mb_info_t *ps_svc_cur_mb_info;
     WORD32 i2_mv_x, i2_mv_y;
 
-    ps_dec->i4_submb_ofst -= (u4_num_mbs - u4_mb_idx) << 4;
+    ps_dec->i4_submb_ofst -= (WORD32) (u4_num_mbs - u4_mb_idx) << 4;
     ps_mb_part_info = ps_dec->ps_parse_mb_data;
     ps_part = ps_dec->ps_parse_part_params;
 
