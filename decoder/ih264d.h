@@ -123,14 +123,16 @@ typedef struct {
     UWORD32                                  u4_keep_threads_active;
 
     /**
-     * Flag specifying whether the decoder operates in thumbnail mode.
+     * Flag specifying whether reference retention is disabled.
      *
      * Values and corresponding behavior:
-     * 0: Normal decoding mode
-     * 1: Thumbnail mode (decodes only the first I/IDR frame and outputs
-     *    immediately without reorder delay)
+     * 0: Normal decoding mode where all references are retained.
+     * 1: Release references to frame and motion vector buffers once a picture
+     *    is returned for display. This mode skips decoding all the pictures
+     *    that refer prior decoded pictures and returns output in decode order
+     *    without reorder delay.
      */
-    UWORD32                                 u4_thumbnail_mode;
+    UWORD32                                 u4_disable_ref_retention;
 }ih264d_create_ip_t;
 
 

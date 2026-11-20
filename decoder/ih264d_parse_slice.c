@@ -769,7 +769,10 @@ WORD32 ih264d_end_of_pic_dispbuf_mgr(dec_struct_t * ps_dec)
             }
         }
 
-        if(ps_cur_slice->u1_nal_ref_idc)
+        if(ps_cur_slice->u1_nal_ref_idc &&
+           (!ps_dec->u4_disable_ref_retention ||
+            (ps_cur_slice->u1_field_pic_flag &&
+             ((TOP_FIELD_ONLY | BOT_FIELD_ONLY) != ps_dec->u1_top_bottom_decoded))))
         {
             /* Mark pic buf as needed for reference */
             ih264_buf_mgr_set_status((buf_mgr_t *)ps_dec->pv_pic_buf_mgr,
@@ -1111,10 +1114,9 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         u1_slice_type -= 5;
     }
 
-    if(ps_dec->u4_thumbnail_mode)
+    if(ps_dec->u4_disable_ref_retention)
     {
-        if(((u1_slice_type != I_SLICE) && (ps_dec->u4_total_frames_decoded == 0))
-                        || (ps_dec->u4_total_frames_decoded >= 2))
+        if((u1_slice_type != I_SLICE) && (0 == ps_dec->u1_top_bottom_decoded))
         {
             ps_dec->u4_slice_start_code_found = 0;
             return OK;

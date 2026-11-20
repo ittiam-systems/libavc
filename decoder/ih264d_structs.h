@@ -771,9 +771,9 @@ typedef struct _DecStruct
     UWORD8 i4_threads_active; /** Keeps thread active*/
 
     /**
-     * Controls whether the decoder operates in thumbnail mode
+     * Controls whether reference retention is disabled
      */
-    UWORD32 u4_thumbnail_mode;
+    UWORD32 u4_disable_ref_retention;
 
     UWORD16 u2_pic_wd; /** Width of the picture being decoded */
     UWORD16 u2_pic_ht; /** Height of the picture being decoded */
