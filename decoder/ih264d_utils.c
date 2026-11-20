@@ -547,7 +547,20 @@ WORD32 ih264d_end_of_pic_processing(dec_struct_t *ps_dec)
     u1_pic_type = 0;
     u1_nal_ref_idc = ps_cur_slice->u1_nal_ref_idc;
 
-    if(u1_nal_ref_idc)
+    if(ps_dec->u4_disable_ref_retention &&
+       (0 == ps_dec->u1_top_bottom_decoded))
+    {
+        /* Frame is complete; do not retain references across frames */
+        ih264d_reset_ref_bufs(ps_dec->ps_dpb_mgr);
+        ih264d_update_default_index_list(ps_dec->ps_dpb_mgr);
+        ih264_buf_mgr_release((buf_mgr_t *)ps_dec->pv_pic_buf_mgr,
+                              ps_dec->u1_pic_buf_id,
+                              BUF_MGR_REF);
+        ih264_buf_mgr_release((buf_mgr_t *)ps_dec->pv_mv_buf_mgr,
+                              ps_dec->as_buf_id_info_map[ps_dec->u1_pic_buf_id].mv_buf_id,
+                              BUF_MGR_REF);
+    }
+    else if(u1_nal_ref_idc)
     {
         if(ps_cur_slice->u1_nal_unit_type == IDR_SLICE_NAL)
         {
@@ -828,7 +841,8 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
 
         if(ps_dec->u4_share_disp_buf == 0)
         {
-            UWORD8 u1_num_ref_frames = ps_dec->u4_thumbnail_mode ? 0 : ps_seq->u1_num_ref_frames;
+            UWORD8 u1_num_ref_frames =
+                ps_dec->u4_disable_ref_retention ? 0 : ps_seq->u1_num_ref_frames;
             if(ps_seq->u1_frame_mbs_only_flag == 1)
                 ps_dec->u1_pic_bufs = ps_dec->i4_display_delay + u1_num_ref_frames + 1;
             else
@@ -839,7 +853,7 @@ WORD32 ih264d_init_pic(dec_struct_t *ps_dec,
             ps_dec->u1_pic_bufs = (WORD32)ps_dec->u4_num_disp_bufs;
         }
 
-        if(!ps_dec->u4_thumbnail_mode)
+        if(!ps_dec->u4_disable_ref_retention)
         {
             /* Ensure at least two buffers are allocated */
             ps_dec->u1_pic_bufs = MAX(ps_dec->u1_pic_bufs, 2);
@@ -2130,7 +2144,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
     /* Allocate MV bank buffer */
     {
         UWORD32 col_flag_buffer_size, mvpred_buffer_size;
-        UWORD8 u1_num_ref_frames = ps_dec->u4_thumbnail_mode ?
+        UWORD8 u1_num_ref_frames = ps_dec->u4_disable_ref_retention ?
                         !ps_dec->ps_cur_sps->u1_frame_mbs_only_flag :
                         ps_dec->ps_cur_sps->u1_num_ref_frames;
 
@@ -2141,7 +2155,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
         u4_num_bufs = u1_num_ref_frames + 1;
 
         u4_num_bufs = MIN(u4_num_bufs, ps_dec->u1_pic_bufs);
-        if(!ps_dec->u4_thumbnail_mode)
+        if(!ps_dec->u4_disable_ref_retention)
         {
             u4_num_bufs = MAX(u4_num_bufs, 2);
         }
@@ -2442,14 +2456,14 @@ WORD32 ih264d_create_mv_bank(void *pv_dec,
     ps_col_mv = ps_dec->ps_col_mv_base;
 
     {
-        UWORD8 u1_num_ref_frames = ps_dec->u4_thumbnail_mode ?
+        UWORD8 u1_num_ref_frames = ps_dec->u4_disable_ref_retention ?
                         !ps_dec->ps_cur_sps->u1_frame_mbs_only_flag :
                         ps_dec->ps_cur_sps->u1_num_ref_frames;
         u4_num_bufs = u1_num_ref_frames + 1;
     }
 
     u4_num_bufs = MIN(u4_num_bufs, ps_dec->u1_pic_bufs);
-    if(!ps_dec->u4_thumbnail_mode)
+    if(!ps_dec->u4_disable_ref_retention)
     {
         u4_num_bufs = MAX(u4_num_bufs, 2);
     }
