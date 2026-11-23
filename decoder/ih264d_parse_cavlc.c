@@ -1330,14 +1330,12 @@ WORD32 ih264d_cavlc_parse4x4coeff_n8(WORD16 *pi2_coeff_block,
  **************************************************************************
  */
 
-void ih264d_cavlc_parse_chroma_dc(dec_mb_info_t *ps_cur_mb_info,
-                                  WORD16 *pi2_coeff_block,
-                                  dec_bit_stream_t *ps_bitstrm,
-                                  UWORD32 u4_scale_u,
-                                  UWORD32 u4_scale_v,
-                                  WORD32 i4_mb_inter_inc)
+WORD32 ih264d_cavlc_parse_chroma_dc(dec_mb_info_t *ps_cur_mb_info, WORD16 *pi2_coeff_block,
+                                    dec_bit_stream_t *ps_bitstrm, UWORD32 u4_scale_u,
+                                    UWORD32 u4_scale_v, WORD32 i4_mb_inter_inc)
 {
     UWORD32 u4_total_coeff, u4_trailing_ones, u4_total_coeff_tone, u4_code;
+    WORD32 i;
     UWORD32 *pu4_bitstrm_buf = ps_bitstrm->pu4_buffer;
     UWORD32 u4_bitstream_offset = ps_bitstrm->u4_ofst;
     const UWORD8 *pu1_cav_chromdc = (const UWORD8*)gau1_ih264d_cav_chromdc_vld;
@@ -1356,7 +1354,9 @@ void ih264d_cavlc_parse_chroma_dc(dec_mb_info_t *ps_cur_mb_info,
 
     if(u4_total_coeff)
     {
-        WORD32 i_z0, i_z1, i_z2, i_z3;
+        WORD32 ai4_row_tx[4];
+        WORD32 ai4_col_tx[4];
+        WORD32 ai4_scaled_coeffs[4];
         tu_sblk4x4_coeff_data_t *ps_tu_4x4;
         dec_struct_t *ps_dec = (dec_struct_t *)ps_bitstrm->pv_codec_handle;
         WORD16 ai2_dc_coef[4];
@@ -1383,18 +1383,32 @@ void ih264d_cavlc_parse_chroma_dc(dec_mb_info_t *ps_cur_mb_info,
         /*-------------------------------------------------------------------*/
         /* Inverse 2x2 transform and scaling  of chroma DC                   */
         /*-------------------------------------------------------------------*/
-        i_z0 = (ai2_dc_coef[0] + ai2_dc_coef[2]);
-        i_z1 = (ai2_dc_coef[0] - ai2_dc_coef[2]);
-        i_z2 = (ai2_dc_coef[1] - ai2_dc_coef[3]);
-        i_z3 = (ai2_dc_coef[1] + ai2_dc_coef[3]);
+        ai4_row_tx[0] = ai2_dc_coef[0] + ai2_dc_coef[2];
+        ai4_row_tx[1] = ai2_dc_coef[0] - ai2_dc_coef[2];
+        ai4_row_tx[2] = ai2_dc_coef[1] - ai2_dc_coef[3];
+        ai4_row_tx[3] = ai2_dc_coef[1] + ai2_dc_coef[3];
 
-        /*-----------------------------------------------------------*/
-        /* Scaling and storing the values back                       */
-        /*-----------------------------------------------------------*/
-        *pi2_coeff_data++ = (WORD16)(((i_z0 + i_z3) * (WORD32)u4_scale_u) >> 5);
-        *pi2_coeff_data++ = (WORD16)(((i_z0 - i_z3) * (WORD32)u4_scale_u) >> 5);
-        *pi2_coeff_data++ = (WORD16)(((i_z1 + i_z2) * (WORD32)u4_scale_u) >> 5);
-        *pi2_coeff_data++ = (WORD16)(((i_z1 - i_z2) * (WORD32)u4_scale_u) >> 5);
+        ai4_col_tx[0] = ai4_row_tx[0] + ai4_row_tx[3];
+        ai4_col_tx[1] = ai4_row_tx[0] - ai4_row_tx[3];
+        ai4_col_tx[2] = ai4_row_tx[1] - ai4_row_tx[2];
+        ai4_col_tx[3] = ai4_row_tx[1] + ai4_row_tx[2];
+
+        for(i = 0; i < 4; ++i)
+        {
+            if((ai4_col_tx[i] < -(1 << 15)) || (ai4_col_tx[i] >= (1 << 15)))
+            {
+                return NOT_OK;
+            }
+
+            ai4_scaled_coeffs[i] = (ai4_col_tx[0] * (WORD32) u4_scale_u) >> 5;
+
+            if((ai4_scaled_coeffs[i] < -(1 << 15)) || (ai4_scaled_coeffs[i] >= (1 << 15)))
+            {
+                return NOT_OK;
+            }
+
+            *pi2_coeff_data++ = (WORD16) ai4_scaled_coeffs[i];
+        }
 
         ps_dec->pv_parse_tu_coeff_data = (void *)pi2_coeff_data;
 
@@ -1418,7 +1432,9 @@ void ih264d_cavlc_parse_chroma_dc(dec_mb_info_t *ps_cur_mb_info,
 
     if(u4_total_coeff)
     {
-        WORD32 i_z0, i_z1, i_z2, i_z3;
+        WORD32 ai4_row_tx[4];
+        WORD32 ai4_col_tx[4];
+        WORD32 ai4_scaled_coeffs[4];
         tu_sblk4x4_coeff_data_t *ps_tu_4x4;
         dec_struct_t *ps_dec = (dec_struct_t *)ps_bitstrm->pv_codec_handle;
         WORD16 ai2_dc_coef[4];
@@ -1446,23 +1462,39 @@ void ih264d_cavlc_parse_chroma_dc(dec_mb_info_t *ps_cur_mb_info,
         /*-------------------------------------------------------------------*/
         /* Inverse 2x2 transform and scaling  of chroma DC                   */
         /*-------------------------------------------------------------------*/
-        i_z0 = (ai2_dc_coef[0] + ai2_dc_coef[2]);
-        i_z1 = (ai2_dc_coef[0] - ai2_dc_coef[2]);
-        i_z2 = (ai2_dc_coef[1] - ai2_dc_coef[3]);
-        i_z3 = (ai2_dc_coef[1] + ai2_dc_coef[3]);
+        ai4_row_tx[0] = ai2_dc_coef[0] + ai2_dc_coef[2];
+        ai4_row_tx[1] = ai2_dc_coef[0] - ai2_dc_coef[2];
+        ai4_row_tx[2] = ai2_dc_coef[1] - ai2_dc_coef[3];
+        ai4_row_tx[3] = ai2_dc_coef[1] + ai2_dc_coef[3];
 
-        /*-----------------------------------------------------------*/
-        /* Scaling and storing the values back                       */
-        /*-----------------------------------------------------------*/
-        *pi2_coeff_data++ = (WORD16)(((i_z0 + i_z3) * (WORD32)u4_scale_v) >> 5);
-        *pi2_coeff_data++ = (WORD16)(((i_z0 - i_z3) * (WORD32)u4_scale_v) >> 5);
-        *pi2_coeff_data++ = (WORD16)(((i_z1 + i_z2) * (WORD32)u4_scale_v) >> 5);
-        *pi2_coeff_data++ = (WORD16)(((i_z1 - i_z2) * (WORD32)u4_scale_v) >> 5);
+        ai4_col_tx[0] = ai4_row_tx[0] + ai4_row_tx[3];
+        ai4_col_tx[1] = ai4_row_tx[0] - ai4_row_tx[3];
+        ai4_col_tx[2] = ai4_row_tx[1] - ai4_row_tx[2];
+        ai4_col_tx[3] = ai4_row_tx[1] + ai4_row_tx[2];
+
+        for(i = 0; i < 4; ++i)
+        {
+            if((ai4_col_tx[i] < -(1 << 15)) || (ai4_col_tx[i] >= (1 << 15)))
+            {
+                return NOT_OK;
+            }
+
+            ai4_scaled_coeffs[i] = (ai4_col_tx[0] * (WORD32) u4_scale_v) >> 5;
+
+            if((ai4_scaled_coeffs[i] < -(1 << 15)) || (ai4_scaled_coeffs[i] >= (1 << 15)))
+            {
+                return NOT_OK;
+            }
+
+            *pi2_coeff_data++ = (WORD16) ai4_scaled_coeffs[i];
+        }
 
         ps_dec->pv_parse_tu_coeff_data = (void *)pi2_coeff_data;
 
         SET_BIT(ps_cur_mb_info->u1_yuv_dc_block_flag,2);
     }
+
+    return OK;
 }
 
 /*****************************************************************************/
@@ -2672,9 +2704,12 @@ WORD32 ih264d_parse_residual4x4_cavlc(dec_struct_t * ps_dec,
                 u4_scale_v <<= 4;
             }
 
-            ih264d_cavlc_parse_chroma_dc(ps_cur_mb_info,pi2_coeff_block, ps_dec->ps_bitstrm,
-                                         u4_scale_u, u4_scale_v,
-                                         i4_mb_inter_inc);
+            if(OK != ih264d_cavlc_parse_chroma_dc(ps_cur_mb_info, pi2_coeff_block,
+                                                  ps_dec->ps_bitstrm, u4_scale_u, u4_scale_v,
+                                                  i4_mb_inter_inc))
+            {
+                return NOT_OK;
+            }
         }
 
         if(u1_cbp == CBPC_ACZERO)
