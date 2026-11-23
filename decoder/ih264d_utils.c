@@ -2285,6 +2285,42 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
 
 /*!
  **************************************************************************
+ * \if Function name : ih264d_free_buf_mgr_mutexes \endif
+ *
+ * \brief
+ *    Destroys the mutexes of the picture and MV buffer managers if they were
+ *    initialized. The buffer managers are initialized again whenever the
+ *    picture buffers are created, so their mutexes have to be destroyed
+ *    before that, before ih264d_init_decoder() clears the managers, and
+ *    when the decoder is deleted. Otherwise each of these leaks a mutex on
+ *    platforms where mutexes hold resources.
+ *
+ * \param ps_dec: Pointer to dec_struct_t.
+ *
+ * \return
+ *    None
+ *
+ **************************************************************************
+ */
+static void ih264d_free_buf_mgr_mutexes(dec_struct_t *ps_dec)
+{
+    buf_mgr_t *ps_pic_buf_mgr = (buf_mgr_t *)ps_dec->pv_pic_buf_mgr;
+    buf_mgr_t *ps_mv_buf_mgr = (buf_mgr_t *)ps_dec->pv_mv_buf_mgr;
+
+    if(ps_pic_buf_mgr && ps_pic_buf_mgr->pv_mutex)
+    {
+        ih264_buf_mgr_free(ps_pic_buf_mgr);
+        ps_pic_buf_mgr->pv_mutex = NULL;
+    }
+    if(ps_mv_buf_mgr && ps_mv_buf_mgr->pv_mutex)
+    {
+        ih264_buf_mgr_free(ps_mv_buf_mgr);
+        ps_mv_buf_mgr->pv_mutex = NULL;
+    }
+}
+
+/*!
+ **************************************************************************
  * \if Function name : ih264d_free_dynamic_bufs \endif
  *
  * \brief
@@ -2299,6 +2335,7 @@ WORD16 ih264d_allocate_dynamic_bufs(dec_struct_t * ps_dec)
  */
 WORD16 ih264d_free_dynamic_bufs(dec_struct_t * ps_dec)
 {
+    ih264d_free_buf_mgr_mutexes(ps_dec);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->ps_deblk_pic);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_dec_mb_map);
     PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_recon_mb_map);

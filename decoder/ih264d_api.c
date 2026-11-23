@@ -1145,6 +1145,12 @@ void ih264d_init_decoder(void * ps_dec_params)
     pocstruct_t *ps_prev_poc, *ps_cur_poc;
     WORD32 size;
 
+    /* Free any dynamic buffers that are allocated. This has to happen before
+     * the buffer managers are cleared below, so that their mutexes can be
+     * destroyed. */
+    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_bits_buf_dynamic);
+    ih264d_free_dynamic_bufs(ps_dec);
+
     size = sizeof(pred_info_t) * 2 * 32;
     memset(ps_dec->ps_pred, 0 , size);
 
@@ -1183,10 +1189,6 @@ void ih264d_init_decoder(void * ps_dec_params)
 
     size = sizeof(buf_mgr_t) + ithread_get_mutex_lock_size();
     memset(ps_dec->pv_mv_buf_mgr, 0, size);
-
-    /* Free any dynamic buffers that are allocated */
-    PS_DEC_ALIGNED_FREE(ps_dec, ps_dec->pu1_bits_buf_dynamic);
-    ih264d_free_dynamic_bufs(ps_dec);
 
     {
         UWORD8 i;
