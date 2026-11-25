@@ -99,11 +99,17 @@ TEST_P(DecStreamTestFixture, DecodeDisableRefRetention) {
   constexpr size_t kNumCores = 3;
   const auto& config = GetParam();
   std::string inputPath = getFullPath(config.inputFile);
+  std::string sanitizedName = config.inputFile;
+  for (char& c : sanitizedName) {
+    if (c == '/' || c == '\\') {
+      c = '_';
+    }
+  }
   std::string intraBitstreamPath =
-      ::testing::TempDir() + "disable_ref_retention_intra_" + config.inputFile;
-  std::string intraMd5Path = ::testing::TempDir() +
-                             "disable_ref_retention_intra_" + config.inputFile +
-                             ".md5";
+      ::testing::TempDir() + "disable_ref_retention_intra_" + sanitizedName;
+  std::string intraMd5Path =
+      ::testing::TempDir() + "disable_ref_retention_intra_" + sanitizedName +
+      ".md5";
   TempFileGuard intraBitstreamGuard{intraBitstreamPath};
   TempFileGuard intraMd5Guard{intraMd5Path};
 
