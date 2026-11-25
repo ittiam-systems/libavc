@@ -1119,7 +1119,7 @@ WORD32 ih264d_parse_decode_slice(UWORD8 u1_is_idr_slice,
         if((u1_slice_type != I_SLICE) && (0 == ps_dec->u1_top_bottom_decoded))
         {
             ps_dec->u4_slice_start_code_found = 0;
-            return OK;
+            return IVD_DEC_FRM_SKIPPED;
         }
     }
 

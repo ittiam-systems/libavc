@@ -2020,6 +2020,9 @@ UWORD32 ih264d_map_error(UWORD32 i4_err_status)
             temp = 1 << IVD_APPLIEDCONCEALMENT;
             break;
 
+        case IVD_DEC_FRM_SKIPPED:
+            break;
+
     }
 
     return temp;
@@ -2166,6 +2169,7 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
     UWORD32 u4_next_is_aud;
     UWORD32 u4_first_start_code_found = 0;
     WORD32 ret = 0,api_ret_value = IV_SUCCESS;
+    WORD32 frm_skipped = 0;
     WORD32 header_data_left = 0,frame_data_left = 0;
     UWORD8 *pu1_bitstrm_buf;
     ih264d_video_decode_ip_t *ps_h264d_dec_ip;
@@ -2621,7 +2625,12 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
 
         ret = ih264d_parse_nal_unit(dec_hdl, ps_dec_op,
                               pu1_bitstrm_buf, buflen);
-        if(ret != OK)
+        if(ret == IVD_DEC_FRM_SKIPPED)
+        {
+            frm_skipped = 1;
+            ret = OK;
+        }
+        else if(ret != OK)
         {
             UWORD32 error =  ih264d_map_error(ret);
             ps_dec_op->u4_error_code = error | ret;
@@ -2967,6 +2976,20 @@ WORD32 ih264d_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                 ps_dec->as_buf_id_info_map[disp_buf_id].pu1_mb_type_map,
                 ps_dec->u4_total_mbs << 2);
         }
+    }
+
+    /* Report IVD_DEC_FRM_SKIPPED only when disable_ref_retention skipped
+     * slice(s) without producing a picture or encountering another error,
+     * so preceding skipped slices do not fail a decoded I-frame or mask
+     * header/slice errors (e.g., IVD_RES_CHANGED). Mapped without
+     * IVD_FATALERROR in ih264d_map_error(). */
+    if((0 == ps_dec->u4_pic_buf_got) && (0 == ps_dec->i4_error_code) &&
+       (0 == ps_dec_op->u4_error_code) && (IV_SUCCESS == api_ret_value) &&
+       (OK == ret) && frm_skipped)
+    {
+        ps_dec->i4_error_code = IVD_DEC_FRM_SKIPPED;
+        ps_dec_op->u4_error_code = ih264d_map_error(IVD_DEC_FRM_SKIPPED) | IVD_DEC_FRM_SKIPPED;
+        api_ret_value = IV_FAIL;
     }
 
     /*Data memory barrier instruction,so that yuv write by the library is complete*/
