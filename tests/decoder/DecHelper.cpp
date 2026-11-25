@@ -174,23 +174,6 @@ std::unique_ptr<DecHelper> DecHelper::Builder::build() {
     }
   }
 
-  // Open output MD5 file if path is provided
-  if (mOutputMd5Path.has_value()) {
-    helper->mOutputMd5File.open(*mOutputMd5Path);
-    if (!helper->mOutputMd5File.is_open()) {
-      return nullptr;
-    }
-  }
-
-  // Open output sync-frame bitstream file if path is provided
-  if (mOutputSyncFramesPath.has_value()) {
-    helper->mOutputSyncFramesFile.open(*mOutputSyncFramesPath,
-                                       std::ios::binary);
-    if (!helper->mOutputSyncFramesFile.is_open()) {
-      return nullptr;
-    }
-  }
-
   // Initialize native decoder (allocates mInputBuf internally)
   if (!helper->initDecoder()) {
     return nullptr;
@@ -344,20 +327,6 @@ bool DecHelper::decodeHeader(size_t& bytesConsumed) {
     return false;
   }
 
-  if (mOutputSyncFramesFile.is_open() && bytesConsumed > 0) {
-    if (bytesConsumed > mInputBuf.size()) {
-      bytesConsumed = 0;
-      return false;
-    }
-    mOutputSyncFramesFile.write(
-        reinterpret_cast<const char*>(mInputBuf.data()),
-        static_cast<std::streamsize>(bytesConsumed));
-    if (!mOutputSyncFramesFile.good()) {
-      bytesConsumed = 0;
-      return false;
-    }
-  }
-
   if (decodeOp.s_ivd_video_decode_op_t.u4_pic_wd == 0 ||
       decodeOp.s_ivd_video_decode_op_t.u4_pic_ht == 0) {
     return false;
@@ -440,30 +409,9 @@ bool DecHelper::decodeFrame(size_t& bytesConsumed, bool& frameReady,
     return false;
   }
 
-  bool isSyncFrame =
-      !noInput &&
-      (decodeOp.s_ivd_video_decode_op_t.e_pic_type == IV_I_FRAME ||
-       decodeOp.s_ivd_video_decode_op_t.e_pic_type == IV_IDR_FRAME);
-
-  if (mOutputSyncFramesFile.is_open() && isSyncFrame && bytesConsumed > 0) {
-    if (bytesConsumed > mInputBuf.size() - mInputBuf.offset()) {
-      return false;
-    }
-    mOutputSyncFramesFile.write(
-        reinterpret_cast<const char*>(mInputBuf.data() + mInputBuf.offset()),
-        static_cast<std::streamsize>(bytesConsumed));
-    if (!mOutputSyncFramesFile.good()) {
-      return false;
-    }
-  }
-
   // Check if a frame has been decoded and is ready for display
   if (decodeOp.s_ivd_video_decode_op_t.u4_output_present == 1) {
     frameReady = true;
-
-    if (mDisableRefRetention && !isSyncFrame) {
-      return false;
-    }
 
     // Process the decoded frame directly inside decodeFrame
     processDecodedFrame(mOutputBuf, frameIndex);
@@ -540,18 +488,11 @@ void DecHelper::processDecodedFrame(RawBuf& buf, size_t& frameIndex) {
     mOutFile.write(buf);
   }
 
-  bool needRefMd5 = frameIndex < mRefMd5s.size();
-  bool needOutMd5 = mOutputMd5File.is_open();
-  if (needRefMd5 || needOutMd5) {
+  if (frameIndex < mRefMd5s.size()) {
     std::string computedMd5 = computeFrameMd5(buf);
-    if (needRefMd5) {
-      EXPECT_THAT(computedMd5, Eq(mRefMd5s[frameIndex]))
-          << "MD5 mismatch at decoded frame " << frameIndex << " of file "
-          << *mInputFilePath;
-    }
-    if (needOutMd5) {
-      mOutputMd5File << computedMd5 << " " << (frameIndex + 1) << "\n";
-    }
+    EXPECT_THAT(computedMd5, Eq(mRefMd5s[frameIndex]))
+        << "MD5 mismatch at decoded frame " << frameIndex << " of file "
+        << *mInputFilePath;
   }
   frameIndex++;
 }
@@ -602,20 +543,6 @@ bool DecHelper::decodeFile() {
   }
 
   mOutFile.close();
-
-  if (mOutputMd5File.is_open()) {
-    mOutputMd5File.flush();
-    if (!mOutputMd5File.good()) {
-      return false;
-    }
-  }
-
-  if (mOutputSyncFramesFile.is_open()) {
-    mOutputSyncFramesFile.flush();
-    if (!mOutputSyncFramesFile.good()) {
-      return false;
-    }
-  }
 
   return true;
 }
