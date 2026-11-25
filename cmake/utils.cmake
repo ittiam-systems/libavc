@@ -10,7 +10,7 @@ function(libavc_add_compile_options)
   else()
     add_compile_options(-msse4.2 -mavx2 -mfma)
   endif()
-  add_compile_options(-Wdeclaration-after-statement)
+  add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wdeclaration-after-statement>)
 
   set(CMAKE_REQUIRED_FLAGS -fsanitize=fuzzer-no-link)
   check_cxx_compiler_flag(-fsanitize=fuzzer-no-link
