@@ -5421,6 +5421,11 @@ WORD32 isvcd_video_decode(iv_obj_t *dec_hdl, void *pv_api_ip, void *pv_api_op)
                                         break;
                                     }
 
+                                    if(bs_mb_grp > 0)
+                                    {
+                                        DATA_SYNC();
+                                    }
+
                                     for(i = 0; i < bs_mb_grp; i++)
                                     {
                                         p_cur_mb =
