@@ -236,6 +236,7 @@ WORD32 ih264d_decode_recon_tfr_nmb_thread(dec_struct_t * ps_dec,
         CHECK_MB_MAP_BYTE(u4_mb_num, ps_dec->pu1_dec_mb_map, u4_cond);
         if(u4_cond)
         {
+            DATA_SYNC();
             break;
         }
         else
@@ -462,6 +463,7 @@ WORD32 ih264d_decode_slice_thread(dec_struct_t *ps_dec)
         CHECK_MB_MAP_BYTE(u4_mb_num, ps_dec->pu1_dec_mb_map, u4_cond);
         if(u4_cond)
         {
+            DATA_SYNC();
             break;
         }
         else

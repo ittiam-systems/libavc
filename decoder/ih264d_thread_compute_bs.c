@@ -349,6 +349,7 @@ void ih264d_check_mb_map_deblk(dec_struct_t *ps_dec,
 
             if(u4_cond)
             {
+                DATA_SYNC();
                 break;
             }
             else
@@ -414,6 +415,7 @@ void ih264d_recon_deblk_slice(dec_struct_t *ps_dec, tfr_ctxt_t *ps_tfr_cxt)
         CHECK_MB_MAP_BYTE(u4_mb_num, ps_dec->pu1_recon_mb_map, u4_cond);
         if(u4_cond)
         {
+            DATA_SYNC();
             break;
         }
         else
@@ -551,6 +553,7 @@ void ih264d_recon_deblk_slice(dec_struct_t *ps_dec, tfr_ctxt_t *ps_tfr_cxt)
             CHECK_MB_MAP_BYTE(u4_mb_num, ps_dec->pu1_recon_mb_map, u4_cond);
             if(u4_cond)
             {
+                DATA_SYNC();
                 break;
             }
             else
