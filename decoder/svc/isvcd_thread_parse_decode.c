@@ -106,6 +106,7 @@ WORD32 isvcd_decode_recon_tfr_nmb_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec, U
         CHECK_MB_MAP_BYTE(u4_mb_num, ps_dec->pu1_dec_mb_map, u4_cond);
         if(u4_cond)
         {
+            DATA_SYNC();
             break;
         }
         else
@@ -400,6 +401,7 @@ WORD32 isvcd_decode_slice_thread(svc_dec_lyr_struct_t *ps_svc_lyr_dec)
         CHECK_MB_MAP_BYTE(u4_mb_num, ps_dec->pu1_dec_mb_map, u4_cond);
         if(u4_cond)
         {
+            DATA_SYNC();
             break;
         }
         else
