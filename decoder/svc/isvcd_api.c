@@ -341,6 +341,14 @@ static IV_API_CALL_STATUS_T api_check_struct_sanity(iv_obj_t *ps_handle, void *p
                     IVD_OP_API_STRUCT_SIZE_INCORRECT;
                 return (IV_FAIL);
             }
+
+            /* u4_disp_buf_id indexes u4_disp_buf_mapping[] and */
+            /* u4_disp_buf_to_be_freed[], both MAX_DISP_BUFS_NEW entries */
+            if(ps_ip->s_ivd_rel_display_frame_ip_t.u4_disp_buf_id >= MAX_DISP_BUFS_NEW)
+            {
+                ps_op->s_ivd_rel_display_frame_op_t.u4_error_code |= 1 << IVD_UNSUPPORTEDPARAM;
+                return (IV_FAIL);
+            }
         }
         break;
 

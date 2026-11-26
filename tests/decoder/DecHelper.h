@@ -31,6 +31,14 @@
 #include "RawFile.h"
 #include "TestEnums.h"
 
+// Number of display buffer slots the decoder tracks, i.e. the valid range of
+// u4_disp_buf_id in IVD_CMD_REL_DISPLAY_FRAME.
+extern const uint32_t kMaxDispBufs;
+
+// Creates a decoder instance, issues IVD_CMD_REL_DISPLAY_FRAME with the given
+// u4_disp_buf_id and returns true if the library rejected the call.
+bool relDisplayFrameRejected(uint32_t dispBufId);
+
 class DecHelper {
  public:
   class Builder {

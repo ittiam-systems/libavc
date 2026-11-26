@@ -40,6 +40,7 @@ extern "C" {
 #include "iv.h"
 #include "ivd.h"
 #include "ih264d.h"
+#include "ih264d_defs.h"
 }
 // clang-format on
 
@@ -66,6 +67,49 @@ static void alignedFree(void* pv_ctxt, void* pv_buf) {
 #else
   free(pv_buf);
 #endif
+}
+
+const uint32_t kMaxDispBufs = MAX_DISP_BUFS_NEW;
+
+bool relDisplayFrameRejected(uint32_t dispBufId) {
+  ih264d_create_ip_t createIp = {};
+  ih264d_create_op_t createOp = {};
+
+  createIp.s_ivd_create_ip_t.e_cmd = IVD_CMD_CREATE;
+  createIp.s_ivd_create_ip_t.u4_share_disp_buf = 0;
+  createIp.s_ivd_create_ip_t.e_output_format = IV_YUV_420P;
+  createIp.s_ivd_create_ip_t.pf_aligned_alloc = alignedAlloc;
+  createIp.s_ivd_create_ip_t.pf_aligned_free = alignedFree;
+  createIp.s_ivd_create_ip_t.pv_mem_ctxt = nullptr;
+  createIp.s_ivd_create_ip_t.u4_size = sizeof(ih264d_create_ip_t);
+  createOp.s_ivd_create_op_t.u4_size = sizeof(ih264d_create_op_t);
+
+  if (IV_SUCCESS != ih264d_api_function(nullptr, &createIp, &createOp)) {
+    return false;
+  }
+
+  iv_obj_t* codec =
+      static_cast<iv_obj_t*>(createOp.s_ivd_create_op_t.pv_handle);
+  codec->pv_fxns = (void*)&ih264d_api_function;
+  codec->u4_size = sizeof(iv_obj_t);
+
+  ivd_rel_display_frame_ip_t relIp = {};
+  ivd_rel_display_frame_op_t relOp = {};
+  relIp.e_cmd = IVD_CMD_REL_DISPLAY_FRAME;
+  relIp.u4_disp_buf_id = dispBufId;
+  relIp.u4_size = sizeof(ivd_rel_display_frame_ip_t);
+  relOp.u4_size = sizeof(ivd_rel_display_frame_op_t);
+
+  bool rejected = (IV_SUCCESS != ih264d_api_function(codec, &relIp, &relOp));
+
+  ih264d_delete_ip_t deleteIp = {};
+  ih264d_delete_op_t deleteOp = {};
+  deleteIp.s_ivd_delete_ip_t.e_cmd = IVD_CMD_DELETE;
+  deleteIp.s_ivd_delete_ip_t.u4_size = sizeof(ih264d_delete_ip_t);
+  deleteOp.s_ivd_delete_op_t.u4_size = sizeof(ih264d_delete_op_t);
+  ih264d_api_function(codec, &deleteIp, &deleteOp);
+
+  return rejected;
 }
 
 static IVD_ARCH_T getDefaultArch() {
