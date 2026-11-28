@@ -69,6 +69,7 @@ cc_test {
 
     shared_libs: [
         "libcrypto",
+        "liblog",
     ],
 
     cflags: [
