@@ -119,6 +119,17 @@ TEST_P(DecStreamTestFixture, DecodeDisableRefRetention) {
       << "Decoded frame count mismatch for input: " << inputPath;
 }
 
+// u4_disp_buf_id reaches the decoder from the application and indexes two
+// fixed size arrays in the decoder context, so ids outside that range have to
+// be rejected before they are used.
+TEST(DecApiTest, RelDisplayFrameRejectsOutOfRangeDispBufId) {
+  EXPECT_FALSE(relDisplayFrameRejected(0));
+  EXPECT_FALSE(relDisplayFrameRejected(kMaxDispBufs - 1));
+  EXPECT_TRUE(relDisplayFrameRejected(kMaxDispBufs));
+  EXPECT_TRUE(relDisplayFrameRejected(kMaxDispBufs * 32));
+  EXPECT_TRUE(relDisplayFrameRejected(UINT32_MAX));
+}
+
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(DecStreamTestFixture);
 
 INSTANTIATE_TEST_SUITE_P(DecoderRegression, DecTestFixture,
